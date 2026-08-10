@@ -1,0 +1,45 @@
+/* src/app/features/automotores/presentation/styles-automotores.css */
+@theme {
+  /* ----------------------------------------------------
+     COLORES EXCLUSIVOS - MÓDULO VEHÍCULOS / AUTOMOTORES
+     ---------------------------------------------------- */
+  /* Azules Corporativos */
+  --color-vehiculos-brand-dark: #0f3067;      /* Azul oscuro de la barra superior y cabecera de tabla */
+  --color-vehiculos-brand-light: #1e4b8f;     /* Azul secundario para elementos de selección o botones secundarios */
+  --color-vehiculos-bg-main: #f4f6f9;         /* Gris muy claro del fondo de la pantalla */
+  --color-vehiculos-bg-card: #ffffff;         /* Blanco puro para los paneles/tarjetas superiores */
+
+  /* Identificadores y Alertas (Estados) */
+  --color-vehiculos-placa-bg: #ffd100;        /* Amarillo vibrante de fondo para las placas de los carros */
+  --color-vehiculos-placa-text: #1a1a1a;      /* Texto oscuro de alta visibilidad para la placa */
+  
+  --color-vehiculos-status-active-bg: #e6f7ed;   /* Verde claro para el fondo de etiquetas activas */
+  --color-vehiculos-status-active-text: #198754; /* Verde oscuro para el texto de etiquetas activas */
+  --color-vehiculos-status-inactive-bg: #fdf2f2; /* Rojo/Rosa claro para el fondo de etiquetas inactivas */
+  --color-vehiculos-status-inactive-text: #dc3545;/* Rojo oscuro para el texto de etiquetas inactivas */
+
+  /* Acciones Principales */
+  --color-vehiculos-action-success: #28a745;   /* Verde del botón principal "+ Registrar Vehículo" */
+  --color-vehiculos-action-icon: #495057;      /* Gris intermedio para los iconos de navegación lateral */
+
+  /* Bordes y Separadores */
+  --color-vehiculos-border-card: #e9ecef;     /* Gris suave para las líneas divisorias y bordes de tarjetas */
+
+
+  /* ----------------------------------------------------
+     TIPOGRAFÍA Y FUENTES - MÓDULO VEHÍCULOS
+     ---------------------------------------------------- */
+  /* Definición de la fuente principal (Inter o Roboto calzan perfecto con tu diseño institucional) */
+  --font-vehiculos-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+
+  /* Tamaños de Texto de la Interfaz */
+  --text-vehiculos-title: 1.5rem;             /* Para el título principal "Módulo Vehículos — Expediente Vehicular" */
+  --text-vehiculos-subtitle: 1.25rem;         /* Para los números grandes en las tarjetas ($49,799 / 2026) */
+  --text-vehiculos-body: 0.875rem;            /* Tamaño base de la tabla y textos secundarios (14px) */
+  --text-vehiculos-caption: 0.75rem;          /* Para textos muy pequeños o etiquetas de estado inferiores (12px) */
+
+  /* Pesos de Fuente Relevantes */
+  --font-weight-vehiculos-bold: 700;          /* Para títulos, placas y números clave */
+  --font-weight-vehiculos-medium: 500;        /* Para encabezados de tablas y botones */
+  --font-weight-vehiculos-normal: 400;        /* Para los datos y descripciones dentro de la tabla */
+}
