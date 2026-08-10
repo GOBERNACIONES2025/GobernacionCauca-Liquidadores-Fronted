@@ -1,0 +1,383 @@
+<div class="flex flex-col h-screen w-full bg-[#182235] text-slate-100 font-sans overflow-hidden">
+  <!-- TOP NAVBAR -->
+  <header class="h-16 bg-[#182235] text-white flex items-center justify-between px-4 z-20 border-b border-slate-700/60 shadow-sm shrink-0">
+    <!-- Left Section: Logo, Title & Mobile/Sidebar Toggle -->
+    <div class="flex items-center space-x-3">
+      <!-- Sidebar Toggle Button -->
+      <button
+        (click)="toggleSidebar()"
+        type="button"
+        class="p-2 rounded-lg bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none transition cursor-pointer"
+        title="Alternar Menú"
+      >
+        <i class="fa-solid fa-bars text-base"></i>
+      </button>
+
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-sm">
+          <i class="fa-solid fa-car-side text-base"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] font-bold tracking-widest text-blue-400 uppercase leading-none">Vehicular</span>
+          <span class="text-base font-extrabold text-white tracking-tight leading-tight">Gobernación Cauca</span>
+        </div>
+      </div>
+
+      <!-- Quick Breadcrumbs in Header (Desktop) -->
+      <nav class="hidden lg:flex items-center space-x-2 pl-4 ml-4 border-l border-slate-700/70 text-xs text-slate-300">
+        <span class="text-slate-400 hover:text-slate-200 transition cursor-pointer">Inicio</span>
+        <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+        <span class="text-slate-400 hover:text-slate-200 transition cursor-pointer">Módulo Vehicular</span>
+        <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+        <span class="font-semibold text-white">Expediente Vehicular</span>
+      </nav>
+    </div>
+
+    <!-- Center Section: Search Bar -->
+    <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+      <div class="relative w-full">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </div>
+        <input
+          type="text"
+          placeholder="Buscar placa, CC, NIT..."
+          class="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-800/80 border border-slate-700/80 rounded-lg text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+        />
+      </div>
+    </div>
+
+    <!-- Right Section: Notifications & User Profile -->
+    <div class="flex items-center space-x-3">
+      <!-- Notification Icon -->
+      <button type="button" class="relative p-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition" title="Notificaciones">
+        <i class="fa-solid fa-bell text-base"></i>
+        <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">3</span>
+      </button>
+
+      <!-- User Profile Menu -->
+      <div class="relative">
+        <button
+          (click)="toggleProfileMenu()"
+          type="button"
+          class="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-slate-800 transition focus:outline-none cursor-pointer"
+        >
+          <div class="w-8 h-8 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
+            SD
+          </div>
+          <div class="hidden sm:flex flex-col text-left">
+            <span class="text-xs font-semibold text-white leading-tight">Samuel Díaz</span>
+            <span class="text-[10px] text-slate-400 leading-none">Gestor Tributario</span>
+          </div>
+          <i class="fa-solid fa-chevron-down text-xs text-slate-400"></i>
+        </button>
+
+        <!-- Dropdown Menu -->
+        @if (isProfileMenuOpen()) {
+          <div class="absolute right-0 mt-2 w-48 bg-[#1e293b] rounded-lg shadow-xl py-1 border border-slate-700 z-30">
+            <a href="#" class="block px-4 py-2 text-xs text-slate-200 hover:bg-slate-700 font-medium">
+              <i class="fa-solid fa-user text-xs mr-2 text-slate-400"></i>Mi Perfil
+            </a>
+            <button
+              (click)="toggleConfig(); toggleProfileMenu()"
+              type="button"
+              class="w-full text-left block px-4 py-2 text-xs text-slate-200 hover:bg-slate-700 font-medium cursor-pointer"
+            >
+              <i class="fa-solid fa-gear text-xs mr-2 text-slate-400"></i>Configuración
+            </button>
+            <div class="border-t border-slate-700 my-1"></div>
+            <a href="#" class="block px-4 py-2 text-xs text-rose-400 hover:bg-slate-700 font-medium">
+              <i class="fa-solid fa-right-from-bracket text-xs mr-2 text-rose-400"></i>Cerrar Sesión
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+  </header>
+
+  <!-- BODY CONTENT AREA: MAIN SIDEBAR + SECONDARY CONFIG SIDEBAR + ROUTER OUTLET -->
+  <div class="flex flex-1 overflow-hidden relative bg-[#182235]">
+    <!-- MAIN SIDEBAR -->
+    <aside
+      [class.w-64]="isSidebarOpen()"
+      [class.w-16]="!isSidebarOpen()"
+      class="bg-[#121927] border-r border-slate-700/60 flex flex-col justify-between shrink-0 transition-all duration-300 z-10"
+    >
+      <!-- Navigation Links Container -->
+      <div class="flex-1 overflow-y-auto py-3 space-y-6">
+        <!-- Section 1: MÓDULO TRIBUTARIO -->
+        <div>
+          @if (isSidebarOpen()) {
+            <h3 class="px-4 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+              Módulo Tributario
+            </h3>
+          }
+          <nav class="space-y-1 px-2">
+            <!-- Vehículos / Automotores -->
+            <a
+              routerLink="/automotores/vehiculos"
+              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
+              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              [title]="isSidebarOpen() ? '' : 'Vehículos'"
+            >
+              <i class="fa-solid fa-car text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Vehículos</span>
+              }
+            </a>
+
+            <!-- Contribuyentes -->
+            <a
+              routerLink="/automotores/contribuyentes"
+              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
+              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              [title]="isSidebarOpen() ? '' : 'Contribuyentes'"
+            >
+              <i class="fa-solid fa-users text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Contribuyentes</span>
+              }
+            </a>
+
+            <!-- Valores Estatales -->
+            <a
+              routerLink="/automotores/valores-estatales"
+              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
+              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              [title]="isSidebarOpen() ? '' : 'Valores Estatales'"
+            >
+              <i class="fa-solid fa-coins text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Valores Estatales</span>
+              }
+            </a>
+
+            <!-- Facturación -->
+            <a
+              routerLink="/automotores/facturacion"
+              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
+              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              [title]="isSidebarOpen() ? '' : 'Facturación'"
+            >
+              <i class="fa-solid fa-file-invoice-dollar text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Facturación</span>
+              }
+            </a>
+
+            <!-- Certificados -->
+            <a
+              routerLink="/automotores/certificados"
+              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
+              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              [title]="isSidebarOpen() ? '' : 'Certificados'"
+            >
+              <i class="fa-solid fa-certificate text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Certificados</span>
+              }
+            </a>
+          </nav>
+        </div>
+
+        <!-- Section 2: SISTEMA -->
+        <div>
+          @if (isSidebarOpen()) {
+            <h3 class="px-4 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+              Sistema
+            </h3>
+          }
+          <nav class="space-y-1 px-2">
+            <!-- Auditoría -->
+            <a
+              routerLink="/automotores/auditoria"
+              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
+              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              [title]="isSidebarOpen() ? '' : 'Auditoría'"
+            >
+              <i class="fa-solid fa-clipboard-check text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Auditoría</span>
+              }
+            </a>
+
+            <!-- Reglas Tributarias -->
+            <a
+              routerLink="/automotores/reglas-tributarias"
+              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
+              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              [title]="isSidebarOpen() ? '' : 'Reglas Tributarias'"
+            >
+              <i class="fa-solid fa-scale-balanced text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Reglas Tributarias</span>
+              }
+            </a>
+
+            <!-- Configuración (Boton de activacion del sidebar secundario) -->
+            <button
+              (click)="toggleConfig()"
+              type="button"
+              [class.bg-blue-600/30]="isConfigOpen()"
+              [class.text-blue-400]="isConfigOpen()"
+              [class.border-l-2]="isConfigOpen()"
+              [class.border-blue-500]="isConfigOpen()"
+              class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group cursor-pointer"
+              [title]="isSidebarOpen() ? '' : 'Configuración'"
+            >
+              <i class="fa-solid fa-gear text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Configuración</span>
+              }
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Footer Version -->
+      @if (isSidebarOpen()) {
+        <div class="border-t border-slate-700/60 p-4 text-[11px] text-slate-400 space-y-0.5">
+          <p class="font-medium text-slate-300">Liquidadores Gobernación del Cauca</p>
+          <p>© Copyright 2026 101 S.A.S.</p>
+        </div>
+      }
+    </aside>
+
+    <!-- SECONDARY CONFIGURATION SIDEBAR -->
+    @if (isConfigOpen()) {
+      <aside
+        class="w-64 bg-[#162032] border-r border-slate-700/60 flex flex-col shrink-0 transition-all duration-300 z-10 shadow-lg"
+      >
+        <!-- Header of Config Sidebar -->
+        <div class="p-4 border-b border-slate-700/60 flex items-center justify-between bg-[#192439]">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-gear text-base text-blue-400"></i>
+            <div>
+              <h2 class="text-sm font-bold text-white leading-tight">Configuración</h2>
+              <span class="text-[10px] text-slate-400">Panel de Control</span>
+            </div>
+          </div>
+          <button
+            (click)="closeConfig()"
+            type="button"
+            class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/80 transition cursor-pointer"
+            title="Cerrar Configuración"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Options list -->
+        <div class="flex-1 overflow-y-auto p-3 space-y-4">
+          <!-- Categoría 1: Sistema & Preferencias -->
+          <div>
+            <span class="px-2 text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-2">
+              Preferencias del Sistema
+            </span>
+            <div class="space-y-1">
+              <button
+                (click)="selectConfigTab('general')"
+                [class.bg-blue-600/30]="activeConfigTab() === 'general'"
+                [class.text-blue-300]="activeConfigTab() === 'general'"
+                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+              >
+                <div class="flex items-center space-x-2.5">
+                  <i class="fa-solid fa-sliders text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
+                  <span class="font-medium">General y Apariencia</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+              </button>
+
+              <button
+                (click)="selectConfigTab('notificaciones')"
+                [class.bg-blue-600/30]="activeConfigTab() === 'notificaciones'"
+                [class.text-blue-300]="activeConfigTab() === 'notificaciones'"
+                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+              >
+                <div class="flex items-center space-x-2.5">
+                  <i class="fa-solid fa-bell text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
+                  <span class="font-medium">Alertas y Notificaciones</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Categoría 2: Seguridad & Accesos -->
+          <div>
+            <span class="px-2 text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-2">
+              Seguridad & Accesos
+            </span>
+            <div class="space-y-1">
+              <button
+                (click)="selectConfigTab('roles')"
+                [class.bg-blue-600/30]="activeConfigTab() === 'roles'"
+                [class.text-blue-300]="activeConfigTab() === 'roles'"
+                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+              >
+                <div class="flex items-center space-x-2.5">
+                  <i class="fa-solid fa-user-shield text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
+                  <span class="font-medium">Roles y Permisos</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+              </button>
+
+              <button
+                (click)="selectConfigTab('sesiones')"
+                [class.bg-blue-600/30]="activeConfigTab() === 'sesiones'"
+                [class.text-blue-300]="activeConfigTab() === 'sesiones'"
+                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+              >
+                <div class="flex items-center space-x-2.5">
+                  <i class="fa-solid fa-clock-rotate-left text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
+                  <span class="font-medium">Historial de Sesiones</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Categoría 3: Integraciones & Parámetros -->
+          <div>
+            <span class="px-2 text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-2">
+              Integraciones & Servicios
+            </span>
+            <div class="space-y-1">
+              <button
+                (click)="selectConfigTab('runt')"
+                [class.bg-blue-600/30]="activeConfigTab() === 'runt'"
+                [class.text-blue-300]="activeConfigTab() === 'runt'"
+                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+              >
+                <div class="flex items-center space-x-2.5">
+                  <i class="fa-solid fa-globe text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
+                  <span class="font-medium">Conexión RUNT</span>
+                </div>
+                <span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold">OK</span>
+              </button>
+
+              <button
+                (click)="selectConfigTab('reportes')"
+                [class.bg-blue-600/30]="activeConfigTab() === 'reportes'"
+                [class.text-blue-300]="activeConfigTab() === 'reportes'"
+                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+              >
+                <div class="flex items-center space-x-2.5">
+                  <i class="fa-solid fa-file-lines text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
+                  <span class="font-medium">Plantillas de Reportes</span>
+                </div>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    }
+
+    <!-- MAIN PAGE ROUTER OUTLET CONTAINER -->
+    <main class="flex-1 bg-[#182235] text-white overflow-y-auto p-4 md:p-6 min-w-0">
+      <router-outlet />
+    </main>
+  </div>
+</div>
