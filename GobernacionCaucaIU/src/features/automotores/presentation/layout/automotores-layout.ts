@@ -6,8 +6,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   selector: 'app-automotores-layout',
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
-  templateUrl: './automotores-layout.html',
-  styleUrl: './automotores-layout.css'
+  templateUrl: './automotores-layout.html'
 })
 export class AutomotoresLayout {
   readonly isSidebarOpen = signal<boolean>(true);
