@@ -102,10 +102,10 @@
     <aside
       [class.w-64]="isSidebarOpen()"
       [class.w-16]="!isSidebarOpen()"
-      class="bg-[#121927] border-r border-slate-700/60 flex flex-col justify-between shrink-0 transition-all duration-300 z-10"
+      class="bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transition-all duration-300 z-10"
     >
       <!-- Navigation Links Container -->
-      <div class="flex-1 overflow-y-auto py-3 space-y-6">
+      <div class="flex-1 overflow-y-auto py-4 space-y-6">
         <!-- Section 1: MÓDULO TRIBUTARIO -->
         <div>
           @if (isSidebarOpen()) {
@@ -113,15 +113,15 @@
               Módulo Tributario
             </h3>
           }
-          <nav class="space-y-1 px-2">
+          <nav class="space-y-1">
             <!-- Vehículos / Automotores -->
             <a
               routerLink="/automotores/vehiculos"
-              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
-              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Vehículos'"
             >
-              <i class="fa-solid fa-car text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-solid fa-car text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Vehículos</span>
               }
@@ -130,11 +130,11 @@
             <!-- Contribuyentes -->
             <a
               routerLink="/automotores/contribuyentes"
-              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
-              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Contribuyentes'"
             >
-              <i class="fa-solid fa-users text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-solid fa-users text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Contribuyentes</span>
               }
@@ -143,11 +143,11 @@
             <!-- Valores Estatales -->
             <a
               routerLink="/automotores/valores-estatales"
-              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
-              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Valores Estatales'"
             >
-              <i class="fa-solid fa-coins text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-solid fa-dollar-sign text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Valores Estatales</span>
               }
@@ -156,11 +156,11 @@
             <!-- Facturación -->
             <a
               routerLink="/automotores/facturacion"
-              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
-              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Facturación'"
             >
-              <i class="fa-solid fa-file-invoice-dollar text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-solid fa-circle-question text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Facturación</span>
               }
@@ -169,11 +169,11 @@
             <!-- Certificados -->
             <a
               routerLink="/automotores/certificados"
-              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
-              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Certificados'"
             >
-              <i class="fa-solid fa-certificate text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-solid fa-award text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Certificados</span>
               }
@@ -188,15 +188,15 @@
               Sistema
             </h3>
           }
-          <nav class="space-y-1 px-2">
+          <nav class="space-y-1">
             <!-- Auditoría -->
             <a
               routerLink="/automotores/auditoria"
-              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
-              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Auditoría'"
             >
-              <i class="fa-solid fa-clipboard-check text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-regular fa-file-lines text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Auditoría</span>
               }
@@ -205,28 +205,28 @@
             <!-- Reglas Tributarias -->
             <a
               routerLink="/automotores/reglas-tributarias"
-              routerLinkActive="bg-blue-600/30 text-blue-400 font-semibold border-l-2 border-blue-500"
-              class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Reglas Tributarias'"
             >
-              <i class="fa-solid fa-scale-balanced text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-regular fa-circle-dot text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Reglas Tributarias</span>
               }
             </a>
 
-            <!-- Configuración (Boton de activacion del sidebar secundario) -->
+            <!-- Configuración -->
             <button
               (click)="toggleConfig()"
               type="button"
-              [class.bg-blue-600/30]="isConfigOpen()"
-              [class.text-blue-400]="isConfigOpen()"
-              [class.border-l-2]="isConfigOpen()"
-              [class.border-blue-500]="isConfigOpen()"
-              class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs transition text-slate-300 hover:bg-slate-800/80 hover:text-white group cursor-pointer"
+              [class.bg-blue-50/80]="isConfigOpen()"
+              [class.text-blue-900]="isConfigOpen()"
+              [class.font-semibold]="isConfigOpen()"
+              [class.border-emerald-600]="isConfigOpen()"
+              class="w-full flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group cursor-pointer border-l-4 border-transparent"
               [title]="isSidebarOpen() ? '' : 'Configuración'"
             >
-              <i class="fa-solid fa-gear text-sm shrink-0 w-5 text-center text-slate-400 group-hover:text-blue-400"></i>
+              <i class="fa-solid fa-wrench text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
                 <span class="truncate">Configuración</span>
               }
@@ -237,8 +237,8 @@
 
       <!-- Footer Version -->
       @if (isSidebarOpen()) {
-        <div class="border-t border-slate-700/60 p-4 text-[11px] text-slate-400 space-y-0.5">
-          <p class="font-medium text-slate-300">Liquidadores Gobernación del Cauca</p>
+        <div class="border-t border-slate-200 p-4 text-[11px] text-slate-400 space-y-0.5">
+          <p class="font-medium text-slate-500">Liquidadores Gobernación del Cauca</p>
           <p>© Copyright 2026 101 S.A.S.</p>
         </div>
       }
@@ -247,21 +247,21 @@
     <!-- SECONDARY CONFIGURATION SIDEBAR -->
     @if (isConfigOpen()) {
       <aside
-        class="w-64 bg-[#162032] border-r border-slate-700/60 flex flex-col shrink-0 transition-all duration-300 z-10 shadow-lg"
+        class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 z-10 shadow-lg"
       >
         <!-- Header of Config Sidebar -->
-        <div class="p-4 border-b border-slate-700/60 flex items-center justify-between bg-[#192439]">
+        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
           <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-gear text-base text-blue-400"></i>
+            <i class="fa-solid fa-wrench text-base text-blue-900"></i>
             <div>
-              <h2 class="text-sm font-bold text-white leading-tight">Configuración</h2>
+              <h2 class="text-sm font-bold text-slate-800 leading-tight">Configuración</h2>
               <span class="text-[10px] text-slate-400">Panel de Control</span>
             </div>
           </div>
           <button
             (click)="closeConfig()"
             type="button"
-            class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/80 transition cursor-pointer"
+            class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
             title="Cerrar Configuración"
           >
             <i class="fa-solid fa-xmark text-sm"></i>
@@ -269,105 +269,117 @@
         </div>
 
         <!-- Options list -->
-        <div class="flex-1 overflow-y-auto p-3 space-y-4">
+        <div class="flex-1 overflow-y-auto py-3 space-y-4">
           <!-- Categoría 1: Sistema & Preferencias -->
           <div>
-            <span class="px-2 text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-2">
+            <span class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
               Preferencias del Sistema
             </span>
             <div class="space-y-1">
               <button
                 (click)="selectConfigTab('general')"
-                [class.bg-blue-600/30]="activeConfigTab() === 'general'"
-                [class.text-blue-300]="activeConfigTab() === 'general'"
-                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+                [class.bg-blue-50/80]="activeConfigTab() === 'general'"
+                [class.text-blue-900]="activeConfigTab() === 'general'"
+                [class.font-semibold]="activeConfigTab() === 'general'"
+                [class.border-emerald-600]="activeConfigTab() === 'general'"
+                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
               >
                 <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-sliders text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
-                  <span class="font-medium">General y Apariencia</span>
+                  <i class="fa-solid fa-sliders text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
+                  <span class="truncate">General y Apariencia</span>
                 </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
               </button>
 
               <button
                 (click)="selectConfigTab('notificaciones')"
-                [class.bg-blue-600/30]="activeConfigTab() === 'notificaciones'"
-                [class.text-blue-300]="activeConfigTab() === 'notificaciones'"
-                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+                [class.bg-blue-50/80]="activeConfigTab() === 'notificaciones'"
+                [class.text-blue-900]="activeConfigTab() === 'notificaciones'"
+                [class.font-semibold]="activeConfigTab() === 'notificaciones'"
+                [class.border-emerald-600]="activeConfigTab() === 'notificaciones'"
+                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
               >
                 <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-bell text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
-                  <span class="font-medium">Alertas y Notificaciones</span>
+                  <i class="fa-solid fa-bell text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
+                  <span class="truncate">Alertas y Notificaciones</span>
                 </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
               </button>
             </div>
           </div>
 
           <!-- Categoría 2: Seguridad & Accesos -->
           <div>
-            <span class="px-2 text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-2">
+            <span class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
               Seguridad & Accesos
             </span>
             <div class="space-y-1">
               <button
                 (click)="selectConfigTab('roles')"
-                [class.bg-blue-600/30]="activeConfigTab() === 'roles'"
-                [class.text-blue-300]="activeConfigTab() === 'roles'"
-                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+                [class.bg-blue-50/80]="activeConfigTab() === 'roles'"
+                [class.text-blue-900]="activeConfigTab() === 'roles'"
+                [class.font-semibold]="activeConfigTab() === 'roles'"
+                [class.border-emerald-600]="activeConfigTab() === 'roles'"
+                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
               >
                 <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-user-shield text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
-                  <span class="font-medium">Roles y Permisos</span>
+                  <i class="fa-solid fa-user-shield text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
+                  <span class="truncate">Roles y Permisos</span>
                 </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
               </button>
 
               <button
                 (click)="selectConfigTab('sesiones')"
-                [class.bg-blue-600/30]="activeConfigTab() === 'sesiones'"
-                [class.text-blue-300]="activeConfigTab() === 'sesiones'"
-                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+                [class.bg-blue-50/80]="activeConfigTab() === 'sesiones'"
+                [class.text-blue-900]="activeConfigTab() === 'sesiones'"
+                [class.font-semibold]="activeConfigTab() === 'sesiones'"
+                [class.border-emerald-600]="activeConfigTab() === 'sesiones'"
+                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
               >
                 <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-clock-rotate-left text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
-                  <span class="font-medium">Historial de Sesiones</span>
+                  <i class="fa-solid fa-clock-rotate-left text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
+                  <span class="truncate">Historial de Sesiones</span>
                 </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
               </button>
             </div>
           </div>
 
           <!-- Categoría 3: Integraciones & Parámetros -->
           <div>
-            <span class="px-2 text-[10px] font-bold text-blue-400 uppercase tracking-wider block mb-2">
+            <span class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
               Integraciones & Servicios
             </span>
             <div class="space-y-1">
               <button
                 (click)="selectConfigTab('runt')"
-                [class.bg-blue-600/30]="activeConfigTab() === 'runt'"
-                [class.text-blue-300]="activeConfigTab() === 'runt'"
-                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+                [class.bg-blue-50/80]="activeConfigTab() === 'runt'"
+                [class.text-blue-900]="activeConfigTab() === 'runt'"
+                [class.font-semibold]="activeConfigTab() === 'runt'"
+                [class.border-emerald-600]="activeConfigTab() === 'runt'"
+                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
               >
                 <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-globe text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
-                  <span class="font-medium">Conexión RUNT</span>
+                  <i class="fa-solid fa-globe text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
+                  <span class="truncate">Conexión RUNT</span>
                 </div>
-                <span class="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded font-bold">OK</span>
+                <span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">OK</span>
               </button>
 
               <button
                 (click)="selectConfigTab('reportes')"
-                [class.bg-blue-600/30]="activeConfigTab() === 'reportes'"
-                [class.text-blue-300]="activeConfigTab() === 'reportes'"
-                class="w-full flex items-center justify-between p-2.5 rounded-lg text-xs text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent transition cursor-pointer text-left group"
+                [class.bg-blue-50/80]="activeConfigTab() === 'reportes'"
+                [class.text-blue-900]="activeConfigTab() === 'reportes'"
+                [class.font-semibold]="activeConfigTab() === 'reportes'"
+                [class.border-emerald-600]="activeConfigTab() === 'reportes'"
+                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
               >
                 <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-file-lines text-sm text-slate-400 group-hover:text-blue-400 w-4 text-center shrink-0"></i>
-                  <span class="font-medium">Plantillas de Reportes</span>
+                  <i class="fa-regular fa-file-lines text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
+                  <span class="truncate">Plantillas de Reportes</span>
                 </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-500"></i>
+                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
               </button>
             </div>
           </div>
