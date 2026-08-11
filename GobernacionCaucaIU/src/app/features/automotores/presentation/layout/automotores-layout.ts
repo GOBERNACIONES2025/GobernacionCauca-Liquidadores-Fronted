@@ -22,10 +22,8 @@ export class AutomotoresLayout {
     const nextState = !this.isConfigOpen();
     this.isConfigOpen.set(nextState);
     if (nextState) {
-      // Ocultar únicamente con los iconos el sidebar principal
       this.isSidebarOpen.set(false);
     } else {
-      // Restaurar el sidebar principal al cerrar configuración
       this.isSidebarOpen.set(true);
     }
   }
