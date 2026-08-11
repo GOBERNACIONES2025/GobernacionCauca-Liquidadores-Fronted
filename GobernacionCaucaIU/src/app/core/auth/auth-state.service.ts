@@ -10,18 +10,17 @@ export class AuthStateService {
   readonly currentModulo = signal<TaxModuleType | null>(this.loadStoredModulo());
 
   // Mapa de URLs base por cada modulo de impuesto
+  //Acá están las rutas bases de las apis by impuesto
   readonly moduleApiUrls = signal<Record<string, string>>({
     LOGIN: 'http://localhost:5000/api',
-    AUTOMOTORES: 'https://pokeapi.co/api/v2/pokemon/ditto',
+    AUTOMOTORES: 'https://localhost:7250/api',
     REGISTROS: 'http://localhost:5002/api',
   });
 
   // Signal computado para verificar si hay sesion activa
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
 
-  /**
-   * Registra o actualiza la URL base de un modulo especifico (ej: retornado por el Login API)
-   */
+   //* Registra o actualiza la URL base de un modulo especifico (ej: retornado por el Login API)
   registerModuleUrl(modulo: string, url: string): void {
     const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
     this.moduleApiUrls.update((urls) => ({
@@ -46,9 +45,7 @@ export class AuthStateService {
     }
   }
 
-  /**
-   * Cambia el modulo activo actual
-   */
+   // Cambia el modulo activo actual
   setActiveModulo(modulo: TaxModuleType): void {
     this.currentModulo.set(modulo);
     localStorage.setItem('gov_modulo', modulo);
