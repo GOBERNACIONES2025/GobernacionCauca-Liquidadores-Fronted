@@ -3,5 +3,6 @@ import { AutomotoresIndex } from './features/automotores/presentation/pages/auto
 
 export const routes: Routes = [
     { path: '', redirectTo: 'automotores-index', pathMatch: 'full' },
-    { path: 'automotores-index', component: AutomotoresIndex }
+    { path: 'automotores-index', component: AutomotoresIndex },
+
 ];

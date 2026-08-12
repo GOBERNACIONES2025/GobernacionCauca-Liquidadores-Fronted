@@ -1,0 +1,126 @@
+<!-- MODAL OVERLAY -->
+@if (isOpen) {
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity" (click)="!isLoading && onClose()">
+    
+    <!-- MODAL PANEL -->
+    <div (click)="$event.stopPropagation()" class="bg-white rounded-lg shadow-2xl w-full max-w-[700px] overflow-hidden flex flex-col transform transition-all">
+      
+      <!-- Header -->
+      <div class="bg-white border-b border-slate-200 px-6 py-5 flex items-start justify-between">
+        <div>
+          <h2 class="text-[17px] font-bold text-[#1e293b] m-0">{{ contribuyenteToEdit ? 'Editar Contribuyente' : 'Registrar Contribuyente' }}</h2>
+          <p class="text-[11px] font-medium text-slate-400 mt-1 mb-0 tracking-wide">vehicular.Personas - general.TiposDocumento</p>
+        </div>
+        <button (click)="!isLoading && onClose()" class="w-7 h-7 rounded bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors" [disabled]="isLoading">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Form Content -->
+      <div class="p-6">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+          
+          <!-- Tipo de Persona -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipo de Persona</label>
+            <div class="relative">
+              <select formControlName="naturalezaJuridicaId" class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+                @for (nat of naturalezasJuridicas; track nat.id) {
+                  <option [value]="nat.id">{{ nat.nombre }}</option>
+                }
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tipo Documento -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipo Documento</label>
+            <div class="relative">
+              <select formControlName="tipoDocumentoId" class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+                @for (tipo of tiposDocumento; track tipo.id) {
+                  <option [value]="tipo.id">{{ tipo.nombre }}</option>
+                }
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Número Documento -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Número Documento <span class="text-red-500">*</span>
+            </label>
+            <input type="text" formControlName="numeroDocumento" placeholder="1.035.421.980" [class]="'w-full h-10 rounded-md border px-3 text-[13px] text-slate-700 bg-white outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ' + (form.get('numeroDocumento')?.invalid && form.get('numeroDocumento')?.touched ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-300 focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]')">
+          </div>
+
+          <!-- Nombre / Razón Social -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Nombre / Razón Social <span class="text-red-500">*</span>
+            </label>
+            <input type="text" formControlName="nombreRazonSocial" placeholder="Samuel Díaz Pérez" [class]="'w-full h-10 rounded-md border px-3 text-[13px] text-slate-700 bg-white outline-none transition-all ' + (form.get('nombreRazonSocial')?.invalid && form.get('nombreRazonSocial')?.touched ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-300 focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]')">
+          </div>
+
+          <!-- Correo Electrónico -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Correo Electrónico</label>
+            <input type="email" formControlName="correoElectronico" placeholder="nombre@email.com" class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+          </div>
+
+          <!-- Teléfono -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Teléfono</label>
+            <input type="tel" formControlName="telefono" placeholder="311 425 6780" class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+          </div>
+
+          <!-- Ciudad / Municipio -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Ciudad / Municipio</label>
+            <input type="text" formControlName="ciudad" placeholder="Popayán" class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+          </div>
+
+          <!-- Estado Tributario -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Estado Tributario</label>
+            <div class="relative">
+              <select formControlName="estadoTributario" class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+                <option value="Al día">Al día</option>
+                <option value="Moroso">Moroso</option>
+                <option value="Deudor">Deudor</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-600">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-white">
+        <button type="button" (click)="onClose()" [disabled]="isLoading" class="px-5 h-[38px] rounded border border-slate-200 text-slate-600 font-semibold text-[13px] hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm disabled:opacity-50 bg-white">
+          Cancelar
+        </button>
+        <button type="button" (click)="onSubmit()" [disabled]="isLoading || form.invalid" class="px-5 h-[38px] rounded bg-[#70b238] text-white border border-transparent font-semibold text-[13px] hover:bg-[#60992f] transition-all flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 disabled:bg-slate-400">
+          @if (isLoading) {
+            <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Guardando...
+          } @else {
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            {{ contribuyenteToEdit ? 'Guardar Cambios' : 'Registrar Contribuyente' }}
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
