@@ -14,7 +14,7 @@ export class Home {
 
   navigate(moduleId: string): void {
     const routes: Record<string, string> = {
-      vehicular: '/automotores/vehiculos',
+      vehicular: '/portal-ciudadano',
     };
     const route = routes[moduleId];
     if (route) {

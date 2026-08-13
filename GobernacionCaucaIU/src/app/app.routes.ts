@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Home } from './features/home/presentation/pages/home/home';
 import { AutomotoresLayout } from './features/automotores/presentation/layout/automotores-layout';
 import { Vehiculos } from './features/automotores/presentation/pages/vehiculos/vehiculos';
+import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
 
 export const routes: Routes = [
   {
@@ -10,12 +11,16 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'portal-ciudadano',
+    component: PortalCiudadano,
+  },
+  {
     path: 'automotores',
     component: AutomotoresLayout,
     children: [
       {
         path: '',
-        redirectTo: 'vehiculos',
+        redirectTo: 'portal-ciudadano',
         pathMatch: 'full',
       },
       {
@@ -24,7 +29,7 @@ export const routes: Routes = [
       },
       {
         path: '**',
-        redirectTo: 'vehiculos',
+        redirectTo: 'portal-ciudadano',
       },
     ],
   },
