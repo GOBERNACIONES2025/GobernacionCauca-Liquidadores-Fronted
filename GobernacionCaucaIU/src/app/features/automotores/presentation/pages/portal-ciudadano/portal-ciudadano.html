@@ -1,20 +1,20 @@
 <div class="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans flex flex-col">
 
   <!-- ========================================== -->
-  <!-- 1. TOP HEADER / NAVBAR (ESTILO GOBERNACIÓN) -->
+  <!-- 1. TOP HEADER / NAVBAR (AZUL INSTITUCIONAL) -->
   <!-- ========================================== -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
+  <header class="bg-vehiculos-brand-light text-white border-b border-blue-900/60 sticky top-0 z-30 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         
         <!-- Left: Logo & Institutional Title -->
         <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-lg bg-[#70B238] flex items-center justify-center text-white font-bold text-sm shadow-xs">
-            GC
+          <div class="w-9 h-9 rounded-lg bg-vehiculos-brand-dark flex items-center justify-center text-white font-bold text-sm shadow-sm">
+            <i class="fa-solid fa-landmark"></i>
           </div>
           <div class="flex flex-col">
-            <span class="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">Gobernación del Cauca</span>
-            <span class="text-[11px] text-slate-500 font-medium leading-none">Portal Ciudadano &middot; Impuesto Vehicular</span>
+            <span class="font-extrabold text-white text-sm sm:text-base leading-tight">Gobernación del Cauca</span>
+            <span class="text-[11px] text-blue-200 font-medium leading-none">Portal Ciudadano &middot; Impuesto Vehicular</span>
           </div>
         </div>
 
@@ -23,11 +23,11 @@
           <nav class="hidden md:flex items-center space-x-8 h-full text-xs font-semibold">
             <button 
               (click)="cambiarTab('inicio')"
-              [class.text-[#70B238]]="activeTab() === 'inicio'"
+              [class.text-white]="activeTab() === 'inicio'"
               [class.border-b-2]="activeTab() === 'inicio'"
-              [class.border-[#70B238]]="activeTab() === 'inicio'"
-              [class.text-slate-600]="activeTab() !== 'inicio'"
-              class="h-full flex items-center gap-2 px-1 hover:text-[#70B238] transition-colors cursor-pointer"
+              [class.border-emerald-400]="activeTab() === 'inicio'"
+              [class.text-blue-200]="activeTab() !== 'inicio'"
+              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
             >
               <i class="fa-solid fa-house text-sm"></i>
               <span>Inicio</span>
@@ -35,11 +35,11 @@
 
             <button 
               (click)="cambiarTab('vehiculos')"
-              [class.text-[#70B238]]="activeTab() === 'vehiculos'"
+              [class.text-white]="activeTab() === 'vehiculos'"
               [class.border-b-2]="activeTab() === 'vehiculos'"
-              [class.border-[#70B238]]="activeTab() === 'vehiculos'"
-              [class.text-slate-600]="activeTab() !== 'vehiculos'"
-              class="h-full flex items-center gap-2 px-1 hover:text-[#70B238] transition-colors cursor-pointer"
+              [class.border-emerald-400]="activeTab() === 'vehiculos'"
+              [class.text-blue-200]="activeTab() !== 'vehiculos'"
+              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
             >
               <i class="fa-solid fa-car text-sm"></i>
               <span>Mis vehículos</span>
@@ -47,11 +47,11 @@
 
             <button 
               (click)="cambiarTab('liquidaciones')"
-              [class.text-[#70B238]]="activeTab() === 'liquidaciones'"
+              [class.text-white]="activeTab() === 'liquidaciones'"
               [class.border-b-2]="activeTab() === 'liquidaciones'"
-              [class.border-[#70B238]]="activeTab() === 'liquidaciones'"
-              [class.text-slate-600]="activeTab() !== 'liquidaciones'"
-              class="h-full flex items-center gap-2 px-1 hover:text-[#70B238] transition-colors cursor-pointer"
+              [class.border-emerald-400]="activeTab() === 'liquidaciones'"
+              [class.text-blue-200]="activeTab() !== 'liquidaciones'"
+              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
             >
               <i class="fa-regular fa-credit-card text-sm"></i>
               <span>Liquidaciones</span>
@@ -59,11 +59,11 @@
 
             <button 
               (click)="cambiarTab('certificados')"
-              [class.text-[#70B238]]="activeTab() === 'certificados'"
+              [class.text-white]="activeTab() === 'certificados'"
               [class.border-b-2]="activeTab() === 'certificados'"
-              [class.border-[#70B238]]="activeTab() === 'certificados'"
-              [class.text-slate-600]="activeTab() !== 'certificados'"
-              class="h-full flex items-center gap-2 px-1 hover:text-[#70B238] transition-colors cursor-pointer"
+              [class.border-emerald-400]="activeTab() === 'certificados'"
+              [class.text-blue-200]="activeTab() !== 'certificados'"
+              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
             >
               <i class="fa-solid fa-award text-sm"></i>
               <span>Certificados</span>
@@ -74,25 +74,25 @@
         <!-- Right: User info & Action -->
         <div class="flex items-center space-x-3">
           @if (isConsulted() && ciudadano(); as c) {
-            <div class="flex items-center space-x-2 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg">
-              <div class="w-6 h-6 rounded-full bg-[#1E3A7B] text-white flex items-center justify-center text-[10px] font-bold">
+            <div class="flex items-center space-x-2 bg-vehiculos-brand-dark/80 border border-blue-400/30 px-3 py-1.5 rounded-lg text-white">
+              <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
                 <i class="fa-solid fa-user text-[10px]"></i>
               </div>
-              <span class="text-xs font-semibold text-slate-700 hidden sm:inline-block">{{ c.nombre }}</span>
+              <span class="text-xs font-semibold text-white hidden sm:inline-block">{{ c.nombre }}</span>
             </div>
 
             <button 
               (click)="nuevaConsulta()" 
-              class="inline-flex items-center gap-1.5 border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
+              class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
               title="Nueva Consulta"
             >
-              <i class="fa-solid fa-magnifying-glass text-xs text-slate-400"></i>
+              <i class="fa-solid fa-magnifying-glass text-xs text-blue-300"></i>
               <span class="hidden sm:inline">Nueva Consulta</span>
             </button>
 
             <button 
               (click)="salir()" 
-              class="inline-flex items-center gap-1.5 border border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
+              class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-rose-900/60 border border-blue-400/30 text-rose-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
               title="Salir"
             >
               <i class="fa-solid fa-right-from-bracket text-xs"></i>
@@ -101,7 +101,7 @@
           } @else {
             <button 
               (click)="salir()" 
-              class="inline-flex items-center gap-1.5 border border-slate-200 text-slate-600 hover:text-[#1E3A7B] hover:bg-slate-50 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
+              class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
             >
               <i class="fa-solid fa-arrow-left text-xs"></i>
               <span>Volver a Liquidadores</span>
