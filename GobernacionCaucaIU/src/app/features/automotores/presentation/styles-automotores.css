@@ -1,45 +1,87 @@
 /* src/app/features/automotores/presentation/styles-automotores.css */
 @theme {
-  /* ----------------------------------------------------
-     COLORES EXCLUSIVOS - MÓDULO VEHÍCULOS / AUTOMOTORES
-     ---------------------------------------------------- */
-  /* Azules Corporativos */
-  --color-vehiculos-brand-dark: #0f3067;      /* Azul oscuro de la barra superior y cabecera de tabla */
-  --color-vehiculos-brand-light: #1e4b8f;     /* Azul secundario para elementos de selección o botones secundarios */
-  --color-vehiculos-bg-main: #f4f6f9;         /* Gris muy claro del fondo de la pantalla */
-  --color-vehiculos-bg-card: #ffffff;         /* Blanco puro para los paneles/tarjetas superiores */
+  --color-vehiculos-brand-dark: #0F3067;
+  --color-vehiculos-brand-light: #1b53ad;
+  --color-vehiculos-bg-main: #f8fafc;
+  --color-vehiculos-bg-card: #ffffff;
+  --color-vehiculos-placa-bg: #ffd100;
+  --color-vehiculos-placa-text: #1a1a1a;
+  --color-vehiculos-status-active-bg: #e6f7ed;
+  --color-vehiculos-status-active-text: #198754;
+  --color-vehiculos-status-inactive-bg: #fdf2f2;
+  --color-vehiculos-status-inactive-text: #dc3545;
+  --color-vehiculos-action-success: #70b238;
+  --color-vehiculos-action-icon: #495057;
+  --color-vehiculos-border-card: #e2e8f0;
+  --font-vehiculos-sans: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
 
-  /* Identificadores y Alertas (Estados) */
-  --color-vehiculos-placa-bg: #ffd100;        /* Amarillo vibrante de fondo para las placas de los carros */
-  --color-vehiculos-placa-text: #1a1a1a;      /* Texto oscuro de alta visibilidad para la placa */
-  
-  --color-vehiculos-status-active-bg: #e6f7ed;   /* Verde claro para el fondo de etiquetas activas */
-  --color-vehiculos-status-active-text: #198754; /* Verde oscuro para el texto de etiquetas activas */
-  --color-vehiculos-status-inactive-bg: #fdf2f2; /* Rojo/Rosa claro para el fondo de etiquetas inactivas */
-  --color-vehiculos-status-inactive-text: #dc3545;/* Rojo oscuro para el texto de etiquetas inactivas */
+.co-plate {
+  display: inline-block;
+  background: #ffd900;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid #1e293b;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  font-family: monospace, sans-serif;
+}
 
-  /* Acciones Principales */
-  --color-vehiculos-action-success: #28a745;   /* Verde del botón principal "+ Registrar Vehículo" */
-  --color-vehiculos-action-icon: #495057;      /* Gris intermedio para los iconos de navegación lateral */
+.pulse-dot {
+  animation: pulse-dot-anim 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
 
-  /* Bordes y Separadores */
-  --color-vehiculos-border-card: #e9ecef;     /* Gris suave para las líneas divisorias y bordes de tarjetas */
+@keyframes pulse-dot-anim {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
 
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+}
 
-  /* ----------------------------------------------------
-     TIPOGRAFÍA Y FUENTES - MÓDULO VEHÍCULOS
-     ---------------------------------------------------- */
-  /* Definición de la fuente principal (Inter o Roboto calzan perfecto con tu diseño institucional) */
-  --font-vehiculos-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+.tooltip-box {
+  visibility: hidden;
+  position: absolute;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #0f172a;
+  color: #fff;
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 50;
+  pointer-events: none;
+}
 
-  /* Tamaños de Texto de la Interfaz */
-  --text-vehiculos-title: 1.5rem;             /* Para el título principal "Módulo Vehículos — Expediente Vehicular" */
-  --text-vehiculos-subtitle: 1.25rem;         /* Para los números grandes en las tarjetas ($49,799 / 2026) */
-  --text-vehiculos-body: 0.875rem;            /* Tamaño base de la tabla y textos secundarios (14px) */
-  --text-vehiculos-caption: 0.75rem;          /* Para textos muy pequeños o etiquetas de estado inferiores (12px) */
+.tooltip-wrap:hover .tooltip-box {
+  visibility: visible;
+  opacity: 1;
+}
 
-  /* Pesos de Fuente Relevantes */
-  --font-weight-vehiculos-bold: 700;          /* Para títulos, placas y números clave */
-  --font-weight-vehiculos-medium: 500;        /* Para encabezados de tablas y botones */
-  --font-weight-vehiculos-normal: 400;        /* Para los datos y descripciones dentro de la tabla */
+.drawer-enter {
+  animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

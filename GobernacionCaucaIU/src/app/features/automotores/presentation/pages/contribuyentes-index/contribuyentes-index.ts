@@ -1,8 +1,8 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ContribuyentesService } from '../../../../../core/services/contribuyentes.service';
-import { Contribuyente, Expediente, ApiResponse, PagedResult } from '../../../../../core/models/contribuyente.model';
+import { Contribuyente, Expediente } from '../../../domain/models/contribuyente.model';
 import { ContribuyenteFormComponent } from '../../components/contribuyente-form/contribuyente-form.component';
+import { ContribuyentesFacade } from '../../../application/facades/contribuyentes.facade';
 
 /**
  * Componente principal para la Gestión de Contribuyentes.
@@ -16,89 +16,33 @@ import { ContribuyenteFormComponent } from '../../components/contribuyente-form/
   styleUrls: ['./styles-contribuyentes.css']
 })
 export class ContribuyentesIndex implements OnInit {
+  public facade = inject(ContribuyentesFacade);
+  
   isDrawerOpen: boolean = false;
   activeTab: string = 'Información';
-  
-  contribuyentes: Contribuyente[] = [];
-  selectedExpediente: Expediente | null = null;
-  
-  loading: boolean = false;
-  drawerLoading: boolean = false;
 
   // Form State
   isFormOpen: boolean = false;
   formLoading: boolean = false;
   contribuyenteToEdit: Contribuyente | null = null;
 
-  // KPIs
-  totalContribuyentes: number = 0;
-  totalAlDia: number = 0;
-  totalMorosos: number = 0;
-  totalDeudores: number = 0;
-
-  constructor(
-    private contribuyentesService: ContribuyentesService,
-    private cdr: ChangeDetectorRef
-  ) {}
+  constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.loadContribuyentes();
-  }
-
-  loadContribuyentes(): void {
-    this.loading = true;
-    this.contribuyentesService.getContribuyentes(1, 20)
-      .subscribe({
-        next: (response: ApiResponse<PagedResult<Contribuyente>>) => {
-          if (response.success) {
-            this.contribuyentes = response.data.items;
-            this.totalContribuyentes = response.data.totalCount;
-            // Cálculo dinámico para la página actual (hasta que el backend exponga un endpoint de estadísticas generales)
-            this.totalAlDia = this.contribuyentes.filter(c => c.cantidadDeudas === 0).length;
-            this.totalMorosos = this.contribuyentes.filter(c => c.cantidadDeudas > 0).length;
-            this.totalDeudores = this.contribuyentes.filter(c => c.cantidadDeudas > 0).length;
-          }
-          this.loading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err: any) => {
-          console.error('Error cargando contribuyentes:', err);
-          this.loading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.facade.cargarContribuyentes(1, 20);
   }
 
   openDrawer(contribuyente: Contribuyente): void {
     this.isDrawerOpen = true;
     this.activeTab = 'Información';
-    this.drawerLoading = true;
-    this.selectedExpediente = null;
-    this.cdr.detectChanges();
-
-    this.contribuyentesService.getExpediente(contribuyente.id)
-      .subscribe({
-        next: (response: ApiResponse<Expediente>) => {
-          if (response.success) {
-            this.selectedExpediente = response.data;
-          }
-          this.drawerLoading = false;
-          this.cdr.detectChanges();
-        },
-        error: (err: any) => {
-          console.error('Error cargando expediente:', err);
-          this.drawerLoading = false;
-          this.cdr.detectChanges();
-        }
-      });
+    this.facade.cargarExpediente(contribuyente.id);
   }
 
   closeDrawer(): void {
     this.isDrawerOpen = false;
-    // Opcional: limpiar la selección después de la animación
     setTimeout(() => {
       if (!this.isDrawerOpen) {
-        this.selectedExpediente = null;
+        this.facade.limpiarExpediente();
       }
     }, 300);
   }
@@ -145,44 +89,40 @@ export class ContribuyentesIndex implements OnInit {
     this.formLoading = true;
     this.cdr.detectChanges();
 
-    if (this.contribuyenteToEdit) {
-      this.contribuyentesService.updateContribuyente(this.contribuyenteToEdit.id, data)
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.closeForm();
-              this.loadContribuyentes();
-              // Si el drawer está abierto para el mismo contribuyente, actualizar el drawer
-              if (this.isDrawerOpen && this.selectedExpediente?.propietario.id === this.contribuyenteToEdit?.id) {
-                this.openDrawer(response.data);
-              }
-            }
-            this.formLoading = false;
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('Error actualizando contribuyente', err);
-            this.formLoading = false;
-            this.cdr.detectChanges();
+    console.log('Enviando datos al API:', data);
+
+    const request = this.contribuyenteToEdit 
+      ? this.facade.actualizarContribuyente(this.contribuyenteToEdit.id, data)
+      : this.facade.crearContribuyente(data);
+
+    request.subscribe({
+      next: (response: any) => {
+        console.log('Respuesta del servidor al guardar:', response);
+        const isSuccess = response?.success ?? response?.succeeded ?? (response && !response?.errors);
+        
+        if (isSuccess || (response && response !== false)) {
+          this.closeForm();
+          this.facade.cargarContribuyentes(1, 20);
+          
+          // Si el drawer está abierto para el mismo contribuyente, actualizar el drawer
+          const selectedId = this.facade.selectedExpediente()?.propietario.id;
+          if (this.isDrawerOpen && this.contribuyenteToEdit && selectedId === this.contribuyenteToEdit.id) {
+            this.facade.cargarExpediente(this.contribuyenteToEdit.id);
           }
-        });
-    } else {
-      this.contribuyentesService.createContribuyente(data)
-        .subscribe({
-          next: (response) => {
-            if (response.success) {
-              this.closeForm();
-              this.loadContribuyentes();
-            }
-            this.formLoading = false;
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('Error creando contribuyente', err);
-            this.formLoading = false;
-            this.cdr.detectChanges();
-          }
-        });
-    }
+        } else {
+          console.error('API Error al guardar:', response?.message || response?.messages || response?.errors);
+          alert('Error al guardar: ' + (response?.message || 'Verifica los datos e intenta nuevamente.'));
+        }
+        this.formLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('Error de red/servidor guardando contribuyente:', err);
+        const errMsg = err?.error?.message || err?.message || 'Error de conexión con el servidor.';
+        alert('Error al guardar: ' + errMsg);
+        this.formLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

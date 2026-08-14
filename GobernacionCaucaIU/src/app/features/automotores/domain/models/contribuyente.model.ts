@@ -13,11 +13,39 @@ export interface Contribuyente {
   telefono?: string;
   direccion?: string;
   ciudad?: string;
+  ciudadId?: number;
+  departamentoId?: number;
   cantidadVehiculos: number;
   cantidadDeudas: number;
   activo: boolean;
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface TipoDocumento {
+  id: number;
+  codigo: string;
+  nombre: string;
+  requiereDigitoVerificacion?: boolean;
+}
+
+export interface NaturalezaJuridica {
+  id: number;
+  codigo: string;
+  nombre: string;
+}
+
+export interface Departamento {
+  id: number;
+  codigo?: string;
+  nombre: string;
+}
+
+export interface Ciudad {
+  id: number;
+  codigo?: string;
+  nombre: string;
+  departamentoId: number;
 }
 
 export interface VehiculoExpediente {
