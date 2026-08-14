@@ -99,6 +99,25 @@
               <span>Salir</span>
             </button>
           } @else {
+            @if (tipoUsuario() === 'CIUDADANO') {
+              <button 
+                (click)="setTipoUsuario('ADMIN')" 
+                class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer mr-2"
+                title="Acceso Administrador"
+              >
+                <i class="fa-solid fa-shield-halved text-xs"></i>
+                <span class="hidden sm:inline">Administrador</span>
+              </button>
+            } @else {
+              <button 
+                (click)="setTipoUsuario('CIUDADANO')" 
+                class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer mr-2"
+                title="Acceso Ciudadano"
+              >
+                <i class="fa-solid fa-user text-xs"></i>
+                <span class="hidden sm:inline">Ciudadano</span>
+              </button>
+            }
             <button 
               (click)="salir()" 
               class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
@@ -136,46 +155,6 @@
 
           <div class="p-6 sm:p-8">
             
-            <!-- Selector de Tipo de Usuario: Ciudadano vs Administrador -->
-            <div class="mb-6">
-              <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2 text-center">
-                Seleccione el tipo de acceso:
-              </span>
-              <div class="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-xl border border-slate-200/80">
-                
-                <!-- Opción 1: Ciudadano -->
-                <button 
-                  type="button"
-                  (click)="setTipoUsuario('CIUDADANO')"
-                  [class.bg-white]="tipoUsuario() === 'CIUDADANO'"
-                  [class.text-slate-900]="tipoUsuario() === 'CIUDADANO'"
-                  [class.shadow-xs]="tipoUsuario() === 'CIUDADANO'"
-                  [class.border-slate-200]="tipoUsuario() === 'CIUDADANO'"
-                  [class.text-slate-500]="tipoUsuario() !== 'CIUDADANO'"
-                  class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition cursor-pointer border border-transparent"
-                >
-                  <i class="fa-solid fa-user text-sm" [class.text-[#70B238]]="tipoUsuario() === 'CIUDADANO'"></i>
-                  <span>Soy Ciudadano</span>
-                </button>
-
-                <!-- Opción 2: Administrador -->
-                <button 
-                  type="button"
-                  (click)="setTipoUsuario('ADMIN')"
-                  [class.bg-white]="tipoUsuario() === 'ADMIN'"
-                  [class.text-slate-900]="tipoUsuario() === 'ADMIN'"
-                  [class.shadow-xs]="tipoUsuario() === 'ADMIN'"
-                  [class.border-slate-200]="tipoUsuario() === 'ADMIN'"
-                  [class.text-slate-500]="tipoUsuario() !== 'ADMIN'"
-                  class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg text-xs font-bold transition cursor-pointer border border-transparent"
-                >
-                  <i class="fa-solid fa-shield-halved text-sm" [class.text-[#1E3A7B]]="tipoUsuario() === 'ADMIN'"></i>
-                  <span>Administrador</span>
-                </button>
-
-              </div>
-            </div>
-
             <!-- Error Notification Alert -->
             @if (errorMessage()) {
               <div class="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-700">
