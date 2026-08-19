@@ -31,13 +31,11 @@ export const routes: Routes = [
       {
     path: 'contribuyentes-index',
     component: ContribuyentesIndex,
+  },
+      {
         path: '**',
         redirectTo: 'portal-ciudadano',
       },
     ],
-  },
-  {
-    path: '**',
-    redirectTo: '',
   },
 ];
