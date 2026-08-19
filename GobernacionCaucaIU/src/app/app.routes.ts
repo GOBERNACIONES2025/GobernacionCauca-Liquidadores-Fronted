@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Home } from './features/home/presentation/pages/home/home';
 import { AutomotoresLayout } from './features/automotores/presentation/layout/automotores-layout';
 import { Vehiculos } from './features/automotores/presentation/pages/vehiculos/vehiculos';
+import { ContribuyentesIndex } from './features/automotores/presentation/pages/contribuyentes-index/contribuyentes-index';
 import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
 
 export const routes: Routes = [
@@ -28,6 +29,8 @@ export const routes: Routes = [
         component: Vehiculos,
       },
       {
+    path: 'contribuyentes-index',
+    component: ContribuyentesIndex,
         path: '**',
         redirectTo: 'portal-ciudadano',
       },

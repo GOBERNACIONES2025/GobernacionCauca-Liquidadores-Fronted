@@ -19,7 +19,11 @@ export class BaseApiService {
   public buildUrl(endpoint: string, targetModule?: TaxModuleType): string {
     const baseUrl = this.authState.getApiUrl(targetModule);
     const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+    if (cleanBase.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+      cleanEndpoint = cleanEndpoint.substring(4);
+    }
 
     return `${cleanBase}${cleanEndpoint}`;
   }
