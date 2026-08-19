@@ -119,6 +119,10 @@ export interface VehiculoItem {
   color?: string;
   servicio?: string;
   tipoVinculo?: string;
+  pasajeros?: number;
+  organismoTransito?: string;
+  organismoTransitoId?: number;
+  fechaMatricula?: string;
   estadoMatricula: string;
   estadoMatriculaId?: number;
   exencion?: string;

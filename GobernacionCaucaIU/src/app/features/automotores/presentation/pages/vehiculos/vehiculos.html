@@ -209,87 +209,131 @@
               </tr>
             </thead>
             <tbody>
-              @for (v of facade.filteredVehiculos(); track v.id) {
-                <tr 
-                  (click)="facade.seleccionarVehiculo(v)"
-                  [class]="'border-b border-slate-100 cursor-pointer transition-colors ' + (v.seleccionado ? 'bg-blue-50/70 hover:bg-blue-50' : 'bg-white hover:bg-slate-50/80')">
-                  
-                  <!-- Checkbox -->
-                  <td class="py-3 px-3 align-middle text-center" (click)="$event.stopPropagation()">
-                    <input type="checkbox" [checked]="v.seleccionado" class="accent-[#70b238] cursor-pointer">
-                  </td>
-
-                  <!-- Placa -->
-                  <td class="py-3 px-4 align-middle whitespace-nowrap">
-                    <span class="co-plate">{{ v.placa }}</span>
-                    @if (v.seleccionado) {
-                      <div class="text-[9.5px] text-[#70b238] font-bold mt-1">● Seleccionado</div>
-                    }
-                  </td>
-
-                  <!-- Ficha Técnica -->
-                  <td class="py-3 px-4 align-middle">
-                    <div class="font-bold text-slate-900">{{ v.tituloFichaTecnica || (v.marca + ' ' + v.linea) }}</div>
-                    <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.subtituloFichaTecnica || (v.modelo + ' · ' + (v.cilindraje | number) + ' cc · ' + v.tipoCombustible + ' · ' + v.clase) }}</div>
-                  </td>
-
-                  <!-- Propietario -->
-                  <td class="py-3 px-4 align-middle">
-                    <div class="font-bold text-slate-900">{{ v.propietarioNombre || v.propietario.nombre }}</div>
-                    <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.propietarioDocumento || (v.propietario.tipoDocumento + ' ' + v.propietario.numeroDocumento) }}</div>
-                  </td>
-
-                  <!-- Exenciones -->
-                  <td class="py-3 px-4 align-middle whitespace-nowrap">
-                    @if (v.exencion) {
-                      <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838]">
-                        {{ v.exencion }}
-                      </span>
-                    } @else {
-                      <span class="text-[12px] text-slate-400 italic">Sin novedades</span>
-                    }
-                  </td>
-
-                  <!-- Estado -->
-                  <td class="py-3 px-4 align-middle whitespace-nowrap">
-                    @if (v.estadoMatricula === 'Matrícula Activa' || v.estadoMatricula === 'Activo') {
-                      <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838]">
-                        <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238] shrink-0"></span>
-                        Matrícula Activa
-                      </span>
-                    } @else {
-                      <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
-                        Inactivo
-                      </span>
-                    }
-                  </td>
-
-                  <!-- Acciones -->
-                  <td class="py-3 px-4 align-middle whitespace-nowrap" (click)="$event.stopPropagation()">
-                    <div class="flex gap-1.5 items-center">
-                      <span class="tooltip-wrap inline-flex">
-                        <button (click)="facade.abrirRunt(v.placa)" type="button" class="inline-flex items-center justify-center h-[26px] px-2 rounded-md text-[11px] font-semibold cursor-pointer bg-blue-50 text-[#1e3a7b] border border-[#1e3a7b] hover:bg-blue-100 transition-colors">
-                          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        </button>
-                        <span class="tooltip-box">Ver expediente / RUNT</span>
-                      </span>
-
-                      <span class="tooltip-wrap inline-flex">
-                        <button (click)="onEditarVehiculo(v)" type="button" class="inline-flex items-center justify-center h-[26px] px-2 rounded-md text-[11px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">
-                          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <span class="tooltip-box">Ver / Editar Expediente</span>
-                      </span>
-
-                      <span class="tooltip-wrap inline-flex">
-                        <button type="button" class="h-[26px] w-[26px] rounded-md border border-slate-200 bg-white cursor-pointer flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors">
-                          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg>
-                        </button>
-                        <span class="tooltip-box">Más opciones</span>
-                      </span>
+              @if (facade.loading()) {
+                <tr>
+                  <td colspan="7" class="py-16 text-center">
+                    <div class="flex flex-col items-center justify-center gap-3">
+                      <div class="relative w-12 h-12 flex items-center justify-center">
+                        <div class="absolute inset-0 rounded-full border-[3px] border-[#1e3a7b1a] border-t-[#1e3a7b] animate-spin"></div>
+                        <svg width="20" height="20" class="text-[#1e3a7b] animate-pulse" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+                          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"></path>
+                          <circle cx="7" cy="17" r="2"></circle>
+                          <path d="M9 17h6"></path>
+                          <circle cx="17" cy="17" r="2"></circle>
+                        </svg>
+                      </div>
+                      <div>
+                        <p class="text-[14px] font-bold text-slate-800 m-0">Cargando parque automotor...</p>
+                        <p class="text-[12px] text-slate-400 mt-0.5 m-0">Obteniendo vehículos registrados de la base de datos</p>
+                      </div>
                     </div>
                   </td>
                 </tr>
+              } @else if (facade.filteredVehiculos().length === 0) {
+                <tr>
+                  <td colspan="7" class="py-12 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center gap-2">
+                      <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                        </svg>
+                      </div>
+                      <span class="text-[13.5px] font-bold text-slate-700">No se encontraron vehículos</span>
+                      <span class="text-[12px] text-slate-400">Intenta cambiar los filtros de búsqueda o registra un nuevo vehículo.</span>
+                    </div>
+                  </td>
+                </tr>
+              } @else {
+                @for (v of facade.filteredVehiculos(); track v.id) {
+                  <tr 
+                    (click)="facade.seleccionarVehiculo(v)"
+                    [class]="'border-b border-slate-100 cursor-pointer transition-colors ' + (v.seleccionado ? 'bg-blue-50/70 hover:bg-blue-50' : 'bg-white hover:bg-slate-50/80')">
+                    
+                    <!-- Checkbox -->
+                    <td class="py-3 px-3 align-middle text-center" (click)="$event.stopPropagation()">
+                      <input type="checkbox" [checked]="v.seleccionado" class="accent-[#70b238] cursor-pointer">
+                    </td>
+
+                    <!-- Placa -->
+                    <td class="py-3 px-4 align-middle whitespace-nowrap">
+                      <span class="co-plate">{{ v.placa }}</span>
+                      @if (v.seleccionado) {
+                        <div class="text-[9.5px] text-[#70b238] font-bold mt-1">● Seleccionado</div>
+                      }
+                    </td>
+
+                    <!-- Ficha Técnica -->
+                    <td class="py-3 px-4 align-middle">
+                      <div class="font-bold text-slate-900">{{ v.tituloFichaTecnica || (v.marca + ' ' + v.linea) }}</div>
+                      <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.subtituloFichaTecnica || (v.modelo + ' · ' + (v.cilindraje | number) + ' cc · ' + v.tipoCombustible + ' · ' + v.clase) }}</div>
+                    </td>
+
+                    <!-- Propietario -->
+                    <td class="py-3 px-4 align-middle">
+                      <div class="font-bold text-slate-900">{{ v.propietarioNombre || v.propietario.nombre }}</div>
+                      <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.propietarioDocumento || (v.propietario.tipoDocumento + ' ' + v.propietario.numeroDocumento) }}</div>
+                    </td>
+
+                    <!-- Exenciones -->
+                    <td class="py-3 px-4 align-middle whitespace-nowrap">
+                      @if (v.exencion) {
+                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838]">
+                          {{ v.exencion }}
+                        </span>
+                      } @else {
+                        <span class="text-[12px] text-slate-400 italic">Sin novedades</span>
+                      }
+                    </td>
+
+                    <!-- Estado -->
+                    <td class="py-3 px-4 align-middle whitespace-nowrap">
+                      @if (v.estadoMatricula === 'Matrícula Activa' || v.estadoMatricula === 'Activo') {
+                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838]">
+                          <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238] shrink-0"></span>
+                          Matrícula Activa
+                        </span>
+                      } @else {
+                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
+                          Inactivo
+                        </span>
+                      }
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="py-3 px-4 align-middle whitespace-nowrap" (click)="$event.stopPropagation()">
+                      <div class="flex gap-1.5 items-center">
+                        <span class="tooltip-wrap inline-flex">
+                          <button (click)="facade.seleccionarVehiculo(v)" type="button" class="inline-flex items-center justify-center h-[26px] px-2 rounded-md text-[11px] font-semibold cursor-pointer bg-blue-50 text-[#1e3a7b] border border-[#1e3a7b] hover:bg-blue-100 transition-colors">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                          </button>
+                          <span class="tooltip-box">Ver Expediente Tributario</span>
+                        </span>
+
+                        <span class="tooltip-wrap inline-flex">
+                          <button (click)="onEditarVehiculo(v)" type="button" class="inline-flex items-center justify-center h-[26px] px-2 rounded-md text-[11px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">
+                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                          </button>
+                          <span class="tooltip-box">Editar Expediente</span>
+                        </span>
+
+                        <div class="relative inline-block text-left">
+                          <button (click)="toggleMenu(v.id, $event)" type="button" class="h-[26px] w-[26px] rounded-md border border-slate-200 bg-white cursor-pointer flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors">
+                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg>
+                          </button>
+
+                          @if (activeMenuVehiculoId() === v.id) {
+                            <div class="origin-top-right absolute right-0 mt-1 w-44 rounded-lg shadow-lg bg-white ring-1 ring-black/5 border border-slate-200 z-50 py-1 text-left fade-in">
+                              <button (click)="facade.abrirInactivar(v); cerrarMenu()" type="button" class="w-full text-left px-3 py-2 text-[12.5px] font-medium text-red-600 hover:bg-red-50 flex items-center gap-2">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                                Inactivar Vehículo
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                }
               }
             </tbody>
           </table>
@@ -360,7 +404,7 @@
           <div class="shrink-0">
             <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838] whitespace-nowrap">
               <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238] shrink-0"></span>
-              Activo
+              Propietario Vigente
             </span>
           </div>
         </div>
@@ -412,34 +456,30 @@
                 </div>
                 <div>
                   <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Tipo</div>
-                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.tipoVehiculo || sv.clase || 'Automóvil' }}</div>
+                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.tipoVehiculo || sv.clase }}</div>
                 </div>
                 <div>
                   <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Servicio</div>
-                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.servicio || 'Particular' }}</div>
+                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.servicio }}</div>
                 </div>
                 <div>
                   <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Combustible</div>
-                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.combustible || sv.tipoCombustible || 'Gasolina' }}</div>
-                </div>
-                <div>
-                  <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Color</div>
-                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.color || 'Blanco Perla' }}</div>
+                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.combustible || sv.tipoCombustible }}</div>
                 </div>
                 <div>
                   <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Pasajeros</div>
-                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">5</div>
+                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.pasajeros }}</div>
                 </div>
                 <div>
                   <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Org. Tránsito</div>
-                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">Tránsito Popayán</div>
+                  <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ sv.organismoTransito || 'Sin asignar' }}</div>
                 </div>
               </div>
 
               <!-- Novedad Tributaria Box -->
               <div class="bg-[#70b2381a] border border-[#70b23838] rounded-md p-3">
                 <div class="text-[11px] font-bold text-[#3d7518] uppercase tracking-wider mb-1">Novedad Tributaria</div>
-                <div class="text-[12.5px] text-slate-900">{{ sv.exencion || 'Exención Pública (Res. 2026-089)' }}</div>
+                <div class="text-[12.5px] text-slate-900">{{ sv.exencion || 'Sin novedades tributarias registradas' }}</div>
               </div>
             </div>
           }
@@ -465,14 +505,28 @@
           <!-- TAB 3: VALORES -->
           @if (facade.panelTab() === 'valores') {
             <div class="space-y-3">
-              <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
-                <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-2">Avalúo y Tarifas</div>
-                <div class="text-[12px] space-y-1.5 text-slate-700">
-                  <div class="flex justify-between"><span>Base Gravable:</span> <strong class="text-slate-900">$45.800.000</strong></div>
-                  <div class="flex justify-between"><span>Tarifa Impuesto:</span> <strong class="text-slate-900">1.5%</strong></div>
-                  <div class="flex justify-between"><span>Impuesto Líquido:</span> <strong class="text-emerald-700">$687.000</strong></div>
+              @if (facade.expedienteActual()?.liquidaciones; as liquidacionesList) {
+                @for (liq of liquidacionesList; track liq.vigencia) {
+                  <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                    <div class="flex justify-between items-center mb-2">
+                      <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Vigencia Fiscal {{ liq.vigencia }}</span>
+                      <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">{{ liq.estado }}</span>
+                    </div>
+                    <div class="text-[12px] space-y-1.5 text-slate-700">
+                      <div class="flex justify-between"><span>Detalle:</span> <strong class="text-slate-900">{{ liq.detalle }}</strong></div>
+                      <div class="flex justify-between"><span>Impuesto Líquido:</span> <strong class="text-emerald-700">${{ liq.valor | number }}</strong></div>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="border border-slate-200 rounded-lg p-4 text-center text-slate-500 text-xs bg-slate-50">
+                    Sin liquidaciones o avalúos tributarios registrados para este vehículo.
+                  </div>
+                }
+              } @else {
+                <div class="border border-slate-200 rounded-lg p-4 text-center text-slate-500 text-xs bg-slate-50">
+                  Sin liquidaciones o avalúos tributarios registrados para este vehículo.
                 </div>
-              </div>
+              }
             </div>
           }
 
@@ -617,7 +671,22 @@
 
       <!-- Drawer Body (Scrollable with Reactive Form) -->
       <div class="flex-1 overflow-y-auto p-5" [formGroup]="form">
-        <div class="flex flex-col gap-4">
+        @if (facade.catalogosLoading()) {
+          <div class="flex flex-col items-center justify-center py-24 px-6 text-center">
+            <div class="relative w-14 h-14 mb-4 flex items-center justify-center">
+              <div class="absolute inset-0 rounded-full border-[3px] border-[#1e3a7b1a] border-t-[#1e3a7b] animate-spin"></div>
+              <svg width="22" height="22" class="text-[#1e3a7b] animate-pulse" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"></path>
+                <circle cx="7" cy="17" r="2"></circle>
+                <path d="M9 17h6"></path>
+                <circle cx="17" cy="17" r="2"></circle>
+              </svg>
+            </div>
+            <h4 class="text-[15px] font-bold text-slate-800 mb-1">Cargando datos para vehiculos...</h4>
+            <p class="text-[12.5px] text-slate-500 max-w-xs leading-relaxed">Consultando catálogos y especificaciones oficiales.</p>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-4">
           
           <!-- TAB 1: DATOS DEL VEHÍCULO (UNIFICADO) -->
           @if (facade.activeTab() === 'Datos del Vehículo') {
@@ -629,9 +698,9 @@
             </div>
 
             <div class="grid grid-cols-2 gap-x-4.5 gap-y-3.5">
-              <!-- Tipo de Vehículo primero para filtrar marcas y líneas -->
-              <div>
-                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de Vehículo <span class="text-red-500">*</span></label>
+              <!-- 1. Tipo de Vehículo -->
+              <div class="col-span-2 md:col-span-1">
+                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">1. Tipo de Vehículo <span class="text-red-500">*</span></label>
                 <select formControlName="tipoVehiculo" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
                   <option value="">Seleccione tipo de vehículo...</option>
                   @for (item of facade.tiposVehiculo(); track item.id) {
@@ -640,29 +709,32 @@
                 </select>
               </div>
 
-              <div>
-                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Placa <span class="text-red-500">*</span></label>
-                <input formControlName="placa" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all uppercase">
-              </div>
-
-              <div>
-                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Marca <span class="text-red-500">*</span></label>
-                <select formControlName="marca" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
-                  <option value="">Seleccione una marca...</option>
-                  @for (item of facade.marcas(); track item.id) {
+              <!-- 2. Marca (Depende de Tipo de Vehículo) -->
+              <div class="col-span-2 md:col-span-1">
+                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">2. Marca <span class="text-red-500">*</span></label>
+                <select formControlName="marca" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                  <option value="">{{ form.get('tipoVehiculo')?.value ? 'Seleccione marca...' : '← Seleccione tipo primero' }}</option>
+                  @for (item of facade.marcasDisponibles(); track item.id) {
                     <option [value]="item.nombre">{{ item.nombre }}</option>
                   }
                 </select>
               </div>
 
-              <div>
-                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Línea / Modelo Comercial <span class="text-red-500">*</span></label>
-                <select formControlName="linea" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
-                  <option value="">Seleccione una línea...</option>
+              <!-- 3. Línea (Depende de Marca) -->
+              <div class="col-span-2 md:col-span-1">
+                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">3. Línea / Modelo Comercial <span class="text-red-500">*</span></label>
+                <select formControlName="linea" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238] disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
+                  <option value="">{{ form.get('marca')?.value ? 'Seleccione línea...' : '← Seleccione marca primero' }}</option>
                   @for (item of facade.lineasDisponibles(); track item.id) {
                     <option [value]="item.nombre">{{ item.nombre }}</option>
                   }
                 </select>
+              </div>
+
+              <!-- 4. Placa -->
+              <div class="col-span-2 md:col-span-1">
+                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Placa <span class="text-red-500">*</span></label>
+                <input formControlName="placa" placeholder="Ej: HJK-892" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all uppercase">
               </div>
 
               <div>
@@ -686,11 +758,6 @@
               </div>
 
               <div>
-                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Color</label>
-                <input formControlName="color" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all">
-              </div>
-
-              <div>
                 <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Servicio</label>
                 <select formControlName="servicio" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
                   <option value="">Seleccione un servicio...</option>
@@ -703,19 +770,9 @@
               <div>
                 <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Estado Matrícula</label>
                 <select formControlName="estadoMatriculaId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
-                  <option [ngValue]="null">Seleccione un estado...</option>
+                  <option value="">Seleccione un estado...</option>
                   @for (item of facade.estadosMatricula(); track item.id) {
-                    <option [ngValue]="item.id">{{ item.nombre }}</option>
-                  }
-                </select>
-              </div>
-
-              <div>
-                <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de Vínculo</label>
-                <select formControlName="tipoVinculo" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
-                  <option value="">Seleccione un tipo...</option>
-                  @for (item of facade.tiposVinculo(); track item.id) {
-                    <option [value]="item.nombre">{{ item.nombre }}</option>
+                    <option [value]="item.id">{{ item.nombre }}</option>
                   }
                 </select>
               </div>
@@ -726,23 +783,11 @@
               </div>
 
               <div>
-                <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">Nº Motor 🔒</label>
-                <input formControlName="numeroMotor" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-slate-50 outline-none">
-                <span class="text-[10px] text-slate-400 mt-0.5 block">Dato proveniente del RUNT</span>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">VIN / Chasis 🔒</label>
-                <input formControlName="vinChasis" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-slate-50 outline-none">
-                <span class="text-[10px] text-slate-400 mt-0.5 block">Dato proveniente del RUNT</span>
-              </div>
-
-              <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1 uppercase tracking-wide">Organismo Tránsito 🔒</label>
                 <select formControlName="organismoTransitoId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-slate-50 outline-none">
-                  <option [ngValue]="null">Seleccione organismo...</option>
+                  <option value="">Seleccione organismo...</option>
                   @for (item of facade.organismosTransito(); track item.id) {
-                    <option [ngValue]="item.id">{{ item.nombre }}</option>
+                    <option [value]="item.id">{{ item.nombre }}</option>
                   }
                 </select>
               </div>
@@ -765,29 +810,32 @@
 
             <!-- Estado de Búsqueda del Propietario -->
             @if (facade.propietarioEncontrado()) {
-              <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 text-xs text-emerald-900">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+              <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start justify-between gap-2">
+                <div class="flex items-start gap-2 text-xs text-amber-900">
+                  <span class="text-amber-600 font-bold shrink-0 mt-0.5">🔒</span>
                   <div>
-                    <span class="font-bold">Propietario encontrado en base de datos:</span>
+                    <span class="font-bold">Propietario registrado en el sistema:</span>
                     <span class="ml-1 font-semibold">{{ form.get('nombreRazonSocial')?.value }}</span>
+                    <p class="text-[11px] text-amber-700 m-0 mt-0.5">
+                      Los datos personales están bloqueados para modificación desde este formulario. Si requiere actualizarlos, hágalo en el Módulo de Propietarios.
+                    </p>
                   </div>
                 </div>
-                <button type="button" (click)="limpiarPropietario()" class="text-xs text-emerald-800 font-semibold underline hover:text-emerald-950 cursor-pointer border-none bg-transparent shrink-0">
+                <button type="button" (click)="limpiarPropietario()" class="text-xs text-amber-900 font-semibold underline hover:text-amber-950 cursor-pointer border-none bg-transparent shrink-0">
                   Cambiar / Limpiar
                 </button>
               </div>
             } @else if (facade.busquedaRealizada() && !facade.buscandoPropietario()) {
-              <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2 text-xs text-blue-900">
-                <span class="text-blue-600 font-bold shrink-0 mt-0.5">ℹ</span>
-                <span>Propietario no registrado previamente. Diligencie los campos a continuación para crearlo junto con el vehículo.</span>
+              <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex items-start gap-2 text-xs text-emerald-900">
+                <span class="text-emerald-600 font-bold shrink-0 mt-0.5">✨</span>
+                <span>Propietario no registrado. Diligencie los campos a continuación para crearlo automáticamente al guardar el vehículo.</span>
               </div>
             }
 
             <div class="grid grid-cols-2 gap-x-4.5 gap-y-3.5">
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo Documento</label>
-                <select formControlName="tipoDocumentoId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
+                <select formControlName="tipoDocumentoId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                   <option [ngValue]="null">Seleccione tipo de documento...</option>
                   @for (item of facade.tiposDocumento(); track item.id) {
                     <option [ngValue]="item.id">{{ item.nombre }} ({{ item.codigo }})</option>
@@ -802,11 +850,11 @@
                     formControlName="numeroDocumento" 
                     (keyup.enter)="buscarPropietario()"
                     (blur)="buscarPropietario()"
-                    class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all">
+                    class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                   <button 
                     type="button" 
                     (click)="buscarPropietario()"
-                    [disabled]="facade.buscandoPropietario()"
+                    [disabled]="facade.buscandoPropietario() || facade.propietarioEncontrado()"
                     class="h-9 px-3 rounded-md bg-[#1e3a7b] hover:bg-[#162c5b] text-white flex items-center justify-center cursor-pointer border-none shadow-sm shrink-0 disabled:opacity-50">
                     @if (facade.buscandoPropietario()) {
                       <svg class="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -822,7 +870,7 @@
 
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de Persona</label>
-                <select formControlName="naturalezaJuridicaId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
+                <select formControlName="naturalezaJuridicaId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                   <option [ngValue]="null">Seleccione tipo de persona...</option>
                   @for (item of facade.naturalezasJuridicas(); track item.id) {
                     <option [ngValue]="item.id">{{ item.nombre }}</option>
@@ -832,28 +880,28 @@
 
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Nombre / Razón Social <span class="text-red-500">*</span></label>
-                <input formControlName="nombreRazonSocial" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all">
+                <input formControlName="nombreRazonSocial" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
               </div>
 
               <!-- Datos de Contacto y Ubicación del Contribuyente -->
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Correo Electrónico</label>
-                <input formControlName="correoElectronico" type="email" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all">
+                <input formControlName="correoElectronico" type="email" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
               </div>
 
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Teléfono</label>
-                <input formControlName="telefono" type="tel" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all">
+                <input formControlName="telefono" type="tel" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
               </div>
 
               <div class="col-span-2">
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Dirección de Residencia / Notificación</label>
-                <input formControlName="direccion" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all">
+                <input formControlName="direccion" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
               </div>
 
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Departamento</label>
-                <select formControlName="departamentoId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
+                <select formControlName="departamentoId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                   <option [ngValue]="null">Seleccione departamento...</option>
                   @for (item of facade.departamentos(); track item.id) {
                     <option [ngValue]="item.id">{{ item.nombre }}</option>
@@ -863,7 +911,7 @@
 
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Ciudad / Municipio</label>
-                <select formControlName="ciudadId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
+                <select formControlName="ciudadId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                   <option [ngValue]="null">
                     {{ form.get('departamentoId')?.value ? 'Seleccione municipio...' : 'Seleccione primero un departamento...' }}
                   </option>
@@ -877,9 +925,9 @@
               <div>
                 <label class="block text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Tipo de Vínculo</label>
                 <select formControlName="tipoVinculoPersonaId" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none cursor-pointer focus:border-[#70b238]">
-                  <option [ngValue]="null">Seleccione tipo de vínculo...</option>
+                  <option value="">Seleccione tipo de vínculo...</option>
                   @for (item of facade.tiposVinculo(); track item.id) {
-                    <option [ngValue]="item.id">{{ item.nombre }}</option>
+                    <option [value]="item.id">{{ item.nombre }}</option>
                   }
                 </select>
               </div>
@@ -914,32 +962,28 @@
             </div>
 
             <div class="flex flex-col gap-3">
-              <div class="border border-slate-200 rounded-lg p-3.5 flex gap-4 items-start shadow-sm bg-white">
-                <div class="text-[11px] font-bold text-slate-400 shrink-0 mt-0.5 w-[80px]">15/01/2024</div>
-                <div>
-                  <div class="text-[13px] font-bold text-slate-900">Matrícula inicial</div>
-                  <div class="text-[12px] text-slate-600 mt-0.5">Registro de vehículo nuevo — Toyota Corolla XEI 2024</div>
-                  <div class="text-[11px] text-slate-400 mt-1">por sdiaz</div>
+              @if (facade.expedienteActual()?.historial; as historialList) {
+                @for (item of historialList; track item.fecha) {
+                  <div class="border border-slate-200 rounded-lg p-3.5 flex gap-4 items-start shadow-sm bg-white">
+                    <div class="text-[11px] font-bold text-slate-400 shrink-0 mt-0.5 w-[90px]">
+                      {{ item.fecha | date:'dd/MM/yyyy HH:mm' }}
+                    </div>
+                    <div>
+                      <div class="text-[13px] font-bold text-slate-900">{{ item.accion || item.tipoEvento }}</div>
+                      <div class="text-[12px] text-slate-600 mt-0.5">{{ item.detalle || item.descripcion || 'Evento registrado' }}</div>
+                      <div class="text-[11px] text-slate-400 mt-1">por {{ item.usuario || 'Sistema' }}</div>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="border border-slate-200 rounded-lg p-4 text-center text-slate-500 text-xs bg-slate-50">
+                    Sin registros de historial para este vehículo.
+                  </div>
+                }
+              } @else {
+                <div class="border border-slate-200 rounded-lg p-4 text-center text-slate-500 text-xs bg-slate-50">
+                  Sin registros de historial para este vehículo.
                 </div>
-              </div>
-
-              <div class="border border-slate-200 rounded-lg p-3.5 flex gap-4 items-start shadow-sm bg-white">
-                <div class="text-[11px] font-bold text-slate-400 shrink-0 mt-0.5 w-[80px]">28/01/2024</div>
-                <div>
-                  <div class="text-[13px] font-bold text-slate-900">Asignación propietario</div>
-                  <div class="text-[12px] text-slate-600 mt-0.5">Samuel Díaz Pérez — CC 1.035.421.980 — 100%</div>
-                  <div class="text-[11px] text-slate-400 mt-1">por admin_user</div>
-                </div>
-              </div>
-
-              <div class="border border-slate-200 rounded-lg p-3.5 flex gap-4 items-start shadow-sm bg-white">
-                <div class="text-[11px] font-bold text-slate-400 shrink-0 mt-0.5 w-[80px]">01/03/2026</div>
-                <div>
-                  <div class="text-[13px] font-bold text-slate-900">Exención aplicada</div>
-                  <div class="text-[12px] text-slate-600 mt-0.5">Resolución 2026 - 089 — Vehículo Eléctrico/Híbrido</div>
-                  <div class="text-[11px] text-slate-400 mt-1">por admin_user</div>
-                </div>
-              </div>
+              }
             </div>
           }
 
@@ -955,6 +999,7 @@
           }
 
         </div>
+        }
       </div>
 
       <!-- Drawer Footer / Stepper Navigation -->
@@ -1011,3 +1056,64 @@
     </div>
   </div>
 }
+
+<!-- MODAL: CONFIRMAR INACTIVACIÓN DE VEHÍCULO -->
+@if (facade.isInactivarModalOpen()) {
+    <div class="fade-in fixed inset-0 bg-slate-900/45 z-[300] flex items-center justify-center backdrop-blur-[2px] p-5">
+      <div class="drawer-enter bg-white rounded-lg w-full max-w-[440px] max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between px-5.5 py-4 border-b border-slate-200 shrink-0">
+          <div>
+            <div class="text-[15px] font-bold text-slate-900">Confirmar Inactivación</div>
+            <div class="text-[11.5px] text-slate-400 mt-0.5">Vehículo {{ facade.vehiculoAInactivar()?.placa }}</div>
+          </div>
+          <button (click)="facade.cerrarInactivar()" type="button" class="bg-slate-100 border-none rounded-md cursor-pointer p-1.5 flex text-slate-600 hover:bg-slate-200 transition-colors">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <div class="overflow-y-auto flex-1 p-5 px-5.5">
+          <div class="rounded-md p-3 text-[12.5px] font-medium flex items-start gap-2 bg-amber-500/10 border-l-[3px] border-amber-600 text-amber-900">
+            <span class="mt-0.5 shrink-0">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            </span>
+            Esta acción inactiva el vehículo en el sistema tributario. No podrá generar liquidaciones hasta ser reactivado mediante resolución administrativa.
+          </div>
+
+          <div class="mt-3.5 bg-slate-50 border border-slate-200 rounded-md p-3">
+            <div class="text-[13px] font-semibold text-slate-900 mb-1.5 flex items-center gap-2">
+              Vehículo: <span class="co-plate">{{ facade.vehiculoAInactivar()?.placa }}</span>
+            </div>
+            <div class="text-[12.5px] text-slate-600">
+              {{ facade.vehiculoAInactivar()?.marca }} {{ facade.vehiculoAInactivar()?.linea }} — {{ facade.vehiculoAInactivar()?.propietarioNombre || facade.vehiculoAInactivar()?.propietario?.nombre || 'Sin propietario' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 p-3.5 px-5.5 border-t border-slate-200 bg-slate-50">
+          <button 
+            type="button" 
+            (click)="facade.cerrarInactivar()"
+            [disabled]="facade.inactivandoLoading()"
+            class="inline-flex items-center justify-center h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 disabled:opacity-50 transition-colors">
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            (click)="facade.confirmarInactivacion()"
+            [disabled]="facade.inactivandoLoading()"
+            class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer bg-red-600 text-white border-none hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm">
+            @if (facade.inactivandoLoading()) {
+              <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Inactivando...
+            } @else {
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+              Inactivar Vehículo
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }

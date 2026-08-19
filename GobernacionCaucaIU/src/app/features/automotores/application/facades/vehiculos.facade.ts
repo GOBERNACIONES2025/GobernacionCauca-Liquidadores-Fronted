@@ -54,8 +54,9 @@ export class VehiculosFacade {
   readonly filtroEstado = signal<string>('Todos');
   readonly filtroTipo = signal<string>('Todos');
 
-  // Catálogos para el Wizard
+  // Catálogos para el Wizard (Cargados 100% en tiempo real desde la Base de Datos SQL Server)
   readonly marcas = signal<CatalogoMarca[]>([]);
+  readonly marcasDisponibles = signal<CatalogoMarca[]>([]);
   readonly lineas = signal<CatalogoLinea[]>([]);
   readonly lineasDisponibles = signal<CatalogoLinea[]>([]);
   readonly estadosMatricula = signal<CatalogoItem[]>([]);
@@ -79,12 +80,19 @@ export class VehiculosFacade {
   readonly currentStep = signal<number>(1);
   readonly activeTab = signal<string>('Datos del Vehículo');
   readonly selectedVehiculo = signal<VehiculoItem | null>(null);
+  readonly expedienteActual = signal<any | null>(null);
+  readonly expedienteLoading = signal<boolean>(false);
   readonly panelTab = signal<'ficha' | 'propietarios' | 'valores'>('ficha');
 
   // Modal de Consulta RUNT
   readonly isRuntModalOpen = signal<boolean>(false);
   readonly placaRunt = signal<string>('');
   readonly runtLoading = signal<boolean>(false);
+
+  // Modal de Confirmación de Inactivación
+  readonly isInactivarModalOpen = signal<boolean>(false);
+  readonly vehiculoAInactivar = signal<VehiculoItem | null>(null);
+  readonly inactivandoLoading = signal<boolean>(false);
 
   // Búsqueda de propietario en Step 3
   readonly buscandoPropietario = signal<boolean>(false);
@@ -214,10 +222,14 @@ export class VehiculosFacade {
             tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
             color: item.color || 'Blanco',
             servicio: item.servicio || 'Particular',
+            pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
+            organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
+            organismoTransitoId: item.organismoTransitoId || undefined,
+            fechaMatricula: item.fechaMatricula || undefined,
             estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
             estadoMatriculaId: item.estadoMatriculaId || 1,
             exencion: item.exencion || undefined,
-            seleccionado: idx === 0,
+            seleccionado: false,
             tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
             subtituloFichaTecnica: item.subtituloFichaTecnica,
             propietario: {
@@ -231,7 +243,7 @@ export class VehiculosFacade {
 
         if (mapped.length > 0) {
           this.vehiculos.set(mapped);
-          this.selectedVehiculo.set(mapped[0]);
+          this.selectedVehiculo.set(null);
           this.totalVehiculos.set(total);
         } else {
           this.vehiculos.set([]);
@@ -277,214 +289,40 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   // CARGA DE CATÁLOGOS DESDE EL BACKEND
   // --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
+  // CARGA DE CATÁLOGOS DESDE EL BACKEND (100% REAL-TIME DESDE SQL SERVER)
+  // --------------------------------------------------------------------------
   cargarCatalogos(): void {
     if (this.catalogosLoaded() || this.catalogosLoading()) return;
 
     this.catalogosLoading.set(true);
 
-    const defaultMarcas: CatalogoMarca[] = [
-      { id: 1, nombre: 'TOYOTA' },
-      { id: 2, nombre: 'CHEVROLET' },
-      { id: 3, nombre: 'RENAULT' },
-      { id: 4, nombre: 'MAZDA' },
-      { id: 5, nombre: 'NISSAN' },
-      { id: 6, nombre: 'HYUNDAI' },
-      { id: 7, nombre: 'KIA' },
-      { id: 8, nombre: 'FORD' },
-      { id: 9, nombre: 'VOLKSWAGEN' },
-      { id: 10, nombre: 'HONDA' },
-      { id: 11, nombre: 'SUZUKI' },
-      { id: 12, nombre: 'YAMAHA' },
-      { id: 13, nombre: 'BAJAJ' }
-    ];
-
-    const defaultLineas: CatalogoLinea[] = [
-      { id: 1, marcaNombre: 'TOYOTA', nombre: 'Corolla XEI', clase: 'Automóvil', cilindraje: 1987, combustible: 'Gasolina' },
-      { id: 2, marcaNombre: 'TOYOTA', nombre: 'Corolla Cross', clase: 'Camioneta', cilindraje: 1987, combustible: 'Híbrido' },
-      { id: 3, marcaNombre: 'TOYOTA', nombre: 'Hilux D/C 4x4', clase: 'Camioneta', cilindraje: 2755, combustible: 'Diesel' },
-      { id: 4, marcaNombre: 'TOYOTA', nombre: 'RAV4', clase: 'Camioneta', cilindraje: 2487, combustible: 'Híbrido' },
-      { id: 5, marcaNombre: 'TOYOTA', nombre: 'Land Cruiser Prado', clase: 'Camioneta', cilindraje: 3956, combustible: 'Gasolina' },
-      { id: 6, marcaNombre: 'TOYOTA', nombre: 'Yaris', clase: 'Automóvil', cilindraje: 1496, combustible: 'Gasolina' },
-      { id: 7, marcaNombre: 'CHEVROLET', nombre: 'Onix Turbo', clase: 'Automóvil', cilindraje: 999, combustible: 'Gasolina' },
-      { id: 8, marcaNombre: 'CHEVROLET', nombre: 'Tracker Turbo', clase: 'Camioneta', cilindraje: 1200, combustible: 'Gasolina' },
-      { id: 9, marcaNombre: 'CHEVROLET', nombre: 'Sail', clase: 'Automóvil', cilindraje: 1400, combustible: 'Gasolina' },
-      { id: 10, marcaNombre: 'CHEVROLET', nombre: 'D-Max 4x4', clase: 'Camioneta', cilindraje: 2999, combustible: 'Diesel' },
-      { id: 11, marcaNombre: 'RENAULT', nombre: 'Duster Zen', clase: 'Camioneta', cilindraje: 1600, combustible: 'Gasolina' },
-      { id: 12, marcaNombre: 'RENAULT', nombre: 'Sandero Life', clase: 'Automóvil', cilindraje: 1598, combustible: 'Gasolina' },
-      { id: 13, marcaNombre: 'RENAULT', nombre: 'Stepway Intens', clase: 'Camioneta', cilindraje: 1598, combustible: 'Gasolina' },
-      { id: 14, marcaNombre: 'RENAULT', nombre: 'Logan Life', clase: 'Automóvil', cilindraje: 1598, combustible: 'Gasolina' },
-      { id: 15, marcaNombre: 'RENAULT', nombre: 'Kwid', clase: 'Automóvil', cilindraje: 999, combustible: 'Gasolina' },
-      { id: 16, marcaNombre: 'MAZDA', nombre: 'CX-5 Grand Touring', clase: 'Camioneta', cilindraje: 2488, combustible: 'Gasolina' },
-      { id: 17, marcaNombre: 'MAZDA', nombre: 'CX-30 Grand Touring', clase: 'Camioneta', cilindraje: 1998, combustible: 'Gasolina' },
-      { id: 18, marcaNombre: 'MAZDA', nombre: 'Mazda 3 Grand Touring', clase: 'Automóvil', cilindraje: 1998, combustible: 'Gasolina' },
-      { id: 19, marcaNombre: 'MAZDA', nombre: 'Mazda 2 Touring', clase: 'Automóvil', cilindraje: 1496, combustible: 'Gasolina' },
-      { id: 20, marcaNombre: 'HONDA', nombre: 'CB300R', clase: 'Motocicleta', cilindraje: 286, combustible: 'Gasolina' },
-      { id: 21, marcaNombre: 'HONDA', nombre: 'CR-V', clase: 'Camioneta', cilindraje: 1498, combustible: 'Gasolina' },
-      { id: 22, marcaNombre: 'HONDA', nombre: 'Civic', clase: 'Automóvil', cilindraje: 1996, combustible: 'Gasolina' },
-      { id: 23, marcaNombre: 'HONDA', nombre: 'XR190L', clase: 'Motocicleta', cilindraje: 184, combustible: 'Gasolina' },
-      { id: 24, marcaNombre: 'YAMAHA', nombre: 'FZ25', clase: 'Motocicleta', cilindraje: 249, combustible: 'Gasolina' },
-      { id: 25, marcaNombre: 'YAMAHA', nombre: 'NMAX Connected', clase: 'Motocicleta', cilindraje: 155, combustible: 'Gasolina' },
-      { id: 26, marcaNombre: 'YAMAHA', nombre: 'XTZ 250', clase: 'Motocicleta', cilindraje: 249, combustible: 'Gasolina' }
-    ];
-
-    const defaultEstados: CatalogoItem[] = [
-      { id: 1, nombre: 'Activo' },
-      { id: 2, nombre: 'Inactivo' },
-      { id: 3, nombre: 'Traslado' }
-    ];
-
-    const defaultServicios: CatalogoItem[] = [
-      { id: 1, nombre: 'Particular' },
-      { id: 2, nombre: 'Público' },
-      { id: 3, nombre: 'Oficial' },
-      { id: 4, nombre: 'Diplomático' }
-    ];
-
-    const defaultVinculos: CatalogoItem[] = [
-      { id: 1, nombre: 'Propietario' },
-      { id: 2, nombre: 'Locatario' },
-      { id: 3, nombre: 'Poseedor' }
-    ];
-
-    const defaultTiposVehiculo: CatalogoItem[] = [
-      { id: 1, nombre: 'Automóvil' },
-      { id: 2, nombre: 'Camioneta' },
-      { id: 3, nombre: 'Motocicleta' },
-      { id: 4, nombre: 'Bus' },
-      { id: 5, nombre: 'Camión' }
-    ];
-
-    const defaultCombustibles: CatalogoItem[] = [
-      { id: 1, nombre: 'Gasolina' },
-      { id: 2, nombre: 'Diesel' },
-      { id: 3, nombre: 'Gas' },
-      { id: 4, nombre: 'Híbrido' },
-      { id: 5, nombre: 'Eléctrico' }
-    ];
-
-    const defaultOrganismos: CatalogoItem[] = [
-      { id: 1, nombre: 'Tránsito Municipal Popayán (19001)' },
-      { id: 2, nombre: 'Secretaría de Tránsito Santander de Quilichao (19698)' }
-    ];
-
-    const defaultTiposDoc: CatalogoTipoDocumento[] = [
-      { id: 1, codigo: 'CC', nombre: 'Cédula de Ciudadanía' },
-      { id: 2, codigo: 'NIT', nombre: 'NIT' },
-      { id: 3, codigo: 'CE', nombre: 'Cédula de Extranjería' },
-      { id: 4, codigo: 'PA', nombre: 'Pasaporte' }
-    ];
-
-    const defaultNaturalezas: CatalogoNaturalezaJuridica[] = [
-      { id: 1, codigo: 'PN', nombre: 'Persona Natural' },
-      { id: 2, codigo: 'PJ', nombre: 'Persona Jurídica' }
-    ];
-
-    const defaultDepartamentos: CatalogoDepartamento[] = [
-      { id: 19, codigo: '19', nombre: 'Cauca' },
-      { id: 76, codigo: '76', nombre: 'Valle del Cauca' },
-      { id: 52, codigo: '52', nombre: 'Nariño' },
-      { id: 11, codigo: '11', nombre: 'Bogotá D.C.' },
-      { id: 5, codigo: '05', nombre: 'Antioquia' },
-      { id: 41, codigo: '41', nombre: 'Huila' },
-      { id: 68, codigo: '68', nombre: 'Santander' },
-      { id: 73, codigo: '73', nombre: 'Tolima' },
-      { id: 66, codigo: '66', nombre: 'Risaralda' },
-      { id: 63, codigo: '63', nombre: 'Quindío' },
-      { id: 17, codigo: '17', nombre: 'Caldas' },
-      { id: 8, codigo: '08', nombre: 'Atlántico' }
-    ];
-
-    const defaultCiudades: CatalogoCiudad[] = [
-      { id: 19001, codigo: '19001', nombre: 'Popayán', departamentoId: 19 },
-      { id: 19698, codigo: '19698', nombre: 'Santander de Quilichao', departamentoId: 19 },
-      { id: 19573, codigo: '19573', nombre: 'Puerto Tejada', departamentoId: 19 },
-      { id: 19532, codigo: '19532', nombre: 'Patía (El Bordo)', departamentoId: 19 },
-      { id: 19548, codigo: '19548', nombre: 'Piendamó', departamentoId: 19 },
-      { id: 19256, codigo: '19256', nombre: 'El Tambo', departamentoId: 19 },
-      { id: 19100, codigo: '19100', nombre: 'Bolívar', departamentoId: 19 },
-      { id: 19743, codigo: '19743', nombre: 'Silvia', departamentoId: 19 },
-      { id: 19807, codigo: '19807', nombre: 'Timbío', departamentoId: 19 },
-      { id: 19318, codigo: '19318', nombre: 'Guapi', departamentoId: 19 },
-      { id: 76001, codigo: '76001', nombre: 'Cali', departamentoId: 76 },
-      { id: 76520, codigo: '76520', nombre: 'Palmira', departamentoId: 76 },
-      { id: 52001, codigo: '52001', nombre: 'Pasto', departamentoId: 52 },
-      { id: 11001, codigo: '11001', nombre: 'Bogotá D.C.', departamentoId: 11 },
-      { id: 5001, codigo: '05001', nombre: 'Medellín', departamentoId: 5 }
-    ];
-
-    if (this.catalogosLoaded() || this.catalogosLoading()) {
-      return;
-    }
-
-    this.catalogosLoading.set(true);
-
     forkJoin({
-      estados: this.api.get<ApiResponse<CatalogoItem[]>>('/catalogo/estados-matricula', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultEstados),
-        catchError(() => of(defaultEstados))
-      ),
-      servicios: this.api.get<ApiResponse<CatalogoItem[]>>('/catalogo/servicios-vehiculo', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultServicios),
-        catchError(() => of(defaultServicios))
-      ),
-      vinculos: this.api.get<ApiResponse<CatalogoItem[]>>('/catalogo/tipos-vinculo', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultVinculos),
-        catchError(() => of(defaultVinculos))
-      ),
-      tiposVehiculo: this.api.get<ApiResponse<CatalogoItem[]>>('/catalogo/tipos-vehiculo', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultTiposVehiculo),
-        catchError(() => of(defaultTiposVehiculo))
-      ),
-      combustibles: this.api.get<ApiResponse<CatalogoItem[]>>('/catalogo/combustibles', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultCombustibles),
-        catchError(() => of(defaultCombustibles))
-      ),
-      organismos: this.api.get<ApiResponse<CatalogoItem[]>>('/catalogo/organismos-transito', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultOrganismos),
-        catchError(() => of(defaultOrganismos))
-      ),
-      tiposDoc: this.api.get<ApiResponse<CatalogoTipoDocumento[]>>('/catalogo/tipos-documento', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultTiposDoc),
-        catchError(() => of(defaultTiposDoc))
-      ),
-      naturalezas: this.api.get<ApiResponse<CatalogoNaturalezaJuridica[]>>('/catalogo/naturalezas-juridicas', {}, 'AUTOMOTORES').pipe(
-        map(res => res.data?.length ? res.data : defaultNaturalezas),
-        catchError(() => of(defaultNaturalezas))
+      todos: this.api.get<ApiResponse<any>>('/catalogo/todos', {}, 'AUTOMOTORES').pipe(
+        map(res => res?.data || {}),
+        catchError(() => of({}))
       ),
       departamentos: this.api.get<any>('/departamentos', {}, 'AUTOMOTORES').pipe(
-        map(res => (res?.data?.length ? res.data : (Array.isArray(res) && res.length ? res : defaultDepartamentos))),
-        catchError(() => of(defaultDepartamentos))
+        map(res => (res?.data ? res.data : (Array.isArray(res) ? res : []))),
+        catchError(() => of([] as CatalogoDepartamento[]))
       )
     }).subscribe({
       next: (results) => {
-        this.marcas.set(defaultMarcas);
-        this.estadosMatricula.set(results.estados);
-        this.serviciosVehiculo.set(results.servicios);
-        this.tiposVinculo.set(results.vinculos);
-        this.tiposVehiculo.set(results.tiposVehiculo);
-        this.combustibles.set(results.combustibles);
-        this.organismosTransito.set(results.organismos);
-        this.tiposDocumento.set(results.tiposDoc);
-        this.naturalezasJuridicas.set(results.naturalezas);
-        this.departamentos.set(results.departamentos);
-        this.ciudades.set(defaultCiudades);
+        const t = results.todos;
+        this.estadosMatricula.set(t.estadosMatricula || []);
+        this.serviciosVehiculo.set(t.serviciosVehiculo || []);
+        this.tiposVinculo.set(t.tiposVinculo || []);
+        this.tiposVehiculo.set(t.tiposVehiculo || []);
+        this.combustibles.set(t.combustibles || []);
+        this.organismosTransito.set(t.organismosTransito || []);
+        this.tiposDocumento.set(t.tiposDocumento || []);
+        this.naturalezasJuridicas.set(t.naturalezasJuridicas || []);
+        this.departamentos.set(results.departamentos || []);
         this.catalogosLoaded.set(true);
         this.catalogosLoading.set(false);
       },
-      error: () => {
-        this.marcas.set(defaultMarcas);
-        this.lineas.set(defaultLineas);
-        this.estadosMatricula.set(defaultEstados);
-        this.serviciosVehiculo.set(defaultServicios);
-        this.tiposVinculo.set(defaultVinculos);
-        this.tiposVehiculo.set(defaultTiposVehiculo);
-        this.combustibles.set(defaultCombustibles);
-        this.organismosTransito.set(defaultOrganismos);
-        this.tiposDocumento.set(defaultTiposDoc);
-        this.naturalezasJuridicas.set(defaultNaturalezas);
-        this.departamentos.set(defaultDepartamentos);
-        this.ciudades.set(defaultCiudades);
-        this.catalogosLoaded.set(true);
+      error: (err) => {
+        console.error('Error cargando catálogos unificados:', err);
         this.catalogosLoading.set(false);
       }
     });
@@ -499,28 +337,24 @@ export class VehiculosFacade {
     this.api.get<any>(`/departamentos/${departamentoId}/ciudades`, {}, 'AUTOMOTORES').pipe(
       catchError(() => of(null))
     ).subscribe(res => {
-      const data = res?.data || (Array.isArray(res) ? res : null);
-      if (data && data.length > 0) {
-        this.ciudadesDisponibles.set(data);
-      } else {
-        const filtradas = this.ciudades().filter(c => c.departamentoId == departamentoId);
-        this.ciudadesDisponibles.set(filtradas);
-      }
+      const data = res?.data || (Array.isArray(res) ? res : []);
+      this.ciudadesDisponibles.set(data);
     });
   }
 
   cargarMarcasPorTipo(tipoVehiculo?: string): void {
-    const params: Record<string, string> = {};
-    if (tipoVehiculo?.trim()) {
-      params['tipoVehiculo'] = tipoVehiculo.trim();
+    if (!tipoVehiculo?.trim()) {
+      this.marcasDisponibles.set([]);
+      this.lineasDisponibles.set([]);
+      return;
     }
+
+    const params: Record<string, string> = { tipoVehiculo: tipoVehiculo.trim() };
 
     this.api.get<ApiResponse<CatalogoMarca[]>>('/catalogo/marcas', { params }, 'AUTOMOTORES').pipe(
       catchError(() => of({ data: [] as CatalogoMarca[] }))
     ).subscribe(res => {
-      if (res?.data && res.data.length > 0) {
-        this.marcas.set(res.data);
-      }
+      this.marcasDisponibles.set(res?.data || []);
     });
   }
 
@@ -536,16 +370,10 @@ export class VehiculosFacade {
       params['tipoVehiculo'] = tipoVehiculo.trim();
     }
 
-    // Consulta al backend por la marca y tipo seleccionados
     this.api.get<ApiResponse<CatalogoLinea[]>>('/catalogo/lineas', { params }, 'AUTOMOTORES').pipe(
       catchError(() => of({ data: [] as CatalogoLinea[] }))
     ).subscribe(res => {
-      if (res?.data && res.data.length > 0) {
-        this.lineasDisponibles.set(res.data);
-      } else {
-        const filtradas = this.lineas().filter(l => (l.marcaNombre || '').toUpperCase() === marcaNorm);
-        this.lineasDisponibles.set(filtradas);
-      }
+      this.lineasDisponibles.set(res?.data || []);
     });
   }
 
@@ -589,6 +417,23 @@ export class VehiculosFacade {
   crearVehiculo(payload: RegistrarVehiculoDto): Observable<ApiResponse<any>> {
     this.registroLoading.set(true);
     return this.api.post<ApiResponse<any>>('/vehiculos', payload, {}, 'AUTOMOTORES').pipe(
+      map(res => {
+        this.registroLoading.set(false);
+        return res;
+      }),
+      catchError(err => {
+        this.registroLoading.set(false);
+        throw err;
+      })
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // ACTUALIZACIÓN DE VEHÍCULO (PUT /api/vehiculos/{id})
+  // --------------------------------------------------------------------------
+  actualizarVehiculo(id: number, payload: any): Observable<ApiResponse<any>> {
+    this.registroLoading.set(true);
+    return this.api.put<ApiResponse<any>>(`/vehiculos/${id}`, payload, {}, 'AUTOMOTORES').pipe(
       map(res => {
         this.registroLoading.set(false);
         return res;
@@ -680,12 +525,32 @@ export class VehiculosFacade {
     }
   }
 
+  cargarExpediente(id: number): Observable<any> {
+    this.expedienteLoading.set(true);
+    return this.api.get<ApiResponse<any>>(`/vehiculos/${id}/expediente`, {}, 'AUTOMOTORES').pipe(
+      map(res => {
+        this.expedienteLoading.set(false);
+        const data = res.data || res;
+        this.expedienteActual.set(data);
+        return data;
+      }),
+      catchError(err => {
+        this.expedienteLoading.set(false);
+        console.warn('Error cargando expediente:', err);
+        return of(null);
+      })
+    );
+  }
+
   seleccionarVehiculo(v: VehiculoItem): void {
     this.vehiculos.update(list => list.map(item => ({
       ...item,
       seleccionado: item.id === v.id
     })));
     this.selectedVehiculo.set(v);
+    if (v.id) {
+      this.cargarExpediente(v.id).subscribe();
+    }
   }
 
   deseleccionarVehiculo(): void {
@@ -694,5 +559,34 @@ export class VehiculosFacade {
       seleccionado: false
     })));
     this.selectedVehiculo.set(null);
+    this.expedienteActual.set(null);
+  }
+
+  abrirInactivar(v: VehiculoItem): void {
+    this.vehiculoAInactivar.set(v);
+    this.isInactivarModalOpen.set(true);
+  }
+
+  cerrarInactivar(): void {
+    this.isInactivarModalOpen.set(false);
+    this.vehiculoAInactivar.set(null);
+  }
+
+  confirmarInactivacion(): void {
+    const v = this.vehiculoAInactivar();
+    if (!v || !v.id) return;
+
+    this.inactivandoLoading.set(true);
+    this.api.delete<ApiResponse<any>>(`/vehiculos/${v.id}`, {}, 'AUTOMOTORES').subscribe({
+      next: (res) => {
+        this.inactivandoLoading.set(false);
+        this.cerrarInactivar();
+        this.refrescarDashboard();
+      },
+      error: (err) => {
+        console.error('Error al inactivar vehículo:', err);
+        this.inactivandoLoading.set(false);
+      }
+    });
   }
 }
