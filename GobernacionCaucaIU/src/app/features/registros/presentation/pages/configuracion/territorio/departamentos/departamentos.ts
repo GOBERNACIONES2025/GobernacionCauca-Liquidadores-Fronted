@@ -1,7 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
+import { Departamento } from '../../../../../domain/models/Territorios/departamento.model';
 
 @Component({
   selector: 'app-departamentos',
@@ -9,30 +11,26 @@ import { SlideOverComponent } from '../../../../shared/components/slide-over/sli
   templateUrl: './departamentos.html',
   styleUrl: './departamentos.css'
 })
-export class Departamentos {
+export class Departamentos implements OnInit {
   private fb = inject(FormBuilder);
-  
+  public facade = inject(DepartamentosFacade);
+
   breadcrumbs = ['Configuración', 'Territorio', 'Departamento'];
-  
-  departamentos = [
-    { codigo: '25', nombre: 'Cundinamarca', estado: true },
-    { codigo: '05', nombre: 'Antioquia', estado: true },
-    { codigo: '76', nombre: 'Valle del Cauca', estado: true },
-    { codigo: '08', nombre: 'Atlántico', estado: true },
-    { codigo: '68', nombre: 'Santander', estado: false },
-  ];
 
   isSlideOverOpen = false;
-  isSaving = false;
 
   departamentoForm = this.fb.group({
-    codigo: ['', [Validators.required, Validators.maxLength(2)]],
+    codigoDane: ['', [Validators.required, Validators.maxLength(2)]],
     nombre: ['', Validators.required],
-    estado: [true]
+    activo: [true]
   });
 
+  ngOnInit() {
+    this.facade.cargarDepartamentos(1, 100);
+  }
+
   openNew() {
-    this.departamentoForm.reset({ estado: true });
+    this.departamentoForm.reset({ activo: true });
     this.isSlideOverOpen = true;
   }
 
@@ -42,17 +40,17 @@ export class Departamentos {
 
   saveDepartamento() {
     if (this.departamentoForm.valid) {
-      this.isSaving = true;
-      // Simulamos guardado
-      setTimeout(() => {
-        this.departamentos.unshift({
-          codigo: this.departamentoForm.value.codigo!,
-          nombre: this.departamentoForm.value.nombre!,
-          estado: this.departamentoForm.value.estado!
-        });
-        this.isSaving = false;
-        this.closeSlideOver();
-      }, 1000);
+      const data = this.departamentoForm.value as Partial<Departamento>;
+      
+      this.facade.crearDepartamento(data).subscribe({
+        next: () => {
+          this.closeSlideOver();
+          this.facade.cargarDepartamentos(); // Recargar después de guardar
+        },
+        error: (err) => {
+          console.error('Error al guardar el departamento', err);
+        }
+      });
     } else {
       this.departamentoForm.markAllAsTouched();
     }

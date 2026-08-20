@@ -43,12 +43,26 @@
         </tr>
       </thead>
       <tbody>
-        @for (item of departamentos; track item.codigo) {
+        @if (facade.loading()) {
+          <tr>
+            <td colspan="4" class="text-center py-8">
+              <span class="loading loading-spinner text-primary"></span>
+            </td>
+          </tr>
+        } @else if (facade.departamentos().length === 0) {
+          <tr>
+            <td colspan="4" class="text-center py-8 text-base-content/50">
+              No hay departamentos registrados.
+            </td>
+          </tr>
+        }
+        
+        @for (item of facade.departamentos(); track item.id) {
           <tr class="hover group cursor-pointer border-b border-base-200/50">
-            <td class="font-bold py-4">{{ item.codigo }}</td>
+            <td class="font-bold py-4">{{ item.codigoDane }}</td>
             <td class="text-base-content/80 font-medium">{{ item.nombre }}</td>
             <td>
-              @if (item.estado) {
+              @if (item.activo) {
                 <span class="inline-flex items-center gap-2 text-xs font-bold text-success bg-success/10 px-2 py-1 rounded-full">
                   <div class="w-1.5 h-1.5 rounded-full bg-success"></div>
                   Activo
@@ -77,7 +91,7 @@
   </div>
   
   <div class="mt-4 text-xs text-base-content/50">
-    Mostrando {{ departamentos.length }} de {{ departamentos.length }} registros
+    Mostrando {{ facade.departamentos().length }} registros
   </div>
 </div>
 
@@ -86,7 +100,7 @@
   [isOpen]="isSlideOverOpen" 
   title="Nuevo Departamento" 
   description="Ingresa los datos del nuevo departamento"
-  [isSaving]="isSaving"
+  [isSaving]="facade.actionLoading()"
   (onClose)="closeSlideOver()" 
   (onSave)="saveDepartamento()">
   
@@ -96,8 +110,8 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-base-content/70">Código DANE</span>
       </label>
-      <input type="text" formControlName="codigo" placeholder="Ej. 11" class="input input-sm input-bordered w-full" [class.input-error]="departamentoForm.get('codigo')?.invalid && departamentoForm.get('codigo')?.touched" />
-      @if (departamentoForm.get('codigo')?.hasError('required') && departamentoForm.get('codigo')?.touched) {
+      <input type="text" formControlName="codigoDane" placeholder="Ej. 11" class="input input-sm input-bordered w-full" [class.input-error]="departamentoForm.get('codigoDane')?.invalid && departamentoForm.get('codigoDane')?.touched" />
+      @if (departamentoForm.get('codigoDane')?.hasError('required') && departamentoForm.get('codigoDane')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
       }
     </div>
@@ -117,7 +131,7 @@
     <div class="form-control w-full mt-2">
       <label class="label cursor-pointer justify-start gap-4 p-0">
         <span class="label-text font-bold text-xs uppercase text-base-content/70">Estado Activo</span>
-        <input type="checkbox" formControlName="estado" class="toggle toggle-success toggle-sm" />
+        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
       </label>
       <p class="text-[10px] text-base-content/50 mt-1">Si está inactivo, no estará disponible para nuevas liquidaciones.</p>
     </div>

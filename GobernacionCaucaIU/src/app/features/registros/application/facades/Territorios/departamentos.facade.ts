@@ -21,7 +21,7 @@ export class DepartamentosFacade {
   // Estado centralizado expuesto como Signals
   readonly departamentos = signal<Departamento[]>([]);
   readonly totalDepartamentos = signal<number>(0);
-  
+
   // Estado de UI
   readonly loading = signal<boolean>(false);
   readonly actionLoading = signal<boolean>(false);
@@ -32,6 +32,7 @@ export class DepartamentosFacade {
    * Carga la lista de departamentos de forma paginada y actualiza el estado (Signals).
    */
   cargarDepartamentos(pageNumber: number = 1, pageSize: number = 10): void {
+    console.log("cargando de")
     this.loading.set(true);
     this.error.set(null);
 
