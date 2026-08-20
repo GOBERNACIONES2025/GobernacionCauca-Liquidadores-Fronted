@@ -1,0 +1,126 @@
+<div class="p-6 h-full flex flex-col relative">
+  <!-- Top Section (Header + Actions) -->
+  <div class="flex items-start justify-between border-b border-base-200 pb-4 mb-4">
+    <app-page-header
+      [breadcrumbs]="breadcrumbs"
+      title="Departamentos"
+      [tags]="[{ text: 'Catálogo simple', type: 'info' }]"
+      [counts]="{ total: 5, active: 4, inactive: 1 }"
+    ></app-page-header>
+
+    <div class="flex items-center gap-4 mt-8">
+      <!-- Search -->
+      <label class="input input-bordered input-sm flex items-center gap-2 w-64 bg-base-100 text-xs">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="w-4 h-4 opacity-50"><path fill-rule="evenodd" d="M9.965 11.026a5 5 0 1 1 1.06-1.06l2.755 2.754a.75.75 0 1 1-1.06 1.06l-2.755-2.754ZM10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z" clip-rule="evenodd" /></svg>
+        <input type="text" placeholder="Buscar en tabla..." class="grow" />
+      </label>
+
+      <!-- Filter Tabs -->
+      <div class="join bg-base-200 p-0.5 rounded-lg border border-base-300">
+        <button class="join-item btn btn-sm btn-active bg-primary text-white hover:bg-primary-focus text-xs font-bold border-none px-4 rounded-md">Todos</button>
+        <button class="join-item btn btn-sm btn-ghost hover:bg-white text-base-content/70 hover:text-base-content text-xs font-medium border-none px-4 rounded-md">Activos</button>
+        <button class="join-item btn btn-sm btn-ghost hover:bg-white text-base-content/70 hover:text-base-content text-xs font-medium border-none px-4 rounded-md">Inactivos</button>
+      </div>
+
+      <!-- Add Action -->
+      <button (click)="openNew()" class="btn btn-sm btn-primary shadow-sm font-bold ml-2">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+        Nuevo registro
+      </button>
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="flex-1 overflow-auto bg-base-100 relative">
+    <table class="table table-zebra w-full table-sm">
+      <!-- head -->
+      <thead class="text-xs uppercase text-base-content/50 border-b border-base-200 sticky top-0 bg-base-100 z-10">
+        <tr>
+          <th class="py-4">Cód. DANE</th>
+          <th>Nombre</th>
+          <th>Estado</th>
+          <th class="text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of departamentos; track item.codigo) {
+          <tr class="hover group cursor-pointer border-b border-base-200/50">
+            <td class="font-bold py-4">{{ item.codigo }}</td>
+            <td class="text-base-content/80 font-medium">{{ item.nombre }}</td>
+            <td>
+              @if (item.estado) {
+                <span class="inline-flex items-center gap-2 text-xs font-bold text-success bg-success/10 px-2 py-1 rounded-full">
+                  <div class="w-1.5 h-1.5 rounded-full bg-success"></div>
+                  Activo
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-2 text-xs font-bold text-base-content/50 bg-base-200 px-2 py-1 rounded-full">
+                  <div class="w-1.5 h-1.5 rounded-full border border-base-content/50"></div>
+                  Inactivo
+                </span>
+              }
+            </td>
+            <td class="text-right opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div class="flex items-center justify-end gap-1">
+                <button class="btn btn-ghost btn-xs btn-square text-primary hover:bg-primary/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                </button>
+                <button class="btn btn-ghost btn-xs btn-square text-success hover:bg-success/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" /></svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="mt-4 text-xs text-base-content/50">
+    Mostrando {{ departamentos.length }} de {{ departamentos.length }} registros
+  </div>
+</div>
+
+<!-- Slide-Over Dynamic Component -->
+<app-slide-over 
+  [isOpen]="isSlideOverOpen" 
+  title="Nuevo Departamento" 
+  description="Ingresa los datos del nuevo departamento"
+  [isSaving]="isSaving"
+  (onClose)="closeSlideOver()" 
+  (onSave)="saveDepartamento()">
+  
+  <form [formGroup]="departamentoForm" class="flex flex-col gap-4">
+    <!-- Cód. DANE -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-base-content/70">Código DANE</span>
+      </label>
+      <input type="text" formControlName="codigo" placeholder="Ej. 11" class="input input-sm input-bordered w-full" [class.input-error]="departamentoForm.get('codigo')?.invalid && departamentoForm.get('codigo')?.touched" />
+      @if (departamentoForm.get('codigo')?.hasError('required') && departamentoForm.get('codigo')?.touched) {
+        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
+      }
+    </div>
+
+    <!-- Nombre -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-base-content/70">Nombre del Departamento</span>
+      </label>
+      <input type="text" formControlName="nombre" placeholder="Ej. Bogotá D.C." class="input input-sm input-bordered w-full" [class.input-error]="departamentoForm.get('nombre')?.invalid && departamentoForm.get('nombre')?.touched" />
+      @if (departamentoForm.get('nombre')?.hasError('required') && departamentoForm.get('nombre')?.touched) {
+        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
+      }
+    </div>
+
+    <!-- Estado -->
+    <div class="form-control w-full mt-2">
+      <label class="label cursor-pointer justify-start gap-4 p-0">
+        <span class="label-text font-bold text-xs uppercase text-base-content/70">Estado Activo</span>
+        <input type="checkbox" formControlName="estado" class="toggle toggle-success toggle-sm" />
+      </label>
+      <p class="text-[10px] text-base-content/50 mt-1">Si está inactivo, no estará disponible para nuevas liquidaciones.</p>
+    </div>
+  </form>
+
+</app-slide-over>

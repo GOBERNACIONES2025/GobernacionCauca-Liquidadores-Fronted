@@ -1,0 +1,20 @@
+<!-- Data Theme Scoped to Registros -->
+<div data-theme="tema-registros" class="flex h-screen w-full bg-base-200 overflow-hidden font-sans text-base-content selection:bg-primary/20">
+  
+  <!-- Main Sidebar -->
+  <app-registros-sidebar></app-registros-sidebar>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    
+    <!-- Topbar -->
+    <app-registros-topbar></app-registros-topbar>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-auto relative">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>

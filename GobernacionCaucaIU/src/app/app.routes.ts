@@ -38,4 +38,8 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'registros',
+    loadChildren: () => import('./features/registros/registros.routes').then(m => m.registrosRoutes)
+  }
 ];

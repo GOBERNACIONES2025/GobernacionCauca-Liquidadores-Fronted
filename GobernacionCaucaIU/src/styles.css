@@ -1,5 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
 
 @import 'tailwindcss';
+@plugin "daisyui";
+
+@import './app/features/registros/presentation/styles-registros.css';
+
 @source "./app/**/*.html";
 @import './app/features/automotores/presentation/styles-automotores.css';

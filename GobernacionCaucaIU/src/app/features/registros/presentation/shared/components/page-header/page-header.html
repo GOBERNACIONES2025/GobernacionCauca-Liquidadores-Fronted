@@ -1,0 +1,40 @@
+<div class="flex flex-col gap-1 pb-4">
+  
+  <!-- Breadcrumbs -->
+  <div class="text-sm breadcrumbs text-base-content/60 py-0">
+    <ul>
+      @for (crumb of breadcrumbs; track $index) {
+        <li><a>{{ crumb }}</a></li>
+      }
+    </ul>
+  </div>
+
+  <!-- Title & Tags -->
+  <div class="flex items-center gap-3 mt-1">
+    <h2 class="text-2xl font-extrabold text-base-content tracking-tight">{{ title }}</h2>
+    @for (tag of tags; track $index) {
+      <div class="badge badge-info badge-outline font-bold">{{ tag.text }}</div>
+    }
+  </div>
+
+  <!-- Counters -->
+  @if (counts) {
+    <div class="flex items-center gap-4 mt-2 text-xs">
+      @if (counts.total !== undefined) {
+        <span class="text-base-content/70 font-medium"><strong>{{ counts.total }}</strong> registros totales</span>
+      }
+      @if (counts.active !== undefined) {
+        <span class="flex items-center gap-1.5 text-success font-bold">
+          <div class="w-1.5 h-1.5 rounded-full bg-success"></div>
+          {{ counts.active }} activos
+        </span>
+      }
+      @if (counts.inactive !== undefined) {
+        <span class="flex items-center gap-1.5 text-base-content/40 font-medium">
+          <div class="w-1.5 h-1.5 rounded-full border border-base-content/40"></div>
+          {{ counts.inactive }} inactivos
+        </span>
+      }
+    </div>
+  }
+</div>
