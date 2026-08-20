@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
-import { GenerarLiquidacionDto } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
+import { GenerarLiquidacionDto, CrearContribuyenteLiquidacionDtoRequest, ActualizarContribuyenteLiquidacionDtoRequest } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
 
 /**
  * @description

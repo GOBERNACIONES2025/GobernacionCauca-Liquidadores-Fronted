@@ -12,7 +12,7 @@ export interface Vigencia {
 /**
  * Payload para registrar una nueva Vigencia.
  */
-export interface CrearVigenciaDto {
+export interface CrearVigenciaRequest {
   anio: number;
   fechaInicio: string;
   fechaFin: string;
@@ -21,7 +21,7 @@ export interface CrearVigenciaDto {
 /**
  * Payload para actualizar una Vigencia existente.
  */
-export interface ActualizarVigenciaDto {
+export interface ActualizarVigenciaRequest {
   id: number;
   anio: number;
   fechaInicio: string;

@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   Inmueble, 
-  CrearInmuebleDto, 
-  ActualizarInmuebleDto, 
+  CrearInmuebleRequest, 
+  ActualizarInmuebleRequest, 
   InmuebleQueryParams 
 } from '../../../domain/models/Inmuebles/inmueble.model';
 import { InmueblesApiService } from '../../../infrastructure/api/Inmuebles/inmuebles-api.service';
@@ -90,7 +90,7 @@ export class InmueblesFacade {
   /**
    * Registra un nuevo inmueble.
    */
-  crear(dto: CrearInmuebleDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearInmuebleRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -103,7 +103,7 @@ export class InmueblesFacade {
   /**
    * Actualiza un inmueble existente.
    */
-  actualizar(id: number, dto: ActualizarInmuebleDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarInmuebleRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

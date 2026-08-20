@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   TipoBeneficiarioExencion, 
-  CrearTipoBeneficiarioExencionDto, 
-  ActualizarTipoBeneficiarioExencionDto 
+  CrearTipoBeneficiarioExencionRequest, 
+  ActualizarTipoBeneficiarioExencionRequest 
 } from '../../../domain/models/Exenciones/tipo-beneficiario-exencion.model';
 import { TiposBeneficiarioExencionApiService } from '../../../infrastructure/api/Exenciones/tipos-beneficiario-exencion-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class TiposBeneficiarioExencionFacade {
   /**
    * Crea un nuevo tipo de beneficiario.
    */
-  crear(dto: CrearTipoBeneficiarioExencionDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTipoBeneficiarioExencionRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class TiposBeneficiarioExencionFacade {
   /**
    * Actualiza un tipo de beneficiario existente.
    */
-  actualizar(id: number, dto: ActualizarTipoBeneficiarioExencionDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTipoBeneficiarioExencionRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

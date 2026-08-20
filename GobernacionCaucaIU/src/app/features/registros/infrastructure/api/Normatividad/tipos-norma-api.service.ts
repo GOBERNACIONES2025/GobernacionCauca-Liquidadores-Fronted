@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   TipoNorma, 
-  CrearTipoNormaDto, 
-  ActualizarTipoNormaDto 
+  CrearTipoNormaRequest, 
+  ActualizarTipoNormaRequest 
 } from '../../../domain/models/Normatividad/tipo-norma.model';
 
 /**
@@ -54,10 +54,10 @@ export class TiposNormaApiService {
    * @description
    * Registra un nuevo tipo de norma.
    * 
-   * @param {CrearTipoNormaDto} command - Datos del nuevo tipo de norma.
+   * @param {CrearTipoNormaRequest} command - Datos del nuevo tipo de norma.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTipoNormaDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTipoNormaRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class TiposNormaApiService {
    * Actualiza un tipo de norma existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarTipoNormaDto} command - Datos actualizados.
+   * @param {ActualizarTipoNormaRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTipoNormaDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarTipoNormaRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

@@ -12,7 +12,7 @@ export interface CategoriaActo {
 /**
  * Payload para registrar una nueva Categoría de Acto.
  */
-export interface CrearCategoriaActoDto {
+export interface CrearCategoriaActoRequest {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
@@ -21,7 +21,7 @@ export interface CrearCategoriaActoDto {
 /**
  * Payload para actualizar una Categoría de Acto existente.
  */
-export interface ActualizarCategoriaActoDto {
+export interface ActualizarCategoriaActoRequest {
   id: number;
   codigo: string;
   nombre: string;

@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   Tarifa, 
-  CrearTarifaDto, 
-  ActualizarTarifaDto, 
+  CrearTarifaRequest, 
+  ActualizarTarifaRequest, 
   TarifaQueryParams 
 } from '../../../domain/models/Tarifas/tarifa.model';
 import { TarifasApiService } from '../../../infrastructure/api/Tarifas/tarifas-api.service';
@@ -90,7 +90,7 @@ export class TarifasFacade {
   /**
    * Registra una nueva tarifa.
    */
-  crear(dto: CrearTarifaDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTarifaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -103,7 +103,7 @@ export class TarifasFacade {
   /**
    * Actualiza una tarifa existente.
    */
-  actualizar(id: number, dto: ActualizarTarifaDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTarifaRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

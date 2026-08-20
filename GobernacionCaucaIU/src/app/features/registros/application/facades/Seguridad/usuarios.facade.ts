@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   Usuario, 
-  CrearUsuarioDto, 
-  ActualizarUsuarioDto, 
+  CrearUsuarioRequest, 
+  ActualizarUsuarioRequest, 
   UsuarioQueryParams 
 } from '../../../domain/models/Seguridad/usuario.model';
 import { UsuariosApiService } from '../../../infrastructure/api/Seguridad/usuarios-api.service';
@@ -90,7 +90,7 @@ export class UsuariosFacade {
   /**
    * Registra un nuevo usuario.
    */
-  crear(dto: CrearUsuarioDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearUsuarioRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -103,7 +103,7 @@ export class UsuariosFacade {
   /**
    * Actualiza un usuario existente.
    */
-  actualizar(id: number, dto: ActualizarUsuarioDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarUsuarioRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

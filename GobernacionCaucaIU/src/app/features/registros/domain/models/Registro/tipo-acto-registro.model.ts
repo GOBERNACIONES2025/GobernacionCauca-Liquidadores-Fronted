@@ -16,7 +16,7 @@ export interface TipoActoRegistro {
 /**
  * Payload para registrar un nuevo Tipo de Acto de Registro.
  */
-export interface CrearTipoActoRegistroDto {
+export interface CrearTipoActoRegistroRequest {
   categoriaActoId: number;
   naturalezaActoId: number;
   codigo: string;
@@ -26,7 +26,7 @@ export interface CrearTipoActoRegistroDto {
 /**
  * Payload para actualizar un Tipo de Acto de Registro existente.
  */
-export interface ActualizarTipoActoRegistroDto {
+export interface ActualizarTipoActoRegistroRequest {
   id: number;
   categoriaActoId: number;
   naturalezaActoId: number;

@@ -11,7 +11,7 @@ export interface Rol {
 /**
  * Payload para registrar un nuevo Rol de Seguridad.
  */
-export interface CrearRolDto {
+export interface CrearRolRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearRolDto {
 /**
  * Payload para actualizar un Rol de Seguridad existente.
  */
-export interface ActualizarRolDto {
+export interface ActualizarRolRequest {
   id: number;
   codigo: string;
   nombre: string;

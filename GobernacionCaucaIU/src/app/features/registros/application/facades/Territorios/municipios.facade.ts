@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Municipio } from '../../../domain/models/Territorios/municipio.model';
+import { Municipio, CrearMunicipioRequest, ActualizarMunicipioRequest } from '../../../domain/models/Territorios/municipio.model';
 import { MunicipiosApiService } from '../../../infrastructure/api/Territorios/municipios-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 
@@ -88,7 +88,12 @@ export class MunicipiosFacade {
    */
   crearMunicipio(municipio: Partial<Municipio>): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
-    return this.apiService.crear(municipio).pipe(
+    const request: CrearMunicipioRequest = {
+      codigoDane: municipio.codigoDane!,
+      nombre: municipio.nombre!,
+      departamento: municipio.departamento!
+    };
+    return this.apiService.crear(request).pipe(
       tap({
         next: () => this.actionLoading.set(false),
         error: () => this.actionLoading.set(false)
@@ -101,7 +106,13 @@ export class MunicipiosFacade {
    */
   actualizarMunicipio(id: number, municipio: Partial<Municipio>): Observable<void> {
     this.actionLoading.set(true);
-    return this.apiService.actualizar(id, municipio).pipe(
+    const request: ActualizarMunicipioRequest = {
+      codigoDane: municipio.codigoDane!,
+      nombre: municipio.nombre!,
+      activo: municipio.activo ?? true,
+      departamento: municipio.departamento!
+    };
+    return this.apiService.actualizar(id, request).pipe(
       tap({
         next: () => this.actionLoading.set(false),
         error: () => this.actionLoading.set(false)

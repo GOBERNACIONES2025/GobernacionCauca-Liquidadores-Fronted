@@ -11,7 +11,7 @@ export interface TipoNorma {
 /**
  * Payload para registrar un nuevo Tipo de Norma.
  */
-export interface CrearTipoNormaDto {
+export interface CrearTipoNormaRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearTipoNormaDto {
 /**
  * Payload para actualizar un Tipo de Norma existente.
  */
-export interface ActualizarTipoNormaDto {
+export interface ActualizarTipoNormaRequest {
   id: number;
   codigo: string;
   nombre: string;

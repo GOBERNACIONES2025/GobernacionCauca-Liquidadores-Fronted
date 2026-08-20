@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   EstadoLiquidacion, 
-  CrearEstadoLiquidacionDto, 
-  ActualizarEstadoLiquidacionDto 
+  CrearEstadoLiquidacionRequest, 
+  ActualizarEstadoLiquidacionRequest 
 } from '../../../domain/models/Liquidacion/estado-liquidacion.model';
 
 /**
@@ -54,10 +54,10 @@ export class EstadosLiquidacionApiService {
    * @description
    * Registra un nuevo estado de liquidación.
    * 
-   * @param {CrearEstadoLiquidacionDto} command - Datos del nuevo estado.
+   * @param {CrearEstadoLiquidacionRequest} command - Datos del nuevo estado.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearEstadoLiquidacionDto): Observable<ApiResponse<number>> {
+  crear(command: CrearEstadoLiquidacionRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class EstadosLiquidacionApiService {
    * Actualiza un estado de liquidación existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarEstadoLiquidacionDto} command - Datos actualizados.
+   * @param {ActualizarEstadoLiquidacionRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarEstadoLiquidacionDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarEstadoLiquidacionRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

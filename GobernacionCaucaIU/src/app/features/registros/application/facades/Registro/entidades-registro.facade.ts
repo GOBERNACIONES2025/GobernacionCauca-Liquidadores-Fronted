@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   EntidadRegistro, 
-  CrearEntidadRegistroDto, 
-  ActualizarEntidadRegistroDto 
+  CrearEntidadRegistroRequest, 
+  ActualizarEntidadRegistroRequest 
 } from '../../../domain/models/Registro/entidad-registro.model';
 import { EntidadesRegistroApiService } from '../../../infrastructure/api/Registro/entidades-registro-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -95,7 +95,7 @@ export class EntidadesRegistroFacade {
   /**
    * Registra una nueva entidad de registro.
    */
-  crear(dto: CrearEntidadRegistroDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearEntidadRegistroRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -108,7 +108,7 @@ export class EntidadesRegistroFacade {
   /**
    * Actualiza una entidad de registro existente.
    */
-  actualizar(id: number, dto: ActualizarEntidadRegistroDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarEntidadRegistroRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

@@ -12,7 +12,7 @@ export interface NaturalezaActo {
 /**
  * Payload para registrar una nueva Naturaleza de Acto.
  */
-export interface CrearNaturalezaActoDto {
+export interface CrearNaturalezaActoRequest {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
@@ -21,7 +21,7 @@ export interface CrearNaturalezaActoDto {
 /**
  * Payload para actualizar una Naturaleza de Acto existente.
  */
-export interface ActualizarNaturalezaActoDto {
+export interface ActualizarNaturalezaActoRequest {
   id: number;
   codigo: string;
   nombre: string;

@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   TipoNorma, 
-  CrearTipoNormaDto, 
-  ActualizarTipoNormaDto 
+  CrearTipoNormaRequest, 
+  ActualizarTipoNormaRequest 
 } from '../../../domain/models/Normatividad/tipo-norma.model';
 import { TiposNormaApiService } from '../../../infrastructure/api/Normatividad/tipos-norma-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class TiposNormaFacade {
   /**
    * Crea un nuevo tipo de norma.
    */
-  crear(dto: CrearTipoNormaDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTipoNormaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class TiposNormaFacade {
   /**
    * Actualiza un tipo de norma existente.
    */
-  actualizar(id: number, dto: ActualizarTipoNormaDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTipoNormaRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

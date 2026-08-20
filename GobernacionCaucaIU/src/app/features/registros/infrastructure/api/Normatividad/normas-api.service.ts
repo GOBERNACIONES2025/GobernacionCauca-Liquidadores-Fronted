@@ -5,8 +5,8 @@ import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shar
 import { 
   NormaListado, 
   NormaDetalle, 
-  CrearNormaDto, 
-  ActualizarNormaDto 
+  CrearNormaRequest, 
+  ActualizarNormaRequest 
 } from '../../../domain/models/Normatividad/norma.model';
 
 /**
@@ -64,10 +64,10 @@ export class NormasApiService {
    * @description
    * Registra una nueva norma en el sistema con su documento normativo asociado.
    * 
-   * @param {CrearNormaDto} command - Datos de la nueva norma.
+   * @param {CrearNormaRequest} command - Datos de la nueva norma.
    * @returns {Observable<ApiResponse<number>>} ID de la norma creada.
    */
-  crear(command: CrearNormaDto): Observable<ApiResponse<number>> {
+  crear(command: CrearNormaRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -76,11 +76,11 @@ export class NormasApiService {
    * Actualiza una norma existente y sincroniza sus documentos normativos.
    * 
    * @param {number} id - Identificador de la norma a actualizar.
-   * @param {ActualizarNormaDto} command - Datos actualizados.
+   * @param {ActualizarNormaRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarNormaDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarNormaRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

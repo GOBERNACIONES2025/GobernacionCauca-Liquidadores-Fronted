@@ -11,7 +11,7 @@ export interface EstadoSolicitud {
 /**
  * Payload para registrar un nuevo Estado de Solicitud.
  */
-export interface CrearEstadoSolicitudDto {
+export interface CrearEstadoSolicitudRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearEstadoSolicitudDto {
 /**
  * Payload para actualizar un Estado de Solicitud existente.
  */
-export interface ActualizarEstadoSolicitudDto {
+export interface ActualizarEstadoSolicitudRequest {
   id: number;
   codigo: string;
   nombre: string;

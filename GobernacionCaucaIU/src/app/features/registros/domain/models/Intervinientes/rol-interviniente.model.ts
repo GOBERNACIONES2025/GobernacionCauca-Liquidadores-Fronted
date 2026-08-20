@@ -11,7 +11,7 @@ export interface RolInterviniente {
 /**
  * Payload para crear un nuevo Rol de Interviniente.
  */
-export interface CrearRolIntervinienteDto {
+export interface CrearRolIntervinienteRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearRolIntervinienteDto {
 /**
  * Payload para actualizar un Rol de Interviniente existente.
  */
-export interface ActualizarRolIntervinienteDto {
+export interface ActualizarRolIntervinienteRequest {
   id: number;
   codigo: string;
   nombre: string;

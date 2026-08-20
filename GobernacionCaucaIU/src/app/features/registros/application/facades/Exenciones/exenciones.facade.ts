@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   Exencion, 
-  CrearExencionDto, 
-  ActualizarExencionDto 
+  CrearExencionRequest, 
+  ActualizarExencionRequest 
 } from '../../../domain/models/Exenciones/exencion.model';
 import { ExencionesApiService } from '../../../infrastructure/api/Exenciones/exenciones-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -94,7 +94,7 @@ export class ExencionesFacade {
   /**
    * Crea una nueva exención.
    */
-  crear(dto: CrearExencionDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearExencionRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -107,7 +107,7 @@ export class ExencionesFacade {
   /**
    * Actualiza una exención existente.
    */
-  actualizar(id: number, dto: ActualizarExencionDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarExencionRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

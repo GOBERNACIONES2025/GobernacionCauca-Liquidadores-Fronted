@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   EntidadRegistro, 
-  CrearEntidadRegistroDto, 
-  ActualizarEntidadRegistroDto 
+  CrearEntidadRegistroRequest, 
+  ActualizarEntidadRegistroRequest 
 } from '../../../domain/models/Registro/entidad-registro.model';
 
 /**
@@ -68,10 +68,10 @@ export class EntidadesRegistroApiService {
    * @description
    * Registra una nueva entidad de registro.
    * 
-   * @param {CrearEntidadRegistroDto} command - Datos de la nueva entidad.
+   * @param {CrearEntidadRegistroRequest} command - Datos de la nueva entidad.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearEntidadRegistroDto): Observable<ApiResponse<number>> {
+  crear(command: CrearEntidadRegistroRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -80,11 +80,11 @@ export class EntidadesRegistroApiService {
    * Actualiza una entidad de registro existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarEntidadRegistroDto} command - Datos actualizados.
+   * @param {ActualizarEntidadRegistroRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarEntidadRegistroDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarEntidadRegistroRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

@@ -14,7 +14,7 @@ export interface Usuario {
 /**
  * Payload para registrar un nuevo Usuario.
  */
-export interface CrearUsuarioDto {
+export interface CrearUsuarioRequest {
   nombre: string;
   email: string;
   password: string;
@@ -24,7 +24,7 @@ export interface CrearUsuarioDto {
 /**
  * Payload para actualizar un Usuario existente.
  */
-export interface ActualizarUsuarioDto {
+export interface ActualizarUsuarioRequest {
   id: number;
   nombre: string;
   email: string;

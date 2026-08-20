@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   Vigencia, 
-  CrearVigenciaDto, 
-  ActualizarVigenciaDto 
+  CrearVigenciaRequest, 
+  ActualizarVigenciaRequest 
 } from '../../../domain/models/Normatividad/vigencia.model';
 import { VigenciasApiService } from '../../../infrastructure/api/Normatividad/vigencias-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class VigenciasFacade {
   /**
    * Crea una nueva vigencia.
    */
-  crear(dto: CrearVigenciaDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearVigenciaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class VigenciasFacade {
   /**
    * Actualiza una vigencia existente.
    */
-  actualizar(id: number, dto: ActualizarVigenciaDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarVigenciaRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

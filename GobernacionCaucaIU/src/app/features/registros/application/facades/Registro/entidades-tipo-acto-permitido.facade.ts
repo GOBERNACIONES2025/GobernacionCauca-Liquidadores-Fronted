@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   EntidadTipoActoPermitido, 
-  CrearEntidadTipoActoPermitidoDto, 
-  ActualizarEntidadTipoActoPermitidoDto 
+  CrearEntidadTipoActoPermitidoRequest, 
+  ActualizarEntidadTipoActoPermitidoRequest 
 } from '../../../domain/models/Registro/entidad-tipo-acto-permitido.model';
 import { EntidadesTipoActoPermitidoApiService } from '../../../infrastructure/api/Registro/entidades-tipo-acto-permitido-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -94,7 +94,7 @@ export class EntidadesTipoActoPermitidoFacade {
   /**
    * Registra una nueva relación permitida.
    */
-  crear(dto: CrearEntidadTipoActoPermitidoDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearEntidadTipoActoPermitidoRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -107,7 +107,7 @@ export class EntidadesTipoActoPermitidoFacade {
   /**
    * Actualiza una relación permitida existente.
    */
-  actualizar(id: number, dto: ActualizarEntidadTipoActoPermitidoDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarEntidadTipoActoPermitidoRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

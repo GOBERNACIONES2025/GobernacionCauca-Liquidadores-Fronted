@@ -66,3 +66,26 @@ export interface GenerarLiquidacionDto {
   documento: DocumentoRegistroLiquidacionDto;
   actos: ActoRegistradoLiquidacionDto[];
 }
+
+export interface CrearContribuyenteLiquidacionDtoRequest {
+  id?: number | null;
+  tipoPersonaId: number;
+  tipoIdentificacionId: number;
+  numeroIdentificacion: string;
+  nombre: string;
+  direccion?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+}
+
+export interface ActualizarContribuyenteLiquidacionDtoRequest {
+  id?: number | null;
+  tipoPersonaId: number;
+  tipoIdentificacionId: number;
+  numeroIdentificacion: string;
+  nombre: string;
+  direccion?: string | null;
+  telefono?: string | null;
+  email?: string | null;
+  activo: boolean;
+}

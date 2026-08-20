@@ -11,7 +11,7 @@ export interface TipoBeneficiarioExencion {
 /**
  * Payload para la creación de un nuevo Tipo de Beneficiario de Exención.
  */
-export interface CrearTipoBeneficiarioExencionDto {
+export interface CrearTipoBeneficiarioExencionRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearTipoBeneficiarioExencionDto {
 /**
  * Payload para la actualización de un Tipo de Beneficiario de Exención existente.
  */
-export interface ActualizarTipoBeneficiarioExencionDto {
+export interface ActualizarTipoBeneficiarioExencionRequest {
   id: number;
   codigo: string;
   nombre: string;

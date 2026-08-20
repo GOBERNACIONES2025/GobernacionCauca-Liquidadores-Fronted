@@ -26,7 +26,7 @@ export interface Tarifa {
 /**
  * Payload para registrar una nueva Tarifa.
  */
-export interface CrearTarifaDto {
+export interface CrearTarifaRequest {
   departamentoId: number;
   tipoActoRegistroId: number;
   vigenciaId: number;
@@ -43,7 +43,7 @@ export interface CrearTarifaDto {
 /**
  * Payload para actualizar una Tarifa existente.
  */
-export interface ActualizarTarifaDto {
+export interface ActualizarTarifaRequest {
   id: number;
   departamentoId: number;
   tipoActoRegistroId: number;
@@ -70,4 +70,33 @@ export interface TarifaQueryParams {
   tipoCalculoTarifaId?: number;
   pageNumber?: number;
   pageSize?: number;
+}
+
+export interface CrearTarifaRequest {
+  departamento: Departamento;
+  tipoActoRegistro: TipoActoRegistro;
+  vigencia: Vigencia;
+  norma: NormaListado;
+  tipoCalculoTarifa: TipoCalculoTarifa;
+  baseMinima?: number | null;
+  baseMaxima?: number | null;
+  porcentaje?: number | null;
+  valorFijo?: number | null;
+  valorMinimo?: number | null;
+  valorMaximo?: number | null;
+}
+
+export interface ActualizarTarifaRequest {
+  departamento: Departamento;
+  tipoActoRegistro: TipoActoRegistro;
+  vigencia: Vigencia;
+  norma: NormaListado;
+  tipoCalculoTarifa: TipoCalculoTarifa;
+  baseMinima?: number | null;
+  baseMaxima?: number | null;
+  porcentaje?: number | null;
+  valorFijo?: number | null;
+  valorMinimo?: number | null;
+  valorMaximo?: number | null;
+  activo: boolean;
 }

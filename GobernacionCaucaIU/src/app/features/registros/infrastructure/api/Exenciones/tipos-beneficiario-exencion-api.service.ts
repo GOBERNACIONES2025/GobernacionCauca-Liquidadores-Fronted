@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   TipoBeneficiarioExencion, 
-  CrearTipoBeneficiarioExencionDto, 
-  ActualizarTipoBeneficiarioExencionDto 
+  CrearTipoBeneficiarioExencionRequest, 
+  ActualizarTipoBeneficiarioExencionRequest 
 } from '../../../domain/models/Exenciones/tipo-beneficiario-exencion.model';
 
 /**
@@ -54,10 +54,10 @@ export class TiposBeneficiarioExencionApiService {
    * @description
    * Registra un nuevo tipo de beneficiario de exención.
    * 
-   * @param {CrearTipoBeneficiarioExencionDto} command - Datos del nuevo tipo de beneficiario.
+   * @param {CrearTipoBeneficiarioExencionRequest} command - Datos del nuevo tipo de beneficiario.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTipoBeneficiarioExencionDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTipoBeneficiarioExencionRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,10 +66,10 @@ export class TiposBeneficiarioExencionApiService {
    * Actualiza un tipo de beneficiario de exención existente.
    * 
    * @param {number} id - Identificador único a modificar.
-   * @param {ActualizarTipoBeneficiarioExencionDto} command - Datos actualizados.
+   * @param {ActualizarTipoBeneficiarioExencionRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTipoBeneficiarioExencionDto): Observable<void> {
+  actualizar(id: number, command: ActualizarTipoBeneficiarioExencionRequest): Observable<void> {
     return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 

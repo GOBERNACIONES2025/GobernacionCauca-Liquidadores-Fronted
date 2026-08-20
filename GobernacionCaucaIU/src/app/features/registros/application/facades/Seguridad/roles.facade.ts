@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   Rol, 
-  CrearRolDto, 
-  ActualizarRolDto 
+  CrearRolRequest, 
+  ActualizarRolRequest 
 } from '../../../domain/models/Seguridad/rol.model';
 import { RolesApiService } from '../../../infrastructure/api/Seguridad/roles-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class RolesFacade {
   /**
    * Crea un nuevo rol.
    */
-  crear(dto: CrearRolDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearRolRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class RolesFacade {
   /**
    * Actualiza un rol existente.
    */
-  actualizar(id: number, dto: ActualizarRolDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarRolRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

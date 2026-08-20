@@ -11,7 +11,7 @@ export interface TipoCalculoTarifa {
 /**
  * Payload para registrar un nuevo Tipo de Cálculo de Tarifa.
  */
-export interface CrearTipoCalculoTarifaDto {
+export interface CrearTipoCalculoTarifaRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearTipoCalculoTarifaDto {
 /**
  * Payload para actualizar un Tipo de Cálculo de Tarifa existente.
  */
-export interface ActualizarTipoCalculoTarifaDto {
+export interface ActualizarTipoCalculoTarifaRequest {
   id: number;
   codigo: string;
   nombre: string;

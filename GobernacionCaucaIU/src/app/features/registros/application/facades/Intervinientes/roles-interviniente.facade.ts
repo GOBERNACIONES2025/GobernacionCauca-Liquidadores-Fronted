@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   RolInterviniente, 
-  CrearRolIntervinienteDto, 
-  ActualizarRolIntervinienteDto 
+  CrearRolIntervinienteRequest, 
+  ActualizarRolIntervinienteRequest 
 } from '../../../domain/models/Intervinientes/rol-interviniente.model';
 import { RolesIntervinienteApiService } from '../../../infrastructure/api/Intervinientes/roles-interviniente-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class RolesIntervinienteFacade {
   /**
    * Registra un nuevo rol de interviniente.
    */
-  crear(dto: CrearRolIntervinienteDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearRolIntervinienteRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class RolesIntervinienteFacade {
   /**
    * Actualiza un rol de interviniente existente.
    */
-  actualizar(id: number, dto: ActualizarRolIntervinienteDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarRolIntervinienteRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

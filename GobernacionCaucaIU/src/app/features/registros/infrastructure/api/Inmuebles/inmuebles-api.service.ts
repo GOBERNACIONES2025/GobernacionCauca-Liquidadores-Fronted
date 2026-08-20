@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   Inmueble, 
-  CrearInmuebleDto, 
-  ActualizarInmuebleDto, 
+  CrearInmuebleRequest, 
+  ActualizarInmuebleRequest, 
   InmuebleQueryParams 
 } from '../../../domain/models/Inmuebles/inmueble.model';
 
@@ -63,10 +63,10 @@ export class InmueblesApiService {
    * @description
    * Registra un nuevo inmueble en el sistema junto con sus avalúos asociados opcionales.
    * 
-   * @param {CrearInmuebleDto} command - Datos del nuevo inmueble a registrar.
+   * @param {CrearInmuebleRequest} command - Datos del nuevo inmueble a registrar.
    * @returns {Observable<ApiResponse<number>>} ID del nuevo inmueble creado.
    */
-  crear(command: CrearInmuebleDto): Observable<ApiResponse<number>> {
+  crear(command: CrearInmuebleRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -75,10 +75,10 @@ export class InmueblesApiService {
    * Actualiza los datos de un inmueble existente y su lista de avalúos catastrales.
    * 
    * @param {number} id - Identificador primario del inmueble.
-   * @param {ActualizarInmuebleDto} command - Payload con los datos modificados.
+   * @param {ActualizarInmuebleRequest} command - Payload con los datos modificados.
    * @returns {Observable<void>} Observable que completa al finalizar la actualización.
    */
-  actualizar(id: number, command: ActualizarInmuebleDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarInmuebleRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 }

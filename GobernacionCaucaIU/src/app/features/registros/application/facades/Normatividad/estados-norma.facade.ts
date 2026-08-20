@@ -2,11 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { 
-  EstadoNorma, 
-  CrearEstadoNormaDto, 
-  ActualizarEstadoNormaDto 
-} from '../../../domain/models/Normatividad/estado-norma.model';
+import { EstadoNorma, CrearEstadoNormaRequest, ActualizarEstadoNormaRequest } from '../../../domain/models/Normatividad/estado-norma.model';
 import { EstadosNormaApiService } from '../../../infrastructure/api/Normatividad/estados-norma-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 
@@ -89,7 +85,7 @@ export class EstadosNormaFacade {
   /**
    * Crea un nuevo estado de norma.
    */
-  crear(dto: CrearEstadoNormaDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearEstadoNormaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +98,7 @@ export class EstadosNormaFacade {
   /**
    * Actualiza un estado de norma existente.
    */
-  actualizar(id: number, dto: ActualizarEstadoNormaDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarEstadoNormaRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

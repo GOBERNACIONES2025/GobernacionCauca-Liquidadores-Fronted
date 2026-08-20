@@ -11,7 +11,7 @@ export interface TipoIdentificacion {
 /**
  * Payload para registrar un nuevo Tipo de Identificación.
  */
-export interface CrearTipoIdentificacionDto {
+export interface CrearTipoIdentificacionRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearTipoIdentificacionDto {
 /**
  * Payload para actualizar un Tipo de Identificación existente.
  */
-export interface ActualizarTipoIdentificacionDto {
+export interface ActualizarTipoIdentificacionRequest {
   id: number;
   codigo: string;
   nombre: string;

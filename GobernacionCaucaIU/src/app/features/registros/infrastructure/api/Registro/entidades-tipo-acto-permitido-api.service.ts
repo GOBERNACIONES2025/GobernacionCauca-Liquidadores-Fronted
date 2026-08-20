@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   EntidadTipoActoPermitido, 
-  CrearEntidadTipoActoPermitidoDto, 
-  ActualizarEntidadTipoActoPermitidoDto 
+  CrearEntidadTipoActoPermitidoRequest, 
+  ActualizarEntidadTipoActoPermitidoRequest 
 } from '../../../domain/models/Registro/entidad-tipo-acto-permitido.model';
 
 /**
@@ -65,10 +65,10 @@ export class EntidadesTipoActoPermitidoApiService {
    * @description
    * Registra una nueva relación Entidad - Tipo de Acto Permitido.
    * 
-   * @param {CrearEntidadTipoActoPermitidoDto} command - Datos de la nueva relación.
+   * @param {CrearEntidadTipoActoPermitidoRequest} command - Datos de la nueva relación.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearEntidadTipoActoPermitidoDto): Observable<ApiResponse<number>> {
+  crear(command: CrearEntidadTipoActoPermitidoRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -77,11 +77,11 @@ export class EntidadesTipoActoPermitidoApiService {
    * Actualiza una relación Entidad - Tipo de Acto Permitido existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarEntidadTipoActoPermitidoDto} command - Datos actualizados.
+   * @param {ActualizarEntidadTipoActoPermitidoRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarEntidadTipoActoPermitidoDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarEntidadTipoActoPermitidoRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   CategoriaActo, 
-  CrearCategoriaActoDto, 
-  ActualizarCategoriaActoDto 
+  CrearCategoriaActoRequest, 
+  ActualizarCategoriaActoRequest 
 } from '../../../domain/models/Registro/categoria-acto.model';
 
 /**
@@ -54,10 +54,10 @@ export class CategoriasActoApiService {
    * @description
    * Registra una nueva categoría de acto.
    * 
-   * @param {CrearCategoriaActoDto} command - Datos de la nueva categoría.
+   * @param {CrearCategoriaActoRequest} command - Datos de la nueva categoría.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearCategoriaActoDto): Observable<ApiResponse<number>> {
+  crear(command: CrearCategoriaActoRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class CategoriasActoApiService {
    * Actualiza una categoría de acto existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarCategoriaActoDto} command - Datos actualizados.
+   * @param {ActualizarCategoriaActoRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarCategoriaActoDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarCategoriaActoRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

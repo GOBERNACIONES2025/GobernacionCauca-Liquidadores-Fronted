@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   TipoIdentificacion, 
-  CrearTipoIdentificacionDto, 
-  ActualizarTipoIdentificacionDto 
+  CrearTipoIdentificacionRequest, 
+  ActualizarTipoIdentificacionRequest 
 } from '../../../domain/models/Contribuyentes/tipo-identificacion.model';
 
 /**
@@ -54,10 +54,10 @@ export class TiposIdentificacionApiService {
    * @description
    * Registra un nuevo tipo de identificación.
    * 
-   * @param {CrearTipoIdentificacionDto} command - Datos del nuevo tipo.
+   * @param {CrearTipoIdentificacionRequest} command - Datos del nuevo tipo.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTipoIdentificacionDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTipoIdentificacionRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class TiposIdentificacionApiService {
    * Actualiza un tipo de identificación existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarTipoIdentificacionDto} command - Datos actualizados.
+   * @param {ActualizarTipoIdentificacionRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTipoIdentificacionDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarTipoIdentificacionRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

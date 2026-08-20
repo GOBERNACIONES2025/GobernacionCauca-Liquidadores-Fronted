@@ -2,11 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
-import { 
-  TipoCalculoTarifa, 
-  CrearTipoCalculoTarifaDto, 
-  ActualizarTipoCalculoTarifaDto 
-} from '../../../domain/models/Tarifas/tipo-calculo-tarifa.model';
+import { TipoCalculoTarifa, CrearTipoCalculoTarifaRequest, ActualizarTipoCalculoTarifaRequest } from '../../../domain/models/Tarifas/tipo-calculo-tarifa.model';
 
 /**
  * @description
@@ -54,10 +50,10 @@ export class TiposCalculoTarifaApiService {
    * @description
    * Registra un nuevo tipo de cálculo de tarifa.
    * 
-   * @param {CrearTipoCalculoTarifaDto} command - Datos del nuevo tipo.
+   * @param {CrearTipoCalculoTarifaRequest} command - Datos del nuevo tipo.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTipoCalculoTarifaDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTipoCalculoTarifaRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +62,11 @@ export class TiposCalculoTarifaApiService {
    * Actualiza un tipo de cálculo de tarifa existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarTipoCalculoTarifaDto} command - Datos actualizados.
+   * @param {ActualizarTipoCalculoTarifaRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTipoCalculoTarifaDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarTipoCalculoTarifaRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

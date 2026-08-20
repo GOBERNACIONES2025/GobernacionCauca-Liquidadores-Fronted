@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   Usuario, 
-  CrearUsuarioDto, 
-  ActualizarUsuarioDto, 
+  CrearUsuarioRequest, 
+  ActualizarUsuarioRequest, 
   UsuarioQueryParams 
 } from '../../../domain/models/Seguridad/usuario.model';
 
@@ -61,10 +61,10 @@ export class UsuariosApiService {
    * @description
    * Registra un nuevo usuario en el sistema.
    * 
-   * @param {CrearUsuarioDto} command - Datos del nuevo usuario.
+   * @param {CrearUsuarioRequest} command - Datos del nuevo usuario.
    * @returns {Observable<ApiResponse<number>>} ID del usuario creado.
    */
-  crear(command: CrearUsuarioDto): Observable<ApiResponse<number>> {
+  crear(command: CrearUsuarioRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -73,11 +73,11 @@ export class UsuariosApiService {
    * Actualiza un usuario existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarUsuarioDto} command - Datos actualizados.
+   * @param {ActualizarUsuarioRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarUsuarioDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarUsuarioRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

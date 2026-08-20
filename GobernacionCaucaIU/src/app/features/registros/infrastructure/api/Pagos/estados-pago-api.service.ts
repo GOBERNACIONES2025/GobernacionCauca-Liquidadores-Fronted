@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   EstadoPago, 
-  CrearEstadoPagoDto, 
-  ActualizarEstadoPagoDto 
+  CrearEstadoPagoRequest, 
+  ActualizarEstadoPagoRequest 
 } from '../../../domain/models/Pagos/estado-pago.model';
 
 /**
@@ -54,10 +54,10 @@ export class EstadosPagoApiService {
    * @description
    * Registra un nuevo estado de pago.
    * 
-   * @param {CrearEstadoPagoDto} command - Datos del nuevo estado.
+   * @param {CrearEstadoPagoRequest} command - Datos del nuevo estado.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearEstadoPagoDto): Observable<ApiResponse<number>> {
+  crear(command: CrearEstadoPagoRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class EstadosPagoApiService {
    * Actualiza un estado de pago existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarEstadoPagoDto} command - Datos actualizados.
+   * @param {ActualizarEstadoPagoRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarEstadoPagoDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarEstadoPagoRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

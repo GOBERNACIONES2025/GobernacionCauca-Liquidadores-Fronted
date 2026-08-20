@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   CategoriaActo, 
-  CrearCategoriaActoDto, 
-  ActualizarCategoriaActoDto 
+  CrearCategoriaActoRequest, 
+  ActualizarCategoriaActoRequest 
 } from '../../../domain/models/Registro/categoria-acto.model';
 import { CategoriasActoApiService } from '../../../infrastructure/api/Registro/categorias-acto-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class CategoriasActoFacade {
   /**
    * Crea una nueva categoría de acto.
    */
-  crear(dto: CrearCategoriaActoDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearCategoriaActoRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class CategoriasActoFacade {
   /**
    * Actualiza una categoría de acto existente.
    */
-  actualizar(id: number, dto: ActualizarCategoriaActoDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarCategoriaActoRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

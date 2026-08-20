@@ -18,7 +18,7 @@ export interface Contribuyente {
 /**
  * Payload para registrar un nuevo Contribuyente.
  */
-export interface CrearContribuyenteDto {
+export interface CrearContribuyenteRequest {
   tipoPersonaId: number;
   tipoIdentificacionId: number;
   numeroIdentificacion: string;
@@ -31,7 +31,7 @@ export interface CrearContribuyenteDto {
 /**
  * Payload para actualizar un Contribuyente existente.
  */
-export interface ActualizarContribuyenteDto {
+export interface ActualizarContribuyenteRequest {
   id: number;
   tipoPersonaId: number;
   tipoIdentificacionId: number;

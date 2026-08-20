@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
-import { ActoExencion, CrearActoExencionDto } from '../../../domain/models/Exenciones/acto-exencion.model';
+import { ActoExencion, CrearActoExencionRequest } from '../../../domain/models/Exenciones/acto-exencion.model';
 
 /**
  * @description
@@ -58,10 +58,10 @@ export class ActosExencionApiService {
    * @description
    * Vincula una o varias Tipos de Acto a una Exención.
    * 
-   * @param {CrearActoExencionDto} command - Datos de vinculación.
+   * @param {CrearActoExencionRequest} command - Datos de vinculación.
    * @returns {Observable<ApiResponse<number[]>>} Lista de IDs recién creados.
    */
-  crear(command: CrearActoExencionDto): Observable<ApiResponse<number[]>> {
+  crear(command: CrearActoExencionRequest): Observable<ApiResponse<number[]>> {
     return this.api.post<ApiResponse<number[]>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 

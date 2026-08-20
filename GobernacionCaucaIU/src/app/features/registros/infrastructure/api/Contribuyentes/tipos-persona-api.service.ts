@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   TipoPersona, 
-  CrearTipoPersonaDto, 
-  ActualizarTipoPersonaDto 
+  CrearTipoPersonaRequest, 
+  ActualizarTipoPersonaRequest 
 } from '../../../domain/models/Contribuyentes/tipo-persona.model';
 
 /**
@@ -54,10 +54,10 @@ export class TiposPersonaApiService {
    * @description
    * Registra un nuevo tipo de persona.
    * 
-   * @param {CrearTipoPersonaDto} command - Datos del nuevo tipo.
+   * @param {CrearTipoPersonaRequest} command - Datos del nuevo tipo.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTipoPersonaDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTipoPersonaRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class TiposPersonaApiService {
    * Actualiza un tipo de persona existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarTipoPersonaDto} command - Datos actualizados.
+   * @param {ActualizarTipoPersonaRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTipoPersonaDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarTipoPersonaRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

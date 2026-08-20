@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   EstadoSolicitud, 
-  CrearEstadoSolicitudDto, 
-  ActualizarEstadoSolicitudDto 
+  CrearEstadoSolicitudRequest, 
+  ActualizarEstadoSolicitudRequest 
 } from '../../../domain/models/Radicacion/estado-solicitud.model';
 import { EstadosSolicitudApiService } from '../../../infrastructure/api/Radicacion/estados-solicitud-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class EstadosSolicitudFacade {
   /**
    * Registra un nuevo estado de solicitud.
    */
-  crear(dto: CrearEstadoSolicitudDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearEstadoSolicitudRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class EstadosSolicitudFacade {
   /**
    * Actualiza un estado de solicitud existente.
    */
-  actualizar(id: number, dto: ActualizarEstadoSolicitudDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarEstadoSolicitudRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

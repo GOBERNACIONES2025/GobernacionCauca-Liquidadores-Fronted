@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   EstadoPago, 
-  CrearEstadoPagoDto, 
-  ActualizarEstadoPagoDto 
+  CrearEstadoPagoRequest, 
+  ActualizarEstadoPagoRequest 
 } from '../../../domain/models/Pagos/estado-pago.model';
 import { EstadosPagoApiService } from '../../../infrastructure/api/Pagos/estados-pago-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class EstadosPagoFacade {
   /**
    * Crea un nuevo estado de pago.
    */
-  crear(dto: CrearEstadoPagoDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearEstadoPagoRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class EstadosPagoFacade {
   /**
    * Actualiza un estado de pago existente.
    */
-  actualizar(id: number, dto: ActualizarEstadoPagoDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarEstadoPagoRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

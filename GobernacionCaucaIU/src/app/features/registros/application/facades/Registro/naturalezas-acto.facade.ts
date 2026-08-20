@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   NaturalezaActo, 
-  CrearNaturalezaActoDto, 
-  ActualizarNaturalezaActoDto 
+  CrearNaturalezaActoRequest, 
+  ActualizarNaturalezaActoRequest 
 } from '../../../domain/models/Registro/naturaleza-acto.model';
 import { NaturalezasActoApiService } from '../../../infrastructure/api/Registro/naturalezas-acto-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class NaturalezasActoFacade {
   /**
    * Crea una nueva naturaleza de acto.
    */
-  crear(dto: CrearNaturalezaActoDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearNaturalezaActoRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class NaturalezasActoFacade {
   /**
    * Actualiza una naturaleza de acto existente.
    */
-  actualizar(id: number, dto: ActualizarNaturalezaActoDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarNaturalezaActoRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

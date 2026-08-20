@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   EstadoSolicitud, 
-  CrearEstadoSolicitudDto, 
-  ActualizarEstadoSolicitudDto 
+  CrearEstadoSolicitudRequest, 
+  ActualizarEstadoSolicitudRequest 
 } from '../../../domain/models/Radicacion/estado-solicitud.model';
 
 /**
@@ -54,10 +54,10 @@ export class EstadosSolicitudApiService {
    * @description
    * Registra un nuevo estado de solicitud.
    * 
-   * @param {CrearEstadoSolicitudDto} command - Datos del nuevo estado.
+   * @param {CrearEstadoSolicitudRequest} command - Datos del nuevo estado.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearEstadoSolicitudDto): Observable<ApiResponse<number>> {
+  crear(command: CrearEstadoSolicitudRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class EstadosSolicitudApiService {
    * Actualiza un estado de solicitud existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarEstadoSolicitudDto} command - Datos actualizados.
+   * @param {ActualizarEstadoSolicitudRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarEstadoSolicitudDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarEstadoSolicitudRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

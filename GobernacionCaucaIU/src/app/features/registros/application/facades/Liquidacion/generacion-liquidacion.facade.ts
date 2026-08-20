@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { GenerarLiquidacionDto } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
+import { GenerarLiquidacionDto, CrearContribuyenteLiquidacionDtoRequest, ActualizarContribuyenteLiquidacionDtoRequest } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { GeneracionLiquidacionApiService } from '../../../infrastructure/api/Liquidacion/generacion-liquidacion-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 

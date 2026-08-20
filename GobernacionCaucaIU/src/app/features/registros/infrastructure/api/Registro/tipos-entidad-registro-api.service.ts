@@ -2,11 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
-import { 
-  TipoEntidadRegistro, 
-  CrearTipoEntidadRegistroDto, 
-  ActualizarTipoEntidadRegistroDto 
-} from '../../../domain/models/Registro/tipo-entidad-registro.model';
+import { TipoEntidadRegistro, CrearTipoEntidadRegistroRequest, ActualizarTipoEntidadRegistroRequest } from '../../../domain/models/Registro/tipo-entidad-registro.model';
 
 /**
  * @description
@@ -54,10 +50,10 @@ export class TiposEntidadRegistroApiService {
    * @description
    * Registra un nuevo tipo de entidad de registro.
    * 
-   * @param {CrearTipoEntidadRegistroDto} command - Datos del nuevo tipo.
+   * @param {CrearTipoEntidadRegistroRequest} command - Datos del nuevo tipo.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTipoEntidadRegistroDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTipoEntidadRegistroRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +62,11 @@ export class TiposEntidadRegistroApiService {
    * Actualiza un tipo de entidad de registro existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarTipoEntidadRegistroDto} command - Datos actualizados.
+   * @param {ActualizarTipoEntidadRegistroRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTipoEntidadRegistroDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarTipoEntidadRegistroRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

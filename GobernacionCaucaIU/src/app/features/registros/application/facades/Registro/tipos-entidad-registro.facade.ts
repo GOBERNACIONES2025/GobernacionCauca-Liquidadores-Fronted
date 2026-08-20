@@ -2,11 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { 
-  TipoEntidadRegistro, 
-  CrearTipoEntidadRegistroDto, 
-  ActualizarTipoEntidadRegistroDto 
-} from '../../../domain/models/Registro/tipo-entidad-registro.model';
+import { TipoEntidadRegistro, CrearTipoEntidadRegistroRequest, ActualizarTipoEntidadRegistroRequest } from '../../../domain/models/Registro/tipo-entidad-registro.model';
 import { TiposEntidadRegistroApiService } from '../../../infrastructure/api/Registro/tipos-entidad-registro-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 
@@ -89,7 +85,7 @@ export class TiposEntidadRegistroFacade {
   /**
    * Crea un nuevo tipo de entidad de registro.
    */
-  crear(dto: CrearTipoEntidadRegistroDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTipoEntidadRegistroRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +98,7 @@ export class TiposEntidadRegistroFacade {
   /**
    * Actualiza un tipo de entidad de registro existente.
    */
-  actualizar(id: number, dto: ActualizarTipoEntidadRegistroDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTipoEntidadRegistroRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

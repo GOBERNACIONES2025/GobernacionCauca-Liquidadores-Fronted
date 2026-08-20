@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   Contribuyente, 
-  CrearContribuyenteDto, 
-  ActualizarContribuyenteDto 
+  CrearContribuyenteRequest, 
+  ActualizarContribuyenteRequest 
 } from '../../../domain/models/Contribuyentes/contribuyente.model';
 import { ContribuyentesApiService } from '../../../infrastructure/api/Contribuyentes/contribuyentes-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class ContribuyentesFacade {
   /**
    * Crea un nuevo contribuyente.
    */
-  crear(dto: CrearContribuyenteDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearContribuyenteRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class ContribuyentesFacade {
   /**
    * Actualiza un contribuyente existente.
    */
-  actualizar(id: number, dto: ActualizarContribuyenteDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarContribuyenteRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

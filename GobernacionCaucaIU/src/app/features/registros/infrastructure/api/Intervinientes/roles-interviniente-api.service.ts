@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   RolInterviniente, 
-  CrearRolIntervinienteDto, 
-  ActualizarRolIntervinienteDto 
+  CrearRolIntervinienteRequest, 
+  ActualizarRolIntervinienteRequest 
 } from '../../../domain/models/Intervinientes/rol-interviniente.model';
 
 /**
@@ -54,10 +54,10 @@ export class RolesIntervinienteApiService {
    * @description
    * Registra un nuevo rol de interviniente en el sistema.
    * 
-   * @param {CrearRolIntervinienteDto} command - Datos del nuevo rol.
+   * @param {CrearRolIntervinienteRequest} command - Datos del nuevo rol.
    * @returns {Observable<ApiResponse<number>>} ID del rol creado.
    */
-  crear(command: CrearRolIntervinienteDto): Observable<ApiResponse<number>> {
+  crear(command: CrearRolIntervinienteRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class RolesIntervinienteApiService {
    * Actualiza un rol de interviniente existente.
    * 
    * @param {number} id - Identificador del rol a actualizar.
-   * @param {ActualizarRolIntervinienteDto} command - Datos actualizados.
+   * @param {ActualizarRolIntervinienteRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarRolIntervinienteDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarRolIntervinienteRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

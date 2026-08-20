@@ -11,7 +11,7 @@ export interface EstadoNorma {
 /**
  * Payload para registrar un nuevo Estado de Norma.
  */
-export interface CrearEstadoNormaDto {
+export interface CrearEstadoNormaRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearEstadoNormaDto {
 /**
  * Payload para actualizar un Estado de Norma existente.
  */
-export interface ActualizarEstadoNormaDto {
+export interface ActualizarEstadoNormaRequest {
   id: number;
   codigo: string;
   nombre: string;

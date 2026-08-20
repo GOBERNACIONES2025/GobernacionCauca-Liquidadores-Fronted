@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   EstadoLiquidacion, 
-  CrearEstadoLiquidacionDto, 
-  ActualizarEstadoLiquidacionDto 
+  CrearEstadoLiquidacionRequest, 
+  ActualizarEstadoLiquidacionRequest 
 } from '../../../domain/models/Liquidacion/estado-liquidacion.model';
 import { EstadosLiquidacionApiService } from '../../../infrastructure/api/Liquidacion/estados-liquidacion-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class EstadosLiquidacionFacade {
   /**
    * Crea un nuevo estado de liquidación.
    */
-  crear(dto: CrearEstadoLiquidacionDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearEstadoLiquidacionRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class EstadosLiquidacionFacade {
   /**
    * Actualiza un estado de liquidación existente.
    */
-  actualizar(id: number, dto: ActualizarEstadoLiquidacionDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarEstadoLiquidacionRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

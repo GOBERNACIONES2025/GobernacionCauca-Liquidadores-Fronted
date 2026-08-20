@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { ActoExencion, CrearActoExencionDto } from '../../../domain/models/Exenciones/acto-exencion.model';
+import { ActoExencion, CrearActoExencionRequest } from '../../../domain/models/Exenciones/acto-exencion.model';
 import { ActosExencionApiService } from '../../../infrastructure/api/Exenciones/actos-exencion-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 
@@ -84,7 +84,7 @@ export class ActosExencionFacade {
   /**
    * Vincula nuevos tipos de acto a una exención.
    */
-  vincularTiposActo(dto: CrearActoExencionDto): Observable<ApiResponse<number[]>> {
+  vincularTiposActo(dto: CrearActoExencionRequest): Observable<ApiResponse<number[]>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({

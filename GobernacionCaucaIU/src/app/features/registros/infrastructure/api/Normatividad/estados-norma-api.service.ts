@@ -2,11 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
-import { 
-  EstadoNorma, 
-  CrearEstadoNormaDto, 
-  ActualizarEstadoNormaDto 
-} from '../../../domain/models/Normatividad/estado-norma.model';
+import { EstadoNorma, CrearEstadoNormaRequest, ActualizarEstadoNormaRequest } from '../../../domain/models/Normatividad/estado-norma.model';
 
 /**
  * @description
@@ -54,10 +50,10 @@ export class EstadosNormaApiService {
    * @description
    * Registra un nuevo estado de norma.
    * 
-   * @param {CrearEstadoNormaDto} command - Datos del nuevo estado.
+   * @param {CrearEstadoNormaRequest} command - Datos del nuevo estado.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearEstadoNormaDto): Observable<ApiResponse<number>> {
+  crear(command: CrearEstadoNormaRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +62,11 @@ export class EstadosNormaApiService {
    * Actualiza un estado de norma existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarEstadoNormaDto} command - Datos actualizados.
+   * @param {ActualizarEstadoNormaRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarEstadoNormaDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarEstadoNormaRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

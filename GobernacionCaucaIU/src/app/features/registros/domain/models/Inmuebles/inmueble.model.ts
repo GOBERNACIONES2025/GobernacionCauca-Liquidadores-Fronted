@@ -34,7 +34,7 @@ export interface Inmueble {
 /**
  * Payload para registrar un nuevo Inmueble.
  */
-export interface CrearInmuebleDto {
+export interface CrearInmuebleRequest {
   municipioId: number;
   matriculaInmobiliaria: string;
   direccion?: string | null;
@@ -44,7 +44,7 @@ export interface CrearInmuebleDto {
 /**
  * Payload para actualizar un Inmueble existente.
  */
-export interface ActualizarInmuebleDto {
+export interface ActualizarInmuebleRequest {
   id: number;
   municipioId: number;
   matriculaInmobiliaria: string;

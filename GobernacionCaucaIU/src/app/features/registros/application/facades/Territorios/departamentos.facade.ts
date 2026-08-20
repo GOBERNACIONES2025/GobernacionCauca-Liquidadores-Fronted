@@ -1,8 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { Departamento } from '../../../domain/models/Territorios/departamento.model';
+import { Observable, tap, catchError } from 'rxjs';
+import { Departamento, CrearDepartamentoRequest, ActualizarDepartamentoRequest } from '../../../domain/models/Territorios/departamento.model';
 import { DepartamentosApiService } from '../../../infrastructure/api/Territorios/departamentos-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 
@@ -32,15 +31,14 @@ export class DepartamentosFacade {
    * Carga la lista de departamentos de forma paginada y actualiza el estado (Signals).
    */
   cargarDepartamentos(pageNumber: number = 1, pageSize: number = 10): void {
-    console.log("cargando de")
     this.loading.set(true);
     this.error.set(null);
 
     this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
       next: (response) => {
-        if (response.success && response.data) {
+        if (response.data) {
           this.departamentos.set(response.data.items || []);
-          this.totalDepartamentos.set(response.data.totalCount);
+          this.totalDepartamentos.set(response.data.totalCount || 0);
         } else {
           this.error.set(response.message || 'Error al cargar los departamentos');
         }
@@ -63,7 +61,7 @@ export class DepartamentosFacade {
 
     this.apiService.obtenerPorId(id).subscribe({
       next: (response) => {
-        if (response.success && response.data) {
+        if (response.data) {
           this.selectedDepartamento.set(response.data);
         } else {
           this.error.set(response.message || 'Error al cargar el departamento');
@@ -85,27 +83,38 @@ export class DepartamentosFacade {
   }
 
   /**
-   * Crea un nuevo departamento y retorna el Observable para que el componente maneje la navegación/notificación.
+   * Crea un nuevo departamento mapeándolo estrictamente al Request.
    */
   crearDepartamento(departamento: Partial<Departamento>): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
-    return this.apiService.crear(departamento).pipe(
-      tap({
-        next: () => this.actionLoading.set(false),
-        error: () => this.actionLoading.set(false)
+    const request: CrearDepartamentoRequest = {
+      codigoDane: departamento.codigoDane!,
+      nombre: departamento.nombre!
+    };
+    return this.apiService.crear(request).pipe(
+      tap(() => this.actionLoading.set(false)),
+      catchError(err => {
+        this.actionLoading.set(false);
+        throw err;
       })
     );
   }
 
   /**
-   * Actualiza un departamento existente.
+   * Actualiza un departamento existente mapeándolo estrictamente al Request.
    */
   actualizarDepartamento(id: number, departamento: Partial<Departamento>): Observable<void> {
     this.actionLoading.set(true);
-    return this.apiService.actualizar(id, departamento).pipe(
-      tap({
-        next: () => this.actionLoading.set(false),
-        error: () => this.actionLoading.set(false)
+    const request: ActualizarDepartamentoRequest = {
+      codigoDane: departamento.codigoDane!,
+      nombre: departamento.nombre!,
+      activo: departamento.activo ?? true
+    };
+    return this.apiService.actualizar(id, request).pipe(
+      tap(() => this.actionLoading.set(false)),
+      catchError(err => {
+        this.actionLoading.set(false);
+        throw err;
       })
     );
   }

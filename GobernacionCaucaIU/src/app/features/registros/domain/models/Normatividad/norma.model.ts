@@ -54,7 +54,7 @@ export interface NormaDetalle {
 /**
  * Payload para registrar una nueva Norma.
  */
-export interface CrearNormaDto {
+export interface CrearNormaRequest {
   departamentoId: number;
   tipoNormaId: number;
   numero: string;
@@ -70,7 +70,7 @@ export interface CrearNormaDto {
 /**
  * Payload para actualizar una Norma existente.
  */
-export interface ActualizarNormaDto {
+export interface ActualizarNormaRequest {
   id: number;
   departamentoId: number;
   tipoNormaId: number;
@@ -80,4 +80,17 @@ export interface ActualizarNormaDto {
   descripcion?: string | null;
   estadoNormaId: number;
   documentos?: DocumentoNormativoActualizarDto[];
+}
+
+export interface CrearDocumentoNormativoRequest {
+  nombreArchivo: string;
+  rutaArchivo: string;
+  tipoArchivo: string;
+}
+
+export interface ActualizarDocumentoNormativoRequest {
+  nombreArchivo: string;
+  rutaArchivo: string;
+  tipoArchivo: string;
+  activo: boolean;
 }

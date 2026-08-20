@@ -11,7 +11,7 @@ export interface TipoPersona {
 /**
  * Payload para registrar un nuevo Tipo de Persona.
  */
-export interface CrearTipoPersonaDto {
+export interface CrearTipoPersonaRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearTipoPersonaDto {
 /**
  * Payload para actualizar un Tipo de Persona existente.
  */
-export interface ActualizarTipoPersonaDto {
+export interface ActualizarTipoPersonaRequest {
   id: number;
   codigo: string;
   nombre: string;

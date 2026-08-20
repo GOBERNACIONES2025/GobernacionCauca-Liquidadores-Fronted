@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
-import { Departamento } from '../../../domain/models/Territorios/departamento.model';
+import { Departamento, CrearDepartamentoRequest, ActualizarDepartamentoRequest } from '../../../domain/models/Territorios/departamento.model';
 
 /**
  * @description
@@ -64,10 +64,10 @@ export class DepartamentosApiService {
    * @description
    * Envía un payload para persistir un nuevo departamento en la base de datos.
    * 
-   * @param {Partial<Departamento>} departamento - DTO con la información parcial requerida para la creación.
+   * @param {CrearDepartamentoRequest} departamento - DTO con la información estricta requerida para la creación.
    * @returns {Observable<ApiResponse<number>>} Flujo observable que emite el ID del recurso recién creado.
    */
-  crear(departamento: Partial<Departamento>): Observable<ApiResponse<number>> {
+  crear(departamento: CrearDepartamentoRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, departamento, {}, 'REGISTROS');
   }
 
@@ -76,10 +76,10 @@ export class DepartamentosApiService {
    * Sobrescribe los datos de un departamento existente (Full Update).
    * 
    * @param {number} id - Identificador único del recurso a modificar.
-   * @param {Partial<Departamento>} departamento - DTO con las propiedades actualizadas.
+   * @param {ActualizarDepartamentoRequest} departamento - DTO con las propiedades actualizadas.
    * @returns {Observable<void>} Observable que completa si la actualización es exitosa (Status 204 No Content).
    */
-  actualizar(id: number, departamento: Partial<Departamento>): Observable<void> {
+  actualizar(id: number, departamento: ActualizarDepartamentoRequest): Observable<void> {
     return this.api.put<void>(`${this.baseUrl}/${id}`, departamento, {}, 'REGISTROS');
   }
 

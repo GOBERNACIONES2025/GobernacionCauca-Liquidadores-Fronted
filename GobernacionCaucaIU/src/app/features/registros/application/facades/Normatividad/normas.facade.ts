@@ -5,8 +5,8 @@ import { tap } from 'rxjs/operators';
 import { 
   NormaListado, 
   NormaDetalle, 
-  CrearNormaDto, 
-  ActualizarNormaDto 
+  CrearNormaRequest, 
+  ActualizarNormaRequest 
 } from '../../../domain/models/Normatividad/norma.model';
 import { NormasApiService } from '../../../infrastructure/api/Normatividad/normas-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -90,7 +90,7 @@ export class NormasFacade {
   /**
    * Registra una nueva norma.
    */
-  crear(dto: CrearNormaDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearNormaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -103,7 +103,7 @@ export class NormasFacade {
   /**
    * Actualiza una norma existente.
    */
-  actualizar(id: number, dto: ActualizarNormaDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarNormaRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

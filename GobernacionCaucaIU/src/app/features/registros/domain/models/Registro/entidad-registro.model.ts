@@ -20,7 +20,7 @@ export interface EntidadRegistro {
 /**
  * Payload para registrar una nueva Entidad de Registro.
  */
-export interface CrearEntidadRegistroDto {
+export interface CrearEntidadRegistroRequest {
   tipoEntidadRegistroId: number;
   departamentoId: number;
   municipioId: number;
@@ -33,11 +33,32 @@ export interface CrearEntidadRegistroDto {
 /**
  * Payload para actualizar una Entidad de Registro existente.
  */
-export interface ActualizarEntidadRegistroDto {
+export interface ActualizarEntidadRegistroRequest {
   id: number;
   tipoEntidadRegistroId: number;
   departamentoId: number;
   municipioId: number;
+  nit: string;
+  codigo: string;
+  nombre: string;
+  emailContacto?: string | null;
+  activo: boolean;
+}
+
+export interface CrearEntidadRegistroRequest {
+  tipoEntidadRegistro: TipoEntidadRegistro;
+  departamento: Departamento;
+  municipio: Municipio;
+  nit: string;
+  codigo: string;
+  nombre: string;
+  emailContacto?: string | null;
+}
+
+export interface ActualizarEntidadRegistroRequest {
+  tipoEntidadRegistro: TipoEntidadRegistro;
+  departamento: Departamento;
+  municipio: Municipio;
   nit: string;
   codigo: string;
   nombre: string;

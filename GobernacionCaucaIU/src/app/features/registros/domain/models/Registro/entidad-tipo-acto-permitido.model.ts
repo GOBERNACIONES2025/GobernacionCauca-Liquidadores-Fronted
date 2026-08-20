@@ -14,7 +14,7 @@ export interface EntidadTipoActoPermitido {
 /**
  * Payload para registrar una nueva relación Entidad - Tipo de Acto Permitido.
  */
-export interface CrearEntidadTipoActoPermitidoDto {
+export interface CrearEntidadTipoActoPermitidoRequest {
   entidadRegistroId: number;
   tipoActoRegistroId: number;
 }
@@ -22,7 +22,7 @@ export interface CrearEntidadTipoActoPermitidoDto {
 /**
  * Payload para actualizar una relación Entidad - Tipo de Acto Permitido existente.
  */
-export interface ActualizarEntidadTipoActoPermitidoDto {
+export interface ActualizarEntidadTipoActoPermitidoRequest {
   id: number;
   entidadRegistroId: number;
   tipoActoRegistroId: number;

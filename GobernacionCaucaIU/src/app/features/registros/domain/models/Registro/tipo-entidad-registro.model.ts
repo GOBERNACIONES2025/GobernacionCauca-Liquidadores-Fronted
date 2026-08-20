@@ -11,7 +11,7 @@ export interface TipoEntidadRegistro {
 /**
  * Payload para registrar un nuevo Tipo de Entidad de Registro.
  */
-export interface CrearTipoEntidadRegistroDto {
+export interface CrearTipoEntidadRegistroRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearTipoEntidadRegistroDto {
 /**
  * Payload para actualizar un Tipo de Entidad de Registro existente.
  */
-export interface ActualizarTipoEntidadRegistroDto {
+export interface ActualizarTipoEntidadRegistroRequest {
   id: number;
   codigo: string;
   nombre: string;

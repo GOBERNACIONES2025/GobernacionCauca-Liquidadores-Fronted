@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   Rol, 
-  CrearRolDto, 
-  ActualizarRolDto 
+  CrearRolRequest, 
+  ActualizarRolRequest 
 } from '../../../domain/models/Seguridad/rol.model';
 
 /**
@@ -54,10 +54,10 @@ export class RolesApiService {
    * @description
    * Registra un nuevo rol de seguridad.
    * 
-   * @param {CrearRolDto} command - Datos del nuevo rol.
+   * @param {CrearRolRequest} command - Datos del nuevo rol.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearRolDto): Observable<ApiResponse<number>> {
+  crear(command: CrearRolRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class RolesApiService {
    * Actualiza un rol de seguridad existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarRolDto} command - Datos actualizados.
+   * @param {ActualizarRolRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarRolDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarRolRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

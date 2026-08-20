@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   Tarifa, 
-  CrearTarifaDto, 
-  ActualizarTarifaDto, 
+  CrearTarifaRequest, 
+  ActualizarTarifaRequest, 
   TarifaQueryParams 
 } from '../../../domain/models/Tarifas/tarifa.model';
 
@@ -64,10 +64,10 @@ export class TarifasApiService {
    * @description
    * Registra una nueva tarifa en el sistema.
    * 
-   * @param {CrearTarifaDto} command - Datos de la nueva tarifa.
+   * @param {CrearTarifaRequest} command - Datos de la nueva tarifa.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTarifaDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTarifaRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -76,11 +76,11 @@ export class TarifasApiService {
    * Actualiza una tarifa existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarTarifaDto} command - Datos actualizados.
+   * @param {ActualizarTarifaRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTarifaDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarTarifaRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

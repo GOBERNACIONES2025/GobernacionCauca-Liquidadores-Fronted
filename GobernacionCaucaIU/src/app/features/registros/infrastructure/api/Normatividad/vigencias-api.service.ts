@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   Vigencia, 
-  CrearVigenciaDto, 
-  ActualizarVigenciaDto 
+  CrearVigenciaRequest, 
+  ActualizarVigenciaRequest 
 } from '../../../domain/models/Normatividad/vigencia.model';
 
 /**
@@ -54,10 +54,10 @@ export class VigenciasApiService {
    * @description
    * Registra una nueva vigencia.
    * 
-   * @param {CrearVigenciaDto} command - Datos de la nueva vigencia.
+   * @param {CrearVigenciaRequest} command - Datos de la nueva vigencia.
    * @returns {Observable<ApiResponse<number>>} ID de la vigencia creada.
    */
-  crear(command: CrearVigenciaDto): Observable<ApiResponse<number>> {
+  crear(command: CrearVigenciaRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class VigenciasApiService {
    * Actualiza una vigencia existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarVigenciaDto} command - Datos actualizados.
+   * @param {ActualizarVigenciaRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarVigenciaDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarVigenciaRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

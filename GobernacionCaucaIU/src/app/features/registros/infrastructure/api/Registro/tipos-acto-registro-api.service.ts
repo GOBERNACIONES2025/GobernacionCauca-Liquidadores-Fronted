@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   TipoActoRegistro, 
-  CrearTipoActoRegistroDto, 
-  ActualizarTipoActoRegistroDto 
+  CrearTipoActoRegistroRequest, 
+  ActualizarTipoActoRegistroRequest 
 } from '../../../domain/models/Registro/tipo-acto-registro.model';
 
 /**
@@ -54,10 +54,10 @@ export class TiposActoRegistroApiService {
    * @description
    * Registra un nuevo tipo de acto de registro.
    * 
-   * @param {CrearTipoActoRegistroDto} command - Datos del nuevo tipo de acto.
+   * @param {CrearTipoActoRegistroRequest} command - Datos del nuevo tipo de acto.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearTipoActoRegistroDto): Observable<ApiResponse<number>> {
+  crear(command: CrearTipoActoRegistroRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class TiposActoRegistroApiService {
    * Actualiza un tipo de acto de registro existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarTipoActoRegistroDto} command - Datos actualizados.
+   * @param {ActualizarTipoActoRegistroRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarTipoActoRegistroDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarTipoActoRegistroRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

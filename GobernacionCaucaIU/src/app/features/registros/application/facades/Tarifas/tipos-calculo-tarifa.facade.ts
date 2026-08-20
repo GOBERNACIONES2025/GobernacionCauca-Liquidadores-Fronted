@@ -2,11 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { 
-  TipoCalculoTarifa, 
-  CrearTipoCalculoTarifaDto, 
-  ActualizarTipoCalculoTarifaDto 
-} from '../../../domain/models/Tarifas/tipo-calculo-tarifa.model';
+import { TipoCalculoTarifa, CrearTipoCalculoTarifaRequest, ActualizarTipoCalculoTarifaRequest } from '../../../domain/models/Tarifas/tipo-calculo-tarifa.model';
 import { TiposCalculoTarifaApiService } from '../../../infrastructure/api/Tarifas/tipos-calculo-tarifa-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 
@@ -89,7 +85,7 @@ export class TiposCalculoTarifaFacade {
   /**
    * Crea un nuevo tipo de cálculo de tarifa.
    */
-  crear(dto: CrearTipoCalculoTarifaDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTipoCalculoTarifaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +98,7 @@ export class TiposCalculoTarifaFacade {
   /**
    * Actualiza un tipo de cálculo de tarifa existente.
    */
-  actualizar(id: number, dto: ActualizarTipoCalculoTarifaDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTipoCalculoTarifaRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

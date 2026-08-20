@@ -19,7 +19,7 @@ export interface ActoExencion {
 /**
  * Payload para vincular tipos de acto a una exención.
  */
-export interface CrearActoExencionDto {
+export interface CrearActoExencionRequest {
   exencionId: number;
   tiposActoRegistroIds: number[];
 }

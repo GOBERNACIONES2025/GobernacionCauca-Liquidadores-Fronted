@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   TipoPersona, 
-  CrearTipoPersonaDto, 
-  ActualizarTipoPersonaDto 
+  CrearTipoPersonaRequest, 
+  ActualizarTipoPersonaRequest 
 } from '../../../domain/models/Contribuyentes/tipo-persona.model';
 import { TiposPersonaApiService } from '../../../infrastructure/api/Contribuyentes/tipos-persona-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class TiposPersonaFacade {
   /**
    * Crea un nuevo tipo de persona.
    */
-  crear(dto: CrearTipoPersonaDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTipoPersonaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class TiposPersonaFacade {
   /**
    * Actualiza un tipo de persona existente.
    */
-  actualizar(id: number, dto: ActualizarTipoPersonaDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTipoPersonaRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

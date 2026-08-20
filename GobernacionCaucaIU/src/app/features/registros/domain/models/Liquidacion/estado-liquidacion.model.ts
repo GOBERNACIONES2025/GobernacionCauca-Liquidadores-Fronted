@@ -11,7 +11,7 @@ export interface EstadoLiquidacion {
 /**
  * Payload para registrar un nuevo Estado de Liquidación.
  */
-export interface CrearEstadoLiquidacionDto {
+export interface CrearEstadoLiquidacionRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearEstadoLiquidacionDto {
 /**
  * Payload para actualizar un Estado de Liquidación existente.
  */
-export interface ActualizarEstadoLiquidacionDto {
+export interface ActualizarEstadoLiquidacionRequest {
   id: number;
   codigo: string;
   nombre: string;

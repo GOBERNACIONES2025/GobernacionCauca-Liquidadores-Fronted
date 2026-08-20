@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   TipoIdentificacion, 
-  CrearTipoIdentificacionDto, 
-  ActualizarTipoIdentificacionDto 
+  CrearTipoIdentificacionRequest, 
+  ActualizarTipoIdentificacionRequest 
 } from '../../../domain/models/Contribuyentes/tipo-identificacion.model';
 import { TiposIdentificacionApiService } from '../../../infrastructure/api/Contribuyentes/tipos-identificacion-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class TiposIdentificacionFacade {
   /**
    * Crea un nuevo tipo de identificación.
    */
-  crear(dto: CrearTipoIdentificacionDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTipoIdentificacionRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class TiposIdentificacionFacade {
   /**
    * Actualiza un tipo de identificación existente.
    */
-  actualizar(id: number, dto: ActualizarTipoIdentificacionDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTipoIdentificacionRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

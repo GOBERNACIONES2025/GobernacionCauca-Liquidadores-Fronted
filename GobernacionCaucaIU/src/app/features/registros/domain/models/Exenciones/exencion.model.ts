@@ -34,7 +34,7 @@ export interface Exencion {
 /**
  * Payload para la creación de una nueva Exención.
  */
-export interface CrearExencionDto {
+export interface CrearExencionRequest {
   departamentoId: number;
   normaId: number;
   tipoBeneficiarioId?: number | null;
@@ -47,7 +47,7 @@ export interface CrearExencionDto {
 /**
  * Payload para la actualización de una Exención existente.
  */
-export interface ActualizarExencionDto {
+export interface ActualizarExencionRequest {
   id: number;
   departamentoId: number;
   normaId: number;
@@ -56,5 +56,16 @@ export interface ActualizarExencionDto {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
+  activo: boolean;
+}
+
+export interface CrearRolIntervinienteRefRequest {
+  codigo: string;
+  nombre: string;
+}
+
+export interface ActualizarRolIntervinienteRefRequest {
+  codigo: string;
+  nombre: string;
   activo: boolean;
 }

@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   NaturalezaActo, 
-  CrearNaturalezaActoDto, 
-  ActualizarNaturalezaActoDto 
+  CrearNaturalezaActoRequest, 
+  ActualizarNaturalezaActoRequest 
 } from '../../../domain/models/Registro/naturaleza-acto.model';
 
 /**
@@ -54,10 +54,10 @@ export class NaturalezasActoApiService {
    * @description
    * Registra una nueva naturaleza de acto.
    * 
-   * @param {CrearNaturalezaActoDto} command - Datos de la nueva naturaleza.
+   * @param {CrearNaturalezaActoRequest} command - Datos de la nueva naturaleza.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearNaturalezaActoDto): Observable<ApiResponse<number>> {
+  crear(command: CrearNaturalezaActoRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class NaturalezasActoApiService {
    * Actualiza una naturaleza de acto existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarNaturalezaActoDto} command - Datos actualizados.
+   * @param {ActualizarNaturalezaActoRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarNaturalezaActoDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarNaturalezaActoRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

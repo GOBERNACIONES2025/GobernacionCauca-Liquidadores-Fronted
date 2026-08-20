@@ -4,8 +4,8 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { 
   TipoActoRegistro, 
-  CrearTipoActoRegistroDto, 
-  ActualizarTipoActoRegistroDto 
+  CrearTipoActoRegistroRequest, 
+  ActualizarTipoActoRegistroRequest 
 } from '../../../domain/models/Registro/tipo-acto-registro.model';
 import { TiposActoRegistroApiService } from '../../../infrastructure/api/Registro/tipos-acto-registro-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -89,7 +89,7 @@ export class TiposActoRegistroFacade {
   /**
    * Crea un nuevo tipo de acto de registro.
    */
-  crear(dto: CrearTipoActoRegistroDto): Observable<ApiResponse<number>> {
+  crear(dto: CrearTipoActoRegistroRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crear(dto).pipe(
       tap({
@@ -102,7 +102,7 @@ export class TiposActoRegistroFacade {
   /**
    * Actualiza un tipo de acto de registro existente.
    */
-  actualizar(id: number, dto: ActualizarTipoActoRegistroDto): Observable<void> {
+  actualizar(id: number, dto: ActualizarTipoActoRegistroRequest): Observable<void> {
     this.actionLoading.set(true);
     return this.apiService.actualizar(id, dto).pipe(
       tap({

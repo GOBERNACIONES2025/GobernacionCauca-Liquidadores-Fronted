@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   Exencion, 
-  CrearExencionDto, 
-  ActualizarExencionDto 
+  CrearExencionRequest, 
+  ActualizarExencionRequest 
 } from '../../../domain/models/Exenciones/exencion.model';
 
 /**
@@ -65,10 +65,10 @@ export class ExencionesApiService {
    * @description
    * Registra una nueva exención en el sistema.
    * 
-   * @param {CrearExencionDto} command - Datos de la nueva exención.
+   * @param {CrearExencionRequest} command - Datos de la nueva exención.
    * @returns {Observable<ApiResponse<number>>} ID del registro creado.
    */
-  crear(command: CrearExencionDto): Observable<ApiResponse<number>> {
+  crear(command: CrearExencionRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -77,11 +77,11 @@ export class ExencionesApiService {
    * Actualiza una exención existente.
    * 
    * @param {number} id - Identificador de la exención.
-   * @param {ActualizarExencionDto} command - Datos actualizados.
+   * @param {ActualizarExencionRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarExencionDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarExencionRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**

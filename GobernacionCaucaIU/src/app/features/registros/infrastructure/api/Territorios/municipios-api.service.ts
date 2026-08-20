@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
-import { Municipio } from '../../../domain/models/Territorios/municipio.model';
+import { Municipio, CrearMunicipioRequest, ActualizarMunicipioRequest } from '../../../domain/models/Territorios/municipio.model';
 
 /**
  * @description
@@ -25,14 +25,14 @@ export class MunicipiosApiService {
 
   /**
    * @description
-   * Recupera una colección paginada de municipios.
+   * Recupera una colección paginada de requests.
    * Diseñado para integrarse fácilmente con componentes de tablas (DataTables) o 
    * listas que requieran paginación del lado del servidor (Server-Side Pagination).
    * 
    * @example
    * ```typescript
-   * this.municipiosApi.obtenerTodos(1, 20).subscribe({
-   *   next: (response) => this.municipios = response.data.items,
+   * this.requestsApi.obtenerTodos(1, 20).subscribe({
+   *   next: (response) => this.requests = response.data.items,
    *   error: (err) => this.notificationService.error(err.message)
    * });
    * ```
@@ -51,10 +51,10 @@ export class MunicipiosApiService {
 
   /**
    * @description
-   * Recupera los detalles exhaustivos de un municipio en específico,
+   * Recupera los detalles exhaustivos de un request en específico,
    * usualmente incluyendo relaciones anidadas (ej. información del Departamento asociado).
    * 
-   * @param {number} id - Identificador primario único (PK) del municipio.
+   * @param {number} id - Identificador primario único (PK) del request.
    * @returns {Observable<ApiResponse<Municipio>>} Flujo observable con la entidad solicitada.
    */
   obtenerPorId(id: number): Observable<ApiResponse<Municipio>> {
@@ -63,33 +63,33 @@ export class MunicipiosApiService {
 
   /**
    * @description
-   * Envía un payload para persistir un nuevo municipio en la base de datos.
+   * Envía un payload para persistir un nuevo request en la base de datos.
    * 
-   * @param {Partial<Municipio>} municipio - DTO con la información parcial requerida para la creación.
+   * @param {Partial<Municipio>} request - DTO con la información parcial requerida para la creación.
    * @returns {Observable<ApiResponse<number>>} Flujo observable que emite el ID del recurso recién creado.
    */
-  crear(municipio: Partial<Municipio>): Observable<ApiResponse<number>> {
-    return this.api.post<ApiResponse<number>>(this.baseUrl, municipio, {}, 'REGISTROS');
+  crear(request: CrearMunicipioRequest): Observable<ApiResponse<number>> {
+    return this.api.post<ApiResponse<number>>(this.baseUrl, request, {}, 'REGISTROS');
   }
 
   /**
    * @description
-   * Sobrescribe los datos de un municipio existente (Full Update).
+   * Sobrescribe los datos de un request existente (Full Update).
    * 
    * @param {number} id - Identificador único del recurso a modificar.
-   * @param {Partial<Municipio>} municipio - DTO con las propiedades actualizadas.
+   * @param {Partial<Municipio>} request - DTO con las propiedades actualizadas.
    * @returns {Observable<void>} Observable que completa si la actualización es exitosa (Status 204 No Content).
    */
-  actualizar(id: number, municipio: Partial<Municipio>): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, municipio, {}, 'REGISTROS');
+  actualizar(id: number, request: ActualizarMunicipioRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, request, {}, 'REGISTROS');
   }
 
   /**
    * @description
-   * Elimina un municipio del sistema.
+   * Elimina un request del sistema.
    * Nota: Dependiendo de las reglas del backend, esto puede ser un Soft-Delete o un Hard-Delete.
    * 
-   * @param {number} id - Identificador del municipio a remover.
+   * @param {number} id - Identificador del request a remover.
    * @returns {Observable<void>} Observable que completa al finalizar la operación exitosamente.
    */
   eliminar(id: number): Observable<void> {

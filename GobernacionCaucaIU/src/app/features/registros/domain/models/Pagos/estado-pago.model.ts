@@ -11,7 +11,7 @@ export interface EstadoPago {
 /**
  * Payload para registrar un nuevo Estado de Pago.
  */
-export interface CrearEstadoPagoDto {
+export interface CrearEstadoPagoRequest {
   codigo: string;
   nombre: string;
 }
@@ -19,7 +19,7 @@ export interface CrearEstadoPagoDto {
 /**
  * Payload para actualizar un Estado de Pago existente.
  */
-export interface ActualizarEstadoPagoDto {
+export interface ActualizarEstadoPagoRequest {
   id: number;
   codigo: string;
   nombre: string;

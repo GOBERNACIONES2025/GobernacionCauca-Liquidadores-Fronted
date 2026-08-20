@@ -4,8 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../../../../core/shared/models/shared.model';
 import { 
   Contribuyente, 
-  CrearContribuyenteDto, 
-  ActualizarContribuyenteDto 
+  CrearContribuyenteRequest, 
+  ActualizarContribuyenteRequest 
 } from '../../../domain/models/Contribuyentes/contribuyente.model';
 
 /**
@@ -54,10 +54,10 @@ export class ContribuyentesApiService {
    * @description
    * Registra un nuevo contribuyente.
    * 
-   * @param {CrearContribuyenteDto} command - Datos del nuevo contribuyente.
+   * @param {CrearContribuyenteRequest} command - Datos del nuevo contribuyente.
    * @returns {Observable<ApiResponse<number>>} ID del contribuyente creado.
    */
-  crear(command: CrearContribuyenteDto): Observable<ApiResponse<number>> {
+  crear(command: CrearContribuyenteRequest): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
   }
 
@@ -66,11 +66,11 @@ export class ContribuyentesApiService {
    * Actualiza un contribuyente existente.
    * 
    * @param {number} id - Identificador a actualizar.
-   * @param {ActualizarContribuyenteDto} command - Datos actualizados.
+   * @param {ActualizarContribuyenteRequest} command - Datos actualizados.
    * @returns {Observable<void>}
    */
-  actualizar(id: number, command: ActualizarContribuyenteDto): Observable<void> {
-    return this.api.put<void>(`${this.baseUrl}/${id}`, { ...command, id }, {}, 'REGISTROS');
+  actualizar(id: number, command: ActualizarContribuyenteRequest): Observable<void> {
+    return this.api.put<void>(`${this.baseUrl}/${id}`, command, {}, 'REGISTROS');
   }
 
   /**
