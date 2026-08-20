@@ -75,6 +75,7 @@ export class BaseApiService {
     headers?: { [header: string]: string | string[] };
     params?: HttpParams;
     withCredentials?: boolean;
+    body?: any;
   } {
     if (!options) return {};
 
@@ -92,6 +93,7 @@ export class BaseApiService {
       headers: options.headers,
       params,
       withCredentials: options.withCredentials,
+      body: options.body,
     };
   }
 }
