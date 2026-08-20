@@ -30,7 +30,16 @@ export class ToastService {
     this.show(message, 'error');
   }
 
+  info(message: string) {
+    this.show(message, 'info');
+  }
+
+  warning(message: string) {
+    this.show(message, 'warning');
+  }
+
   remove(id: number) {
     this.toasts.update(current => current.filter(t => t.id !== id));
   }
 }
+
