@@ -5,18 +5,22 @@ export interface Municipio {
   codigoDane: string;
   nombre: string;
   activo: boolean;
-  departamento: Departamento;
+  departamentoId?: number;
+  departamento?: Departamento | string;
 }
 
 export interface CrearMunicipioRequest {
   codigoDane: string;
   nombre: string;
-  departamento: Departamento;
+  departamentoId?: number;
+  departamento?: Departamento | string;
 }
 
 export interface ActualizarMunicipioRequest {
   codigoDane: string;
   nombre: string;
   activo: boolean;
-  departamento: Departamento;
+  departamentoId?: number;
+  departamento?: Departamento | string;
 }
+

@@ -32,9 +32,10 @@ export class ConfigSidebar {
       name: 'Territorio',
       items: [
         { name: 'Departamento', route: '/registros/configuracion/territorio/departamento', count: 5 },
-        { name: 'Municipio', count: 3, hasWarning: true }
+        { name: 'Municipio', route: '/registros/configuracion/territorio/municipio', count: 5, hasWarning: true }
       ]
     },
+
     {
       name: 'Normatividad',
       items: [
