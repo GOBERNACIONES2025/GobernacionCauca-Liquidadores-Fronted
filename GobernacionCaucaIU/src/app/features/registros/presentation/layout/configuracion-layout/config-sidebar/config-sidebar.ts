@@ -13,6 +13,8 @@ import { EntidadesRegistroFacade } from '../../../../application/facades/Registr
 import { CategoriasActoFacade } from '../../../../application/facades/Registro/categorias-acto.facade';
 import { NaturalezasActoFacade } from '../../../../application/facades/Registro/naturalezas-acto.facade';
 import { TiposActoRegistroFacade } from '../../../../application/facades/Registro/tipos-acto-registro.facade';
+import { TiposCalculoTarifaFacade } from '../../../../application/facades/Tarifas/tipos-calculo-tarifa.facade';
+import { TarifasFacade } from '../../../../application/facades/Tarifas/tarifas.facade';
 
 export interface CatalogItem {
   name: string;
@@ -46,6 +48,8 @@ export class ConfigSidebar {
   private categoriasFacade = inject(CategoriasActoFacade);
   private naturalezasFacade = inject(NaturalezasActoFacade);
   private tiposActoFacade = inject(TiposActoRegistroFacade);
+  private tiposCalculoFacade = inject(TiposCalculoTarifaFacade);
+  private tarifasFacade = inject(TarifasFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -135,8 +139,17 @@ export class ConfigSidebar {
     {
       name: 'Tarifas',
       items: [
-        { name: 'Tipo de Cálculo de Tarifa', count: 0 },
-        { name: 'Tarifa', count: 0, hasWarning: true }
+        { 
+          name: 'Tipo de Cálculo de Tarifa', 
+          route: '/registros/configuracion/tarifas/tipo-calculo',
+          count: this.tiposCalculoFacade.totalTiposCalculoTarifa() || this.tiposCalculoFacade.tiposCalculoTarifa().length 
+        },
+        { 
+          name: 'Tarifa', 
+          route: '/registros/configuracion/tarifas/tarifas',
+          count: this.tarifasFacade.totalTarifas() || this.tarifasFacade.tarifas().length, 
+          hasWarning: true 
+        }
       ]
     },
     {

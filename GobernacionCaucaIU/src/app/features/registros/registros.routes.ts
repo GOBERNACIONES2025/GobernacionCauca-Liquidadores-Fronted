@@ -12,6 +12,8 @@ import { EntidadesRegistro } from './presentation/pages/configuracion/entidades/
 import { CategoriasActo } from './presentation/pages/configuracion/actos-registrales/categorias-acto/categorias-acto';
 import { NaturalezasActo } from './presentation/pages/configuracion/actos-registrales/naturalezas-acto/naturalezas-acto';
 import { TiposActoRegistro } from './presentation/pages/configuracion/actos-registrales/tipos-acto-registro/tipos-acto-registro';
+import { TiposCalculoTarifa } from './presentation/pages/configuracion/tarifas/tipos-calculo-tarifa/tipos-calculo-tarifa';
+import { Tarifas } from './presentation/pages/configuracion/tarifas/tarifas/tarifas';
 
 export const registrosRoutes: Routes = [
   {
@@ -75,12 +77,21 @@ export const registrosRoutes: Routes = [
           {
             path: 'actos-registrales/tipo-acto',
             component: TiposActoRegistro
+          },
+          {
+            path: 'tarifas/tipo-calculo',
+            component: TiposCalculoTarifa
+          },
+          {
+            path: 'tarifas/tarifas',
+            component: Tarifas
           }
         ]
       }
     ]
   }
 ];
+
 
 
 

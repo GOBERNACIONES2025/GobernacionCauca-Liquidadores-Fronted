@@ -72,31 +72,3 @@ export interface TarifaQueryParams {
   pageSize?: number;
 }
 
-export interface CrearTarifaRequest {
-  departamento: Departamento;
-  tipoActoRegistro: TipoActoRegistro;
-  vigencia: Vigencia;
-  norma: NormaListado;
-  tipoCalculoTarifa: TipoCalculoTarifa;
-  baseMinima?: number | null;
-  baseMaxima?: number | null;
-  porcentaje?: number | null;
-  valorFijo?: number | null;
-  valorMinimo?: number | null;
-  valorMaximo?: number | null;
-}
-
-export interface ActualizarTarifaRequest {
-  departamento: Departamento;
-  tipoActoRegistro: TipoActoRegistro;
-  vigencia: Vigencia;
-  norma: NormaListado;
-  tipoCalculoTarifa: TipoCalculoTarifa;
-  baseMinima?: number | null;
-  baseMaxima?: number | null;
-  porcentaje?: number | null;
-  valorFijo?: number | null;
-  valorMinimo?: number | null;
-  valorMaximo?: number | null;
-  activo: boolean;
-}
