@@ -1,0 +1,57 @@
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+  
+  <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
+    <div class="bg-slate-50 border-b border-slate-200 px-5 py-3 flex items-center gap-2">
+      <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+      <h3 class="text-sm font-semibold text-slate-800">Datos del documento</h3>
+    </div>
+    
+    <div class="p-5" [formGroup]="wizardService.paso2Form">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nº de Documento / Escritura *</label>
+          <input formControlName="numeroDocumento" type="text" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-mono" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Fecha del Documento *</label>
+          <input formControlName="fechaDocumento" type="date" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Entidad de Registro / Notaría *</label>
+          <select formControlName="entidadRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+            @for (e of entidadesFacade.entidadesRegistro(); track e.id) {
+              <option [value]="e.id">{{ e.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Municipio de Jurisdicción *</label>
+          <select formControlName="municipioJurisdiccionId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+            @for (m of municipiosFacade.municipios(); track m.id) {
+              <option [value]="m.id">{{ m.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+      
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Descripción (opcional)</label>
+        <textarea formControlName="descripcionDocumento" rows="2" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-between pt-4">
+    <button type="button" (click)="retroceder()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors">
+      ← Atrás
+    </button>
+    <button type="button" (click)="continuar()" class="px-6 py-2.5 bg-blue-900 text-white font-medium text-sm rounded-lg hover:bg-blue-800 transition-colors shadow-md shadow-blue-900/20 flex items-center gap-2">
+      Guardar y continuar
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+      </svg>
+    </button>
+  </div>
+</div>
