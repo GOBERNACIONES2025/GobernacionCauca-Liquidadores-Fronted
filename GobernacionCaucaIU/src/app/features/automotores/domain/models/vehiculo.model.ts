@@ -125,6 +125,7 @@ export interface VehiculoItem {
   fechaMatricula?: string;
   estadoMatricula: string;
   estadoMatriculaId?: number;
+  estadoAprobacion?: string;
   exencion?: string;
   seleccionado?: boolean;
   propietario: {
@@ -173,4 +174,7 @@ export interface VehiculoKpis {
   auditadosHoy: number;
   auditadosUltimo: string;
   totalVehiculos?: number;
+  totalVehiculosActivos?: number;
+  totalVehiculosInactivos?: number;
+  totalPendientesAprobacion?: number;
 }

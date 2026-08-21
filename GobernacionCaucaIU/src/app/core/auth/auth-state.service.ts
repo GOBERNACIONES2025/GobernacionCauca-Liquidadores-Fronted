@@ -9,18 +9,18 @@ export class AuthStateService {
   readonly currentUser = signal<User | null>(this.loadStoredUser());
   readonly currentModulo = signal<TaxModuleType | null>(this.loadStoredModulo());
 
-  // Mapa de URLs base por cada modulo de impuesto
-  //Acá están las rutas bases de las apis by impuesto`
+  // Mapa de URLs base por cada módulo de impuesto
+  // Se configura la API en HTTPS (puerto 7250) y HTTP (puerto 5023)
   readonly moduleApiUrls = signal<Record<string, string>>({
-    LOGIN: 'http://localhost:5000/api',
+    LOGIN: 'https://localhost:7250/api',
     AUTOMOTORES: 'https://localhost:7250/api',
     REGISTROS: 'http://localhost:5098/api/v1',
   });
 
-  // Signal computado para verificar si hay sesion activa
+  // Signal computado para verificar si hay sesión activa
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
 
-  //* Registra o actualiza la URL base de un modulo especifico (ej: retornado por el Login API)
+  //* Registra o actualiza la URL base de un módulo específico
   registerModuleUrl(modulo: string, url: string): void {
     const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
     this.moduleApiUrls.update((urls) => ({
@@ -30,7 +30,7 @@ export class AuthStateService {
   }
 
   /**
-   * Establece la sesion del usuario y configura la URL retornada por el Login para su impuesto
+   * Establece la sesión del usuario y configura la URL retornada por el Login
    */
   setSession(user: User, modulo: TaxModuleType, apiUrl?: string): void {
     this.currentUser.set(user);
@@ -45,37 +45,37 @@ export class AuthStateService {
     }
   }
 
-  // Cambia el modulo activo actual
+  // Cambia el módulo activo actual
   setActiveModulo(modulo: TaxModuleType): void {
     this.currentModulo.set(modulo);
     localStorage.setItem('gov_modulo', modulo);
   }
 
   /**
-   * Obtiene la Base URL para un impuesto o modulo especifico.
-   * Si no se indica modulo, toma la Base URL del modulo activo actual.
+   * Obtiene la Base URL para un impuesto o módulo específico.
+   * Si no se indica módulo, toma la Base URL del módulo activo actual.
    */
   getApiUrl(modulo?: TaxModuleType): string {
-    const targetModulo = (modulo || this.currentModulo() || 'LOGIN').toUpperCase();
+    const targetModulo = (modulo || this.currentModulo() || 'AUTOMOTORES').toUpperCase();
     const urls = this.moduleApiUrls();
 
     if (urls[targetModulo]) {
       return urls[targetModulo];
     }
 
-    // Intentar cargar desde localStorage si fue guardado previamente
+    // Intentar cargar desde localStorage si fue guardado previamente y es válido
     const storedUrl = localStorage.getItem(`gov_api_url_${targetModulo}`);
-    if (storedUrl) {
+    if (storedUrl && !storedUrl.includes('5000')) {
       this.registerModuleUrl(targetModulo, storedUrl);
       return storedUrl;
     }
 
-    // Retornar fallback base o la URL de LOGIN si no se encuentra
-    return urls['LOGIN'] || '';
+    // Retornar fallback base HTTPS puerto 7250
+    return urls['AUTOMOTORES'] || urls['LOGIN'] || 'https://localhost:7250/api';
   }
 
   /**
-   * Limpia el estado de la sesion
+   * Limpia el estado de la sesión
    */
   clearSession(): void {
     this.currentUser.set(null);

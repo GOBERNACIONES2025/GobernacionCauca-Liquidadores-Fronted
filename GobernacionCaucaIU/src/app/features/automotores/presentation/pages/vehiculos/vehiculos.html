@@ -33,6 +33,17 @@
               <span class="tooltip-box">Consultar en el RUNT</span>
             </span>
 
+            <!-- BOTÓN PENDIENTES DE APROBACIÓN CON BADGE -->
+            <button (click)="facade.abrirModalPendientes()" type="button" class="relative inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-all bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 shadow-sm">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Pendientes
+              @if ((facade.kpis().totalPendientesAprobacion || 0) > 0) {
+                <span class="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-bold leading-none text-white bg-amber-600 rounded-full shadow-sm">
+                  {{ facade.kpis().totalPendientesAprobacion }}
+                </span>
+              }
+            </button>
+
             <button (click)="onAbrirRegistro()" type="button" class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-[#70b238] hover:bg-[#5f972f] text-white border-none shadow-sm">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
               Registrar Vehículo
@@ -93,22 +104,40 @@
           <div class="text-[11.5px] text-slate-600">{{ facade.kpis().sancionDescripcion }}</div>
         </div>
 
-        <!-- Total Vehículos Registrados -->
-        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2.5 flex-1 min-w-0">
+        <!-- Total Vehículos Registrados (Con desglose completo) -->
+        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2 flex-1 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#1e3a7b14] flex items-center justify-center text-[#1e3a7b]">
               <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
             </div>
             <span class="flex items-center gap-1 text-[11px] font-semibold text-[#70b238]">
               <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238]"></span>
-              En Sistema
+              Parque Automotor
             </span>
           </div>
+
           <div>
             <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-widest mb-1">Vehículos Registrados</div>
-            <div class="text-2xl font-bold text-slate-900 leading-none">{{ ((facade.kpis().totalVehiculos || 0) > 0 ? facade.kpis().totalVehiculos : facade.totalVehiculos()) | number }}</div>
+            <div class="text-2xl font-bold text-slate-900 leading-none">
+              {{ ((facade.kpis().totalVehiculos || 0) > 0 ? facade.kpis().totalVehiculos : facade.totalVehiculos()) | number }}
+            </div>
           </div>
-          <div class="text-[11.5px] text-slate-600">Parque automotor registrado en Cauca</div>
+
+          <!-- Desglose de estados: Activos, Pendientes, Inactivos -->
+          <div class="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-slate-100 text-[10.5px]">
+            <div class="bg-emerald-50 border border-emerald-200/60 rounded-md p-1 text-center">
+              <span class="block text-[8.5px] font-bold text-emerald-700 uppercase">Activos</span>
+              <span class="font-extrabold text-emerald-800 text-xs">{{ facade.kpis().totalVehiculosActivos ?? 0 }}</span>
+            </div>
+            <div (click)="facade.abrirModalPendientes()" class="bg-amber-50 border border-amber-200/60 rounded-md p-1 text-center cursor-pointer hover:bg-amber-100/70 transition-colors" title="Ver lista de vehículos pendientes de activación">
+              <span class="block text-[8.5px] font-bold text-amber-700 uppercase">Pendientes</span>
+              <span class="font-extrabold text-amber-800 text-xs">{{ facade.kpis().totalPendientesAprobacion ?? 0 }}</span>
+            </div>
+            <div class="bg-red-50 border border-red-200/60 rounded-md p-1 text-center">
+              <span class="block text-[8.5px] font-bold text-red-700 uppercase">Inactivos</span>
+              <span class="font-extrabold text-red-800 text-xs">{{ facade.kpis().totalVehiculosInactivos ?? 0 }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1114,6 +1143,620 @@
             }
           </button>
         </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: ESTADO DE CUENTA Y LIQUIDACIÓN TRIBUTARIA VEHICULAR -->
+  @if (liqFacade.isModalOpen()) {
+    <div class="fade-in fixed inset-0 bg-slate-900/50 z-[350] flex items-center justify-center backdrop-blur-[2px] p-4 sm:p-6">
+      <div class="drawer-enter bg-white rounded-xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
+        <!-- Header -->
+        <div class="bg-[#1e3a7b] px-6 py-4 flex items-center justify-between text-white shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white font-bold text-lg">
+              💰
+            </div>
+            <div>
+              <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-400">Gobernación del Cauca — Hacienda</div>
+              <h3 class="text-base font-bold text-white m-0">Estado de Cuenta y Liquidación Vehicular</h3>
+            </div>
+          </div>
+          <button (click)="liqFacade.cerrarModal()" type="button" class="bg-white/10 hover:bg-white/20 text-white rounded-lg p-1.5 cursor-pointer transition-colors border-none">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="overflow-y-auto flex-1 p-6 bg-slate-50/50 space-y-5">
+          @if (liqFacade.loading()) {
+            <div class="py-16 text-center text-slate-500 space-y-3">
+              <svg class="animate-spin h-8 w-8 text-[#1e3a7b] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <div class="text-sm font-semibold">Calculando estado de cuenta, avalúos, sanciones e intereses...</div>
+            </div>
+          } @else if (liqFacade.simulacionCalculada(); as sim) {
+            <!-- Resumen Vehículo y Propietario -->
+            <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Vehículo</div>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="co-plate">{{ sim.placa }}</span>
+                  <span class="text-sm font-bold text-slate-900">{{ sim.marca }} {{ sim.linea }}</span>
+                </div>
+                <div class="text-[11.5px] text-slate-500 mt-1">Modelo: {{ sim.modelo }} · {{ sim.cilindraje | number }} cc · {{ sim.combustible }}</div>
+              </div>
+
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contribuyente / Propietario</div>
+                <div class="text-sm font-bold text-slate-900 mt-1 truncate">{{ sim.propietarioNombre }}</div>
+                <div class="text-[11.5px] text-slate-500 mt-1">{{ sim.propietarioDocumento }} · Propietario Vigente</div>
+              </div>
+
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Parámetros Estatales Vigentes (2026)</div>
+                <div class="text-[11.5px] text-slate-700 mt-1 space-y-0.5">
+                  <div>UVT 2026: <strong class="text-slate-900">${{ sim.valorUvtVigente | number:'1.0-0' }}</strong></div>
+                  <div>Sanción Mínima (10 UVT): <strong class="text-amber-800">${{ sim.sancionMinimaVigente | number:'1.0-0' }}</strong></div>
+                  <div>Interés Mora (Usura - 2 ptos): <strong class="text-red-700">{{ sim.tasaInteresMoraAplicada | number:'1.2-2' }}% EA</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de Vigencias Seleccionables -->
+            <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+              <div class="px-4 py-3 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
+                <div class="text-[13px] font-bold text-slate-900 flex items-center gap-2">
+                  <span>Selección de Vigencias a Liquidar</span>
+                  <span class="text-xs font-normal text-slate-500">({{ sim.vigencias.length }} vigencia/s)</span>
+                </div>
+                <button (click)="liqFacade.toggleSeleccionarTodos()" type="button" class="text-[11.5px] font-semibold text-[#1e3a7b] hover:underline cursor-pointer bg-none border-none">
+                  Seleccionar Todas
+                </button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[10.5px] uppercase tracking-wider">
+                      <th class="py-2.5 px-3 text-center">Sel</th>
+                      <th class="py-2.5 px-3">Vigencia</th>
+                      <th class="py-2.5 px-3 text-right">Base Gravable (Avalúo)</th>
+                      <th class="py-2.5 px-3 text-right">Impuesto</th>
+                      <th class="py-2.5 px-3 text-right">Descuento</th>
+                      <th class="py-2.5 px-3 text-right">Sanción Mora</th>
+                      <th class="py-2.5 px-3 text-right">Intereses</th>
+                      <th class="py-2.5 px-3 text-right">Total Vigencia</th>
+                      <th class="py-2.5 px-3 text-center">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    @for (v of liqFacade.simulacionRaw()?.vigencias || []; track v.anio) {
+                      <tr [class]="'transition-colors ' + (liqFacade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40' : 'opacity-60')">
+                        <td class="py-3 px-3 text-center">
+                          <input type="checkbox" [checked]="liqFacade.selectedVigenciaAnios().includes(v.anio)" (change)="liqFacade.toggleVigencia(v.anio)" class="accent-[#70b238] cursor-pointer">
+                        </td>
+                        <td class="py-3 px-3 font-bold text-slate-900">{{ v.anio }}</td>
+                        <td class="py-3 px-3 text-right font-medium text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right text-emerald-700 font-medium">
+                          {{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}
+                        </td>
+                        <td class="py-3 px-3 text-right text-amber-700 font-semibold">
+                          ${{ v.sancionExtemporaneidad | number:'1.0-0' }}
+                          @if (v.sancionExtemporaneidad > 0) {
+                            <div class="text-[9.5px] text-amber-600 font-normal">({{ v.mesesRetardo }} mes/es)</div>
+                          }
+                        </td>
+                        <td class="py-3 px-3 text-right text-red-700 font-semibold">
+                          ${{ v.interesesMora | number:'1.0-0' }}
+                          @if (v.interesesMora > 0) {
+                            <div class="text-[9.5px] text-red-600 font-normal">({{ v.diasMora }} días)</div>
+                          }
+                        </td>
+                        <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-center">
+                          @if (v.estado.includes('PRONTO')) {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              {{ v.estado }}
+                            </span>
+                          } @else if (v.estado.includes('MORA')) {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
+                              EN MORA
+                            </span>
+                          } @else {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-700">
+                              NORMAL
+                            </span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Desglose de Totales y Liquidación Final -->
+            <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div class="text-[12px] font-bold text-slate-900 mb-2">Desglose de Conceptos Seleccionados</div>
+                <div class="space-y-1.5 text-xs text-slate-600">
+                  <div class="flex justify-between">
+                    <span>Subtotal Impuesto Vehicular:</span>
+                    <span class="font-semibold text-slate-900">${{ sim.subtotalImpuesto | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between text-emerald-700">
+                    <span>Descuentos (Pronto Pago):</span>
+                    <span class="font-semibold">-${{ sim.totalDescuentos | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between text-amber-800">
+                    <span>Sanciones por Extemporaneidad:</span>
+                    <span class="font-semibold">+${{ sim.totalSanciones | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between text-red-700">
+                    <span>Intereses Moratorios (Art. 635 ET):</span>
+                    <span class="font-semibold">+${{ sim.totalIntereses | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Sistematización y Estampillas:</span>
+                    <span class="font-semibold text-slate-900">+${{ sim.totalSistematizacionEstampillas | number:'1.0-0' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-slate-900 rounded-xl p-5 text-white flex flex-col justify-between shadow-lg">
+                <div>
+                  <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Total Liquidación Oficial</div>
+                  <div class="text-3xl font-extrabold text-white mt-1">${{ sim.totalPagar | number:'1.0-0' }}</div>
+                  <div class="text-[11px] text-slate-400 mt-1">Incluye {{ sim.vigencias.length }} vigencia/s liquidadas a la fecha</div>
+                </div>
+
+                <div class="flex gap-2.5 mt-4">
+                  <button type="button" class="flex-1 inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition-colors shadow-sm border-none">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Imprimir Factura PDF
+                  </button>
+                  <button type="button" class="flex-1 inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm border-none">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    Pagar PSE
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DE VEHÍCULOS PENDIENTES DE APROBACIÓN -->
+  @if (facade.isModalPendientesOpen()) {
+    <div class="fixed inset-0 z-[120] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+      <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        
+        <!-- Modal Header -->
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-lg shrink-0">
+              ⏳
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900 m-0 flex items-center gap-2">
+                Vehículos Pendientes de Aprobación
+                <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-200 text-amber-900">
+                  {{ vehiculosPendientesFiltrados().length }}
+                </span>
+              </h3>
+              <p class="text-xs text-slate-500 m-0">Audita la información registrada antes de activar la matrícula en el sistema.</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <input 
+              type="text" 
+              [ngModel]="filtroModalPendientes()" 
+              (ngModelChange)="filtroModalPendientes.set($event)" 
+              placeholder="🔍 Buscar placa, marca, prop..." 
+              class="w-56 px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-white" />
+
+            <button (click)="facade.cerrarModalPendientes()" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer shrink-0">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Modal Body (con scroll auto de max-h-[60vh]) -->
+        <div class="p-6 overflow-y-auto max-h-[60vh] flex-1 space-y-4">
+          @if (facade.cargandoPendientes()) {
+            <div class="py-12 text-center text-slate-400">
+              <svg class="animate-spin h-7 w-7 text-amber-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              Cargando vehículos pendientes de revisión...
+            </div>
+          } @else if (vehiculosPendientesFiltrados().length === 0) {
+            <div class="py-12 text-center text-slate-400">
+              <span class="text-3xl mb-2 block">🎉</span>
+              <p class="font-semibold text-slate-700 m-0">No se encontraron vehículos pendientes</p>
+              <p class="text-xs text-slate-400 mt-1">
+                {{ filtroModalPendientes() ? 'Ningún registro coincide con la búsqueda actual.' : 'Todos los vehículos se encuentran aprobados al día.' }}
+              </p>
+            </div>
+          } @else {
+            <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+              @for (item of vehiculosPendientesFiltrados(); track item.id) {
+                <div class="p-4 bg-white hover:bg-slate-50/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                      <span class="co-plate">{{ item.placa }}</span>
+                      <span class="font-bold text-slate-900 text-sm">{{ item.marca }} {{ item.linea }}</span>
+                      <span class="text-xs text-slate-500">· Mod. {{ item.modelo }}</span>
+                      <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                        {{ item.estadoAprobacion || 'PENDIENTE' }}
+                      </span>
+                    </div>
+                    <div class="text-xs text-slate-600 flex items-center gap-3">
+                      <span>👤 Propietario: <strong>{{ item.propietarioNombre }}</strong></span>
+                      <span>📄 Doc: {{ item.propietarioDocumento }}</span>
+                      <span>⚙️ {{ item.cilindraje }} cc · {{ item.combustible }}</span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1.5 shrink-0 flex-wrap">
+                    <button 
+                      (click)="onVerDetallePendiente(item)" 
+                      type="button" 
+                      title="Ver expediente completo del vehículo"
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold shadow-xs cursor-pointer transition-colors border border-blue-200">
+                      👁️ Ver Detalle
+                    </button>
+
+                    <button 
+                      (click)="onCambiarEstadoAprobacion(item.id, 'APROBADO')" 
+                      type="button" 
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors border-none">
+                      ✅ Aprobar
+                    </button>
+                    <button 
+                      (click)="onCambiarEstadoAprobacion(item.id, 'REVISION')" 
+                      type="button" 
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors border-none">
+                      🔄 Revisión
+                    </button>
+                    <button 
+                      (click)="onCambiarEstadoAprobacion(item.id, 'RECHAZADO')" 
+                      type="button" 
+                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors border-none">
+                      ❌ Rechazar
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <button (click)="facade.cerrarModalPendientes()" type="button" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+            Cerrar Ventana
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL ANIDADO SOBRE-PUESTO (z-[140]) DE AUDITORÍA DETALLADA DEL VEHÍCULO -->
+  @if (vehiculoAuditoriaModal(); as vh) {
+    <div class="fixed inset-0 z-[140] bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+      <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        
+        <!-- Audit Modal Header -->
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="co-plate text-slate-900 bg-amber-400 font-extrabold px-2.5 py-1 text-sm rounded shadow-xs">{{ vh.placa }}</span>
+            <div>
+              <h3 class="text-base font-bold m-0 flex items-center gap-2 text-white">
+                {{ modoEdicionAuditoria() ? '✏️ Edición Directa de Registro' : 'Ficha de Auditoría Vehicular' }}
+                <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  {{ vh.estadoAprobacion || 'PENDIENTE' }}
+                </span>
+              </h3>
+              <p class="text-xs text-slate-400 m-0">{{ vh.marca }} {{ vh.linea }} · Modelo {{ vh.modelo }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarAuditoriaModal()" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Audit Modal Body -->
+        <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+          
+          @if (modoEdicionAuditoria()) {
+            <!-- MODO EDICIÓN DIRECTA EN ESTA MISMA MODAL -->
+            <form [formGroup]="editFormAuditoria" class="space-y-4">
+              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                <span>✏️</span> Modificar Especificaciones Técnicas
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 bg-amber-50/50 p-4 rounded-xl border border-amber-200">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Marca *</label>
+                  <input type="text" formControlName="marca" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Línea *</label>
+                  <input type="text" formControlName="linea" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Año Modelo *</label>
+                  <input type="number" formControlName="modelo" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Cilindraje (cc) *</label>
+                  <input type="number" formControlName="cilindraje" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Combustible</label>
+                  <select formControlName="combustible" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                    <option value="Gasolina">Gasolina</option>
+                    <option value="Diésel">Diésel</option>
+                    <option value="Eléctrico">Eléctrico</option>
+                    <option value="Híbrido">Híbrido</option>
+                    <option value="Gas">Gas GNV</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Servicio</label>
+                  <select formControlName="servicio" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                    <option value="Particular">Particular</option>
+                    <option value="Privado">Privado</option>
+                    <option value="Público">Público</option>
+                    <option value="Oficial">Oficial</option>
+                    <option value="Especial">Especial</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Clase / Tipo</label>
+                  <input type="text" formControlName="clase" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Número de Pasajeros</label>
+                  <input type="number" formControlName="pasajeros" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Organismo de Tránsito</label>
+                  <input type="text" formControlName="organismoTransito" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                </div>
+              </div>
+
+              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider pb-1 border-b border-slate-200 flex items-center gap-1.5 pt-2">
+                <span>👤</span> Modificar Información del Propietario
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-blue-50/40 p-4 rounded-xl border border-blue-200">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Número de Documento / NIT *</label>
+                  <div class="flex gap-1.5">
+                    <input 
+                      type="text" 
+                      formControlName="propietarioDocumento" 
+                      (keyup.enter)="buscarPropietarioAuditoria()" 
+                      placeholder="Ej: 11223344" 
+                      class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900" />
+                    <button 
+                      (click)="buscarPropietarioAuditoria()" 
+                      type="button" 
+                      title="Buscar si la persona ya existe en la base de datos"
+                      class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shrink-0 cursor-pointer border-none transition-colors inline-flex items-center gap-1 shadow-xs">
+                      @if (buscandoPropietarioAuditoria()) {
+                        <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      } @else {
+                        🔍 Buscar
+                      }
+                    </button>
+                  </div>
+                  @if (propietarioAuditoriaEncontrado()) {
+                    <div class="mt-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                      {{ propietarioAuditoriaEncontrado() }}
+                    </div>
+                  }
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre / Razón Social *</label>
+                  <input type="text" formControlName="propietarioNombre" placeholder="Ej: Juan Pérez o Empresa S.A.S." class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900" />
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Vínculo de Propiedad</label>
+                  <select formControlName="tipoVinculoPersonaId" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900">
+                    @if (facade.tiposVinculo().length > 0) {
+                      @for (tv of facade.tiposVinculo(); track tv.id) {
+                        <option [value]="tv.id">{{ tv.nombre }}</option>
+                      }
+                    } @else {
+                      <option value="1">Propietario Principal (100%)</option>
+                      <option value="2">Co-Propietario</option>
+                      <option value="3">Poseedor / Tenedor</option>
+                      <option value="4">Locatario (Leasing)</option>
+                    }
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">% Porcentaje de Propiedad</label>
+                  <input type="number" formControlName="porcentajePropiedad" min="1" max="100" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900" />
+                </div>
+              </div>
+            </form>
+          } @else {
+            <!-- MODO LECTURA AUDITORÍA -->
+            <!-- Seccion 1: Especificaciones Técnicas -->
+            <div>
+              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-2.5 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                <span>🚗</span> Especificaciones Técnicas del Vehículo
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Placa / Matrícula</span>
+                  <span class="font-bold text-slate-900">{{ vh.placa }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Marca y Línea</span>
+                  <span class="font-bold text-slate-900">{{ vh.marca }} {{ vh.linea }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Año Modelo</span>
+                  <span class="font-bold text-slate-900">{{ vh.modelo }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Clase / Tipo</span>
+                  <span class="font-semibold text-slate-800">{{ vh.clase || vh.tipoVehiculo || 'Automóvil' }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Cilindraje / Motor</span>
+                  <span class="font-semibold text-slate-800">{{ vh.cilindraje }} cc</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Combustible</span>
+                  <span class="font-semibold text-slate-800">{{ vh.combustible || 'Gasolina' }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Tipo de Servicio</span>
+                  <span class="font-semibold text-slate-800">{{ vh.servicio || 'Particular' }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Pasajeros</span>
+                  <span class="font-semibold text-slate-800">{{ vh.pasajeros || 5 }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Organismo Tránsito</span>
+                  <span class="font-semibold text-slate-800">{{ vh.organismoTransito || 'Popayán - Cauca' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seccion 2: Datos del Propietario -->
+            <div>
+              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-2.5 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                <span>👤</span> Información del Propietario Registrado
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Nombre / Razón Social</span>
+                  <span class="font-bold text-slate-900 text-sm">{{ vh.propietarioNombre || 'No asignado' }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Identificación</span>
+                  <span class="font-bold text-slate-900 text-sm">{{ vh.propietarioDocumento || 'Sin Documento' }}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Vínculo de Propiedad</span>
+                  <span class="font-semibold text-slate-800">Propietario Principal (100%)</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block text-[10.5px]">Estado del Registro</span>
+                  <span class="font-bold text-amber-700">Pendiente Aprobación</span>
+                </div>
+              </div>
+            </div>
+          }
+
+        </div>
+
+        <!-- Audit Modal Footer (EN UNA SOLA LÍNEA SIN MONTAR BOTONES) -->
+        <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3">
+          @if (modoEdicionAuditoria()) {
+            <button (click)="cancelarEdicionAuditoria()" type="button" class="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer shrink-0">
+              ✖️ Cancelar Edición
+            </button>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button 
+                (click)="guardarEdicionAuditoria(vh.id, false)" 
+                type="button" 
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
+                💾 Guardar Cambios
+              </button>
+              <button 
+                (click)="guardarEdicionAuditoria(vh.id, true)" 
+                type="button" 
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
+                ✅ Guardar y Aprobar
+              </button>
+            </div>
+          } @else {
+            <div class="flex items-center gap-2 shrink-0">
+              <button (click)="cerrarAuditoriaModal()" type="button" class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer">
+                Volver a la Lista
+              </button>
+              <button 
+                (click)="activarEdicionAuditoria(vh)" 
+                type="button" 
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none"
+                title="Modificar datos directamente en esta ventana">
+                ✏️ Modificar
+              </button>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button 
+                (click)="onCambiarEstadoAprobacion(vh.id, 'APROBADO'); cerrarAuditoriaModal()" 
+                type="button" 
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
+                ✅ Aprobar
+              </button>
+              <button 
+                (click)="onCambiarEstadoAprobacion(vh.id, 'REVISION'); cerrarAuditoriaModal()" 
+                type="button" 
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
+                🔄 Revisión
+              </button>
+              <button 
+                (click)="onCambiarEstadoAprobacion(vh.id, 'RECHAZADO'); cerrarAuditoriaModal()" 
+                type="button" 
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
+                ❌ Rechazar
+              </button>
+            </div>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DE NOTIFICACIÓN ESTILIZADA -->
+  @if (toastMessage()) {
+    <div class="fixed inset-0 z-[150] bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+      <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6 text-center animate-in fade-in zoom-in-95 duration-150">
+        
+        @if (toastMessage()?.type === 'success') {
+          <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 text-3xl font-extrabold shadow-sm">
+            ✓
+          </div>
+        } @else if (toastMessage()?.type === 'error') {
+          <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 text-3xl font-extrabold shadow-sm">
+            ✕
+          </div>
+        } @else {
+          <div class="w-16 h-16 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-4 text-3xl font-extrabold shadow-sm">
+            ℹ
+          </div>
+        }
+
+        <h3 class="text-lg font-extrabold text-slate-900 mb-1.5">{{ toastMessage()?.title }}</h3>
+        <p class="text-xs text-slate-600 leading-relaxed mb-6">{{ toastMessage()?.desc }}</p>
+
+        <button 
+          (click)="cerrarToast()" 
+          type="button" 
+          class="w-full py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-[#1e3a7b] hover:bg-[#152a5a] transition-all shadow-md cursor-pointer border-none">
+          Entendido
+        </button>
       </div>
     </div>
   }
