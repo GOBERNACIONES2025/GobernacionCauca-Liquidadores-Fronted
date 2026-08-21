@@ -19,6 +19,8 @@ import { TiposBeneficiarioExencionFacade } from '../../../../application/facades
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 import { TiposPersonaFacade } from '../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
+import { RolesFacade } from '../../../../application/facades/Seguridad/roles.facade';
+import { UsuariosFacade } from '../../../../application/facades/Seguridad/usuarios.facade';
 
 export interface CatalogItem {
   name: string;
@@ -58,6 +60,8 @@ export class ConfigSidebar {
   private exencionesFacade = inject(ExencionesFacade);
   private tiposPersonaFacade = inject(TiposPersonaFacade);
   private tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
+  private rolesFacade = inject(RolesFacade);
+  private usuariosFacade = inject(UsuariosFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -188,6 +192,21 @@ export class ConfigSidebar {
           name: 'Tipo de Documento', 
           route: '/registros/configuracion/contribuyentes/tipo-documento',
           count: this.tiposIdentificacionFacade.totalTiposIdentificacion() || this.tiposIdentificacionFacade.tiposIdentificacion().length 
+        }
+      ]
+    },
+    {
+      name: 'Seguridad',
+      items: [
+        { 
+          name: 'Roles', 
+          route: '/registros/configuracion/seguridad/roles',
+          count: this.rolesFacade.totalRoles() || this.rolesFacade.roles().length 
+        },
+        { 
+          name: 'Usuarios', 
+          route: '/registros/configuracion/seguridad/usuarios',
+          count: this.usuariosFacade.totalUsuarios() || this.usuariosFacade.usuarios().length 
         }
       ]
     }

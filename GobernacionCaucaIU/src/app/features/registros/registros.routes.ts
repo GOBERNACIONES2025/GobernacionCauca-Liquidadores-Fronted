@@ -18,6 +18,8 @@ import { TiposBeneficiarioExencionComponent } from './presentation/pages/configu
 import { Exenciones } from './presentation/pages/configuracion/exenciones/exenciones/exenciones';
 import { TiposPersona } from './presentation/pages/configuracion/contribuyentes/tipos-persona/tipos-persona';
 import { TiposIdentificacion } from './presentation/pages/configuracion/contribuyentes/tipos-identificacion/tipos-identificacion';
+import { RolesComponent } from './presentation/pages/configuracion/seguridad/roles/roles';
+import { UsuariosComponent } from './presentation/pages/configuracion/seguridad/usuarios/usuarios';
 
 export const registrosRoutes: Routes = [
   {
@@ -105,12 +107,21 @@ export const registrosRoutes: Routes = [
           {
             path: 'contribuyentes/tipo-documento',
             component: TiposIdentificacion
+          },
+          {
+            path: 'seguridad/roles',
+            component: RolesComponent
+          },
+          {
+            path: 'seguridad/usuarios',
+            component: UsuariosComponent
           }
         ]
       }
     ]
   }
 ];
+
 
 
 
