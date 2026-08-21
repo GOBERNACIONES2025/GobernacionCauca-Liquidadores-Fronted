@@ -17,6 +17,8 @@ import { TiposCalculoTarifaFacade } from '../../../../application/facades/Tarifa
 import { TarifasFacade } from '../../../../application/facades/Tarifas/tarifas.facade';
 import { TiposBeneficiarioExencionFacade } from '../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
+import { TiposPersonaFacade } from '../../../../application/facades/Contribuyentes/tipos-persona.facade';
+import { TiposIdentificacionFacade } from '../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
 
 export interface CatalogItem {
   name: string;
@@ -54,6 +56,8 @@ export class ConfigSidebar {
   private tarifasFacade = inject(TarifasFacade);
   private tiposBeneficiarioFacade = inject(TiposBeneficiarioExencionFacade);
   private exencionesFacade = inject(ExencionesFacade);
+  private tiposPersonaFacade = inject(TiposPersonaFacade);
+  private tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -175,8 +179,16 @@ export class ConfigSidebar {
     {
       name: 'Contribuyentes',
       items: [
-        { name: 'Tipo de Persona', count: 0 },
-        { name: 'Tipo de Documento', count: 0 }
+        { 
+          name: 'Tipo de Persona', 
+          route: '/registros/configuracion/contribuyentes/tipo-persona',
+          count: this.tiposPersonaFacade.totalTiposPersona() || this.tiposPersonaFacade.tiposPersona().length 
+        },
+        { 
+          name: 'Tipo de Documento', 
+          route: '/registros/configuracion/contribuyentes/tipo-documento',
+          count: this.tiposIdentificacionFacade.totalTiposIdentificacion() || this.tiposIdentificacionFacade.tiposIdentificacion().length 
+        }
       ]
     }
   ]);

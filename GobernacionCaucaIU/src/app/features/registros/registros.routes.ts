@@ -16,6 +16,8 @@ import { TiposCalculoTarifa } from './presentation/pages/configuracion/tarifas/t
 import { Tarifas } from './presentation/pages/configuracion/tarifas/tarifas/tarifas';
 import { TiposBeneficiarioExencionComponent } from './presentation/pages/configuracion/exenciones/tipos-beneficiario-exencion/tipos-beneficiario-exencion';
 import { Exenciones } from './presentation/pages/configuracion/exenciones/exenciones/exenciones';
+import { TiposPersona } from './presentation/pages/configuracion/contribuyentes/tipos-persona/tipos-persona';
+import { TiposIdentificacion } from './presentation/pages/configuracion/contribuyentes/tipos-identificacion/tipos-identificacion';
 
 export const registrosRoutes: Routes = [
   {
@@ -95,12 +97,21 @@ export const registrosRoutes: Routes = [
           {
             path: 'exenciones/exenciones',
             component: Exenciones
+          },
+          {
+            path: 'contribuyentes/tipo-persona',
+            component: TiposPersona
+          },
+          {
+            path: 'contribuyentes/tipo-documento',
+            component: TiposIdentificacion
           }
         ]
       }
     ]
   }
 ];
+
 
 
 
