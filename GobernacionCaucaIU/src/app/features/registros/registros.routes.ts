@@ -21,6 +21,9 @@ import { TiposIdentificacion } from './presentation/pages/configuracion/contribu
 import { RolesComponent } from './presentation/pages/configuracion/seguridad/roles/roles';
 import { UsuariosComponent } from './presentation/pages/configuracion/seguridad/usuarios/usuarios';
 import { RolesInterviniente } from './presentation/pages/configuracion/intervinientes/roles-interviniente/roles-interviniente';
+import { EstadosLiquidacion } from './presentation/pages/configuracion/liquidacion/estados-liquidacion/estados-liquidacion';
+import { EstadosPago } from './presentation/pages/configuracion/pagos/estados-pago/estados-pago';
+import { EstadosSolicitud } from './presentation/pages/configuracion/radicacion/estados-solicitud/estados-solicitud';
 
 export const registrosRoutes: Routes = [
   {
@@ -112,6 +115,18 @@ export const registrosRoutes: Routes = [
           {
             path: 'intervinientes/roles-interviniente',
             component: RolesInterviniente
+          },
+          {
+            path: 'liquidacion/estados-liquidacion',
+            component: EstadosLiquidacion
+          },
+          {
+            path: 'pagos/estados-pago',
+            component: EstadosPago
+          },
+          {
+            path: 'radicacion/estados-solicitud',
+            component: EstadosSolicitud
           },
           {
             path: 'seguridad/roles',

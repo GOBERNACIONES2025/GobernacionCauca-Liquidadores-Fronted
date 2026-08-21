@@ -22,6 +22,9 @@ import { TiposIdentificacionFacade } from '../../../../application/facades/Contr
 import { RolesFacade } from '../../../../application/facades/Seguridad/roles.facade';
 import { UsuariosFacade } from '../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesIntervinienteFacade } from '../../../../application/facades/Intervinientes/roles-interviniente.facade';
+import { EstadosLiquidacionFacade } from '../../../../application/facades/Liquidacion/estados-liquidacion.facade';
+import { EstadosPagoFacade } from '../../../../application/facades/Pagos/estados-pago.facade';
+import { EstadosSolicitudFacade } from '../../../../application/facades/Radicacion/estados-solicitud.facade';
 
 export interface CatalogItem {
   name: string;
@@ -64,6 +67,9 @@ export class ConfigSidebar {
   private rolesFacade = inject(RolesFacade);
   private usuariosFacade = inject(UsuariosFacade);
   private rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
+  private estadosLiquidacionFacade = inject(EstadosLiquidacionFacade);
+  private estadosPagoFacade = inject(EstadosPagoFacade);
+  private estadosSolicitudFacade = inject(EstadosSolicitudFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -204,6 +210,36 @@ export class ConfigSidebar {
           name: 'Rol de Interviniente', 
           route: '/registros/configuracion/intervinientes/roles-interviniente',
           count: this.rolesIntervinienteFacade.totalRolesInterviniente() || this.rolesIntervinienteFacade.rolesInterviniente().length 
+        }
+      ]
+    },
+    {
+      name: 'Radicación',
+      items: [
+        { 
+          name: 'Estado de Solicitud', 
+          route: '/registros/configuracion/radicacion/estados-solicitud',
+          count: this.estadosSolicitudFacade.totalEstadosSolicitud() || this.estadosSolicitudFacade.estadosSolicitud().length 
+        }
+      ]
+    },
+    {
+      name: 'Liquidación',
+      items: [
+        { 
+          name: 'Estado de Liquidación', 
+          route: '/registros/configuracion/liquidacion/estados-liquidacion',
+          count: this.estadosLiquidacionFacade.totalEstadosLiquidacion() || this.estadosLiquidacionFacade.estadosLiquidacion().length 
+        }
+      ]
+    },
+    {
+      name: 'Pagos',
+      items: [
+        { 
+          name: 'Estado de Pago', 
+          route: '/registros/configuracion/pagos/estados-pago',
+          count: this.estadosPagoFacade.totalEstadosPago() || this.estadosPagoFacade.estadosPago().length 
         }
       ]
     },
