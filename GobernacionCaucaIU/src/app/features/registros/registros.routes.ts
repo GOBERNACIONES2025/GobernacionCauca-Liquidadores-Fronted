@@ -20,6 +20,7 @@ import { TiposPersona } from './presentation/pages/configuracion/contribuyentes/
 import { TiposIdentificacion } from './presentation/pages/configuracion/contribuyentes/tipos-identificacion/tipos-identificacion';
 import { RolesComponent } from './presentation/pages/configuracion/seguridad/roles/roles';
 import { UsuariosComponent } from './presentation/pages/configuracion/seguridad/usuarios/usuarios';
+import { RolesInterviniente } from './presentation/pages/configuracion/intervinientes/roles-interviniente/roles-interviniente';
 
 export const registrosRoutes: Routes = [
   {
@@ -107,6 +108,10 @@ export const registrosRoutes: Routes = [
           {
             path: 'contribuyentes/tipo-documento',
             component: TiposIdentificacion
+          },
+          {
+            path: 'intervinientes/roles-interviniente',
+            component: RolesInterviniente
           },
           {
             path: 'seguridad/roles',

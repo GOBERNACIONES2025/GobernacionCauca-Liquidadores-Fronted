@@ -21,6 +21,7 @@ import { TiposPersonaFacade } from '../../../../application/facades/Contribuyent
 import { TiposIdentificacionFacade } from '../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
 import { RolesFacade } from '../../../../application/facades/Seguridad/roles.facade';
 import { UsuariosFacade } from '../../../../application/facades/Seguridad/usuarios.facade';
+import { RolesIntervinienteFacade } from '../../../../application/facades/Intervinientes/roles-interviniente.facade';
 
 export interface CatalogItem {
   name: string;
@@ -62,6 +63,7 @@ export class ConfigSidebar {
   private tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
   private rolesFacade = inject(RolesFacade);
   private usuariosFacade = inject(UsuariosFacade);
+  private rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -192,6 +194,16 @@ export class ConfigSidebar {
           name: 'Tipo de Documento', 
           route: '/registros/configuracion/contribuyentes/tipo-documento',
           count: this.tiposIdentificacionFacade.totalTiposIdentificacion() || this.tiposIdentificacionFacade.tiposIdentificacion().length 
+        }
+      ]
+    },
+    {
+      name: 'Intervinientes',
+      items: [
+        { 
+          name: 'Rol de Interviniente', 
+          route: '/registros/configuracion/intervinientes/roles-interviniente',
+          count: this.rolesIntervinienteFacade.totalRolesInterviniente() || this.rolesIntervinienteFacade.rolesInterviniente().length 
         }
       ]
     },
