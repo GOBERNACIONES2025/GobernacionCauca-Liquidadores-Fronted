@@ -39,8 +39,8 @@ export class VehiculosFacade {
     valorUvt: 49799,
     uvtVariacion: '+2.4%',
     uvtNorma: 'Ord. 004-2026 — UVT_2026',
-    sancionMinima: 235000,
-    sancionDescripcion: 'Liquidaciones extemporáneas',
+    sancionMinima: 497990,
+    sancionDescripcion: 'Liquidaciones extemporáneas (10 UVTs)',
     auditadosHoy: 1420,
     auditadosUltimo: 'hace 2 min · admin_user',
     totalVehiculos: 0
@@ -150,8 +150,8 @@ export class VehiculosFacade {
           valorUvt: Number(d.valorUvt) || 49799,
           uvtVariacion: d.valorUvtIncremento ?? d.uvtVariacion ?? '+2.4%',
           uvtNorma: d.valorUvtReferencia ?? d.uvtNorma ?? 'Ord. 004-2026 — UVT_2026',
-          sancionMinima: Number(d.sancionMinima) || 235000,
-          sancionDescripcion: d.sancionMinimaDetalle ?? d.sancionDescripcion ?? 'Liquidaciones extemporáneas',
+          sancionMinima: Number(d.sancionMinima) || (Number(d.valorUvt) ? Number(d.valorUvt) * 10 : 497990),
+          sancionDescripcion: d.sancionMinimaDetalle ?? d.sancionDescripcion ?? 'Liquidaciones extemporáneas (10 UVTs)',
           auditadosHoy: Number(d.auditadosHoy) || 1420,
           auditadosUltimo: d.ultimaAuditoriaDetalle ?? d.auditadosUltimo ?? 'hace 2 min · admin_user',
           totalVehiculos: d.totalVehiculos ?? 0
