@@ -24,6 +24,10 @@ import { RolesInterviniente } from './presentation/pages/configuracion/intervini
 import { EstadosLiquidacion } from './presentation/pages/configuracion/liquidacion/estados-liquidacion/estados-liquidacion';
 import { EstadosPago } from './presentation/pages/configuracion/pagos/estados-pago/estados-pago';
 import { EstadosSolicitud } from './presentation/pages/configuracion/radicacion/estados-solicitud/estados-solicitud';
+import { Contribuyentes } from './presentation/pages/configuracion/contribuyentes/contribuyentes/contribuyentes';
+import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/configuracion/entidades/entidades-tipo-acto-permitido/entidades-tipo-acto-permitido';
+import { ActosExencionComponent } from './presentation/pages/configuracion/exenciones/actos-exencion/actos-exencion';
+import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
 export const registrosRoutes: Routes = [
   {
@@ -53,6 +57,10 @@ export const registrosRoutes: Routes = [
             component: Municipios
           },
           {
+            path: 'inmuebles/inmuebles',
+            component: InmueblesComponent
+          },
+          {
             path: 'normatividad/estado-norma',
             component: EstadosNorma
           },
@@ -75,6 +83,10 @@ export const registrosRoutes: Routes = [
           {
             path: 'entidades/entidades',
             component: EntidadesRegistro
+          },
+          {
+            path: 'entidades/actos-permitidos',
+            component: EntidadesTipoActoPermitidoComponent
           },
           {
             path: 'actos-registrales/categoria-acto',
@@ -103,6 +115,14 @@ export const registrosRoutes: Routes = [
           {
             path: 'exenciones/exenciones',
             component: Exenciones
+          },
+          {
+            path: 'exenciones/actos-exencion',
+            component: ActosExencionComponent
+          },
+          {
+            path: 'contribuyentes/directorio',
+            component: Contribuyentes
           },
           {
             path: 'contribuyentes/tipo-persona',

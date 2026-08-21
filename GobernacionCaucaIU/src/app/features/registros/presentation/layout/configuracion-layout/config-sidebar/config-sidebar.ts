@@ -25,6 +25,10 @@ import { RolesIntervinienteFacade } from '../../../../application/facades/Interv
 import { EstadosLiquidacionFacade } from '../../../../application/facades/Liquidacion/estados-liquidacion.facade';
 import { EstadosPagoFacade } from '../../../../application/facades/Pagos/estados-pago.facade';
 import { EstadosSolicitudFacade } from '../../../../application/facades/Radicacion/estados-solicitud.facade';
+import { EntidadesTipoActoPermitidoFacade } from '../../../../application/facades/Registro/entidades-tipo-acto-permitido.facade';
+import { ActosExencionFacade } from '../../../../application/facades/Exenciones/actos-exencion.facade';
+import { ContribuyentesFacade } from '../../../../application/facades/Contribuyentes/contribuyentes.facade';
+import { InmueblesFacade } from '../../../../application/facades/Inmuebles/inmuebles.facade';
 
 export interface CatalogItem {
   name: string;
@@ -70,6 +74,10 @@ export class ConfigSidebar {
   private estadosLiquidacionFacade = inject(EstadosLiquidacionFacade);
   private estadosPagoFacade = inject(EstadosPagoFacade);
   private estadosSolicitudFacade = inject(EstadosSolicitudFacade);
+  private entidadesTipoActoPermitidoFacade = inject(EntidadesTipoActoPermitidoFacade);
+  private actosExencionFacade = inject(ActosExencionFacade);
+  private contribuyentesFacade = inject(ContribuyentesFacade);
+  private inmueblesFacade = inject(InmueblesFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -89,6 +97,16 @@ export class ConfigSidebar {
           route: '/registros/configuracion/territorio/municipio', 
           count: this.municipiosFacade.totalMunicipios() || this.municipiosFacade.municipios().length, 
           hasWarning: true 
+        }
+      ]
+    },
+    {
+      name: 'Inmuebles',
+      items: [
+        { 
+          name: 'Inmuebles y Avalúos', 
+          route: '/registros/configuracion/inmuebles/inmuebles',
+          count: this.inmueblesFacade.totalInmuebles() || this.inmueblesFacade.inmuebles().length 
         }
       ]
     },
@@ -131,6 +149,11 @@ export class ConfigSidebar {
           route: '/registros/configuracion/entidades/entidades',
           count: this.entidadesRegistroFacade.totalEntidadesRegistro() || this.entidadesRegistroFacade.entidadesRegistro().length, 
           hasWarning: true 
+        },
+        { 
+          name: 'Actos Permitidos', 
+          route: '/registros/configuracion/entidades/actos-permitidos',
+          count: this.entidadesTipoActoPermitidoFacade.totalEntidadesTipoActoPermitido() || this.entidadesTipoActoPermitidoFacade.entidadesTipoActoPermitido().length 
         }
       ]
     },
@@ -185,12 +208,22 @@ export class ConfigSidebar {
           route: '/registros/configuracion/exenciones/exenciones',
           count: this.exencionesFacade.totalExenciones() || this.exencionesFacade.exenciones().length, 
           hasWarning: true 
+        },
+        { 
+          name: 'Actos con Exención', 
+          route: '/registros/configuracion/exenciones/actos-exencion',
+          count: this.actosExencionFacade.totalActosExencion() || this.actosExencionFacade.actosExencion().length 
         }
       ]
     },
     {
       name: 'Contribuyentes',
       items: [
+        { 
+          name: 'Directorio de Contribuyentes', 
+          route: '/registros/configuracion/contribuyentes/directorio',
+          count: this.contribuyentesFacade.totalContribuyentes() || this.contribuyentesFacade.contribuyentes().length 
+        },
         { 
           name: 'Tipo de Persona', 
           route: '/registros/configuracion/contribuyentes/tipo-persona',
