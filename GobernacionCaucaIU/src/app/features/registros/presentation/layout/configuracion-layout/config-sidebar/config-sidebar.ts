@@ -1,12 +1,15 @@
-import { Component, signal, computed, output } from '@angular/core';
+import { Component, inject, signal, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { DepartamentosFacade } from '../../../../application/facades/Territorios/departamentos.facade';
+import { MunicipiosFacade } from '../../../../application/facades/Territorios/municipios.facade';
 
 export interface CatalogItem {
   name: string;
   route?: string;
-  count: number;
+  count?: number;
+  countFn?: () => number;
   hasWarning?: boolean;
 }
 
@@ -23,64 +26,76 @@ export interface CatalogGroup {
   styleUrl: './config-sidebar.css',
 })
 export class ConfigSidebar {
+  private departamentosFacade = inject(DepartamentosFacade);
+  private municipiosFacade = inject(MunicipiosFacade);
+
   readonly closeSidebar = output<void>();
 
   searchTerm = signal('');
 
-  catalogGroups = signal<CatalogGroup[]>([
+  catalogGroups = computed<CatalogGroup[]>(() => [
     {
       name: 'Territorio',
       items: [
-        { name: 'Departamento', route: '/registros/configuracion/territorio/departamento', count: 5 },
-        { name: 'Municipio', route: '/registros/configuracion/territorio/municipio', count: 5, hasWarning: true }
+        { 
+          name: 'Departamento', 
+          route: '/registros/configuracion/territorio/departamento', 
+          count: this.departamentosFacade.totalDepartamentos() || this.departamentosFacade.departamentos().length 
+        },
+        { 
+          name: 'Municipio', 
+          route: '/registros/configuracion/territorio/municipio', 
+          count: this.municipiosFacade.totalMunicipios() || this.municipiosFacade.municipios().length, 
+          hasWarning: true 
+        }
       ]
     },
-
     {
       name: 'Normatividad',
       items: [
-        { name: 'Estado de Norma', count: 3 },
-        { name: 'Tipo de Norma', count: 4 },
-        { name: 'Vigencia', count: 3 }
+        { name: 'Estado de Norma', count: 0 },
+        { name: 'Tipo de Norma', count: 0 },
+        { name: 'Vigencia', count: 0 }
       ]
     },
     {
       name: 'Entidades',
       items: [
-        { name: 'Tipo de Entidad de Registro', count: 3 },
-        { name: 'Entidad de Registro', count: 3, hasWarning: true }
+        { name: 'Tipo de Entidad de Registro', count: 0 },
+        { name: 'Entidad de Registro', count: 0, hasWarning: true }
       ]
     },
     {
       name: 'Actos Registrales',
       items: [
-        { name: 'Categoría de Acto', count: 5 },
-        { name: 'Naturaleza de Acto', count: 2 },
-        { name: 'Tipo de Acto de Registro', count: 5, hasWarning: true }
+        { name: 'Categoría de Acto', count: 0 },
+        { name: 'Naturaleza de Acto', count: 0 },
+        { name: 'Tipo de Acto de Registro', count: 0, hasWarning: true }
       ]
     },
     {
       name: 'Tarifas',
       items: [
-        { name: 'Tipo de Cálculo de Tarifa', count: 2 },
-        { name: 'Tarifa', count: 3, hasWarning: true }
+        { name: 'Tipo de Cálculo de Tarifa', count: 0 },
+        { name: 'Tarifa', count: 0, hasWarning: true }
       ]
     },
     {
       name: 'Exenciones',
       items: [
-        { name: 'Tipo de Beneficiario de Exención', count: 3 },
-        { name: 'Exención', count: 2, hasWarning: true }
+        { name: 'Tipo de Beneficiario de Exención', count: 0 },
+        { name: 'Exención', count: 0, hasWarning: true }
       ]
     },
     {
       name: 'Contribuyentes',
       items: [
-        { name: 'Tipo de Persona', count: 2 },
-        { name: 'Tipo de Documento', count: 5 }
+        { name: 'Tipo de Persona', count: 0 },
+        { name: 'Tipo de Documento', count: 0 }
       ]
     }
   ]);
+
 
   totalCount = computed(() => {
     return this.catalogGroups().reduce((acc, g) => acc + g.items.length, 0);

@@ -24,15 +24,6 @@ export class Departamentos implements OnInit {
   searchQuery = signal<string>('');
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
-  // Fallback initial data in case backend has no records yet
-  private readonly defaultDepartamentos: Departamento[] = [
-    { id: 1, codigoDane: '25', nombre: 'Cundinamarca', activo: true },
-    { id: 2, codigoDane: '05', nombre: 'Antioquia', activo: true },
-    { id: 3, codigoDane: '76', nombre: 'Valle del Cauca', activo: true },
-    { id: 4, codigoDane: '08', nombre: 'Atlántico', activo: true },
-    { id: 5, codigoDane: '68', nombre: 'Santander', activo: false },
-  ];
-
   isSlideOverOpen = false;
   selectedId: number | null = null;
 
@@ -46,17 +37,11 @@ export class Departamentos implements OnInit {
     activo: [true]
   });
 
-  // Department list (from facade or fallback if empty)
-  listaDepartamentos = computed(() => {
-    const list = this.facade.departamentos();
-    return list.length > 0 ? list : this.defaultDepartamentos;
-  });
-
   // Filtered department list for table
   departamentosFiltrados = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
     const filter = this.selectedFilter();
-    let items = this.listaDepartamentos();
+    let items = this.facade.departamentos();
 
     if (filter === 'activos') {
       items = items.filter(d => d.activo);
@@ -76,7 +61,7 @@ export class Departamentos implements OnInit {
 
   // Real-time calculated counters
   counts = computed(() => {
-    const all = this.listaDepartamentos();
+    const all = this.facade.departamentos();
     return {
       total: all.length,
       active: all.filter(d => d.activo).length,
@@ -121,14 +106,9 @@ export class Departamentos implements OnInit {
         this.toast.success(`Departamento ${actionName} exitosamente`);
         this.facade.cargarDepartamentos(1, 100);
       },
-      error: () => {
-        // Fallback update in memory if offline
-        const current = this.defaultDepartamentos.find(d => d.id === item.id);
-        if (current) {
-          current.activo = nuevoEstado;
-          this.searchQuery.set(this.searchQuery()); // trigger update
-        }
-        this.toast.info(`Estado actualizado: ${nuevoEstado ? 'Activo' : 'Inactivo'}`);
+      error: (err: any) => {
+        this.toast.error(`Error al actualizar estado del departamento`);
+        console.error(err);
       }
     });
   }
@@ -150,27 +130,8 @@ export class Departamentos implements OnInit {
           this.facade.cargarDepartamentos(1, 100);
         },
         error: (err: any) => {
-          // Fallback in-memory save if offline
-          if (this.isEditMode) {
-            const index = this.defaultDepartamentos.findIndex(d => d.id === this.selectedId);
-            if (index !== -1) {
-              this.defaultDepartamentos[index] = {
-                ...this.defaultDepartamentos[index],
-                codigoDane: data.codigoDane!,
-                nombre: data.nombre!,
-                activo: data.activo ?? true
-              };
-            }
-          } else {
-            this.defaultDepartamentos.push({
-              id: Date.now(),
-              codigoDane: data.codigoDane!,
-              nombre: data.nombre!,
-              activo: data.activo ?? true
-            });
-          }
-          this.toast.success(`Departamento ${actionName} exitosamente`);
-          this.closeSlideOver();
+          this.toast.error(`Error al intentar guardar el departamento`);
+          console.error(err);
         }
       };
 
@@ -184,4 +145,5 @@ export class Departamentos implements OnInit {
     }
   }
 }
+
 

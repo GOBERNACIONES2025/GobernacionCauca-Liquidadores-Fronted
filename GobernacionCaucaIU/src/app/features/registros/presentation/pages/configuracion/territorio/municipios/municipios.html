@@ -224,18 +224,27 @@
       }
     </div>
 
-    <!-- Departamento -->
+    <!-- Departamento Select -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento</span>
       </label>
-      <input 
-        type="text" 
-        formControlName="departamentoNombre" 
-        placeholder="Ej. Cauca" 
-        class="input input-sm input-bordered w-full text-slate-800" 
-      />
+      <select 
+        formControlName="departamentoId" 
+        class="select select-sm select-bordered w-full text-slate-800"
+        [class.select-error]="municipioForm.get('departamentoId')?.invalid && municipioForm.get('departamentoId')?.touched"
+      >
+        <option [ngValue]="null" disabled>Seleccione un departamento</option>
+        @for (dep of departamentosFacade.departamentos(); track dep.id) {
+          <option [ngValue]="dep.id">{{ dep.nombre }}</option>
+        }
+      </select>
+
+      @if (municipioForm.get('departamentoId')?.hasError('required') && municipioForm.get('departamentoId')?.touched) {
+        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un departamento</span></label>
+      }
     </div>
+
 
     <!-- Estado -->
     <div class="form-control w-full mt-2">

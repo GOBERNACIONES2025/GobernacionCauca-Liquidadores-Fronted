@@ -88,10 +88,11 @@ export class MunicipiosFacade {
    */
   crearMunicipio(municipio: Partial<Municipio>): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
+    const depId = municipio.departamentoId ?? (typeof (municipio as any).departamento === 'object' ? (municipio as any).departamento?.id : (municipio as any).idDepartamento);
     const request: CrearMunicipioRequest = {
       codigoDane: municipio.codigoDane!,
       nombre: municipio.nombre!,
-      departamento: municipio.departamento!
+      departamentoId: Number(depId)
     };
     return this.apiService.crear(request).pipe(
       tap({
@@ -106,11 +107,12 @@ export class MunicipiosFacade {
    */
   actualizarMunicipio(id: number, municipio: Partial<Municipio>): Observable<void> {
     this.actionLoading.set(true);
+    const depId = municipio.departamentoId ?? (typeof (municipio as any).departamento === 'object' ? (municipio as any).departamento?.id : (municipio as any).idDepartamento);
     const request: ActualizarMunicipioRequest = {
       codigoDane: municipio.codigoDane!,
       nombre: municipio.nombre!,
       activo: municipio.activo ?? true,
-      departamento: municipio.departamento!
+      departamentoId: Number(depId)
     };
     return this.apiService.actualizar(id, request).pipe(
       tap({
@@ -119,6 +121,8 @@ export class MunicipiosFacade {
       })
     );
   }
+
+
 
   /**
    * Elimina un municipio.
