@@ -43,8 +43,14 @@ export class VehiculosFacade {
     sancionDescripcion: 'Liquidaciones extemporáneas (10 UVTs)',
     auditadosHoy: 1420,
     auditadosUltimo: 'hace 2 min · admin_user',
-    totalVehiculos: 0
+    totalVehiculos: 0,
+    totalPendientesAprobacion: 0
   });
+
+  // Modal y Gestión de Vehículos Pendientes de Aprobación
+  readonly vehiculosPendientesAprobacion = signal<VehiculoItem[]>([]);
+  readonly isModalPendientesOpen = signal<boolean>(false);
+  readonly cargandoPendientes = signal<boolean>(false);
 
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
@@ -154,7 +160,10 @@ export class VehiculosFacade {
           sancionDescripcion: d.sancionMinimaDetalle ?? d.sancionDescripcion ?? 'Liquidaciones extemporáneas (10 UVTs)',
           auditadosHoy: Number(d.auditadosHoy) || 1420,
           auditadosUltimo: d.ultimaAuditoriaDetalle ?? d.auditadosUltimo ?? 'hace 2 min · admin_user',
-          totalVehiculos: d.totalVehiculos ?? 0
+          totalVehiculos: d.totalVehiculos ?? 0,
+          totalVehiculosActivos: d.totalVehiculosActivos ?? 0,
+          totalVehiculosInactivos: d.totalVehiculosInactivos ?? 0,
+          totalPendientesAprobacion: d.totalPendientesAprobacion ?? 0
         });
       }
     });
@@ -260,6 +269,65 @@ export class VehiculosFacade {
   refrescarDashboard(): void {
     this.cargarKpis();
     this.cargarVehiculos(this.paginaActual(), this.pageSize());
+    this.cargarPendientesAprobacion();
+  }
+
+  cargarPendientesAprobacion(): void {
+    this.cargandoPendientes.set(true);
+    this.api.get<ApiResponse<any[]>>('/vehiculos/pendientes-aprobacion', {}, 'AUTOMOTORES').pipe(
+      catchError(err => {
+        console.warn('Error al cargar vehículos pendientes de aprobación:', err);
+        this.cargandoPendientes.set(false);
+        return of(null);
+      })
+    ).subscribe(res => {
+      this.cargandoPendientes.set(false);
+      if (res && res.data) {
+        const mapped: VehiculoItem[] = res.data.map((item: any) => ({
+          id: item.id,
+          placa: item.placa || '',
+          marca: item.marca || '',
+          linea: item.linea || '',
+          modelo: item.modelo || 2024,
+          cilindraje: item.cilindraje || 1600,
+          combustible: item.combustible || 'Gasolina',
+          tipoVehiculo: item.tipoVehiculo || 'Automóvil',
+          clase: item.clase || 'Automóvil',
+          servicio: item.servicio || 'Particular',
+          estadoMatricula: item.estadoMatricula || 'Pendiente',
+          estadoMatriculaId: item.estadoMatriculaId || 2,
+          estadoAprobacion: item.estadoAprobacion || 'PENDIENTE',
+          propietario: {
+            nombre: item.propietarioNombre || 'Propietario Pendiente',
+            tipoDocumento: 'CC',
+            numeroDocumento: item.propietarioDocumento || 'Pendiente'
+          },
+          propietarioNombre: item.propietarioNombre,
+          propietarioDocumento: item.propietarioDocumento
+        }));
+        this.vehiculosPendientesAprobacion.set(mapped);
+        this.kpis.update(k => ({ ...k, totalPendientesAprobacion: mapped.length }));
+      }
+    });
+  }
+
+  abrirModalPendientes(): void {
+    this.isModalPendientesOpen.set(true);
+    this.cargarPendientesAprobacion();
+  }
+
+  cerrarModalPendientes(): void {
+    this.isModalPendientesOpen.set(false);
+  }
+
+  cambiarEstadoAprobacion(id: number, nuevoEstado: string): Observable<any> {
+    return this.api.put<ApiResponse<any>>(`/vehiculos/${id}/estado-aprobacion?nuevoEstado=${nuevoEstado}`, {}, {}, 'AUTOMOTORES').pipe(
+      map(res => {
+        this.cargarPendientesAprobacion();
+        this.refrescarDashboard();
+        return res;
+      })
+    );
   }
 
   setFiltroTexto(texto: string): void {
