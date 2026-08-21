@@ -7,6 +7,8 @@ import { EstadosNorma } from './presentation/pages/configuracion/normatividad/es
 import { TiposNorma } from './presentation/pages/configuracion/normatividad/tipos-norma/tipos-norma';
 import { Vigencias } from './presentation/pages/configuracion/normatividad/vigencias/vigencias';
 import { Normas } from './presentation/pages/configuracion/normatividad/normas/normas';
+import { TiposEntidadRegistro } from './presentation/pages/configuracion/entidades/tipos-entidad-registro/tipos-entidad-registro';
+import { EntidadesRegistro } from './presentation/pages/configuracion/entidades/entidades-registro/entidades-registro';
 
 export const registrosRoutes: Routes = [
   {
@@ -50,12 +52,21 @@ export const registrosRoutes: Routes = [
           {
             path: 'normatividad/normas',
             component: Normas
+          },
+          {
+            path: 'entidades/tipo-entidad',
+            component: TiposEntidadRegistro
+          },
+          {
+            path: 'entidades/entidades',
+            component: EntidadesRegistro
           }
         ]
       }
     ]
   }
 ];
+
 
 
 

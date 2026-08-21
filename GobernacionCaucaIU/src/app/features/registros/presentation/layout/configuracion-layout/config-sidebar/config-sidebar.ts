@@ -8,6 +8,8 @@ import { EstadosNormaFacade } from '../../../../application/facades/Normatividad
 import { TiposNormaFacade } from '../../../../application/facades/Normatividad/tipos-norma.facade';
 import { VigenciasFacade } from '../../../../application/facades/Normatividad/vigencias.facade';
 import { NormasFacade } from '../../../../application/facades/Normatividad/normas.facade';
+import { TiposEntidadRegistroFacade } from '../../../../application/facades/Registro/tipos-entidad-registro.facade';
+import { EntidadesRegistroFacade } from '../../../../application/facades/Registro/entidades-registro.facade';
 
 export interface CatalogItem {
   name: string;
@@ -36,6 +38,8 @@ export class ConfigSidebar {
   private tiposNormaFacade = inject(TiposNormaFacade);
   private vigenciasFacade = inject(VigenciasFacade);
   private normasFacade = inject(NormasFacade);
+  private tiposEntidadFacade = inject(TiposEntidadRegistroFacade);
+  private entidadesRegistroFacade = inject(EntidadesRegistroFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -84,15 +88,20 @@ export class ConfigSidebar {
         }
       ]
     },
-
-
-
     {
       name: 'Entidades',
-
       items: [
-        { name: 'Tipo de Entidad de Registro', count: 0 },
-        { name: 'Entidad de Registro', count: 0, hasWarning: true }
+        { 
+          name: 'Tipo de Entidad de Registro', 
+          route: '/registros/configuracion/entidades/tipo-entidad',
+          count: this.tiposEntidadFacade.totalTiposEntidadRegistro() || this.tiposEntidadFacade.tiposEntidadRegistro().length 
+        },
+        { 
+          name: 'Entidad de Registro', 
+          route: '/registros/configuracion/entidades/entidades',
+          count: this.entidadesRegistroFacade.totalEntidadesRegistro() || this.entidadesRegistroFacade.entidadesRegistro().length, 
+          hasWarning: true 
+        }
       ]
     },
     {

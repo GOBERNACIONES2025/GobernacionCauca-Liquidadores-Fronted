@@ -45,23 +45,3 @@ export interface ActualizarEntidadRegistroRequest {
   activo: boolean;
 }
 
-export interface CrearEntidadRegistroRequest {
-  tipoEntidadRegistro: TipoEntidadRegistro;
-  departamento: Departamento;
-  municipio: Municipio;
-  nit: string;
-  codigo: string;
-  nombre: string;
-  emailContacto?: string | null;
-}
-
-export interface ActualizarEntidadRegistroRequest {
-  tipoEntidadRegistro: TipoEntidadRegistro;
-  departamento: Departamento;
-  municipio: Municipio;
-  nit: string;
-  codigo: string;
-  nombre: string;
-  emailContacto?: string | null;
-  activo: boolean;
-}
