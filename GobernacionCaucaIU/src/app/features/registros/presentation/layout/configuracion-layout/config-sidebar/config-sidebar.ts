@@ -7,6 +7,7 @@ import { MunicipiosFacade } from '../../../../application/facades/Territorios/mu
 import { EstadosNormaFacade } from '../../../../application/facades/Normatividad/estados-norma.facade';
 import { TiposNormaFacade } from '../../../../application/facades/Normatividad/tipos-norma.facade';
 import { VigenciasFacade } from '../../../../application/facades/Normatividad/vigencias.facade';
+import { NormasFacade } from '../../../../application/facades/Normatividad/normas.facade';
 
 export interface CatalogItem {
   name: string;
@@ -34,6 +35,7 @@ export class ConfigSidebar {
   private estadosNormaFacade = inject(EstadosNormaFacade);
   private tiposNormaFacade = inject(TiposNormaFacade);
   private vigenciasFacade = inject(VigenciasFacade);
+  private normasFacade = inject(NormasFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -73,9 +75,18 @@ export class ConfigSidebar {
           name: 'Vigencia', 
           route: '/registros/configuracion/normatividad/vigencia', 
           count: this.vigenciasFacade.totalVigencias() || this.vigenciasFacade.vigencias().length 
+        },
+        { 
+          name: 'Norma', 
+          route: '/registros/configuracion/normatividad/normas', 
+          count: this.normasFacade.totalNormas() || this.normasFacade.normas().length,
+          hasWarning: true 
         }
       ]
     },
+
+
+
     {
       name: 'Entidades',
 

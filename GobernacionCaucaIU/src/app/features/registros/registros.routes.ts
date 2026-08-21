@@ -6,6 +6,7 @@ import { Municipios } from './presentation/pages/configuracion/territorio/munici
 import { EstadosNorma } from './presentation/pages/configuracion/normatividad/estados-norma/estados-norma';
 import { TiposNorma } from './presentation/pages/configuracion/normatividad/tipos-norma/tipos-norma';
 import { Vigencias } from './presentation/pages/configuracion/normatividad/vigencias/vigencias';
+import { Normas } from './presentation/pages/configuracion/normatividad/normas/normas';
 
 export const registrosRoutes: Routes = [
   {
@@ -45,11 +46,18 @@ export const registrosRoutes: Routes = [
           {
             path: 'normatividad/vigencia',
             component: Vigencias
+          },
+          {
+            path: 'normatividad/normas',
+            component: Normas
           }
         ]
       }
     ]
   }
 ];
+
+
+
 
 
