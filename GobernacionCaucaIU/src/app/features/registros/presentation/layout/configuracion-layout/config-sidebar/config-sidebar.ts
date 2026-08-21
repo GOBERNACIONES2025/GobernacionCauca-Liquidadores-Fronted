@@ -10,6 +10,9 @@ import { VigenciasFacade } from '../../../../application/facades/Normatividad/vi
 import { NormasFacade } from '../../../../application/facades/Normatividad/normas.facade';
 import { TiposEntidadRegistroFacade } from '../../../../application/facades/Registro/tipos-entidad-registro.facade';
 import { EntidadesRegistroFacade } from '../../../../application/facades/Registro/entidades-registro.facade';
+import { CategoriasActoFacade } from '../../../../application/facades/Registro/categorias-acto.facade';
+import { NaturalezasActoFacade } from '../../../../application/facades/Registro/naturalezas-acto.facade';
+import { TiposActoRegistroFacade } from '../../../../application/facades/Registro/tipos-acto-registro.facade';
 
 export interface CatalogItem {
   name: string;
@@ -40,6 +43,9 @@ export class ConfigSidebar {
   private normasFacade = inject(NormasFacade);
   private tiposEntidadFacade = inject(TiposEntidadRegistroFacade);
   private entidadesRegistroFacade = inject(EntidadesRegistroFacade);
+  private categoriasFacade = inject(CategoriasActoFacade);
+  private naturalezasFacade = inject(NaturalezasActoFacade);
+  private tiposActoFacade = inject(TiposActoRegistroFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -107,11 +113,25 @@ export class ConfigSidebar {
     {
       name: 'Actos Registrales',
       items: [
-        { name: 'Categoría de Acto', count: 0 },
-        { name: 'Naturaleza de Acto', count: 0 },
-        { name: 'Tipo de Acto de Registro', count: 0, hasWarning: true }
+        { 
+          name: 'Categoría de Acto', 
+          route: '/registros/configuracion/actos-registrales/categoria-acto',
+          count: this.categoriasFacade.totalCategoriasActo() || this.categoriasFacade.categoriasActo().length 
+        },
+        { 
+          name: 'Naturaleza de Acto', 
+          route: '/registros/configuracion/actos-registrales/naturaleza-acto',
+          count: this.naturalezasFacade.totalNaturalezasActo() || this.naturalezasFacade.naturalezasActo().length 
+        },
+        { 
+          name: 'Tipo de Acto de Registro', 
+          route: '/registros/configuracion/actos-registrales/tipo-acto',
+          count: this.tiposActoFacade.totalTiposActoRegistro() || this.tiposActoFacade.tiposActoRegistro().length, 
+          hasWarning: true 
+        }
       ]
     },
+
     {
       name: 'Tarifas',
       items: [

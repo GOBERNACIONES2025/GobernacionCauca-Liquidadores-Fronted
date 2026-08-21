@@ -9,6 +9,9 @@ import { Vigencias } from './presentation/pages/configuracion/normatividad/vigen
 import { Normas } from './presentation/pages/configuracion/normatividad/normas/normas';
 import { TiposEntidadRegistro } from './presentation/pages/configuracion/entidades/tipos-entidad-registro/tipos-entidad-registro';
 import { EntidadesRegistro } from './presentation/pages/configuracion/entidades/entidades-registro/entidades-registro';
+import { CategoriasActo } from './presentation/pages/configuracion/actos-registrales/categorias-acto/categorias-acto';
+import { NaturalezasActo } from './presentation/pages/configuracion/actos-registrales/naturalezas-acto/naturalezas-acto';
+import { TiposActoRegistro } from './presentation/pages/configuracion/actos-registrales/tipos-acto-registro/tipos-acto-registro';
 
 export const registrosRoutes: Routes = [
   {
@@ -60,12 +63,25 @@ export const registrosRoutes: Routes = [
           {
             path: 'entidades/entidades',
             component: EntidadesRegistro
+          },
+          {
+            path: 'actos-registrales/categoria-acto',
+            component: CategoriasActo
+          },
+          {
+            path: 'actos-registrales/naturaleza-acto',
+            component: NaturalezasActo
+          },
+          {
+            path: 'actos-registrales/tipo-acto',
+            component: TiposActoRegistro
           }
         ]
       }
     ]
   }
 ];
+
 
 
 
