@@ -4,6 +4,9 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DepartamentosFacade } from '../../../../application/facades/Territorios/departamentos.facade';
 import { MunicipiosFacade } from '../../../../application/facades/Territorios/municipios.facade';
+import { EstadosNormaFacade } from '../../../../application/facades/Normatividad/estados-norma.facade';
+import { TiposNormaFacade } from '../../../../application/facades/Normatividad/tipos-norma.facade';
+import { VigenciasFacade } from '../../../../application/facades/Normatividad/vigencias.facade';
 
 export interface CatalogItem {
   name: string;
@@ -28,6 +31,9 @@ export interface CatalogGroup {
 export class ConfigSidebar {
   private departamentosFacade = inject(DepartamentosFacade);
   private municipiosFacade = inject(MunicipiosFacade);
+  private estadosNormaFacade = inject(EstadosNormaFacade);
+  private tiposNormaFacade = inject(TiposNormaFacade);
+  private vigenciasFacade = inject(VigenciasFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -53,13 +59,26 @@ export class ConfigSidebar {
     {
       name: 'Normatividad',
       items: [
-        { name: 'Estado de Norma', count: 0 },
-        { name: 'Tipo de Norma', count: 0 },
-        { name: 'Vigencia', count: 0 }
+        { 
+          name: 'Estado de Norma', 
+          route: '/registros/configuracion/normatividad/estado-norma', 
+          count: this.estadosNormaFacade.totalEstadosNorma() || this.estadosNormaFacade.estadosNorma().length 
+        },
+        { 
+          name: 'Tipo de Norma', 
+          route: '/registros/configuracion/normatividad/tipo-norma', 
+          count: this.tiposNormaFacade.totalTiposNorma() || this.tiposNormaFacade.tiposNorma().length 
+        },
+        { 
+          name: 'Vigencia', 
+          route: '/registros/configuracion/normatividad/vigencia', 
+          count: this.vigenciasFacade.totalVigencias() || this.vigenciasFacade.vigencias().length 
+        }
       ]
     },
     {
       name: 'Entidades',
+
       items: [
         { name: 'Tipo de Entidad de Registro', count: 0 },
         { name: 'Entidad de Registro', count: 0, hasWarning: true }
