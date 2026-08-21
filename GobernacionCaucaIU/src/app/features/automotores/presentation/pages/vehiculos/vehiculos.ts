@@ -2,6 +2,7 @@ import { Component, inject, OnInit, HostListener, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
+import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 import { RegistrarVehiculoDto, PropietarioInicialDto, VehiculoItem } from '../../../domain/models/vehiculo.model';
 
 @Component({
@@ -12,6 +13,7 @@ import { RegistrarVehiculoDto, PropietarioInicialDto, VehiculoItem } from '../..
 })
 export class Vehiculos implements OnInit {
   readonly facade = inject(VehiculosFacade);
+  readonly liqFacade = inject(LiquidacionesFacade);
   private fb = inject(FormBuilder);
 
   form!: FormGroup;

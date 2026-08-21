@@ -1117,3 +1117,188 @@
       </div>
     </div>
   }
+
+  <!-- MODAL: ESTADO DE CUENTA Y LIQUIDACIÓN TRIBUTARIA VEHICULAR -->
+  @if (liqFacade.isModalOpen()) {
+    <div class="fade-in fixed inset-0 bg-slate-900/50 z-[350] flex items-center justify-center backdrop-blur-[2px] p-4 sm:p-6">
+      <div class="drawer-enter bg-white rounded-xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200">
+        <!-- Header -->
+        <div class="bg-[#1e3a7b] px-6 py-4 flex items-center justify-between text-white shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white font-bold text-lg">
+              💰
+            </div>
+            <div>
+              <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-400">Gobernación del Cauca — Hacienda</div>
+              <h3 class="text-base font-bold text-white m-0">Estado de Cuenta y Liquidación Vehicular</h3>
+            </div>
+          </div>
+          <button (click)="liqFacade.cerrarModal()" type="button" class="bg-white/10 hover:bg-white/20 text-white rounded-lg p-1.5 cursor-pointer transition-colors border-none">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="overflow-y-auto flex-1 p-6 bg-slate-50/50 space-y-5">
+          @if (liqFacade.loading()) {
+            <div class="py-16 text-center text-slate-500 space-y-3">
+              <svg class="animate-spin h-8 w-8 text-[#1e3a7b] mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <div class="text-sm font-semibold">Calculando estado de cuenta, avalúos, sanciones e intereses...</div>
+            </div>
+          } @else if (liqFacade.simulacionCalculada(); as sim) {
+            <!-- Resumen Vehículo y Propietario -->
+            <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Vehículo</div>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="co-plate">{{ sim.placa }}</span>
+                  <span class="text-sm font-bold text-slate-900">{{ sim.marca }} {{ sim.linea }}</span>
+                </div>
+                <div class="text-[11.5px] text-slate-500 mt-1">Modelo: {{ sim.modelo }} · {{ sim.cilindraje | number }} cc · {{ sim.combustible }}</div>
+              </div>
+
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contribuyente / Propietario</div>
+                <div class="text-sm font-bold text-slate-900 mt-1 truncate">{{ sim.propietarioNombre }}</div>
+                <div class="text-[11.5px] text-slate-500 mt-1">{{ sim.propietarioDocumento }} · Propietario Vigente</div>
+              </div>
+
+              <div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Parámetros Estatales Vigentes (2026)</div>
+                <div class="text-[11.5px] text-slate-700 mt-1 space-y-0.5">
+                  <div>UVT 2026: <strong class="text-slate-900">${{ sim.valorUvtVigente | number:'1.0-0' }}</strong></div>
+                  <div>Sanción Mínima (10 UVT): <strong class="text-amber-800">${{ sim.sancionMinimaVigente | number:'1.0-0' }}</strong></div>
+                  <div>Interés Mora (Usura - 2 ptos): <strong class="text-red-700">{{ sim.tasaInteresMoraAplicada | number:'1.2-2' }}% EA</strong></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tabla de Vigencias Seleccionables -->
+            <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+              <div class="px-4 py-3 bg-slate-100/70 border-b border-slate-200 flex items-center justify-between">
+                <div class="text-[13px] font-bold text-slate-900 flex items-center gap-2">
+                  <span>Selección de Vigencias a Liquidar</span>
+                  <span class="text-xs font-normal text-slate-500">({{ sim.vigencias.length }} vigencia/s)</span>
+                </div>
+                <button (click)="liqFacade.toggleSeleccionarTodos()" type="button" class="text-[11.5px] font-semibold text-[#1e3a7b] hover:underline cursor-pointer bg-none border-none">
+                  Seleccionar Todas
+                </button>
+              </div>
+
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[10.5px] uppercase tracking-wider">
+                      <th class="py-2.5 px-3 text-center">Sel</th>
+                      <th class="py-2.5 px-3">Vigencia</th>
+                      <th class="py-2.5 px-3 text-right">Base Gravable (Avalúo)</th>
+                      <th class="py-2.5 px-3 text-right">Impuesto</th>
+                      <th class="py-2.5 px-3 text-right">Descuento</th>
+                      <th class="py-2.5 px-3 text-right">Sanción Mora</th>
+                      <th class="py-2.5 px-3 text-right">Intereses</th>
+                      <th class="py-2.5 px-3 text-right">Total Vigencia</th>
+                      <th class="py-2.5 px-3 text-center">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    @for (v of liqFacade.simulacionRaw()?.vigencias || []; track v.anio) {
+                      <tr [class]="'transition-colors ' + (liqFacade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40' : 'opacity-60')">
+                        <td class="py-3 px-3 text-center">
+                          <input type="checkbox" [checked]="liqFacade.selectedVigenciaAnios().includes(v.anio)" (change)="liqFacade.toggleVigencia(v.anio)" class="accent-[#70b238] cursor-pointer">
+                        </td>
+                        <td class="py-3 px-3 font-bold text-slate-900">{{ v.anio }}</td>
+                        <td class="py-3 px-3 text-right font-medium text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right text-emerald-700 font-medium">
+                          {{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}
+                        </td>
+                        <td class="py-3 px-3 text-right text-amber-700 font-semibold">
+                          ${{ v.sancionExtemporaneidad | number:'1.0-0' }}
+                          @if (v.sancionExtemporaneidad > 0) {
+                            <div class="text-[9.5px] text-amber-600 font-normal">({{ v.mesesRetardo }} mes/es)</div>
+                          }
+                        </td>
+                        <td class="py-3 px-3 text-right text-red-700 font-semibold">
+                          ${{ v.interesesMora | number:'1.0-0' }}
+                          @if (v.interesesMora > 0) {
+                            <div class="text-[9.5px] text-red-600 font-normal">({{ v.diasMora }} días)</div>
+                          }
+                        </td>
+                        <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-center">
+                          @if (v.estado.includes('PRONTO')) {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              {{ v.estado }}
+                            </span>
+                          } @else if (v.estado.includes('MORA')) {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
+                              EN MORA
+                            </span>
+                          } @else {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-slate-100 text-slate-700">
+                              NORMAL
+                            </span>
+                          }
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Desglose de Totales y Liquidación Final -->
+            <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div class="text-[12px] font-bold text-slate-900 mb-2">Desglose de Conceptos Seleccionados</div>
+                <div class="space-y-1.5 text-xs text-slate-600">
+                  <div class="flex justify-between">
+                    <span>Subtotal Impuesto Vehicular:</span>
+                    <span class="font-semibold text-slate-900">${{ sim.subtotalImpuesto | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between text-emerald-700">
+                    <span>Descuentos (Pronto Pago):</span>
+                    <span class="font-semibold">-${{ sim.totalDescuentos | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between text-amber-800">
+                    <span>Sanciones por Extemporaneidad:</span>
+                    <span class="font-semibold">+${{ sim.totalSanciones | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between text-red-700">
+                    <span>Intereses Moratorios (Art. 635 ET):</span>
+                    <span class="font-semibold">+${{ sim.totalIntereses | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Sistematización y Estampillas:</span>
+                    <span class="font-semibold text-slate-900">+${{ sim.totalSistematizacionEstampillas | number:'1.0-0' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-slate-900 rounded-xl p-5 text-white flex flex-col justify-between shadow-lg">
+                <div>
+                  <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Total Liquidación Oficial</div>
+                  <div class="text-3xl font-extrabold text-white mt-1">${{ sim.totalPagar | number:'1.0-0' }}</div>
+                  <div class="text-[11px] text-slate-400 mt-1">Incluye {{ sim.vigencias.length }} vigencia/s liquidadas a la fecha</div>
+                </div>
+
+                <div class="flex gap-2.5 mt-4">
+                  <button type="button" class="flex-1 inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer transition-colors shadow-sm border-none">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Imprimir Factura PDF
+                  </button>
+                  <button type="button" class="flex-1 inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white cursor-pointer transition-colors shadow-sm border-none">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    Pagar PSE
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }

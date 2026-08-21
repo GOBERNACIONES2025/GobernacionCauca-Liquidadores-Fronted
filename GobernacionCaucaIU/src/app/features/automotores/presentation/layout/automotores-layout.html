@@ -153,16 +153,16 @@
               }
             </a>
 
-            <!-- Facturación -->
+            <!-- Liquidaciones & Facturación -->
             <a
-              routerLink="/automotores/facturacion"
+              routerLink="/automotores/liquidaciones"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Facturación'"
+              [title]="isSidebarOpen() ? '' : 'Liquidaciones & Facturación'"
             >
-              <i class="fa-solid fa-circle-question text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
+              <i class="fa-solid fa-file-invoice-dollar text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
               @if (isSidebarOpen()) {
-                <span class="truncate">Facturación</span>
+                <span class="truncate">Liquidaciones & Facturación</span>
               }
             </a>
 
