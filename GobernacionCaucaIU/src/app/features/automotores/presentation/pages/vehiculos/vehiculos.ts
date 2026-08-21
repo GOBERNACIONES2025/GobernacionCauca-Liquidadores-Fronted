@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, HostListener, signal } from '@angular/core';
+import { Component, inject, OnInit, HostListener, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
@@ -19,6 +19,196 @@ export class Vehiculos implements OnInit {
   form!: FormGroup;
 
   readonly activeMenuVehiculoId = signal<number | null>(null);
+  readonly toastMessage = signal<{ title: string; desc: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  readonly filtroModalPendientes = signal<string>('');
+
+  readonly vehiculosPendientesFiltrados = computed(() => {
+    const query = this.filtroModalPendientes().toLowerCase().trim();
+    const list = this.facade.vehiculosPendientesAprobacion();
+    if (!query) return list;
+    return list.filter(item => 
+      item.placa.toLowerCase().includes(query) ||
+      item.marca.toLowerCase().includes(query) ||
+      item.linea.toLowerCase().includes(query) ||
+      (item.propietarioNombre && item.propietarioNombre.toLowerCase().includes(query)) ||
+      (item.propietarioDocumento && item.propietarioDocumento.toLowerCase().includes(query))
+    );
+  });
+
+  readonly vehiculoAuditoriaModal = signal<VehiculoItem | null>(null);
+  readonly modoEdicionAuditoria = signal<boolean>(false);
+  readonly buscandoPropietarioAuditoria = signal<boolean>(false);
+  readonly propietarioAuditoriaEncontrado = signal<string | null>(null);
+  editFormAuditoria!: FormGroup;
+
+  initEditFormAuditoria(item: VehiculoItem): void {
+    let serv = (item.servicio || 'Particular').trim();
+    if (/privad|partic/i.test(serv)) serv = 'Particular';
+    else if (/públ|publ/i.test(serv)) serv = 'Público';
+    else if (/ofic/i.test(serv)) serv = 'Oficial';
+    else if (/espec/i.test(serv)) serv = 'Especial';
+
+    let comb = (item.combustible || 'Gasolina').trim();
+    if (/gasol/i.test(comb)) comb = 'Gasolina';
+    else if (/diés|dies/i.test(comb)) comb = 'Diésel';
+    else if (/eléc|elec/i.test(comb)) comb = 'Eléctrico';
+    else if (/híb|hib/i.test(comb)) comb = 'Híbrido';
+    else if (/gas/i.test(comb)) comb = 'Gas GNV';
+
+    const docRaw = item.propietarioDocumento || item.propietario?.numeroDocumento || '';
+    const docLimpio = docRaw.replace(/^[^0-9]+/, '').split(/[\s·]/)[0].trim() || docRaw;
+
+    this.editFormAuditoria = this.fb.group({
+      marca: [item.marca || '', Validators.required],
+      linea: [item.linea || '', Validators.required],
+      modelo: [item.modelo || 2024, [Validators.required, Validators.min(1900), Validators.max(2035)]],
+      clase: [item.clase || item.tipoVehiculo || 'Automóvil'],
+      cilindraje: [item.cilindraje || 1600, Validators.required],
+      combustible: [comb],
+      servicio: [serv],
+      pasajeros: [item.pasajeros || 5],
+      organismoTransito: [item.organismoTransito || 'Popayán - Cauca'],
+      propietarioNombre: [item.propietarioNombre || item.propietario?.nombre || ''],
+      propietarioDocumento: [docLimpio],
+      tipoVinculoPersonaId: ['1'],
+      porcentajePropiedad: [100, [Validators.required, Validators.min(1), Validators.max(100)]]
+    });
+
+    this.propietarioAuditoriaEncontrado.set(null);
+  }
+
+  buscarPropietarioAuditoria(): void {
+    const numDoc = this.editFormAuditoria.get('propietarioDocumento')?.value;
+    if (!numDoc || !String(numDoc).trim()) return;
+
+    const docLimpio = String(numDoc).replace(/[^0-9kK]/g, '').trim();
+
+    this.buscandoPropietarioAuditoria.set(true);
+    this.propietarioAuditoriaEncontrado.set(null);
+
+    this.facade.buscarPropietario(1, docLimpio || String(numDoc).trim()).subscribe({
+      next: (persona) => {
+        this.buscandoPropietarioAuditoria.set(false);
+        if (persona) {
+          const nombreEncontrado = persona.razonSocial || 
+            [persona.primerNombre, persona.segundoNombre, persona.primerApellido, persona.segundoApellido]
+              .filter(Boolean)
+              .join(' ');
+
+          this.editFormAuditoria.patchValue({
+            propietarioNombre: nombreEncontrado,
+            propietarioDocumento: persona.numeroDocumento || docLimpio
+          });
+
+          this.propietarioAuditoriaEncontrado.set(`✅ Persona encontrada en BD: ${nombreEncontrado}`);
+        } else {
+          this.propietarioAuditoriaEncontrado.set(`ℹ️ Documento no registrado previamente (se vinculará como nuevo propietario).`);
+        }
+      },
+      error: () => {
+        this.buscandoPropietarioAuditoria.set(false);
+        this.propietarioAuditoriaEncontrado.set(`ℹ️ Documento libre para registro.`);
+      }
+    });
+  }
+
+  abrirAuditoriaModal(item: VehiculoItem): void {
+    this.facade.cargarCatalogos();
+    this.initEditFormAuditoria(item);
+    this.modoEdicionAuditoria.set(false);
+    this.vehiculoAuditoriaModal.set(item);
+  }
+
+  cerrarAuditoriaModal(): void {
+    this.modoEdicionAuditoria.set(false);
+    this.vehiculoAuditoriaModal.set(null);
+  }
+
+  onVerDetallePendiente(item: VehiculoItem): void {
+    this.abrirAuditoriaModal(item);
+  }
+
+  activarEdicionAuditoria(item: VehiculoItem): void {
+    this.initEditFormAuditoria(item);
+    this.modoEdicionAuditoria.set(true);
+  }
+
+  cancelarEdicionAuditoria(): void {
+    this.modoEdicionAuditoria.set(false);
+  }
+
+  guardarEdicionAuditoria(id: number, aprobarAlGuardar: boolean = false): void {
+    if (this.editFormAuditoria.invalid) {
+      this.editFormAuditoria.markAllAsTouched();
+      return;
+    }
+
+    const val = this.editFormAuditoria.getRawValue();
+    const updatePayload = {
+      marca: String(val.marca).trim(),
+      linea: String(val.linea).trim(),
+      modelo: Number(val.modelo),
+      clase: String(val.clase || 'Automóvil').trim(),
+      tipoVehiculo: String(val.clase || 'Automóvil').trim(),
+      cilindraje: Number(val.cilindraje),
+      combustible: String(val.combustible || 'Gasolina').trim(),
+      servicio: String(val.servicio || 'Particular').trim(),
+      pasajeros: Number(val.pasajeros || 5),
+      organismoTransito: String(val.organismoTransito || 'Popayán - Cauca').trim(),
+      propietarioNombre: String(val.propietarioNombre || '').trim(),
+      propietarioDocumento: String(val.propietarioDocumento || '').trim(),
+      tipoVinculoPersonaId: Number(val.tipoVinculoPersonaId || 1),
+      porcentajePropiedad: Number(val.porcentajePropiedad || 100)
+    };
+
+    this.facade.actualizarVehiculo(id, updatePayload).subscribe({
+      next: () => {
+        this.modoEdicionAuditoria.set(false);
+        const actual = this.vehiculoAuditoriaModal();
+        if (actual) {
+          this.vehiculoAuditoriaModal.set({
+            ...actual,
+            marca: updatePayload.marca,
+            linea: updatePayload.linea,
+            modelo: updatePayload.modelo,
+            clase: updatePayload.clase,
+            tipoVehiculo: updatePayload.tipoVehiculo,
+            cilindraje: updatePayload.cilindraje,
+            combustible: updatePayload.combustible,
+            servicio: updatePayload.servicio,
+            pasajeros: updatePayload.pasajeros,
+            propietarioNombre: updatePayload.propietarioNombre,
+            propietarioDocumento: updatePayload.propietarioDocumento
+          });
+        }
+        this.facade.cargarPendientesAprobacion();
+
+        if (aprobarAlGuardar) {
+          this.onCambiarEstadoAprobacion(id, 'APROBADO');
+          this.cerrarAuditoriaModal();
+        } else {
+          this.toastMessage.set({
+            title: '✨ Datos Modificados',
+            desc: 'La información del vehículo fue actualizada exitosamente.',
+            type: 'success'
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error guardando cambios en auditoría:', err);
+        this.toastMessage.set({
+          title: '❌ Error al Guardar',
+          desc: err.message || 'No se pudieron actualizar los datos.',
+          type: 'error'
+        });
+      }
+    });
+  }
+
+  cerrarToast(): void {
+    this.toastMessage.set(null);
+  }
 
   toggleMenu(id: number, event: MouseEvent): void {
     event.stopPropagation();
@@ -36,16 +226,45 @@ export class Vehiculos implements OnInit {
 
   @HostListener('document:keydown.escape')
   handleEscapeKey(): void {
-    if (this.facade.isInactivarModalOpen()) {
+    if (this.vehiculoAuditoriaModal()) {
+      this.cerrarAuditoriaModal();
+    } else if (this.facade.isInactivarModalOpen()) {
       this.facade.cerrarInactivar();
     } else if (this.facade.isDrawerOpen()) {
       this.facade.cerrarRegistro();
     } else if (this.facade.isRuntModalOpen()) {
       this.facade.cerrarRunt();
+    } else if (this.facade.isModalPendientesOpen()) {
+      this.facade.cerrarModalPendientes();
     } else if (this.facade.selectedVehiculo()) {
       this.facade.deseleccionarVehiculo();
     }
     this.cerrarMenu();
+  }
+
+  onCambiarEstadoAprobacion(id: number, nuevoEstado: string): void {
+    this.facade.cambiarEstadoAprobacion(id, nuevoEstado).subscribe({
+      next: () => {
+        const msgMap: Record<string, string> = {
+          'APROBADO': '✅ Vehículo aprobado exitosamente. Ahora aparece en la flota activa.',
+          'REVISION': '🔄 Vehículo marcado para revisión de datos.',
+          'RECHAZADO': '❌ Vehículo rechazado.'
+        };
+        this.toastMessage.set({
+          title: 'Estado de Aprobación Actualizado',
+          desc: msgMap[nuevoEstado.toUpperCase()] || `Estado cambiado a ${nuevoEstado}`,
+          type: nuevoEstado.toUpperCase() === 'APROBADO' ? 'success' : 'info'
+        });
+      },
+      error: (err) => {
+        console.error('Error al cambiar estado de aprobación:', err);
+        this.toastMessage.set({
+          title: '❌ Error al actualizar estado',
+          desc: err.message || 'No se pudo cambiar el estado de aprobación.',
+          type: 'error'
+        });
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -357,7 +576,11 @@ export class Vehiculos implements OnInit {
       this.form.markAllAsTouched();
       if (this.form.get('placa')?.invalid || this.form.get('marca')?.invalid || this.form.get('linea')?.invalid) {
         this.facade.setStep(1);
-        alert('Por favor completa los campos obligatorios del Paso 1 (Placa, Marca, Línea).');
+        this.toastMessage.set({
+          title: '⚠️ Campos incompletos',
+          desc: 'Por favor completa los campos obligatorios del Paso 1 (Placa, Marca, Línea).',
+          type: 'info'
+        });
         return;
       }
     }
@@ -453,15 +676,22 @@ export class Vehiculos implements OnInit {
 
       this.facade.actualizarVehiculo(vehiculoId, updatePayload).subscribe({
         next: (response) => {
-          console.log('Vehículo actualizado exitosamente:', response);
           this.facade.refrescarDashboard();
           this.facade.cerrarRegistro();
-          alert(`¡Vehículo con placa ${payload.placa} actualizado exitosamente!`);
+          this.toastMessage.set({
+            title: '✨ ¡Vehículo Actualizado!',
+            desc: `Los datos de la placa ${payload.placa} se guardaron exitosamente.`,
+            type: 'success'
+          });
         },
         error: (err) => {
           console.error('Error actualizando vehículo:', err);
           const serverMessage = err.error?.message || err.message;
-          alert(`Error actualizando vehículo (${err.status || 500}): ${serverMessage || 'No se pudo guardar los cambios.'}`);
+          this.toastMessage.set({
+            title: '❌ Error al Actualizar',
+            desc: serverMessage || 'No se pudo guardar los cambios.',
+            type: 'error'
+          });
         }
       });
       return;
@@ -471,23 +701,24 @@ export class Vehiculos implements OnInit {
 
     this.facade.crearVehiculo(payload).subscribe({
       next: (response) => {
-        console.log('Vehículo registrado exitosamente:', response);
         this.facade.refrescarDashboard();
         this.facade.cerrarRegistro();
         this.initForm();
-        alert(`¡Vehículo con placa ${payload.placa} registrado exitosamente!`);
+        this.toastMessage.set({
+          title: '🎉 ¡Registro Exitoso!',
+          desc: `El vehículo con placa ${payload.placa} fue enviado a revisión. Ha quedado en estado PENDIENTE DE APROBACIÓN.`,
+          type: 'success'
+        });
       },
       error: (err) => {
         console.error('Error registrando vehículo en backend:', err);
         const serverMessage = err.error?.message || (Array.isArray(err.error?.errors) ? err.error.errors.join(', ') : (err.error?.errors ? JSON.stringify(err.error.errors) : null)) || err.message;
         
-        if (err.status === 409) {
-          alert(`Conflicto (409): ${serverMessage || `Ya existe un registro con estos datos (${payload.placa}).`}`);
-        } else if (err.status === 400) {
-          alert(`Error de validación (400): ${serverMessage || 'Revisa los campos requeridos.'}`);
-        } else {
-          alert(`Error del servidor (${err.status || 500}): ${serverMessage || 'No se pudo guardar el vehículo en la base de datos.'}`);
-        }
+        this.toastMessage.set({
+          title: '❌ Error al Registrar',
+          desc: serverMessage || 'No se pudo guardar el vehículo en la base de datos.',
+          type: 'error'
+        });
       }
     });
   }
