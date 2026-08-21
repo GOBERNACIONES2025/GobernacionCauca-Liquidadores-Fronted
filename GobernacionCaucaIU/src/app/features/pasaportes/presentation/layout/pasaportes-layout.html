@@ -1,0 +1,61 @@
+<div class="flex min-h-screen flex-col bg-[#F8FAFC] text-slate-800 font-sans">
+  <header class="sticky top-0 z-30 border-b border-blue-900/60 bg-[#1b53ad] text-white shadow-sm">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between gap-4">
+        <div class="flex min-w-0 items-center space-x-3">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#123f86] text-sm font-bold text-white shadow-sm">
+            <i class="fa-solid fa-landmark" aria-hidden="true"></i>
+          </div>
+          <div class="flex min-w-0 flex-col">
+            <span class="truncate text-sm font-extrabold leading-tight text-white sm:text-base">Gobernación del Cauca</span>
+            <span class="truncate text-[11px] font-medium leading-none text-blue-200">Portal Ciudadano · Pasaportes</span>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-2">
+          @if (isAdminDashboard) {
+            <button
+              type="button"
+              (click)="logout('liquidadores')"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-blue-300/40 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 sm:px-3.5"
+            >
+              <i class="fa-solid fa-arrow-left text-xs" aria-hidden="true"></i>
+              <span class="hidden sm:inline">Volver a Liquidadores</span>
+              <span class="sm:hidden">Volver</span>
+            </button>
+            <button
+              type="button"
+              (click)="logout('login')"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-blue-400/30 bg-[#123f86] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-950 sm:px-3.5"
+            >
+              <i class="fa-solid fa-right-from-bracket text-xs" aria-hidden="true"></i>
+              <span class="hidden sm:inline">Cerrar sesión</span>
+              <span class="sm:hidden">Salir</span>
+            </button>
+          } @else {
+            <a
+              routerLink="/pasaportes/admin/login"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-blue-300/40 bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-white/20 sm:px-3.5"
+            >
+              <i class="fa-solid fa-user-shield text-xs" aria-hidden="true"></i>
+              <span class="hidden sm:inline">Administrador</span>
+              <span class="sm:hidden">Admin</span>
+            </a>
+            <a
+              routerLink="/"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-blue-400/30 bg-[#123f86] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-950 sm:px-3.5"
+            >
+              <i class="fa-solid fa-arrow-left text-xs" aria-hidden="true"></i>
+              <span class="hidden sm:inline">Volver a Liquidadores</span>
+              <span class="sm:hidden">Volver</span>
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1">
+    <router-outlet />
+  </main>
+</div>
