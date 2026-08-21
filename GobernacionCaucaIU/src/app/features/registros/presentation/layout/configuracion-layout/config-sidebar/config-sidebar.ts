@@ -15,6 +15,8 @@ import { NaturalezasActoFacade } from '../../../../application/facades/Registro/
 import { TiposActoRegistroFacade } from '../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { TiposCalculoTarifaFacade } from '../../../../application/facades/Tarifas/tipos-calculo-tarifa.facade';
 import { TarifasFacade } from '../../../../application/facades/Tarifas/tarifas.facade';
+import { TiposBeneficiarioExencionFacade } from '../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
+import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 
 export interface CatalogItem {
   name: string;
@@ -50,6 +52,8 @@ export class ConfigSidebar {
   private tiposActoFacade = inject(TiposActoRegistroFacade);
   private tiposCalculoFacade = inject(TiposCalculoTarifaFacade);
   private tarifasFacade = inject(TarifasFacade);
+  private tiposBeneficiarioFacade = inject(TiposBeneficiarioExencionFacade);
+  private exencionesFacade = inject(ExencionesFacade);
 
   readonly closeSidebar = output<void>();
 
@@ -155,8 +159,17 @@ export class ConfigSidebar {
     {
       name: 'Exenciones',
       items: [
-        { name: 'Tipo de Beneficiario de Exención', count: 0 },
-        { name: 'Exención', count: 0, hasWarning: true }
+        { 
+          name: 'Tipo de Beneficiario de Exención', 
+          route: '/registros/configuracion/exenciones/tipo-beneficiario',
+          count: this.tiposBeneficiarioFacade.totalTiposBeneficiario() || this.tiposBeneficiarioFacade.tiposBeneficiario().length 
+        },
+        { 
+          name: 'Exención', 
+          route: '/registros/configuracion/exenciones/exenciones',
+          count: this.exencionesFacade.totalExenciones() || this.exencionesFacade.exenciones().length, 
+          hasWarning: true 
+        }
       ]
     },
     {

@@ -14,6 +14,8 @@ import { NaturalezasActo } from './presentation/pages/configuracion/actos-regist
 import { TiposActoRegistro } from './presentation/pages/configuracion/actos-registrales/tipos-acto-registro/tipos-acto-registro';
 import { TiposCalculoTarifa } from './presentation/pages/configuracion/tarifas/tipos-calculo-tarifa/tipos-calculo-tarifa';
 import { Tarifas } from './presentation/pages/configuracion/tarifas/tarifas/tarifas';
+import { TiposBeneficiarioExencionComponent } from './presentation/pages/configuracion/exenciones/tipos-beneficiario-exencion/tipos-beneficiario-exencion';
+import { Exenciones } from './presentation/pages/configuracion/exenciones/exenciones/exenciones';
 
 export const registrosRoutes: Routes = [
   {
@@ -85,12 +87,21 @@ export const registrosRoutes: Routes = [
           {
             path: 'tarifas/tarifas',
             component: Tarifas
+          },
+          {
+            path: 'exenciones/tipo-beneficiario',
+            component: TiposBeneficiarioExencionComponent
+          },
+          {
+            path: 'exenciones/exenciones',
+            component: Exenciones
           }
         ]
       }
     ]
   }
 ];
+
 
 
 
