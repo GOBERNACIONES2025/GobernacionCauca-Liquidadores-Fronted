@@ -29,6 +29,8 @@ import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/config
 import { ActosExencionComponent } from './presentation/pages/configuracion/exenciones/actos-exencion/actos-exencion';
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
+import { Registros } from './presentation/pages/registros/registros';
+
 export const registrosRoutes: Routes = [
   {
     path: '',
@@ -36,8 +38,12 @@ export const registrosRoutes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'configuracion',
+        redirectTo: 'liquidacion',
         pathMatch: 'full'
+      },
+      {
+        path: 'liquidacion',
+        component: Registros
       },
       {
         path: 'configuracion',

@@ -41,12 +41,21 @@ export class RegistrosTopbar {
 
   currentFormattedDate = computed(() => {
     const now = new Date();
-    return now.toLocaleDateString('es-CO', {
+    const dateStr = now.toLocaleDateString('es-CO', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
+    return `${dateStr.charAt(0).toUpperCase() + dateStr.slice(1)} · Vigencia 2025`;
+  });
+
+  pageTitle = computed(() => {
+    const url = this.router.url;
+    if (url.includes('configuracion')) {
+      return 'Configuración de Registros';
+    }
+    return 'Dashboard';
   });
 
   logout() {
