@@ -32,6 +32,7 @@ export class Normas implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+  selectedFile: File | null = null;
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -44,10 +45,7 @@ export class Normas implements OnInit {
     numero: ['', [Validators.required, Validators.maxLength(50)]],
     anio: [new Date().getFullYear(), [Validators.required, Validators.min(1900), Validators.max(2100)]],
     fechaExpedicion: [new Date().toISOString().split('T')[0], Validators.required],
-    descripcion: [''],
-    documentoNombreArchivo: ['norma.pdf'],
-    documentoRutaArchivo: ['/documentos/norma.pdf'],
-    documentoTipoArchivo: ['application/pdf']
+    descripcion: ['']
   });
 
   // Filtered list
@@ -111,11 +109,9 @@ export class Normas implements OnInit {
       numero: '',
       anio: currentYear,
       fechaExpedicion: new Date().toISOString().split('T')[0],
-      descripcion: '',
-      documentoNombreArchivo: 'norma.pdf',
-      documentoRutaArchivo: '/documentos/norma.pdf',
-      documentoTipoArchivo: 'application/pdf'
+      descripcion: ''
     });
+    this.selectedFile = null;
     this.isSlideOverOpen = true;
   }
 
@@ -130,11 +126,9 @@ export class Normas implements OnInit {
       numero: item.numero,
       anio: item.anio,
       fechaExpedicion: fExp,
-      descripcion: '',
-      documentoNombreArchivo: item.documentoNormativos?.[0]?.nombreArchivo || 'norma.pdf',
-      documentoRutaArchivo: item.documentoNormativos?.[0]?.rutaArchivo || '/documentos/norma.pdf',
-      documentoTipoArchivo: item.documentoNormativos?.[0]?.tipoArchivo || 'application/pdf'
+      descripcion: ''
     });
+    this.selectedFile = null;
     this.isSlideOverOpen = true;
   }
 
@@ -164,6 +158,14 @@ export class Normas implements OnInit {
   closeSlideOver() {
     this.isSlideOverOpen = false;
     this.selectedId = null;
+    this.selectedFile = null;
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+    }
   }
 
   saveNorma() {
@@ -193,17 +195,19 @@ export class Normas implements OnInit {
           }
         });
       } else {
-        this.facade.crear({
+        if (!this.selectedFile) {
+          this.toast.error('Debe adjuntar un documento normativo');
+          return;
+        }
+
+        this.facade.crear(this.selectedFile, {
           departamentoId: Number(val.departamentoId),
           tipoNormaId: Number(val.tipoNormaId),
           estadoNormaId: Number(val.estadoNormaId),
           numero: val.numero!,
           anio: Number(val.anio),
           fechaExpedicion: val.fechaExpedicion!,
-          descripcion: val.descripcion || '',
-          documentoNombreArchivo: val.documentoNombreArchivo || 'norma.pdf',
-          documentoRutaArchivo: val.documentoRutaArchivo || '/documentos/norma.pdf',
-          documentoTipoArchivo: val.documentoTipoArchivo || 'application/pdf'
+          descripcion: val.descripcion || ''
         }).subscribe({
           next: () => {
             this.toast.success(`Norma ${actionName} exitosamente`);

@@ -64,11 +64,16 @@ export class NormasApiService {
    * @description
    * Registra una nueva norma en el sistema con su documento normativo asociado.
    * 
+   * @param {File} file - El documento normativo adjunto.
    * @param {CrearNormaRequest} command - Datos de la nueva norma.
    * @returns {Observable<ApiResponse<number>>} ID de la norma creada.
    */
-  crear(command: CrearNormaRequest): Observable<ApiResponse<number>> {
-    return this.api.post<ApiResponse<number>>(this.baseUrl, command, {}, 'REGISTROS');
+  crear(file: File, command: CrearNormaRequest): Observable<ApiResponse<number>> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('requestJson', JSON.stringify(command));
+    
+    return this.api.post<ApiResponse<number>>(this.baseUrl, formData, {}, 'REGISTROS');
   }
 
   /**

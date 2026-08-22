@@ -62,9 +62,6 @@ export interface CrearNormaRequest {
   fechaExpedicion: string;
   descripcion?: string | null;
   estadoNormaId: number;
-  documentoNombreArchivo: string;
-  documentoRutaArchivo: string;
-  documentoTipoArchivo: string;
 }
 
 /**

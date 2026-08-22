@@ -303,6 +303,24 @@
       </div>
     </div>
 
+    <!-- Documento Normativo (Upload) -->
+    @if (!isEditMode) {
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Documento Adjunto (PDF)</span>
+        </label>
+        <input 
+          type="file" 
+          accept=".pdf,.doc,.docx"
+          (change)="onFileSelected($event)"
+          class="file-input file-input-sm file-input-bordered w-full text-slate-800" 
+        />
+        @if (!selectedFile) {
+          <label class="label pb-0"><span class="label-text-alt text-slate-500">Requerido para crear la norma</span></label>
+        }
+      </div>
+    }
+
     <!-- Descripción -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
