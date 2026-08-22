@@ -9,11 +9,13 @@ import { TiposNormaFacade } from '../../../../../application/facades/Normativida
 import { EstadosNormaFacade } from '../../../../../application/facades/Normatividad/estados-norma.facade';
 import { NormaListado } from '../../../../../domain/models/Normatividad/norma.model';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { DocumentViewerComponent } from '../../../../../../../shared/components/document-viewer/document-viewer';
+import { DocumentItem } from '../../../../../../../shared/components/document-viewer/document-viewer.model';
 
 @Component({
   selector: 'app-normas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, DocumentViewerComponent],
   templateUrl: './normas.html',
   styleUrl: './normas.css'
 })
@@ -33,6 +35,9 @@ export class Normas implements OnInit {
   isSlideOverOpen = false;
   selectedId: number | null = null;
   selectedFile: File | null = null;
+  
+  isViewerOpen = false;
+  currentDocs: DocumentItem[] = [];
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -159,6 +164,25 @@ export class Normas implements OnInit {
     this.isSlideOverOpen = false;
     this.selectedId = null;
     this.selectedFile = null;
+  }
+
+  openViewer(item: NormaListado) {
+    if (!item.documentoNormativos || item.documentoNormativos.length === 0) {
+      this.toast.info('Esta norma no tiene documentos adjuntos.');
+      return;
+    }
+    this.currentDocs = item.documentoNormativos.map(d => ({
+      id: d.id,
+      nombreArchivo: d.nombreArchivo,
+      rutaArchivo: d.rutaArchivo,
+      tipoArchivo: d.tipoArchivo
+    }));
+    this.isViewerOpen = true;
+  }
+
+  closeViewer() {
+    this.isViewerOpen = false;
+    this.currentDocs = [];
   }
 
   onFileSelected(event: any) {
