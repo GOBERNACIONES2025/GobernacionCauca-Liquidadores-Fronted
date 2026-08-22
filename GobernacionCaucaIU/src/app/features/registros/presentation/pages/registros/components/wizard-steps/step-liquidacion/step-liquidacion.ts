@@ -85,8 +85,8 @@ export class StepLiquidacionComponent implements OnInit {
             contribuyenteId: cId ? Number(cId) : null,
             contribuyenteNuevo: cId ? null : {
               id: null,
-              tipoPersonaId: isMain ? Number(p1.tipoPersonaId) : 1,
-              tipoIdentificacionId: isMain ? Number(p1.tipoIdentificacionId) : 1,
+              tipoPersonaId: isMain ? Number(p1.tipoPersonaId) : null,
+              tipoIdentificacionId: isMain ? Number(p1.tipoIdentificacionId) : null,
               numeroIdentificacion: i.documento,
               nombre: i.nombre,
               direccion: isMain ? p1.direccion : '',

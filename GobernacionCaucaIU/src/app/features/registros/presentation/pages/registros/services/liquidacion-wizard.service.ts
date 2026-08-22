@@ -39,18 +39,17 @@ export class LiquidacionWizardService {
   currentStep = signal<number>(1);
   
   // Datos fijos/temporales de la sesión
-  radicadoGenerado = signal<string>('RAD-2025-' + Math.floor(100000 + Math.random() * 900000));
+  radicadoGenerado = signal<string>('');
   fechaRadicado = signal<string>(new Date().toISOString().split('T')[0]);
-  vigenciaFiscal = signal<number>(2025);
-  departamentoNombre = signal<string>('Cundinamarca'); // Se ajustó a Cundinamarca por la imagen
+  vigenciaFiscal = signal<number | null>(null);
   
   // ===================== FORMULARIOS =====================
 
   // Paso 1: Radicación & Contribuyente
   paso1Form: FormGroup = this.fb.group({
     contribuyenteId: [null as number | null],
-    tipoPersonaId: [1, Validators.required],
-    tipoIdentificacionId: [1, Validators.required],
+    tipoPersonaId: [null as number | null, Validators.required],
+    tipoIdentificacionId: [null as number | null, Validators.required],
     numeroIdentificacion: ['', Validators.required],
     nombre: ['', Validators.required],
     email: [''],
@@ -58,7 +57,7 @@ export class LiquidacionWizardService {
     direccion: [''],
     
     // Datos de radicación
-    numeroRadicado: ['RAD-2025-' + Math.floor(100000 + Math.random() * 900000), Validators.required],
+    numeroRadicado: ['', Validators.required],
     fechaRadicado: [new Date().toISOString().split('T')[0], Validators.required],
     vigenciaFiscal: [null as number | null, Validators.required],
     departamentoId: [null as number | null, Validators.required],
@@ -106,18 +105,18 @@ export class LiquidacionWizardService {
 
   resetWizard() {
     this.currentStep.set(1);
-    this.radicadoGenerado.set('RAD-2025-' + Math.floor(100000 + Math.random() * 900000));
+    this.radicadoGenerado.set('');
     
     this.paso1Form.reset({
       contribuyenteId: null,
-      tipoPersonaId: 1,
-      tipoIdentificacionId: 1,
+      tipoPersonaId: null,
+      tipoIdentificacionId: null,
       numeroIdentificacion: '',
       nombre: '',
       email: '',
       telefono: '',
       direccion: '',
-      numeroRadicado: 'RAD-2025-' + Math.floor(100000 + Math.random() * 900000),
+      numeroRadicado: '',
       fechaRadicado: new Date().toISOString().split('T')[0],
       vigenciaFiscal: null,
       departamentoId: null,
