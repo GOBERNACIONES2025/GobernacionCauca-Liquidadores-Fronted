@@ -9,6 +9,7 @@ export interface ActoSimuladoDto {
 }
 
 export interface LiquidacionSimuladaResponse {
+  numeroLiquidacion: string;
   granTotalPagar: number;
   actos: ActoSimuladoDto[];
 }
