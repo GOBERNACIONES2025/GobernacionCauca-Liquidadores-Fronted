@@ -105,10 +105,12 @@ export class StepActosComponent {
     }
     const cNombre = this.wizardService.paso1Form.get('nombre')?.value;
     const cDoc = this.wizardService.paso1Form.get('numeroIdentificacion')?.value;
+    const cId = this.wizardService.paso1Form.get('contribuyenteId')?.value;
     const defaultRol = (this.rolesIntervinienteFacade.rolesInterviniente() as any[])[0];
     if (cNombre && defaultRol) {
       this.wizardService.intervinientesActoActual.set([{
         idTemp: Math.random().toString(),
+        contribuyenteId: cId ? Number(cId) : null,
         nombre: cNombre,
         documento: cDoc,
         rolId: defaultRol.id,

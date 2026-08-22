@@ -6,34 +6,68 @@
     </div>
     
     <div class="p-8">
-      @if (wizardService.resumenCalculo(); as resumen) {
-        <div class="max-w-2xl mx-auto space-y-6">
-          <div class="flex justify-between items-center py-3 border-b border-slate-100">
-            <span class="text-sm text-slate-600 font-medium">Total Base Gravable</span>
-            <span class="text-lg font-bold text-slate-800">{{ resumen.totalBaseGravable | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+      @if (isSimulating()) {
+        <div class="flex flex-col items-center justify-center py-12 gap-3 text-slate-500">
+          <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-sm font-medium">Calculando liquidación en el servidor...</span>
+        </div>
+      } @else if (wizardService.liquidacionSimulada(); as resumen) {
+        <div class="max-w-3xl mx-auto space-y-6">
+          
+          <!-- Tabla de Desglose por Acto -->
+          <div class="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-100/50 border-b border-slate-200">
+                <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="px-4 py-3">Acto</th>
+                  <th class="px-4 py-3 text-right">Base</th>
+                  <th class="px-4 py-3 text-right">Tarifa</th>
+                  <th class="px-4 py-3 text-right text-emerald-600">Exención</th>
+                  <th class="px-4 py-3 text-right text-blue-700">A Pagar</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (acto of resumen.actos; track acto.tipoActoRegistroId) {
+                  <tr>
+                    <td class="px-4 py-3">
+                      <div class="font-medium text-slate-800">{{ acto.nombreTipoActo }}</div>
+                      <div class="text-[10px] text-slate-400 font-mono">{{ acto.codigoTipoActo }}</div>
+                    </td>
+                    <td class="px-4 py-3 text-right text-slate-600">{{ acto.baseCalculo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                    <td class="px-4 py-3 text-right text-slate-600">{{ acto.tarifaAplicada }}%</td>
+                    <td class="px-4 py-3 text-right font-medium text-emerald-600">
+                      {{ acto.valorDescontado > 0 ? '-' : '' }}{{ acto.valorDescontado | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="px-4 py-3 text-right font-bold text-blue-700">{{ acto.valorPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                  </tr>
+                }
+                @if (resumen.actos.length === 0) {
+                  <tr>
+                    <td colspan="5" class="px-4 py-6 text-center text-slate-400 italic">No hay actos registrados para liquidar.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
-          <div class="flex justify-between items-center py-3 border-b border-slate-100">
-            <span class="text-sm text-slate-600 font-medium">Impuesto de Registro Calculado</span>
-            <span class="text-lg font-bold text-slate-800">{{ resumen.totalImpuesto | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
-          </div>
-          <div class="flex justify-between items-center py-3 border-b border-slate-100">
-            <span class="text-sm text-emerald-600 font-medium">Descuentos por Exenciones (-)</span>
-            <span class="text-lg font-bold text-emerald-600">{{ resumen.totalExencion | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
-          </div>
-          <div class="flex justify-between items-center py-4 px-6 bg-blue-50/50 rounded-xl border border-blue-100">
-            <span class="text-base font-bold text-blue-900 uppercase">Total a Pagar Estimado</span>
-            <span class="text-3xl font-black text-blue-700">{{ resumen.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+
+          <!-- Total Global -->
+          <div class="flex justify-between items-center py-4 px-6 bg-blue-50/50 rounded-xl border border-blue-100 mt-4 shadow-sm">
+            <span class="text-base font-bold text-blue-900 uppercase">Gran Total A Pagar</span>
+            <span class="text-4xl font-black text-blue-700">{{ resumen.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
           </div>
         </div>
       }
     </div>
     
     <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center">
-      <button (click)="retroceder()" [disabled]="isGenerating" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors disabled:opacity-50">
+      <button (click)="retroceder()" [disabled]="isGenerating()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors disabled:opacity-50">
         ← Volver a Actos
       </button>
-      <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating" class="px-8 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-3 disabled:opacity-70">
-        @if (isGenerating) {
+      <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating()" class="px-8 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-3 disabled:opacity-70">
+        @if (isGenerating()) {
           <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>

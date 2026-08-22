@@ -1,8 +1,10 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
 
 export interface IntervinienteTemp {
   idTemp: string;
+  contribuyenteId?: number | null;
   nombre: string;
   documento: string;
   rolId: number;
@@ -58,8 +60,8 @@ export class LiquidacionWizardService {
     // Datos de radicación
     numeroRadicado: ['RAD-2025-' + Math.floor(100000 + Math.random() * 900000), Validators.required],
     fechaRadicado: [new Date().toISOString().split('T')[0], Validators.required],
-    vigenciaFiscal: [new Date().getFullYear(), [Validators.required, Validators.min(1900)]],
-    departamentoId: [1, Validators.required],
+    vigenciaFiscal: [null as number | null, Validators.required],
+    departamentoId: [null as number | null, Validators.required],
     observacionRadicacion: ['']
   });
 
@@ -71,6 +73,8 @@ export class LiquidacionWizardService {
     municipioJurisdiccionId: [null as number | null, Validators.required],
     descripcionDocumento: ['']
   });
+  
+  documentoSoporteFile: File | null = null;
 
   // Paso 3: Actos
   isAddingActo = signal<boolean>(true);
@@ -96,38 +100,9 @@ export class LiquidacionWizardService {
   // Paso 4: Liquidación
   liquidacionGeneradaExitosa = signal<boolean>(false);
   idLiquidacionFinal = signal<number | null>(null);
-  resumenCalculo = signal<{
-    totalBaseGravable: number;
-    totalImpuesto: number;
-    totalExencion: number;
-    totalPagar: number;
-  } | null>(null);
+  liquidacionSimulada = signal<LiquidacionSimuladaResponse | null>(null);
 
   // MÉTODOS DE UTILIDAD
-  
-  calcularResumenEstimado() {
-    let totalBase = 0;
-    let totalImp = 0;
-    let totalExen = 0;
-
-    this.actosExpediente().forEach(a => {
-      const base = a.baseDeclarada || a.valorActo || 0;
-      totalBase += base;
-      const imp = Math.round(base * 0.01);
-      totalImp += imp;
-      if (a.exencionId) {
-        totalExen += Math.round(imp * 0.5);
-      }
-    });
-
-    const totalPagar = Math.max(0, totalImp - totalExen);
-    this.resumenCalculo.set({
-      totalBaseGravable: totalBase,
-      totalImpuesto: totalImp,
-      totalExencion: totalExen,
-      totalPagar: totalPagar
-    });
-  }
 
   resetWizard() {
     this.currentStep.set(1);
@@ -144,7 +119,7 @@ export class LiquidacionWizardService {
       direccion: '',
       numeroRadicado: 'RAD-2025-' + Math.floor(100000 + Math.random() * 900000),
       fechaRadicado: new Date().toISOString().split('T')[0],
-      vigenciaFiscal: new Date().getFullYear(),
+      vigenciaFiscal: null,
       departamentoId: null,
       observacionRadicacion: ''
     });
@@ -171,6 +146,7 @@ export class LiquidacionWizardService {
     this.isAddingActo.set(true);
     this.liquidacionGeneradaExitosa.set(false);
     this.idLiquidacionFinal.set(null);
-    this.resumenCalculo.set(null);
+    this.liquidacionSimulada.set(null);
+    this.documentoSoporteFile = null;
   }
 }

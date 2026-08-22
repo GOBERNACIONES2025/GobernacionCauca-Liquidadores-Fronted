@@ -17,21 +17,16 @@
         </span>
       </div>
 
-      <!-- Totales derecha -->
-      <div class="flex items-center gap-8 text-right">
-        <div>
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Vigencia</div>
-          <div class="text-sm font-semibold text-slate-900">{{ wizardService.vigenciaFiscal() }}</div>
+      <!-- Resumen Card Flotante -->
+      <div class="mt-8 bg-blue-900 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-4 opacity-10">
+          <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.64-2.25 1.64-1.74 0-2.1-.96-2.11-1.66H8.11c.02 1.36.93 2.58 2.79 2.96V19h2.34v-1.67c1.7-.35 2.88-1.41 2.88-3.08 0-1.89-1.33-2.65-3.81-3.11z"/></svg>
         </div>
-        <div>
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Radicado</div>
-          <div class="text-sm font-semibold text-slate-900">{{ wizardService.fechaRadicado() }}</div>
-        </div>
-        <div>
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Liquidado</div>
-          <div class="text-lg font-bold text-emerald-600">
-            {{ wizardService.resumenCalculo()?.totalPagar ? (wizardService.resumenCalculo()?.totalPagar | currency:'COP':'symbol-narrow':'1.0-0') : '$ 0' }}
-          </div>
+        <div class="relative z-10">
+          <p class="text-blue-200 text-sm font-semibold mb-1 uppercase tracking-wider">Gran Total Estimado</p>
+          <p class="text-3xl font-black">
+            {{ wizardService.liquidacionSimulada()?.granTotalPagar ? (wizardService.liquidacionSimulada()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0') : '$ 0' }}
+          </p>
         </div>
       </div>
     </div>

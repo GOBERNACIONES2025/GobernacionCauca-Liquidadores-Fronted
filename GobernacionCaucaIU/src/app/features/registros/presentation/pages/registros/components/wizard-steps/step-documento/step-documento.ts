@@ -17,7 +17,22 @@ export class StepDocumentoComponent {
   entidadesFacade = inject(EntidadesRegistroFacade);
   municipiosFacade = inject(MunicipiosFacade);
 
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.wizardService.documentoSoporteFile = file;
+    } else {
+      this.wizardService.documentoSoporteFile = null;
+    }
+  }
+
   continuar() {
+    if (!this.wizardService.documentoSoporteFile) {
+      // Idealmente mostraríamos un toast o alerta aquí
+      alert('Debe adjuntar el documento soporte antes de continuar.');
+      return;
+    }
+
     if (this.wizardService.paso2Form.valid) {
       this.wizardService.currentStep.set(3);
     } else {

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { LiquidacionWizardService } from '../../../services/liquidacion-wizard.service';
@@ -6,6 +6,7 @@ import { ContribuyentesFacade } from '../../../../../../application/facades/Cont
 import { TiposPersonaFacade } from '../../../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
 import { DepartamentosFacade } from '../../../../../../application/facades/Territorios/departamentos.facade';
+import { VigenciasFacade } from '../../../../../../application/facades/Normatividad/vigencias.facade';
 
 @Component({
   selector: 'app-step-radicacion',
@@ -13,17 +14,22 @@ import { DepartamentosFacade } from '../../../../../../application/facades/Terri
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './step-radicacion.html'
 })
-export class StepRadicacionComponent {
+export class StepRadicacionComponent implements OnInit {
   wizardService = inject(LiquidacionWizardService);
   
   contribuyentesFacade = inject(ContribuyentesFacade);
   tiposPersonaFacade = inject(TiposPersonaFacade);
   tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
   deptFacade = inject(DepartamentosFacade);
+  vigenciasFacade = inject(VigenciasFacade);
   
   // Nuevo estado para la creación
   modoCreacion = false;
   busquedaRealizada = false;
+
+  ngOnInit() {
+    this.vigenciasFacade.cargarVigencias(1, 100);
+  }
 
   buscarContribuyente() {
     const numDoc = this.wizardService.paso1Form.get('numeroIdentificacion')?.value?.trim();
