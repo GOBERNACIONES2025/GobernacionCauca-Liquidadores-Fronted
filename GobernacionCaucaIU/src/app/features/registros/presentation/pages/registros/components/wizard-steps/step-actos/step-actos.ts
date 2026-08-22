@@ -43,7 +43,7 @@ export class StepActosComponent {
       this.wizardService.intervinienteForm.reset({
         nombre: '',
         documento: '',
-        rolId: (this.rolesIntervinienteFacade.rolesInterviniente() as any[])[0]?.id || null,
+        rolId: null,
         porcentaje: 100
       });
     } else {
@@ -66,9 +66,9 @@ export class StepActosComponent {
         tipoActoId: Number(val.tipoActoRegistroId),
         tipoActoCodigo: tipoActo?.codigo || '',
         tipoActoNombre: tipoActo?.nombre || '',
-        categoriaNombre: tipoActo?.categoriaNaturalezaJuridica?.nombre || 'General',
-        naturalezaNombre: tipoActo?.naturalezaJuridica?.nombre || 'General',
-        tarifaInfo: 'Con Cuantía (1%)', // Simplificado
+        categoriaNombre: tipoActo?.categoriaNaturalezaJuridica?.nombre || '',
+        naturalezaNombre: tipoActo?.naturalezaJuridica?.nombre || '',
+        tarifaInfo: '',
         valorActo: Number(val.valorActo),
         baseDeclarada: Number(val.baseDeclarada),
         matriculaInmobiliaria: val.matriculaInmobiliaria,
@@ -81,7 +81,7 @@ export class StepActosComponent {
       this.wizardService.actosExpediente.update(list => [...list, nuevoActo]);
       this.wizardService.isAddingActo.set(false);
       this.wizardService.actoForm.reset({
-        tipoActoRegistroId: (this.tiposActoFacade.tiposActoRegistro() as any[])[0]?.id || null,
+        tipoActoRegistroId: null,
         valorActo: 0,
         baseDeclarada: 0,
         matriculaInmobiliaria: '',
@@ -100,9 +100,6 @@ export class StepActosComponent {
 
   abrirFormularioNuevoActo() {
     this.wizardService.isAddingActo.set(true);
-    if (!this.wizardService.actoForm.get('tipoActoRegistroId')?.value && (this.tiposActoFacade.tiposActoRegistro() as any[]).length > 0) {
-      this.wizardService.actoForm.patchValue({ tipoActoRegistroId: (this.tiposActoFacade.tiposActoRegistro() as any[])[0].id });
-    }
     const cNombre = this.wizardService.paso1Form.get('nombre')?.value;
     const cDoc = this.wizardService.paso1Form.get('numeroIdentificacion')?.value;
     const cId = this.wizardService.paso1Form.get('contribuyenteId')?.value;

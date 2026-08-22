@@ -14,10 +14,10 @@
         </thead>
         <tbody>
           <tr>
-            <td class="pt-4 font-bold text-slate-700 text-sm">LIQ-2025-{{ wizardService.idLiquidacionFinal() || 43883 }}</td>
+            <td class="pt-4 font-bold text-slate-700 text-sm">{{ wizardService.liquidacionSimulada()?.numeroLiquidacion || ('No. ' + wizardService.idLiquidacionFinal()) }}</td>
             <td class="pt-4 font-bold text-slate-900 text-lg">{{ wizardService.liquidacionSimulada()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
-            <td class="pt-4 font-bold text-red-500 text-sm">{{ vencimientoDate }}</td>
-            <td class="pt-4 font-bold text-red-500 text-sm">{{ wizardService.liquidacionSimulada()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td class="pt-4 font-bold text-slate-600 text-sm">{{ todayDate }}</td>
+            <td class="pt-4 font-bold text-emerald-600 text-sm">{{ wizardService.liquidacionSimulada()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
           </tr>
         </tbody>
       </table>

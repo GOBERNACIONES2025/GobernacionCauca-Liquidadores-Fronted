@@ -49,33 +49,34 @@ export class StepLiquidacionComponent implements OnInit {
     return {
       contribuyente: {
         id: p1.contribuyenteId ? Number(p1.contribuyenteId) : null,
-        tipoPersonaId: Number(p1.tipoPersonaId),
-        tipoIdentificacionId: Number(p1.tipoIdentificacionId),
-        numeroIdentificacion: p1.numeroIdentificacion,
-        nombre: p1.nombre,
-        email: p1.email,
-        telefono: p1.telefono,
-        direccion: p1.direccion
+        tipoPersonaId: Number(p1.tipoPersonaId) || 1,
+        tipoIdentificacionId: Number(p1.tipoIdentificacionId) || 1,
+        numeroIdentificacion: p1.numeroIdentificacion || '',
+        nombre: p1.nombre || '',
+        email: p1.email || null,
+        telefono: p1.telefono || null,
+        direccion: p1.direccion || null
       },
       radicacion: {
-        numeroRadicado: p1.numeroRadicado,
-        fechaRadicacion: p1.fechaRadicado,
+        numeroRadicado: p1.numeroRadicado || '',
+        fechaRadicacion: p1.fechaRadicado || new Date().toISOString().split('T')[0],
         vigenciaId: Number(p1.vigenciaFiscal),
         departamentoId: Number(p1.departamentoId),
-        observacion: p1.observacionRadicacion
+        observacion: p1.observacionRadicacion || null
       },
       documento: {
-        numeroDocumento: p2.numeroDocumento,
-        fechaDocumento: p2.fechaDocumento,
+        numeroDocumento: p2.numeroDocumento || '',
+        fechaDocumento: p2.fechaDocumento || new Date().toISOString().split('T')[0],
         entidadRegistroId: Number(p2.entidadRegistroId),
         municipioJurisdiccionId: Number(p2.municipioJurisdiccionId),
-        descripcion: p2.descripcionDocumento
+        descripcion: p2.descripcionDocumento || null
       },
       actos: actosTemp.map(a => ({
         tipoActoRegistroId: a.tipoActoId,
         inmuebleId: null,
-        valorActo: a.valorActo,
-        baseDeclarada: a.baseDeclarada,
+        valorActo: Number(a.valorActo),
+        baseDeclarada: Number(a.baseDeclarada),
+        observacion: null,
         exencionesIds: a.exencionId ? [a.exencionId] : [],
         intervinientes: a.intervinientes.map(i => {
           const isMain = i.documento === p1.numeroIdentificacion;
@@ -85,16 +86,16 @@ export class StepLiquidacionComponent implements OnInit {
             contribuyenteId: cId ? Number(cId) : null,
             contribuyenteNuevo: cId ? null : {
               id: null,
-              tipoPersonaId: isMain ? Number(p1.tipoPersonaId) : null,
-              tipoIdentificacionId: isMain ? Number(p1.tipoIdentificacionId) : null,
+              tipoPersonaId: isMain ? (Number(p1.tipoPersonaId) || 1) : 1,
+              tipoIdentificacionId: isMain ? (Number(p1.tipoIdentificacionId) || 1) : 1,
               numeroIdentificacion: i.documento,
               nombre: i.nombre,
-              direccion: isMain ? p1.direccion : '',
-              telefono: isMain ? p1.telefono : '',
-              email: isMain ? p1.email : ''
+              direccion: isMain ? (p1.direccion || null) : null,
+              telefono: isMain ? (p1.telefono || null) : null,
+              email: isMain ? (p1.email || null) : null
             },
-            rolIntervinienteId: i.rolId,
-            porcentajeParticipacion: i.porcentaje
+            rolIntervinienteId: Number(i.rolId),
+            porcentajeParticipacion: Number(i.porcentaje)
           };
         })
       }))

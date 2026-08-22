@@ -18,12 +18,6 @@ export class StepPagoComponent {
   get todayDate(): string {
     return new Date().toISOString().split('T')[0];
   }
-  
-  get vencimientoDate(): string {
-    const d = new Date();
-    d.setDate(d.getDate() + 15);
-    return d.toISOString().split('T')[0];
-  }
 
   descargarLiquidacionPdf() {
     const id = this.wizardService.idLiquidacionFinal();

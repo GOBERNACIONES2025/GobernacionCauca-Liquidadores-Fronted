@@ -54,8 +54,8 @@ export class StepRadicacionComponent implements OnInit {
       this.modoCreacion = true;
       this.wizardService.paso1Form.patchValue({
         contribuyenteId: null,
-        tipoPersonaId: (this.tiposPersonaFacade.tiposPersona() as any[])[0]?.id || null,
-        tipoIdentificacionId: (this.tiposIdentificacionFacade.tiposIdentificacion() as any[])[0]?.id || null,
+        tipoPersonaId: null,
+        tipoIdentificacionId: null,
         nombre: '',
         email: '',
         telefono: '',
