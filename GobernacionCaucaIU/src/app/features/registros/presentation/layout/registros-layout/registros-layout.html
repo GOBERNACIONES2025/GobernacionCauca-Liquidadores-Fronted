@@ -1,0 +1,31 @@
+<!-- Data Theme Scoped to Registros -->
+<div data-theme="tema-registros" class="flex h-screen w-full bg-base-100 overflow-hidden font-sans text-base-content selection:bg-primary/20">
+  
+  <!-- Main Sidebar -->
+  <div 
+    class="shrink-0 h-full transition-all duration-300 overflow-hidden"
+    [class.w-64]="!isSidebarCollapsed()"
+    [class.w-0]="isSidebarCollapsed()"
+    [class.hidden]="isSidebarCollapsed()"
+  >
+    <app-registros-sidebar 
+      [isCollapsed]="isSidebarCollapsed()" 
+      (toggleCollapse)="toggleSidebar()">
+    </app-registros-sidebar>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-base-100">
+    
+    <!-- Topbar -->
+    <app-registros-topbar (toggleSidebar)="toggleSidebar()"></app-registros-topbar>
+
+    <!-- Page Content -->
+    <main class="flex-1 overflow-hidden relative bg-base-100">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>
+

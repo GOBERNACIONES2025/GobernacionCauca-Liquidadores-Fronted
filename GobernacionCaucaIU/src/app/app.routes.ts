@@ -4,6 +4,7 @@ import { AutomotoresLayout } from './features/automotores/presentation/layout/au
 import { Vehiculos } from './features/automotores/presentation/pages/vehiculos/vehiculos';
 import { ContribuyentesIndex } from './features/automotores/presentation/pages/contribuyentes-index/contribuyentes-index';
 import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
+import { LiquidacionesPage } from './features/automotores/presentation/pages/liquidaciones/liquidaciones';
 
 export const routes: Routes = [
   {
@@ -29,13 +30,22 @@ export const routes: Routes = [
         component: Vehiculos,
       },
       {
-    path: 'contribuyentes-index',
-    component: ContribuyentesIndex,
-  },
+        path: 'contribuyentes-index',
+        component: ContribuyentesIndex,
+      },
       {
-        path: '**',
-        redirectTo: 'portal-ciudadano',
+        path: 'liquidaciones',
+        component: LiquidacionesPage,
+      },
+      {
+        path: 'facturacion',
+        redirectTo: 'liquidaciones',
+        pathMatch: 'full',
       },
     ],
   },
+  {
+    path: 'registros',
+    loadChildren: () => import('./features/registros/registros.routes').then(m => m.registrosRoutes)
+  }
 ];

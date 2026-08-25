@@ -1,0 +1,73 @@
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+  
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+    <!-- Tabla Superior de Saldos -->
+    <div class="p-6">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="text-[10px] uppercase font-bold text-slate-400 tracking-widest border-b border-slate-100">
+            <th class="pb-3">Liquidación</th>
+            <th class="pb-3">Valor Total</th>
+            <th class="pb-3">Vence</th>
+            <th class="pb-3">Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="pt-4 font-bold text-slate-700 text-sm">LIQ-2025-{{ wizardService.idLiquidacionFinal() || 43883 }}</td>
+            <td class="pt-4 font-bold text-slate-900 text-lg">{{ wizardService.resumenCalculo()?.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+            <td class="pt-4 font-bold text-red-500 text-sm">{{ vencimientoDate }}</td>
+            <td class="pt-4 font-bold text-red-500 text-sm">{{ wizardService.resumenCalculo()?.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <hr class="border-slate-100">
+
+    <!-- Formulario Registrar Pago -->
+    <div class="p-6">
+      <div class="flex items-center gap-2 mb-6">
+        <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+        <h4 class="text-sm font-semibold text-slate-800">Registrar pago</h4>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Fecha de pago *</label>
+          <input type="date" [value]="todayDate" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 outline-none" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Medio de pago *</label>
+          <select class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 outline-none">
+            <option value="">Seleccione...</option>
+            <option value="1">Transferencia PSE</option>
+            <option value="2">Consignación Bancaria</option>
+            <option value="3">Efectivo en Caja</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="mb-6">
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">Referencia / comprobante (recomendado)</label>
+        <input type="text" placeholder="Ej: PSE-20258804-887712" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 outline-none" />
+      </div>
+      
+      <div class="bg-blue-50/50 p-4 rounded-lg flex justify-between items-center border border-blue-100 mb-6">
+        <span class="text-xs font-bold text-blue-900">Valor a registrar:</span>
+        <span class="text-lg font-black text-blue-800">{{ wizardService.resumenCalculo()?.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+      </div>
+      
+      <div class="flex justify-end">
+        <button (click)="finalizar()" class="px-8 py-2.5 bg-slate-200 text-slate-500 font-bold text-sm rounded-lg flex items-center gap-2 hover:bg-slate-300 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Confirmar pago
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

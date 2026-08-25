@@ -1,0 +1,50 @@
+<header class="h-14 bg-base-100 border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 shrink-0 w-full z-10 relative">
+  
+  <!-- Left Side: Toggle button, Title & Date -->
+  <div class="flex items-center gap-3">
+    <button 
+      (click)="toggleSidebar.emit()"
+      class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors"
+      title="Alternar menú">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+    <div class="flex flex-col">
+      <h1 class="text-sm font-bold text-slate-800 leading-tight">{{ pageTitle() }}</h1>
+      <span class="text-[11px] text-slate-400 hidden sm:inline capitalize">{{ currentFormattedDate() }}</span>
+    </div>
+  </div>
+
+  <!-- Right Side: Actions & Profile -->
+  <div class="flex items-center gap-3">
+    
+    <div class="dropdown dropdown-end">
+      <div tabindex="0" role="button" class="flex items-center gap-2 hover:bg-base-200 p-1 pr-2 rounded-full transition-colors cursor-pointer">
+        <div class="avatar placeholder">
+          <div class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs">
+            {{ userInitials() }}
+          </div>
+        </div>
+        <div class="flex flex-col text-left hidden sm:flex">
+          <span class="text-xs font-bold text-slate-800 leading-none">{{ userName() }}</span>
+          <span class="text-[10px] text-slate-400 leading-none mt-1">{{ userRole() }}</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-slate-400">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </div>
+      <ul tabindex="0" class="dropdown-content z-20 menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-4 border border-slate-200 text-xs">
+        <li class="px-3 py-2 border-b border-slate-100">
+          <div class="flex flex-col gap-0.5 p-0">
+            <span class="font-bold text-slate-800">{{ userName() }}</span>
+            <span class="text-[10px] text-slate-400">{{ currentUser()?.email || 'Sin correo' }}</span>
+          </div>
+        </li>
+        <li><a (click)="logout()" class="text-error font-medium">Cerrar Sesión</a></li>
+      </ul>
+    </div>
+
+  </div>
+</header>
+
