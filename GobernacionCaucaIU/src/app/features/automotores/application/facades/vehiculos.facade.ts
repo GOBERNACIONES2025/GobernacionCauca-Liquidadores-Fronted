@@ -1,7 +1,10 @@
 import { inject, Injectable, signal, computed } from '@angular/core';
 import { forkJoin, of, Observable } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { BaseApiService } from '../../../../core/services/base-api.service';
+import { VehiculosApiService } from '../../infrastructure/api/vehiculos-api.service';
+import { CatalogoApiService } from '../../infrastructure/api/catalogo-api.service';
+import { DepartamentosApiService } from '../../infrastructure/api/departamentos-api.service';
+import { PropietariosApiService } from '../../infrastructure/api/propietarios-api.service';
 import { 
   ApiResponse,
   VehiculoItem, 
@@ -14,14 +17,18 @@ import {
   CatalogoNaturalezaJuridica,
   CatalogoDepartamento,
   CatalogoCiudad,
-  RegistrarVehiculoDto 
+  RegistrarVehiculoDto,
+  TodosCatalogosDto
 } from '../../domain/models/vehiculo.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehiculosFacade {
-  private api = inject(BaseApiService);
+  private vehiculosApi = inject(VehiculosApiService);
+  private catalogoApi = inject(CatalogoApiService);
+  private departamentosApi = inject(DepartamentosApiService);
+  private propietariosApi = inject(PropietariosApiService);
 
   // --------------------------------------------------------------------------
   // ESTADOS PRINCIPALES (SIGNALS)
@@ -135,25 +142,25 @@ export class VehiculosFacade {
   // CARGA DE KPIS DEL DASHBOARD (GET /api/vehiculos/kpis)
   // --------------------------------------------------------------------------
   cargarKpis(): void {
-    this.api.get<ApiResponse<any>>('/vehiculos/kpis', {}, 'AUTOMOTORES').pipe(
-      catchError(err => {
+    this.vehiculosApi.getKpis().pipe(
+      catchError((err: any) => {
         console.warn('Backend KPIs no disponible, usando métricas base:', err);
         return of(null);
       })
-    ).subscribe(res => {
+    ).subscribe((res: any) => {
       if (res && res.data) {
         const d = res.data;
         this.kpis.set({
-          vigenciaFiscal: d.vigenciaFiscalAnio ?? d.vigenciaFiscal ?? 2026,
-          vigenciaEstado: d.vigenciaFiscalEstado ?? d.vigenciaEstado ?? 'ACTIVA',
-          vigenciaFecha: d.vigenciaFiscalFechaInicio ?? d.vigenciaFecha ?? '01/01/2026',
+          vigenciaFiscal: d.vigenciaFiscal ?? 2026,
+          vigenciaEstado: d.vigenciaEstado ?? 'ACTIVA',
+          vigenciaFecha: d.vigenciaFecha ?? '01/01/2026',
           valorUvt: Number(d.valorUvt) || 49799,
-          uvtVariacion: d.valorUvtIncremento ?? d.uvtVariacion ?? '+2.4%',
-          uvtNorma: d.valorUvtReferencia ?? d.uvtNorma ?? 'Ord. 004-2026 — UVT_2026',
+          uvtVariacion: d.uvtVariacion ?? '+2.4%',
+          uvtNorma: d.uvtNorma ?? 'Ord. 004-2026 — UVT_2026',
           sancionMinima: Number(d.sancionMinima) || 235000,
-          sancionDescripcion: d.sancionMinimaDetalle ?? d.sancionDescripcion ?? 'Liquidaciones extemporáneas',
+          sancionDescripcion: d.sancionDescripcion ?? 'Liquidaciones extemporáneas',
           auditadosHoy: Number(d.auditadosHoy) || 1420,
-          auditadosUltimo: d.ultimaAuditoriaDetalle ?? d.auditadosUltimo ?? 'hace 2 min · admin_user',
+          auditadosUltimo: d.auditadosUltimo ?? 'hace 2 min · admin_user',
           totalVehiculos: d.totalVehiculos ?? 0
         });
       }
@@ -167,28 +174,21 @@ export class VehiculosFacade {
     this.loading.set(true);
     this.error.set(null);
 
-    const params: Record<string, string | number> = {
-      page: page,
-      pageSize: pageSize
+    const filtros = {
+      page,
+      pageSize,
+      buscar: this.filtroTexto().trim() || undefined,
+      estado: this.filtroEstado(),
+      tipoVehiculo: this.filtroTipo()
     };
 
-    if (this.filtroTexto().trim()) {
-      params['buscar'] = this.filtroTexto().trim();
-    }
-    if (this.filtroEstado() !== 'Todos') {
-      params['estado'] = this.filtroEstado();
-    }
-    if (this.filtroTipo() !== 'Todos') {
-      params['tipoVehiculo'] = this.filtroTipo();
-    }
-
-    this.api.get<ApiResponse<any>>('/vehiculos', { params }, 'AUTOMOTORES').pipe(
-      catchError(err => {
+    this.vehiculosApi.getVehiculos(filtros).pipe(
+      catchError((err: any) => {
         console.warn('Error cargando vehículos de la API, manteniendo lista local:', err);
         this.error.set('No se pudo conectar con el servidor de vehículos.');
         return of(null);
       })
-    ).subscribe(res => {
+    ).subscribe((res: any) => {
       this.loading.set(false);
       if (res && res.data) {
         const rawItems = Array.isArray(res.data) ? res.data : (res.data.items || []);
@@ -278,7 +278,7 @@ export class VehiculosFacade {
   }
 
   inactivarVehiculo(id: number): Observable<any> {
-    return this.api.delete<ApiResponse<any>>(`/vehiculos/${id}`, {}, 'AUTOMOTORES').pipe(
+    return this.vehiculosApi.inactivarVehiculo(id).pipe(
       map(res => {
         this.refrescarDashboard();
         return res;
@@ -289,26 +289,23 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   // CARGA DE CATÁLOGOS DESDE EL BACKEND
   // --------------------------------------------------------------------------
-  // --------------------------------------------------------------------------
-  // CARGA DE CATÁLOGOS DESDE EL BACKEND (100% REAL-TIME DESDE SQL SERVER)
-  // --------------------------------------------------------------------------
   cargarCatalogos(): void {
     if (this.catalogosLoaded() || this.catalogosLoading()) return;
 
     this.catalogosLoading.set(true);
 
     forkJoin({
-      todos: this.api.get<ApiResponse<any>>('/catalogo/todos', {}, 'AUTOMOTORES').pipe(
-        map(res => res?.data || {}),
-        catchError(() => of({}))
+      todos: this.catalogoApi.getTodos().pipe(
+        map(res => res?.data || {} as TodosCatalogosDto),
+        catchError(() => of({} as TodosCatalogosDto))
       ),
-      departamentos: this.api.get<any>('/departamentos', {}, 'AUTOMOTORES').pipe(
-        map(res => (res?.data ? res.data : (Array.isArray(res) ? res : []))),
+      departamentos: this.departamentosApi.getDepartamentos().pipe(
+        map(res => (res && 'data' in res && res.data ? res.data : (Array.isArray(res) ? res : []))),
         catchError(() => of([] as CatalogoDepartamento[]))
       )
     }).subscribe({
-      next: (results) => {
-        const t = results.todos;
+      next: (results: { todos: TodosCatalogosDto; departamentos: CatalogoDepartamento[] }) => {
+        const t = results.todos || {};
         this.estadosMatricula.set(t.estadosMatricula || []);
         this.serviciosVehiculo.set(t.serviciosVehiculo || []);
         this.tiposVinculo.set(t.tiposVinculo || []);
@@ -321,7 +318,7 @@ export class VehiculosFacade {
         this.catalogosLoaded.set(true);
         this.catalogosLoading.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error cargando catálogos unificados:', err);
         this.catalogosLoading.set(false);
       }
@@ -334,10 +331,10 @@ export class VehiculosFacade {
       return;
     }
 
-    this.api.get<any>(`/departamentos/${departamentoId}/ciudades`, {}, 'AUTOMOTORES').pipe(
+    this.departamentosApi.getCiudadesByDepartamento(departamentoId).pipe(
       catchError(() => of(null))
-    ).subscribe(res => {
-      const data = res?.data || (Array.isArray(res) ? res : []);
+    ).subscribe((res: any) => {
+      const data = (res && 'data' in res && res.data) ? res.data : (Array.isArray(res) ? res : []);
       this.ciudadesDisponibles.set(data);
     });
   }
@@ -349,11 +346,9 @@ export class VehiculosFacade {
       return;
     }
 
-    const params: Record<string, string> = { tipoVehiculo: tipoVehiculo.trim() };
-
-    this.api.get<ApiResponse<CatalogoMarca[]>>('/catalogo/marcas', { params }, 'AUTOMOTORES').pipe(
+    this.catalogoApi.getMarcas(tipoVehiculo).pipe(
       catchError(() => of({ data: [] as CatalogoMarca[] }))
-    ).subscribe(res => {
+    ).subscribe((res: any) => {
       this.marcasDisponibles.set(res?.data || []);
     });
   }
@@ -364,15 +359,10 @@ export class VehiculosFacade {
       this.lineasDisponibles.set([]);
       return;
     }
-    
-    const params: Record<string, string> = { marca: marcaNorm };
-    if (tipoVehiculo?.trim()) {
-      params['tipoVehiculo'] = tipoVehiculo.trim();
-    }
 
-    this.api.get<ApiResponse<CatalogoLinea[]>>('/catalogo/lineas', { params }, 'AUTOMOTORES').pipe(
+    this.catalogoApi.getLineas(marcaNorm, undefined, tipoVehiculo).pipe(
       catchError(() => of({ data: [] as CatalogoLinea[] }))
-    ).subscribe(res => {
+    ).subscribe((res: any) => {
       this.lineasDisponibles.set(res?.data || []);
     });
   }
@@ -391,7 +381,7 @@ export class VehiculosFacade {
     this.buscandoPropietario.set(true);
     this.busquedaRealizada.set(true);
 
-    return this.api.get<ApiResponse<any>>(`/propietarios/documento/${tipo}/${numLimpio}`, {}, 'AUTOMOTORES').pipe(
+    return this.propietariosApi.getPropietarioByDocumento(tipo, numLimpio).pipe(
       map(res => {
         this.buscandoPropietario.set(false);
         const data = res.data || res;
@@ -416,7 +406,7 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   crearVehiculo(payload: RegistrarVehiculoDto): Observable<ApiResponse<any>> {
     this.registroLoading.set(true);
-    return this.api.post<ApiResponse<any>>('/vehiculos', payload, {}, 'AUTOMOTORES').pipe(
+    return this.vehiculosApi.crearVehiculo(payload).pipe(
       map(res => {
         this.registroLoading.set(false);
         return res;
@@ -433,7 +423,7 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   actualizarVehiculo(id: number, payload: any): Observable<ApiResponse<any>> {
     this.registroLoading.set(true);
-    return this.api.put<ApiResponse<any>>(`/vehiculos/${id}`, payload, {}, 'AUTOMOTORES').pipe(
+    return this.vehiculosApi.actualizarVehiculo(id, payload).pipe(
       map(res => {
         this.registroLoading.set(false);
         return res;
@@ -527,7 +517,7 @@ export class VehiculosFacade {
 
   cargarExpediente(id: number): Observable<any> {
     this.expedienteLoading.set(true);
-    return this.api.get<ApiResponse<any>>(`/vehiculos/${id}/expediente`, {}, 'AUTOMOTORES').pipe(
+    return this.vehiculosApi.getExpedienteById(id).pipe(
       map(res => {
         this.expedienteLoading.set(false);
         const data = res.data || res;
@@ -577,13 +567,13 @@ export class VehiculosFacade {
     if (!v || !v.id) return;
 
     this.inactivandoLoading.set(true);
-    this.api.delete<ApiResponse<any>>(`/vehiculos/${v.id}`, {}, 'AUTOMOTORES').subscribe({
-      next: (res) => {
+    this.vehiculosApi.inactivarVehiculo(v.id).subscribe({
+      next: (res: any) => {
         this.inactivandoLoading.set(false);
         this.cerrarInactivar();
         this.refrescarDashboard();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al inactivar vehículo:', err);
         this.inactivandoLoading.set(false);
       }

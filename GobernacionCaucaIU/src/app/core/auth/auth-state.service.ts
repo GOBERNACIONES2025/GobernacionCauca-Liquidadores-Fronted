@@ -13,7 +13,7 @@ export class AuthStateService {
   //Acá están las rutas bases de las apis by impuesto
   readonly moduleApiUrls = signal<Record<string, string>>({
     LOGIN: 'http://localhost:5000/api',
-    AUTOMOTORES: 'https://localhost:7250/api',
+    AUTOMOTORES: 'http://localhost:5023/api',
     REGISTROS: 'http://localhost:5002/api',
   });
 
