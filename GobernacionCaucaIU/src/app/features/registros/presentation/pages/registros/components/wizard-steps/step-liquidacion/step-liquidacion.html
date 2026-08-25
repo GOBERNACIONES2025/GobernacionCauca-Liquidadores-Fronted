@@ -70,23 +70,43 @@
     </div>
     
     <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center">
-      <button (click)="retroceder()" [disabled]="isGenerating()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors disabled:opacity-50">
-        ← Volver a Actos
-      </button>
-      <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating()" class="px-8 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-3 disabled:opacity-70">
-        @if (isGenerating()) {
-          <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Generando...
-        } @else {
-          Generar Liquidación Oficial
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        }
-      </button>
+      @if (!wizardService.liquidacionGeneradaExitosa()) {
+        <button (click)="retroceder()" [disabled]="isGenerating()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors disabled:opacity-50">
+          ← Volver a Actos
+        </button>
+        <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating()" class="px-8 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-3 disabled:opacity-70">
+          @if (isGenerating()) {
+            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generando...
+          } @else {
+            Generar Liquidación Oficial
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        </button>
+      } @else {
+        <button (click)="irABandeja()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors">
+          Ir a mis Liquidaciones
+        </button>
+        <button (click)="descargarLiquidacion()" [disabled]="isGenerating()" class="px-8 py-3 bg-green-600 text-white font-bold text-sm rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-500/30 flex items-center gap-3 disabled:opacity-70">
+          @if (isGenerating()) {
+            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Descargando...
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Descargar PDF Oficial
+          }
+        </button>
+      }
     </div>
   </div>
 </div>

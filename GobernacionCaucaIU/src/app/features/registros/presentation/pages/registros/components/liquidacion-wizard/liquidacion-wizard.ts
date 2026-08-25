@@ -1,5 +1,6 @@
-import { Component, inject, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, inject, Output, EventEmitter, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { LiquidacionWizardService } from '../../services/liquidacion-wizard.service';
 import { StepRadicacionComponent } from '../wizard-steps/step-radicacion/step-radicacion';
 import { StepDocumentoComponent } from '../wizard-steps/step-documento/step-documento';
@@ -17,6 +18,8 @@ import { DepartamentosFacade } from '../../../../../application/facades/Territor
 import { TiposActoRegistroFacade } from '../../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { ExencionesFacade } from '../../../../../application/facades/Exenciones/exenciones.facade';
 import { RolesIntervinienteFacade } from '../../../../../application/facades/Intervinientes/roles-interviniente.facade';
+import { SolicitudesLiquidacionFacade } from '../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
+import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-liquidacion-wizard',
@@ -33,6 +36,9 @@ import { RolesIntervinienteFacade } from '../../../../../application/facades/Int
 })
 export class LiquidacionWizardComponent implements OnInit {
   wizardService = inject(LiquidacionWizardService);
+  route = inject(ActivatedRoute);
+  solicitudesFacade = inject(SolicitudesLiquidacionFacade);
+  toast = inject(ToastService);
   
   // Inyectar facades para precargar los catálogos
   tpFacade = inject(TiposPersonaFacade);
@@ -47,8 +53,23 @@ export class LiquidacionWizardComponent implements OnInit {
   
   @Output() cancel = new EventEmitter<void>();
 
+  isLoading = signal<boolean>(false);
+
   ngOnInit() {
-    // Precargar todos los catálogos necesarios para los combos del wizard (100 registros por defecto)
+    this.precargarCatalogos();
+    
+    // Verificar si hay un ID en la ruta
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.cargarSolicitud(Number(id));
+      } else {
+        this.wizardService.resetWizard();
+      }
+    });
+  }
+
+  private precargarCatalogos() {
     this.tpFacade.cargarTiposPersona(1, 100);
     this.tiFacade.cargarTiposIdentificacion(1, 100);
     this.cFacade.cargarContribuyentes(1, 100);
@@ -58,6 +79,24 @@ export class LiquidacionWizardComponent implements OnInit {
     this.taFacade.cargarTiposActoRegistro(1, 100);
     this.exFacade.cargarExenciones(1, 100);
     this.riFacade.cargarRolesInterviniente(1, 100);
+  }
+
+  private cargarSolicitud(id: number) {
+    this.isLoading.set(true);
+    this.solicitudesFacade.obtenerSolicitudPorId(id).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.wizardService.cargarDatosDesdeSolicitud(res.data);
+        } else {
+          this.toast.error(res.message || 'Error al cargar la solicitud');
+        }
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.toast.error('Error de red al cargar la solicitud');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   steps = [
@@ -70,14 +109,12 @@ export class LiquidacionWizardComponent implements OnInit {
   ];
 
   isCompleted(stepId: number): boolean {
-    // Si estamos en un paso mayor, asumimos que los anteriores están completados
-    return this.wizardService.currentStep() > stepId;
+    return this.wizardService.etapaGuardada() >= stepId || this.wizardService.currentStep() > stepId;
   }
 
   setStep(stepId: number) {
     // Solo permitir navegar a pasos ya completados o al inmediatamente siguiente
-    // Por ahora para pruebas, permitimos navegar libremente hasta el step actual + 1
-    if (stepId <= this.wizardService.currentStep()) {
+    if (stepId <= this.wizardService.etapaGuardada() + 1) {
       this.wizardService.currentStep.set(stepId);
     }
   }

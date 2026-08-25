@@ -1,10 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { of, throwError } from 'rxjs';
+import { concatMap, catchError } from 'rxjs/operators';
 import { LiquidacionWizardService, ActoTemp, IntervinienteTemp } from '../../../services/liquidacion-wizard.service';
 import { TiposActoRegistroFacade } from '../../../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { ExencionesFacade } from '../../../../../../application/facades/Exenciones/exenciones.facade';
 import { RolesIntervinienteFacade } from '../../../../../../application/facades/Intervinientes/roles-interviniente.facade';
+import { SolicitudesLiquidacionFacade } from '../../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
+import { ToastService } from '../../../../../../../../core/services/toast.service';
+import { ActoRegistradoDto, IntervinienteActoDto } from '../../../../../../domain/models/Radicacion/solicitud-wizard.model';
 
 @Component({
   selector: 'app-step-actos',
@@ -18,6 +23,8 @@ export class StepActosComponent {
   tiposActoFacade = inject(TiposActoRegistroFacade);
   exencionesFacade = inject(ExencionesFacade);
   rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
+  solicitudesFacade = inject(SolicitudesLiquidacionFacade);
+  toastService = inject(ToastService);
 
   get selectedTipoActoDetalle() {
     const id = this.wizardService.actoForm.get('tipoActoRegistroId')?.value;
@@ -118,9 +125,57 @@ export class StepActosComponent {
   }
 
   continuar() {
-    if (this.wizardService.actosExpediente().length > 0) {
-      this.wizardService.currentStep.set(4);
+    if (this.wizardService.actosExpediente().length === 0) {
+      this.toastService.warning('Debe registrar al menos un acto.');
+      return;
     }
+
+    const solicitudId = this.wizardService.solicitudId();
+    if (!solicitudId) {
+      this.toastService.error('No se encontró el ID de la solicitud. Regrese al primer paso.');
+      return;
+    }
+
+    const actosPayload: ActoRegistradoDto[] = this.wizardService.actosExpediente().map(a => ({
+      tipoActoRegistroId: a.tipoActoId,
+      inmuebleId: null, // Si aplica
+      valorActo: a.valorActo,
+      baseDeclarada: a.baseDeclarada,
+      observacion: null,
+      exencionesIds: a.exencionId ? [a.exencionId] : []
+    }));
+
+    const todosIntervinientes = this.wizardService.actosExpediente().flatMap(a => a.intervinientes);
+    const intervinientesPayload: IntervinienteActoDto[] = todosIntervinientes.map(i => ({
+      contribuyenteId: i.contribuyenteId || null,
+      contribuyenteNuevo: i.contribuyenteId ? null : {
+        numeroIdentificacion: i.documento,
+        nombre: i.nombre
+      },
+      rolIntervinienteId: i.rolId,
+      porcentajeParticipacion: i.porcentaje
+    }));
+
+    this.solicitudesFacade.registrarActos(solicitudId, { actos: actosPayload }).pipe(
+      concatMap(res => {
+        if (res.success) {
+          return this.solicitudesFacade.registrarIntervinientes(solicitudId, { intervinientes: intervinientesPayload });
+        }
+        return throwError(() => new Error('Error al registrar actos'));
+      }),
+      catchError(err => {
+        this.toastService.error('Error al guardar actos e intervinientes. Intente de nuevo.');
+        return throwError(() => err);
+      })
+    ).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.wizardService.currentStep.set(4);
+          this.wizardService.etapaGuardada.set(4);
+          this.toastService.success('Actos e intervinientes guardados exitosamente');
+        }
+      }
+    });
   }
 
   retroceder() {

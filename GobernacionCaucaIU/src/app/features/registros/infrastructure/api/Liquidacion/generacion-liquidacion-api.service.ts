@@ -2,8 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
-import { GenerarLiquidacionDto } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
+import { 
+  GenerarLiquidacionDto, 
+  LiquidacionListadoDto
+} from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { LiquidacionSimuladaResponse } from '../../../domain/models/Liquidacion/liquidacion-simulada.model';
+import { PagedResult } from '../../../domain/models/Radicacion/solicitud-wizard.model';
 
 /**
  * @description
@@ -20,6 +24,12 @@ export class GeneracionLiquidacionApiService {
   private api = inject(BaseApiService);
   private readonly baseUrl = '/Liquidacion';
 
+  listarLiquidaciones(pageNumber: number = 1, pageSize: number = 10, search?: string): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
+    let url = `${this.baseUrl}?PageNumber=${pageNumber}&PageSize=${pageSize}`;
+    if (search) url += `&Search=${encodeURIComponent(search)}`;
+    return this.api.get<ApiResponse<PagedResult<LiquidacionListadoDto>>>(url, {}, 'REGISTROS');
+  }
+
   /**
    * @description
    * Simula el cálculo de la liquidación sin persistir en base de datos.
@@ -33,19 +43,13 @@ export class GeneracionLiquidacionApiService {
 
   /**
    * @description
-   * Envía el payload completo para liquidar actos de registro y generar el número de liquidación.
-   * Modificado para admitir multipart/form-data y adjuntar un archivo.
+   * Envía el payload con el ID de la solicitud para generar la liquidación definitiva.
    * 
-   * @param {File} file - Documento de soporte.
-   * @param {GenerarLiquidacionDto} command - Datos del contribuyente, radicación, documento, actos e intervinientes.
+   * @param {GenerarLiquidacionDto} command - Contiene el solicitudId.
    * @returns {Observable<ApiResponse<number>>} ID de la liquidación generada.
    */
-  generarLiquidacion(file: File, command: GenerarLiquidacionDto): Observable<ApiResponse<number>> {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('commandJson', JSON.stringify(command));
-    
-    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/generar`, formData, {}, 'REGISTROS');
+  generarLiquidacion(command: GenerarLiquidacionDto): Observable<ApiResponse<number>> {
+    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/generar`, command, {}, 'REGISTROS');
   }
 
   /**
@@ -57,5 +61,16 @@ export class GeneracionLiquidacionApiService {
    */
   descargarPdf(id: number): Observable<Blob> {
     return this.api.get<Blob>(`${this.baseUrl}/${id}/pdf`, { responseType: 'blob' }, 'REGISTROS');
+  }
+
+  /**
+   * @description
+   * Anula una liquidación oficial generada.
+   * 
+   * @param {number} id - Identificador de la liquidación.
+   * @param {string} motivo - Motivo de la anulación.
+   */
+  anularLiquidacion(id: number, motivo: string): Observable<ApiResponse<boolean>> {
+    return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${id}/anular`, { motivoAnulacion: motivo }, {}, 'REGISTROS');
   }
 }

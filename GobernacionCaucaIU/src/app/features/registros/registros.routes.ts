@@ -38,12 +38,24 @@ export const registrosRoutes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'liquidacion',
+        redirectTo: 'solicitudes',
         pathMatch: 'full'
       },
       {
-        path: 'liquidacion',
-        component: Registros
+        path: 'solicitudes',
+        loadComponent: () => import('./presentation/pages/registros/solicitudes-list/solicitudes-list').then(m => m.SolicitudesListComponent)
+      },
+      {
+        path: 'solicitudes/wizard',
+        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
+      },
+      {
+        path: 'solicitudes/wizard/:id',
+        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
+      },
+      {
+        path: 'liquidaciones',
+        loadComponent: () => import('./presentation/pages/registros/liquidaciones-list/liquidaciones-list').then(m => m.LiquidacionesListComponent)
       },
       {
         path: 'configuracion',
