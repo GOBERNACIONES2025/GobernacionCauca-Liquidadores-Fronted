@@ -38,7 +38,6 @@ export const registrosRoutes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'solicitudes',
         redirectTo: 'dashboard',
         pathMatch: 'full'
       },
