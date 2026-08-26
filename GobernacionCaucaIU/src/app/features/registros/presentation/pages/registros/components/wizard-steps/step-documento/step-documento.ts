@@ -35,6 +35,12 @@ export class StepDocumentoComponent {
     const tieneArchivoPrevio = !!this.wizardService.documentoSoporteNombre();
     const tieneArchivoNuevo = !!this.wizardService.documentoSoporteFile;
 
+    // Si ya está guardada esta etapa (>=2), no subieron archivo nuevo y no cambiaron campos del form: navegar sin guardar.
+    if (this.wizardService.etapaGuardada() >= 2 && !this.wizardService.documentoSoporteFile && !this.wizardService.paso2Form.dirty) {
+      this.wizardService.currentStep.set(3);
+      return;
+    }
+
     if (!tieneArchivoNuevo && !tieneArchivoPrevio && this.wizardService.etapaGuardada() < 2) {
       this.toastService.warning('Debe adjuntar el documento soporte antes de continuar.');
       return;

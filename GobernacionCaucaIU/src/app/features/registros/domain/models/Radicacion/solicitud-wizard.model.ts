@@ -26,8 +26,8 @@ export interface RegistrarDocumentoDto {
 }
 
 export interface IntervinienteActoDto {
-  contribuyenteId?: number | null;
-  contribuyenteNuevo?: RegistrarContribuyenteDto | null;
+  actoId: number;
+  contribuyenteId: number;
   rolIntervinienteId: number;
   porcentajeParticipacion: number;
 }
@@ -65,6 +65,7 @@ export interface SolicitudContribuyenteDto {
 export interface SolicitudIntervinienteActoDto {
   id: number;
   rolIntervinienteId: number;
+  rolIntervinienteNombre?: string;
   porcentajeParticipacion: number;
   contribuyente: SolicitudContribuyenteDto;
 }
@@ -72,6 +73,7 @@ export interface SolicitudIntervinienteActoDto {
 export interface SolicitudActoRegistradoDto {
   id: number;
   tipoActoRegistroId: number;
+  tipoActoRegistroNombre?: string;
   inmuebleId?: number | null;
   valorActo: number;
   baseDeclarada: number;

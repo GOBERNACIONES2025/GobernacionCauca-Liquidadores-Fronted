@@ -92,9 +92,26 @@ export class LiquidacionWizardService {
     exencionId: [null as number | null]
   });
 
-  intervinienteForm: FormGroup = this.fb.group({
+  // Paso 4: Intervinientes (NUEVO)
+  intervinienteSeleccionado = signal<any | null>(null);
+  creandoNuevoInterviniente = signal<boolean>(false);
+  actoSeleccionadoId = signal<string | null>(null);
+
+  intervinienteBusquedaForm: FormGroup = this.fb.group({
+    numeroIdentificacion: ['', Validators.required]
+  });
+
+  intervinienteNuevoForm: FormGroup = this.fb.group({
+    tipoPersonaId: [null as number | null, Validators.required],
+    tipoIdentificacionId: [null as number | null, Validators.required],
+    numeroIdentificacion: ['', Validators.required],
     nombre: ['', Validators.required],
-    documento: ['', Validators.required],
+    email: [''],
+    telefono: [''],
+    direccion: ['']
+  });
+
+  intervinienteAsignarForm: FormGroup = this.fb.group({
     rolId: [null as number | null, Validators.required],
     porcentaje: [100, [Validators.required, Validators.min(1), Validators.max(100)]]
   });
@@ -153,6 +170,13 @@ export class LiquidacionWizardService {
     this.liquidacionSimulada.set(null);
     this.documentoSoporteFile = null;
     this.documentoSoporteNombre.set(null);
+    
+    this.intervinienteSeleccionado.set(null);
+    this.creandoNuevoInterviniente.set(false);
+    this.actoSeleccionadoId.set(null);
+    this.intervinienteBusquedaForm.reset();
+    this.intervinienteNuevoForm.reset();
+    this.intervinienteAsignarForm.reset({ rolId: null, porcentaje: 100 });
   }
   cargarDatosDesdeSolicitud(solicitud: any) {
     this.solicitudId.set(solicitud.solicitudId);
@@ -200,8 +224,11 @@ export class LiquidacionWizardService {
         descripcionDocumento: doc.descripcion
       });
 
+      this.documentoSoporteFile = null;
       if (doc.nombreArchivo) {
         this.documentoSoporteNombre.set(doc.nombreArchivo);
+      } else if (solicitud.etapaActual >= 2) {
+        this.documentoSoporteNombre.set('Documento adjunto en la base de datos');
       }
       
       // Poblar Actos
@@ -210,7 +237,7 @@ export class LiquidacionWizardService {
           idTemp: a.id.toString(), // Usamos el ID del backend como ID temporal para mantener la referencia
           tipoActoId: a.tipoActoRegistroId,
           tipoActoCodigo: '', // Se podría buscar del facade si hace falta
-          tipoActoNombre: 'Acto Cargado', // Idealmente el backend debería mandar los nombres
+          tipoActoNombre: a.tipoActoRegistroNombre || 'Acto Cargado',
           categoriaNombre: '',
           naturalezaNombre: '',
           tarifaInfo: '',
@@ -226,7 +253,7 @@ export class LiquidacionWizardService {
             nombre: i.contribuyente.nombre,
             documento: i.contribuyente.numeroIdentificacion,
             rolId: i.rolIntervinienteId,
-            rolNombre: 'Rol', // Idealmente el backend debe mandar el nombre
+            rolNombre: i.rolIntervinienteNombre || 'Rol Desconocido',
             porcentaje: i.porcentajeParticipacion
           })) : []
         }));

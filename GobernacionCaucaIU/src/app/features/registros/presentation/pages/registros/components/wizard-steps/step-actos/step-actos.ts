@@ -32,35 +32,6 @@ export class StepActosComponent {
     return (this.tiposActoFacade.tiposActoRegistro() as any[]).find((t: any) => t.id === id) || null;
   }
 
-  agregarInterviniente() {
-    if (this.wizardService.intervinienteForm.valid) {
-      const val = this.wizardService.intervinienteForm.value;
-      const rolObj = (this.rolesIntervinienteFacade.rolesInterviniente() as any[]).find((r: any) => r.id === Number(val.rolId));
-
-      const nuevo: IntervinienteTemp = {
-        idTemp: Math.random().toString(),
-        nombre: val.nombre,
-        documento: val.documento,
-        rolId: Number(val.rolId),
-        rolNombre: rolObj?.nombre || 'Desconocido',
-        porcentaje: Number(val.porcentaje)
-      };
-
-      this.wizardService.intervinientesActoActual.update(list => [...list, nuevo]);
-      this.wizardService.intervinienteForm.reset({
-        nombre: '',
-        documento: '',
-        rolId: null,
-        porcentaje: 100
-      });
-    } else {
-      this.wizardService.intervinienteForm.markAllAsTouched();
-    }
-  }
-
-  eliminarInterviniente(idTemp: string) {
-    this.wizardService.intervinientesActoActual.update(list => list.filter(i => i.idTemp !== idTemp));
-  }
 
   guardarActoAlExpediente() {
     if (this.wizardService.actoForm.valid) {
@@ -82,7 +53,7 @@ export class StepActosComponent {
         avaluoCatastral: Number(val.avaluoCatastral),
         exencionId: val.exencionId ? Number(val.exencionId) : null,
         exencionNombre: exencion ? exencion.nombre : null,
-        intervinientes: [...this.wizardService.intervinientesActoActual()]
+        intervinientes: []
       };
 
       this.wizardService.actosExpediente.update(list => [...list, nuevoActo]);
@@ -103,25 +74,13 @@ export class StepActosComponent {
 
   eliminarActoDelExpediente(idTemp: string) {
     this.wizardService.actosExpediente.update(list => list.filter(a => a.idTemp !== idTemp));
+    if (this.wizardService.actosExpediente().length === 0) {
+      this.abrirFormularioNuevoActo();
+    }
   }
 
   abrirFormularioNuevoActo() {
     this.wizardService.isAddingActo.set(true);
-    const cNombre = this.wizardService.paso1Form.get('nombre')?.value;
-    const cDoc = this.wizardService.paso1Form.get('numeroIdentificacion')?.value;
-    const cId = this.wizardService.paso1Form.get('contribuyenteId')?.value;
-    const defaultRol = (this.rolesIntervinienteFacade.rolesInterviniente() as any[])[0];
-    if (cNombre && defaultRol) {
-      this.wizardService.intervinientesActoActual.set([{
-        idTemp: Math.random().toString(),
-        contribuyenteId: cId ? Number(cId) : null,
-        nombre: cNombre,
-        documento: cDoc,
-        rolId: defaultRol.id,
-        rolNombre: defaultRol.nombre,
-        porcentaje: 100
-      }]);
-    }
   }
 
   continuar() {
@@ -145,34 +104,25 @@ export class StepActosComponent {
       exencionesIds: a.exencionId ? [a.exencionId] : []
     }));
 
-    const todosIntervinientes = this.wizardService.actosExpediente().flatMap(a => a.intervinientes);
-    const intervinientesPayload: IntervinienteActoDto[] = todosIntervinientes.map(i => ({
-      contribuyenteId: i.contribuyenteId || null,
-      contribuyenteNuevo: i.contribuyenteId ? null : {
-        numeroIdentificacion: i.documento,
-        nombre: i.nombre
-      },
-      rolIntervinienteId: i.rolId,
-      porcentajeParticipacion: i.porcentaje
-    }));
-
     this.solicitudesFacade.registrarActos(solicitudId, { actos: actosPayload }).pipe(
       concatMap(res => {
         if (res.success) {
-          return this.solicitudesFacade.registrarIntervinientes(solicitudId, { intervinientes: intervinientesPayload });
+          // Recargar la solicitud para obtener los IDs reales de los actos
+          return this.solicitudesFacade.obtenerSolicitudPorId(solicitudId);
         }
         return throwError(() => new Error('Error al registrar actos'));
       }),
       catchError(err => {
-        this.toastService.error('Error al guardar actos e intervinientes. Intente de nuevo.');
+        this.toastService.error('Error al guardar actos. Intente de nuevo.');
         return throwError(() => err);
       })
     ).subscribe({
       next: (res) => {
-        if (res.success) {
+        if (res.success && res.data) {
+          this.wizardService.cargarDatosDesdeSolicitud(res.data);
           this.wizardService.currentStep.set(4);
-          this.wizardService.etapaGuardada.set(4);
-          this.toastService.success('Actos e intervinientes guardados exitosamente');
+          this.wizardService.etapaGuardada.set(3);
+          this.toastService.success('Actos guardados exitosamente. Ahora añada los intervinientes.');
         }
       }
     });

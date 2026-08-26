@@ -5,6 +5,7 @@ import { LiquidacionWizardService } from '../../services/liquidacion-wizard.serv
 import { StepRadicacionComponent } from '../wizard-steps/step-radicacion/step-radicacion';
 import { StepDocumentoComponent } from '../wizard-steps/step-documento/step-documento';
 import { StepActosComponent } from '../wizard-steps/step-actos/step-actos';
+import { StepIntervinientesComponent } from '../wizard-steps/step-intervinientes/step-intervinientes';
 import { StepLiquidacionComponent } from '../wizard-steps/step-liquidacion/step-liquidacion';
 import { StepPagoComponent } from '../wizard-steps/step-pago/step-pago';
 
@@ -29,6 +30,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
     StepRadicacionComponent, 
     StepDocumentoComponent, 
     StepActosComponent, 
+    StepIntervinientesComponent,
     StepLiquidacionComponent, 
     StepPagoComponent
   ],
@@ -103,9 +105,10 @@ export class LiquidacionWizardComponent implements OnInit {
     { id: 1, name: 'Radicación' },
     { id: 2, name: 'Documento' },
     { id: 3, name: 'Actos' },
-    { id: 4, name: 'Liquidación' },
-    { id: 5, name: 'Pago' },
-    { id: 6, name: 'Historial' }
+    { id: 4, name: 'Intervinientes' },
+    { id: 5, name: 'Liquidación' },
+    { id: 6, name: 'Pago' },
+    { id: 7, name: 'Historial' }
   ];
 
   isCompleted(stepId: number): boolean {

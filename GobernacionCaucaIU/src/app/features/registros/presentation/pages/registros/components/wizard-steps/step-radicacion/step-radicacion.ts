@@ -81,6 +81,11 @@ export class StepRadicacionComponent implements OnInit {
   }
 
   continuar() {
+    if (this.wizardService.etapaGuardada() >= 1 && !this.wizardService.paso1Form.dirty) {
+      this.wizardService.currentStep.set(2);
+      return;
+    }
+
     if (this.wizardService.paso1Form.valid) {
       const formValue = this.wizardService.paso1Form.value;
       
