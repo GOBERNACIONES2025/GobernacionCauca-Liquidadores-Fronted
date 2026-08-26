@@ -1,136 +1,129 @@
-<div class="min-h-screen bg-[#F8FAFC] text-slate-800 font-sans flex flex-col">
+<div class="min-h-screen bg-white text-slate-800 font-sans flex flex-col">
 
   <!-- ========================================== -->
-  <!-- 1. TOP HEADER / NAVBAR (AZUL INSTITUCIONAL) -->
+  <!-- 1. TOP HEADER / NAVBAR (ESTILO BLANCO HOME) -->
   <!-- ========================================== -->
-  <header class="bg-vehiculos-brand-light text-white border-b border-blue-900/60 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        
-        <!-- Left: Logo & Institutional Title -->
-        <div class="flex items-center space-x-3">
-          <div class="w-9 h-9 rounded-lg bg-vehiculos-brand-dark flex items-center justify-center text-white font-bold text-sm shadow-sm">
-            <i class="fa-solid fa-landmark"></i>
-          </div>
-          <div class="flex flex-col">
-            <span class="font-extrabold text-white text-sm sm:text-base leading-tight">Gobernación del Cauca</span>
-            <span class="text-[11px] text-blue-200 font-medium leading-none">Portal Ciudadano &middot; Impuesto Vehicular</span>
-          </div>
-        </div>
-
-        <!-- Center / Navigation Tabs (When Citizen is loaded) -->
-        @if (isConsulted()) {
-          <nav class="hidden md:flex items-center space-x-8 h-full text-xs font-semibold">
-            <button 
-              (click)="cambiarTab('inicio')"
-              [class.text-white]="activeTab() === 'inicio'"
-              [class.border-b-2]="activeTab() === 'inicio'"
-              [class.border-emerald-400]="activeTab() === 'inicio'"
-              [class.text-blue-200]="activeTab() !== 'inicio'"
-              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-house text-sm"></i>
-              <span>Inicio</span>
-            </button>
-
-            <button 
-              (click)="cambiarTab('vehiculos')"
-              [class.text-white]="activeTab() === 'vehiculos'"
-              [class.border-b-2]="activeTab() === 'vehiculos'"
-              [class.border-emerald-400]="activeTab() === 'vehiculos'"
-              [class.text-blue-200]="activeTab() !== 'vehiculos'"
-              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-car text-sm"></i>
-              <span>Mis vehículos</span>
-            </button>
-
-            <button 
-              (click)="cambiarTab('liquidaciones')"
-              [class.text-white]="activeTab() === 'liquidaciones'"
-              [class.border-b-2]="activeTab() === 'liquidaciones'"
-              [class.border-emerald-400]="activeTab() === 'liquidaciones'"
-              [class.text-blue-200]="activeTab() !== 'liquidaciones'"
-              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
-            >
-              <i class="fa-regular fa-credit-card text-sm"></i>
-              <span>Liquidaciones</span>
-            </button>
-
-            <button 
-              (click)="cambiarTab('certificados')"
-              [class.text-white]="activeTab() === 'certificados'"
-              [class.border-b-2]="activeTab() === 'certificados'"
-              [class.border-emerald-400]="activeTab() === 'certificados'"
-              [class.text-blue-200]="activeTab() !== 'certificados'"
-              class="h-full flex items-center gap-2 px-1 hover:text-white transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-award text-sm"></i>
-              <span>Certificados</span>
-            </button>
-          </nav>
-        }
-
-        <!-- Right: User info & Action -->
-        <div class="flex items-center space-x-3">
-          @if (isConsulted() && ciudadano(); as c) {
-            <div class="flex items-center space-x-2 bg-vehiculos-brand-dark/80 border border-blue-400/30 px-3 py-1.5 rounded-lg text-white">
-              <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
-                <i class="fa-solid fa-user text-[10px]"></i>
-              </div>
-              <span class="text-xs font-semibold text-white hidden sm:inline-block">{{ c.nombre }}</span>
-            </div>
-
-            <button 
-              (click)="nuevaConsulta()" 
-              class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
-              title="Nueva Consulta"
-            >
-              <i class="fa-solid fa-magnifying-glass text-xs text-blue-300"></i>
-              <span class="hidden sm:inline">Nueva Consulta</span>
-            </button>
-
-            <button 
-              (click)="salir()" 
-              class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-rose-900/60 border border-blue-400/30 text-rose-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
-              title="Salir"
-            >
-              <i class="fa-solid fa-right-from-bracket text-xs"></i>
-              <span>Salir</span>
-            </button>
-          } @else {
-            @if (tipoUsuario() === 'CIUDADANO') {
-              <button 
-                (click)="setTipoUsuario('ADMIN')" 
-                class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer mr-2"
-                title="Acceso Administrador"
-              >
-                <i class="fa-solid fa-shield-halved text-xs"></i>
-                <span class="hidden sm:inline">Administrador</span>
-              </button>
-            } @else {
-              <button 
-                (click)="setTipoUsuario('CIUDADANO')" 
-                class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer mr-2"
-                title="Acceso Ciudadano"
-              >
-                <i class="fa-solid fa-user text-xs"></i>
-                <span class="hidden sm:inline">Ciudadano</span>
-              </button>
-            }
-            <button 
-              (click)="salir()" 
-              class="inline-flex items-center gap-1.5 bg-vehiculos-brand-dark hover:bg-slate-900 border border-blue-400/30 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
-            >
-              <i class="fa-solid fa-arrow-left text-xs"></i>
-              <span>Volver a Liquidadores</span>
-            </button>
-          }
-        </div>
-
+  <header class="w-full bg-white border-b border-slate-100 py-3.5 px-6 md:px-12 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+    <!-- Left: Logo & Institutional Title -->
+    <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
+      <img src="Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-12 md:h-14 object-contain select-none" />
+      <div class="flex flex-col border-l border-slate-200 pl-3">
+        <span class="text-xs font-extrabold text-slate-800 tracking-tight leading-none">Portal Ciudadano</span>
+        <span class="text-[10px] text-slate-400 font-semibold leading-none mt-1">Impuesto Vehicular</span>
       </div>
+    </a>
+
+    <!-- Center / Navigation Tabs (When Citizen is loaded) -->
+    @if (isConsulted()) {
+      <nav class="hidden md:flex items-center space-x-6 h-full text-xs font-bold">
+        <button 
+          (click)="cambiarTab('inicio')"
+          [class.text-[#1E56A0]]="activeTab() === 'inicio'"
+          [class.border-b-2]="activeTab() === 'inicio'"
+          [class.border-[#1E56A0]]="activeTab() === 'inicio'"
+          [class.text-slate-600]="activeTab() !== 'inicio'"
+          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+        >
+          <i class="fa-solid fa-house text-sm"></i>
+          <span>Inicio</span>
+        </button>
+
+        <button 
+          (click)="cambiarTab('vehiculos')"
+          [class.text-[#1E56A0]]="activeTab() === 'vehiculos'"
+          [class.border-b-2]="activeTab() === 'vehiculos'"
+          [class.border-[#1E56A0]]="activeTab() === 'vehiculos'"
+          [class.text-slate-600]="activeTab() !== 'vehiculos'"
+          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+        >
+          <i class="fa-solid fa-car text-sm"></i>
+          <span>Mis vehículos</span>
+        </button>
+
+        <button 
+          (click)="cambiarTab('liquidaciones')"
+          [class.text-[#1E56A0]]="activeTab() === 'liquidaciones'"
+          [class.border-b-2]="activeTab() === 'liquidaciones'"
+          [class.border-[#1E56A0]]="activeTab() === 'liquidaciones'"
+          [class.text-slate-600]="activeTab() !== 'liquidaciones'"
+          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+        >
+          <i class="fa-regular fa-credit-card text-sm"></i>
+          <span>Liquidaciones</span>
+        </button>
+
+        <button 
+          (click)="cambiarTab('certificados')"
+          [class.text-[#1E56A0]]="activeTab() === 'certificados'"
+          [class.border-b-2]="activeTab() === 'certificados'"
+          [class.border-[#1E56A0]]="activeTab() === 'certificados'"
+          [class.text-slate-600]="activeTab() !== 'certificados'"
+          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+        >
+          <i class="fa-solid fa-award text-sm"></i>
+          <span>Certificados</span>
+        </button>
+      </nav>
+    }
+
+    <!-- Right: User info & Action -->
+    <div class="flex items-center space-x-3">
+      @if (isConsulted() && ciudadano(); as c) {
+        <div class="flex items-center space-x-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-800">
+          <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
+            <i class="fa-solid fa-user text-[10px]"></i>
+          </div>
+          <span class="text-xs font-semibold text-slate-700 hidden sm:inline-block">{{ c.nombre }}</span>
+        </div>
+
+        <button 
+          (click)="nuevaConsulta()" 
+          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+          title="Nueva Consulta"
+        >
+          <i class="fa-solid fa-magnifying-glass text-xs text-slate-500"></i>
+          <span class="hidden sm:inline">Nueva Consulta</span>
+        </button>
+
+        <button 
+          (click)="salir()" 
+          class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+          title="Salir"
+        >
+          <i class="fa-solid fa-right-from-bracket text-xs"></i>
+          <span>Salir</span>
+        </button>
+      } @else {
+        @if (tipoUsuario() === 'CIUDADANO') {
+          <button 
+            (click)="setTipoUsuario('ADMIN')" 
+            class="px-5 py-1.5 rounded-full border border-[#1E3A7B] text-[#1E3A7B] hover:bg-[#1E3A7B] hover:text-white transition-all text-xs font-semibold cursor-pointer mr-2 shadow-xs hover:shadow active:scale-95"
+            title="Acceso Administrador"
+          >
+            Administrador
+          </button>
+        } @else {
+          <button 
+            (click)="setTipoUsuario('CIUDADANO')" 
+            class="px-5 py-1.5 rounded-full border border-[#1E3A7B] text-[#1E3A7B] hover:bg-[#1E3A7B] hover:text-white transition-all text-xs font-semibold cursor-pointer mr-2 shadow-xs hover:shadow active:scale-95"
+            title="Acceso Ciudadano"
+          >
+            Ciudadano
+          </button>
+        }
+        <button 
+          (click)="salir()" 
+          class="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors text-xs font-semibold cursor-pointer group"
+        >
+          <span class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
+            <i class="fa-solid fa-arrow-left text-xs"></i>
+          </span>
+          <span>Volver a Inicio</span>
+        </button>
+      }
     </div>
   </header>
+
 
   <!-- ========================================== -->
   <!-- 2. CONTENIDO PRINCIPAL -->

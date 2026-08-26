@@ -14,15 +14,16 @@
       </button>
 
       <!-- Brand Logo & Title -->
-      <div class="flex items-center space-x-2.5">
-        <div class="w-9 h-9 rounded-lg bg-vehiculos-brand-dark flex items-center justify-center text-white shadow-sm">
-          <i class="fas fa-landmark"></i>
+      <a routerLink="/" class="flex items-center space-x-2.5 cursor-pointer group" title="Ir al Inicio">
+        <div class="h-9 px-2 py-0.5 bg-white rounded-lg flex items-center justify-center shadow-xs">
+          <img src="Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-7 w-auto object-contain" />
         </div>
         <div class="flex flex-col">
-          <span class="text-[10px] font-bold tracking-widest text-blue-400 uppercase leading-none">Vehicular</span>
-          <span class="text-base font-extrabold text-white tracking-tight leading-tight">Gobernación Cauca</span>
+          <span class="text-xs font-bold tracking-widest text-blue-300 uppercase leading-none">Vehicular</span>
         </div>
-      </div>
+
+      </a>
+
 
       <!-- Quick Breadcrumbs in Header (Desktop) -->
       <nav class="hidden lg:flex items-center space-x-2 pl-4 ml-4 border-l border-slate-700/70 text-xs text-slate-300">
@@ -114,6 +115,19 @@
             </h3>
           }
           <nav class="space-y-1">
+            <!-- Dashboard General -->
+            <a
+              routerLink="/automotores/dashboard"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
+              [title]="isSidebarOpen() ? '' : 'Dashboard'"
+            >
+              <i class="fa-solid fa-chart-pie text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
+              @if (isSidebarOpen()) {
+                <span class="truncate">Dashboard General</span>
+              }
+            </a>
+
             <!-- Vehículos / Automotores -->
             <a
               routerLink="/automotores/vehiculos"
@@ -238,7 +252,7 @@
       <!-- Footer Version -->
       @if (isSidebarOpen()) {
         <div class="border-t border-slate-200 p-4 text-[11px] text-slate-400 space-y-0.5">
-          <p class="font-medium text-slate-500">Liquidadores Gobernación del Cauca</p>
+          <p class="font-medium text-slate-500">Liquidadores</p>
           <p>© Copyright 2026 101 S.A.S.</p>
         </div>
       }

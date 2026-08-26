@@ -38,8 +38,12 @@ export const registrosRoutes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'liquidacion',
+        redirectTo: 'dashboard',
         pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('../../shared/dashboard/components/tax-dashboard/tax-dashboard').then(m => m.TaxDashboardComponent)
       },
       {
         path: 'liquidacion',

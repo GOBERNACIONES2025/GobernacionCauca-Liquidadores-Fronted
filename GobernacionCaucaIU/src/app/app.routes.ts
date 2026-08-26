@@ -5,7 +5,6 @@ import { Vehiculos } from './features/automotores/presentation/pages/vehiculos/v
 import { ContribuyentesIndex } from './features/automotores/presentation/pages/contribuyentes-index/contribuyentes-index';
 import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
 import { LiquidacionesPage } from './features/automotores/presentation/pages/liquidaciones/liquidaciones';
-
 export const routes: Routes = [
   {
     path: '',
@@ -22,8 +21,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        redirectTo: 'portal-ciudadano',
+        redirectTo: 'dashboard',
         pathMatch: 'full',
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./shared/dashboard/components/tax-dashboard/tax-dashboard').then(m => m.TaxDashboardComponent),
       },
       {
         path: 'vehiculos',

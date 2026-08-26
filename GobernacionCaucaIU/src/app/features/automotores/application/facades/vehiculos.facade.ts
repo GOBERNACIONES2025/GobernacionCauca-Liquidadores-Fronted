@@ -17,14 +17,16 @@ import {
   CatalogoNaturalezaJuridica,
   CatalogoDepartamento,
   CatalogoCiudad,
-  RegistrarVehiculoDto,
-  TodosCatalogosDto
+  RegistrarVehiculoDto
 } from '../../domain/models/vehiculo.model';
+import { BaseApiService } from '../../../../core/services/base-api.service';
+import { TodosCatalogosDto } from '../../domain/interfaces/catalogo.interface';
 
 @Injectable({
   providedIn: 'root',
 })
 export class VehiculosFacade {
+  private api = inject(BaseApiService);
   private vehiculosApi = inject(VehiculosApiService);
   private catalogoApi = inject(CatalogoApiService);
   private departamentosApi = inject(DepartamentosApiService);
@@ -280,7 +282,7 @@ export class VehiculosFacade {
         this.cargandoPendientes.set(false);
         return of(null);
       })
-    ).subscribe(res => {
+    ).subscribe((res: ApiResponse<any[]> | null) => {
       this.cargandoPendientes.set(false);
       if (res && res.data) {
         const mapped: VehiculoItem[] = res.data.map((item: any) => ({

@@ -1,50 +1,71 @@
-<header class="h-14 bg-base-100 border-b border-slate-200/80 flex items-center justify-between px-4 sm:px-6 shrink-0 w-full z-10 relative">
-  
-  <!-- Left Side: Toggle button, Title & Date -->
-  <div class="flex items-center gap-3">
+<header class="h-16 bg-[#1b53ad] text-white flex items-center justify-between px-4 z-20 border-b border-slate-700/60 shadow-sm shrink-0 w-full relative">
+  <!-- Left Side: Toggle button, Logo, Title & Breadcrumbs -->
+  <div class="flex items-center space-x-3">
+    <!-- Sidebar Toggle Button -->
     <button 
       (click)="toggleSidebar.emit()"
-      class="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-md transition-colors"
-      title="Alternar menú">
+      type="button"
+      class="p-2 rounded-lg bg-slate-800/40 text-slate-200 hover:text-white hover:bg-slate-800/80 focus:outline-none transition cursor-pointer"
+      title="Alternar Menú"
+    >
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
       </svg>
     </button>
-    <div class="flex flex-col">
-      <h1 class="text-sm font-bold text-slate-800 leading-tight">{{ pageTitle() }}</h1>
-      <span class="text-[11px] text-slate-400 hidden sm:inline capitalize">{{ currentFormattedDate() }}</span>
+
+    <!-- Brand Logo & Title -->
+    <a routerLink="/" class="flex items-center space-x-2.5 cursor-pointer group" title="Ir al Inicio">
+      <div class="h-9 px-2 py-0.5 bg-white rounded-lg flex items-center justify-center shadow-xs">
+        <img src="Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-7 w-auto object-contain" />
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs font-bold tracking-widest text-blue-300 uppercase leading-none">Registro</span>
+      </div>
+    </a>
+
+    <!-- Quick Breadcrumbs / Page Title in Header -->
+    <div class="hidden lg:flex items-center space-x-2 pl-4 ml-4 border-l border-white/20 text-xs text-slate-300">
+      <a routerLink="/" class="text-slate-300 hover:text-white transition cursor-pointer">Inicio</a>
+      <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+      <span class="font-semibold text-white">{{ pageTitle() }}</span>
     </div>
   </div>
 
-  <!-- Right Side: Actions & Profile -->
-  <div class="flex items-center gap-3">
-    
+  <!-- Right Section: User Profile Menu & Actions -->
+  <div class="flex items-center space-x-3">
+    <!-- Notification Icon (like vehicular layout) -->
+    <button type="button" class="relative p-2 text-slate-300 hover:text-white hover:bg-slate-800/50 rounded-lg transition" title="Notificaciones">
+      <i class="fa-solid fa-bell text-base"></i>
+      <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">2</span>
+    </button>
+
+    <!-- User Profile Dropdown -->
     <div class="dropdown dropdown-end">
-      <div tabindex="0" role="button" class="flex items-center gap-2 hover:bg-base-200 p-1 pr-2 rounded-full transition-colors cursor-pointer">
+      <div tabindex="0" role="button" class="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-slate-800/50 transition focus:outline-none cursor-pointer">
         <div class="avatar placeholder">
-          <div class="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs">
+          <div class="bg-emerald-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-xs shadow-sm">
             {{ userInitials() }}
           </div>
         </div>
         <div class="flex flex-col text-left hidden sm:flex">
-          <span class="text-xs font-bold text-slate-800 leading-none">{{ userName() }}</span>
-          <span class="text-[10px] text-slate-400 leading-none mt-1">{{ userRole() }}</span>
+          <span class="text-xs font-semibold text-white leading-tight">{{ userName() }}</span>
+          <span class="text-[10px] text-slate-300 leading-none mt-0.5">{{ userRole() }}</span>
         </div>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-slate-400">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 text-slate-300">
           <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
         </svg>
       </div>
-      <ul tabindex="0" class="dropdown-content z-20 menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-4 border border-slate-200 text-xs">
-        <li class="px-3 py-2 border-b border-slate-100">
+      <ul tabindex="0" class="dropdown-content z-20 menu p-2 shadow-xl bg-[#1e293b] rounded-lg w-52 mt-2 border border-slate-700 text-xs">
+        <li class="px-3 py-2 border-b border-slate-700">
           <div class="flex flex-col gap-0.5 p-0">
-            <span class="font-bold text-slate-800">{{ userName() }}</span>
+            <span class="font-bold text-white">{{ userName() }}</span>
             <span class="text-[10px] text-slate-400">{{ currentUser()?.email || 'Sin correo' }}</span>
           </div>
         </li>
-        <li><a (click)="logout()" class="text-error font-medium">Cerrar Sesión</a></li>
+        <li><a (click)="logout()" class="text-rose-400 hover:bg-slate-700 font-medium">Cerrar Sesión</a></li>
       </ul>
     </div>
-
   </div>
 </header>
+
 

@@ -150,7 +150,7 @@ export class PortalCiudadano implements OnInit {
 
     setTimeout(() => {
       this.isLoading.set(false);
-      this.router.navigate(['/automotores/vehiculos']);
+      this.router.navigate(['/automotores/dashboard']);
     }, 600);
   }
 
