@@ -1,60 +1,67 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { GenerarLiquidacionDto, CrearContribuyenteLiquidacionDtoRequest, ActualizarContribuyenteLiquidacionDtoRequest } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
+import { finalize } from 'rxjs/operators';
 import { GeneracionLiquidacionApiService } from '../../../infrastructure/api/Liquidacion/generacion-liquidacion-api.service';
+import { 
+  GenerarLiquidacionDto,
+  LiquidacionListadoDto
+} from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
+import { LiquidacionSimuladaResponse } from '../../../domain/models/Liquidacion/liquidacion-simulada.model';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
+import { PagedResult } from '../../../domain/models/Radicacion/solicitud-wizard.model';
 
-/**
- * @description
- * Facade (Capa de Aplicación) para orquestar la generación de liquidación de impuesto de registro.
- * Maneja el estado reactivo del proceso de liquidación para el asistente (Wizard).
- */
 @Injectable({
   providedIn: 'root'
 })
 export class GeneracionLiquidacionFacade {
   private apiService = inject(GeneracionLiquidacionApiService);
+  
+  public actionLoading = signal<boolean>(false);
 
-  // Signals
-  readonly generando = signal<boolean>(false);
-  readonly ultimoIdLiquidacion = signal<number | null>(null);
-  readonly error = signal<string | null>(null);
-
-  /**
-   * Genera una liquidación completa en el sistema.
-   * 
-   * @param {GenerarLiquidacionDto} command - Datos del formulario/wizard.
-   * @returns {Observable<ApiResponse<number>>} Observable con la respuesta y el ID generado.
-   */
-  generar(command: GenerarLiquidacionDto): Observable<ApiResponse<number>> {
-    this.generando.set(true);
-    this.error.set(null);
-
-    return this.apiService.generarLiquidacion(command).pipe(
-      tap({
-        next: (response) => {
-          this.generando.set(false);
-          if (response.success && response.data) {
-            this.ultimoIdLiquidacion.set(response.data);
-          } else {
-            this.error.set(response.message || 'Error al generar la liquidación');
-          }
-        },
-        error: (err) => {
-          this.generando.set(false);
-          this.error.set(err.error?.detail || err.message || 'Error al procesar la liquidación');
-        }
-      })
+  listarLiquidaciones(pageNumber: number = 1, pageSize: number = 10, search?: string): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
+    this.actionLoading.set(true);
+    return this.apiService.listarLiquidaciones(pageNumber, pageSize, search).pipe(
+      finalize(() => this.actionLoading.set(false))
     );
   }
 
   /**
-   * Limpia el estado actual de la liquidación.
+   * Ejecuta la simulación de liquidación y retorna el observable para manejarlo en el componente.
    */
-  reset(): void {
-    this.generando.set(false);
-    this.ultimoIdLiquidacion.set(null);
-    this.error.set(null);
+  simularLiquidacion(command: GenerarLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
+    this.actionLoading.set(true);
+    return this.apiService.simularLiquidacion(command).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  /**
+   * Ejecuta la generación oficial de la liquidación basada en la solicitud completada.
+   */
+  generarLiquidacion(command: GenerarLiquidacionDto): Observable<ApiResponse<number>> {
+    this.actionLoading.set(true);
+    return this.apiService.generarLiquidacion(command).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  /**
+   * Descarga el PDF de la liquidación oficial generada.
+   */
+  descargarPdf(id: number): Observable<Blob> {
+    this.actionLoading.set(true);
+    return this.apiService.descargarPdf(id).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  /**
+   * Anula una liquidación oficial generada.
+   */
+  anularLiquidacion(id: number, motivo: string): Observable<ApiResponse<boolean>> {
+    this.actionLoading.set(true);
+    return this.apiService.anularLiquidacion(id, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
   }
 }

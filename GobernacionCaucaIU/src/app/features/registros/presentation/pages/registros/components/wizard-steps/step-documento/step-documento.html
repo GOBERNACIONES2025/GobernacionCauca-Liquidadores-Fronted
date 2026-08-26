@@ -21,6 +21,7 @@
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Entidad de Registro / Notaría *</label>
           <select formControlName="entidadRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+            <option [ngValue]="null">Seleccione...</option>
             @for (e of entidadesFacade.entidadesRegistro(); track e.id) {
               <option [value]="e.id">{{ e.nombre }}</option>
             }
@@ -29,6 +30,7 @@
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Municipio de Jurisdicción *</label>
           <select formControlName="municipioJurisdiccionId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+            <option [ngValue]="null">Seleccione...</option>
             @for (m of municipiosFacade.municipios(); track m.id) {
               <option [value]="m.id">{{ m.nombre }}</option>
             }
@@ -39,6 +41,31 @@
       <div>
         <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Descripción (opcional)</label>
         <textarea formControlName="descripcionDocumento" rows="2" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all"></textarea>
+      </div>
+      
+      <div class="mt-6">
+        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Archivo de Soporte (PDF) *</label>
+        <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+          <input 
+            type="file" 
+            accept=".pdf,.doc,.docx" 
+            (change)="onFileSelected($event)"
+            class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all border border-slate-200 rounded-lg bg-slate-50 cursor-pointer focus:outline-none" />
+          
+          <div *ngIf="wizardService.documentoSoporteFile" class="flex items-center gap-2 text-emerald-600 text-xs font-semibold shrink-0 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Nuevo: {{ wizardService.documentoSoporteFile.name }}
+          </div>
+
+          <div *ngIf="!wizardService.documentoSoporteFile && wizardService.documentoSoporteNombre()" class="flex items-center gap-2 text-blue-600 text-xs font-medium shrink-0 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+            </svg>
+            Adjunto: {{ wizardService.documentoSoporteNombre() }}
+          </div>
+        </div>
       </div>
     </div>
   </div>

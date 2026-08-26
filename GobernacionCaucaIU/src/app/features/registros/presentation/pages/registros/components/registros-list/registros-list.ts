@@ -29,52 +29,7 @@ export class RegistrosListComponent {
   @Output() newSolicitud = new EventEmitter<void>();
 
   // Estado
-  expedientes = signal<ExpedienteLiquidacion[]>([
-    {
-      id: 1,
-      radicado: 'RAD-2024-001234',
-      fecha: '2024-05-10',
-      contribuyenteNombre: 'INMOBILIARIA DEL CAUCA S.A.S.',
-      contribuyenteDocumento: '900123456',
-      tipoDocumento: 'NIT',
-      tipoActo: 'Compraventa',
-      naturalezaActo: 'Con Cuantía',
-      valorLiquidado: 1250000,
-      fechaVencimiento: '2024-06-10',
-      estado: 'Liquidado',
-      tieneAlerta: false,
-      municipio: 'Popayán',
-      notaria: 'Notaría Primera'
-    },
-    {
-      id: 2,
-      radicado: 'RAD-2024-001235',
-      fecha: '2024-05-11',
-      contribuyenteNombre: 'JUAN PEREZ GOMEZ',
-      contribuyenteDocumento: '1061123456',
-      tipoDocumento: 'CC',
-      tipoActo: 'Hipoteca',
-      naturalezaActo: 'Con Cuantía',
-      valorLiquidado: 450000,
-      fechaVencimiento: '2024-06-11',
-      estado: 'Pagado',
-      tieneAlerta: false
-    },
-    {
-      id: 3,
-      radicado: 'RAD-2024-001236',
-      fecha: '2024-05-12',
-      contribuyenteNombre: 'MARIA RODRIGUEZ',
-      contribuyenteDocumento: '25456789',
-      tipoDocumento: 'CC',
-      tipoActo: 'Cancelación Hipoteca',
-      naturalezaActo: 'Sin Cuantía',
-      valorLiquidado: 85000,
-      fechaVencimiento: '2024-05-27',
-      estado: 'Borrador',
-      tieneAlerta: true
-    }
-  ]);
+  expedientes = signal<ExpedienteLiquidacion[]>([]);
 
   filterStatus = signal<string>('Todos');
   searchText = signal<string>('');

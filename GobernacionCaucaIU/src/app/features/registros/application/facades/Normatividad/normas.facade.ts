@@ -90,9 +90,9 @@ export class NormasFacade {
   /**
    * Registra una nueva norma.
    */
-  crear(dto: CrearNormaRequest): Observable<ApiResponse<number>> {
+  crear(file: File, dto: CrearNormaRequest): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
-    return this.apiService.crear(dto).pipe(
+    return this.apiService.crear(file, dto).pipe(
       tap({
         next: () => this.actionLoading.set(false),
         error: () => this.actionLoading.set(false)
