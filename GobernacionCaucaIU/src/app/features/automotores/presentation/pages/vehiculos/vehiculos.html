@@ -763,7 +763,12 @@
               <!-- 4. Placa -->
               <div class="col-span-2 md:col-span-1">
                 <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Placa <span class="text-red-500">*</span></label>
-                <input formControlName="placa" placeholder="Ej: HJK-892" class="w-full h-9 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all uppercase">
+                <input formControlName="placa" (blur)="validarPlacaExistente()" placeholder="Ej: HJK-892" [class]="'w-full h-9 rounded-md border px-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#70b238] transition-all uppercase ' + (placaExistenteWarning() ? 'border-amber-400 bg-amber-50/30' : 'border-slate-200')">
+                @if (placaExistenteWarning()) {
+                  <div class="mt-1 text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded border border-amber-300 flex items-center gap-1">
+                    {{ placaExistenteWarning() }}
+                  </div>
+                }
               </div>
 
               <div>
@@ -1177,7 +1182,7 @@
               </svg>
               <div class="text-sm font-semibold">Calculando estado de cuenta, avalúos, sanciones e intereses...</div>
             </div>
-          } @else if (liqFacade.simulacionCalculada(); as sim) {
+          } @else if (liqFacade.simulacion(); as sim) {
             <!-- Resumen Vehículo y Propietario -->
             <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -1233,7 +1238,7 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-100">
-                    @for (v of liqFacade.simulacionRaw()?.vigencias || []; track v.anio) {
+                    @for (v of sim.vigencias; track v.anio) {
                       <tr [class]="'transition-colors ' + (liqFacade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40' : 'opacity-60')">
                         <td class="py-3 px-3 text-center">
                           <input type="checkbox" [checked]="liqFacade.selectedVigenciaAnios().includes(v.anio)" (change)="liqFacade.toggleVigencia(v.anio)" class="accent-[#70b238] cursor-pointer">
