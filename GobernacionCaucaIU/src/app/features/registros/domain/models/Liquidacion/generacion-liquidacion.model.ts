@@ -64,6 +64,14 @@ export interface GenerarLiquidacionDto {
   solicitudId: number;
 }
 
+/**
+ * Payload completo para la simulación de una liquidación (stateless).
+ */
+export interface SimularLiquidacionDto {
+  radicacion: RadicacionLiquidacionDto;
+  actos: ActoRegistradoLiquidacionDto[];
+}
+
 export interface CrearContribuyenteLiquidacionDtoRequest {
   id?: number | null;
   tipoPersonaId: number;

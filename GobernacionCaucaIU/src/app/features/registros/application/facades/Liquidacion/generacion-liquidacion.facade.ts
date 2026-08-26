@@ -4,7 +4,8 @@ import { finalize } from 'rxjs/operators';
 import { GeneracionLiquidacionApiService } from '../../../infrastructure/api/Liquidacion/generacion-liquidacion-api.service';
 import { 
   GenerarLiquidacionDto,
-  LiquidacionListadoDto
+  LiquidacionListadoDto,
+  SimularLiquidacionDto
 } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { LiquidacionSimuladaResponse } from '../../../domain/models/Liquidacion/liquidacion-simulada.model';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
@@ -28,7 +29,7 @@ export class GeneracionLiquidacionFacade {
   /**
    * Ejecuta la simulación de liquidación y retorna el observable para manejarlo en el componente.
    */
-  simularLiquidacion(command: GenerarLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
+  simularLiquidacion(command: SimularLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
     this.actionLoading.set(true);
     return this.apiService.simularLiquidacion(command).pipe(
       finalize(() => this.actionLoading.set(false))

@@ -4,7 +4,8 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 import { 
   GenerarLiquidacionDto, 
-  LiquidacionListadoDto
+  LiquidacionListadoDto,
+  SimularLiquidacionDto
 } from '../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { LiquidacionSimuladaResponse } from '../../../domain/models/Liquidacion/liquidacion-simulada.model';
 import { PagedResult } from '../../../domain/models/Radicacion/solicitud-wizard.model';
@@ -34,10 +35,10 @@ export class GeneracionLiquidacionApiService {
    * @description
    * Simula el cálculo de la liquidación sin persistir en base de datos.
    * 
-   * @param {GenerarLiquidacionDto} command - Datos de la solicitud.
+   * @param {SimularLiquidacionDto} command - Datos de la solicitud.
    * @returns {Observable<ApiResponse<LiquidacionSimuladaResponse>>} DTO con totales y actos calculados.
    */
-  simularLiquidacion(command: GenerarLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
+  simularLiquidacion(command: SimularLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
     return this.api.post<ApiResponse<LiquidacionSimuladaResponse>>(`${this.baseUrl}/simular`, command, {}, 'REGISTROS');
   }
 
