@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Contribuyente } from '../../../domain/models/contribuyente.model';
 import { ContribuyentesFacade } from '../../../application/facades/contribuyentes.facade';
+import { ContribuyenteValidator } from '../../../application/validators/contribuyente.validator';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -14,6 +15,21 @@ import { Subscription } from 'rxjs';
 export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy {
   public facade = inject(ContribuyentesFacade);
   private fb = inject(FormBuilder);
+  /** Validator desacoplado — equivalente a FluentValidation en C# */
+  readonly validator = inject(ContribuyenteValidator);
+
+  /** Errores de validación por campo (poblados por el validator en onSubmit) */
+  _erroresForm: import('../../../application/validators/validation-result').FieldError[] = [];
+
+  /** Obtiene el mensaje de error de un campo específico */
+  getError(campo: string): string | null {
+    return this._erroresForm.find(e => e.campo === campo)?.mensaje ?? null;
+  }
+
+  /** Indica si un campo específico tiene error de validación */
+  hasError(campo: string): boolean {
+    return this._erroresForm.some(e => e.campo === campo);
+  }
 
   @Input() isOpen: boolean = false;
   @Input() isLoading: boolean = false;
@@ -133,12 +149,15 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
   }
 
   onSubmit(): void {
-    if (this.form.invalid) {
-      const invalidFields = Object.keys(this.form.controls).filter(k => this.form.get(k)?.invalid);
-      console.warn('Formulario inválido. Campos con error:', invalidFields, this.form.value);
+    // Validación desacoplada usando ContribuyenteValidator (patrón FluentValidation)
+    const result = this.validator.validar(this.form);
+    if (!result.isValid) {
       this.form.markAllAsTouched();
+      // Expone los errores al template para que se muestren campo a campo
+      this._erroresForm = result.errors;
       return;
     }
+    this._erroresForm = [];
 
     const formVal = this.form.getRawValue();
     const selectedCiudadObj = this.facade.ciudades().find(c => c.id == formVal.ciudadId);

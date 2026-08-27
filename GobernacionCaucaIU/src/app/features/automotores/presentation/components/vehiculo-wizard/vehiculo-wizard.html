@@ -1,0 +1,397 @@
+@if (facade.isDrawerOpen()) {
+<div class="fixed inset-0 z-50 flex items-start justify-end">
+  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarRegistro()"></div>
+  <div
+    class="relative z-10 w-full max-w-170 h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900"
+    data-theme="light">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
+      <div>
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{{ facade.isNuevoRegistro() ?
+          'NUEVO REGISTRO' : 'EDITAR EXPEDIENTE' }}</div>
+        <h2 class="text-[15px] font-bold text-slate-900">{{ facade.isNuevoRegistro() ? 'Registrar Vehículo' :
+          ('Expediente: ' + (facade.selectedVehiculo()?.placa || '')) }}</h2>
+      </div>
+      <button (click)="facade.cerrarRegistro()" type="button"
+        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+          viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+    <div class="flex border-b border-slate-200 bg-white shrink-0 px-6">
+      @for (tab of facade.tabs(); track tab) {
+      <button (click)="facade.setTab(tab)" type="button" [class.text-emerald-600]="facade.activeTab() === tab"
+        [class.border-emerald-500]="facade.activeTab() === tab" [class.font-semibold]="facade.activeTab() === tab"
+        [class.text-slate-400]="facade.activeTab() !== tab" [class.border-transparent]="facade.activeTab() !== tab"
+        class="pb-3 pt-3 px-3 text-[13px] border-b-2 transition-colors whitespace-nowrap">{{ tab }}</button>
+      }
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 py-5 bg-white">
+      <form [formGroup]="form" autocomplete="off" novalidate>
+        @if (facade.activeTab() === 'Datos del Vehículo') {
+        <div class="space-y-4">
+          <div
+            class="flex items-start gap-2.5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-[12px] text-blue-700">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              viewBox="0 0 24 24" class="shrink-0 mt-0.5">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            Los campos marcados con * son obligatorios. Los marcados con un candado están bloqueados por normativa.
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">1. TIPO DE VEHÍCULO <span
+                  class="text-red-500">*</span></label>
+              <select formControlName="tipoVehiculo" [class.border-red-400]="hasError('tipoVehiculo')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                <option value="" class="text-slate-500">Seleccione tipo...</option>
+                @for (tipo of facade.tiposVehiculo(); track tipo.id) { <option [value]="tipo.nombre"
+                  class="text-slate-900">{{ tipo.nombre }}</option> }
+              </select>
+              @if (hasError('tipoVehiculo')) { <span class="text-[11px] text-red-500">{{ getError('tipoVehiculo')
+                }}</span> }
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">2. MARCA <span
+                  class="text-red-500">*</span></label>
+              <select formControlName="marca" [class.border-red-400]="hasError('marca')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
+                <option value="" class="text-slate-500">← Seleccione tipo primero</option>
+                @for (m of facade.marcasDisponibles(); track m.id) { <option [value]="m.nombre" class="text-slate-900">
+                  {{ m.nombre }}</option> }
+              </select>
+              @if (hasError('marca')) { <span class="text-[11px] text-red-500">{{ getError('marca') }}</span> }
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">3. LÍNEA / MODELO COMERCIAL <span
+                  class="text-red-500">*</span></label>
+              <select formControlName="linea" [class.border-red-400]="hasError('linea')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
+                <option value="" class="text-slate-500">← Seleccione marca primero</option>
+                @for (l of facade.lineasDisponibles(); track l.id) { <option [value]="l.nombre" class="text-slate-900">
+                  {{ l.nombre }}</option> }
+              </select>
+              @if (hasError('linea')) { <span class="text-[11px] text-red-500">{{ getError('linea') }}</span> }
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">PLACA <span
+                  class="text-red-500">*</span></label>
+              <input formControlName="placa" type="text" placeholder="Ej: HJK892" maxlength="10"
+                [class.border-red-400]="hasError('placa')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-semibold text-slate-900 uppercase placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
+              @if (hasError('placa')) { <span class="text-[11px] text-red-500">{{ getError('placa') }}</span> }
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">AÑO MODELO <span
+                  class="text-red-500">*</span></label>
+              <input formControlName="modelo" type="number" placeholder="Ej: 2022" min="1900" max="2027"
+                [class.border-red-400]="hasError('modelo')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+              @if (hasError('modelo')) { <span class="text-[11px] text-red-500">{{ getError('modelo') }}</span> }
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">CILINDRAJE (CC) <span
+                  class="text-red-500">*</span></label>
+              <input formControlName="cilindraje" type="number" placeholder="Ej: 1500" min="1"
+                [class.border-red-400]="hasError('cilindraje')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+              @if (hasError('cilindraje')) { <span class="text-[11px] text-red-500">{{ getError('cilindraje') }}</span>
+              }
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">COMBUSTIBLE <span class="text-red-500">*</span></label>
+
+              <select formControlName="combustible"
+                [class.border-red-400]="hasError('combustible')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                <option value="" class="text-slate-500">Seleccione combustible...</option>
+                @for (c of facade.combustibles(); track c.id) { <option [value]="c.nombre" class="text-slate-900">{{
+                  c.nombre }}</option> }
+              </select>
+              @if(hasError('combustible')){
+              <span class="text-[11px] text-red-500 font-medium mt-0.5">
+                {{ getError('combustible') }}
+              </span>
+              }
+
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">SERVICIO <span class="text-red-500">*</span></label>
+              <select formControlName="servicio"
+                [class.border-red-400]="hasError('servicio')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                <option value="" class="text-slate-500">Seleccione servicio...</option>
+                @for (s of facade.serviciosVehiculo(); track s.id) { <option [value]="s.nombre" class="text-slate-900">
+                  {{ s.nombre }}</option> }
+              </select>
+              @if(hasError('servicio')){
+              <span class="text-[11px] text-red-500 font-medium mt-0.5">
+                {{ getError('servicio') }}
+              </span>
+              }
+
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">ESTADO MATRÍCULA <span
+                  class="text-red-500">*</span></label>
+              <select formControlName="estadoMatriculaId" [class.border-red-400]="hasError('estadoMatriculaId')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                <option value="" class="text-slate-500">Seleccione estado...</option>
+                @for (e of facade.estadosMatricula(); track e.id) { <option [value]="e.id" class="text-slate-900">{{
+                  e.nombre }}</option> }
+              </select>
+              @if (hasError('estadoMatriculaId')) { <span class="text-[11px] text-red-500">{{
+                getError('estadoMatriculaId') }}</span> }
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">PASAJEROS <span class="text-red-500">*</span></label>
+              <input formControlName="pasajeros" [class.border-red-400]="hasError('pasajeros')" type="number" placeholder="Ej: 5" min="1"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                @if(hasError('pasajeros')){
+                  <span class="text-[11px] text-red-500 font-medium mt-0.5">
+                    {{getError('pasajeros')}}
+                  </span>
+                }
+            </div>
+
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">ORGANISMO DE TRÁNSITO</label>
+              <select formControlName="organismoTransitoId"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                <option value="" class="text-slate-500">Seleccione organismo...</option>
+                @for (o of facade.organismosTransito(); track o.id) { <option [value]="o.id" class="text-slate-900">{{
+                  o.nombre }}</option> }
+              </select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE MATRÍCULA</label>
+              <input formControlName="fechaMatricula" type="date"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+            </div>
+          </div>
+        </div>
+        }
+        @if (facade.activeTab() === 'Propietarios') {
+        <div class="space-y-4">
+          <div class="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+            <input formControlName="incluirPropietario" type="checkbox" id="chkPropietario"
+              class="w-4 h-4 rounded accent-emerald-600">
+            <label for="chkPropietario"
+              class="text-[13px] font-medium text-slate-800 cursor-pointer select-none">Incluir propietario inicial en
+              este registro</label>
+          </div>
+          @if (form.get('incluirPropietario')?.value) {
+          <div class="flex flex-col gap-1">
+            <label class="text-[11.5px] font-semibold text-slate-700">BÚSQUEDA POR DOCUMENTO</label>
+            <div class="flex gap-2">
+              <select formControlName="tipoDocumentoId" [class.border-red-400]="hasError('tipoDocumentoId')"
+                class="h-9 w-35 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 shrink-0">
+                <option value="" class="text-slate-500">Tipo</option>
+                @for (t of facade.tiposDocumento(); track t.id) { <option [value]="t.id" class="text-slate-900">{{
+                  t.codigo }}</option> }
+              </select>
+              <input formControlName="numeroDocumento" type="text" placeholder="Número de documento..."
+                [class.border-red-400]="hasError('numeroDocumento')"
+                class="h-9 flex-1 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+              <button (click)="buscarPropietario()" type="button" [disabled]="facade.buscandoPropietario()"
+                class="h-9 px-4 rounded-md bg-[#1e3a7b] text-white text-[12px] font-semibold hover:bg-[#162d61] disabled:opacity-50 shrink-0">{{
+                facade.buscandoPropietario() ? 'Buscando...' : 'Buscar' }}</button>
+              <button (click)="limpiarPropietario()" type="button"
+                class="h-9 px-3 rounded-md bg-slate-100 text-slate-700 text-[12px] font-medium hover:bg-slate-200 shrink-0">Limpiar</button>
+            </div>
+            @if (hasError('tipoDocumentoId')) { <span class="text-[11px] text-red-500">{{ getError('tipoDocumentoId')
+              }}</span> }
+            @if (hasError('numeroDocumento')) { <span class="text-[11px] text-red-500">{{ getError('numeroDocumento')
+              }}</span> }
+            @if (propietarioEncontradoMsg()) { <span class="text-[11.5px] text-blue-600 font-medium">{{
+              propietarioEncontradoMsg() }}</span> }
+          </div>
+          @if (form.get('tipoDocumentoId')?.value == 2) {
+          <div class="flex flex-col gap-1">
+            <label class="text-[11.5px] font-semibold text-slate-700">DÍGITO DE VERIFICACIÓN <span
+                class="text-red-500">*</span></label>
+            <input formControlName="digitoVerificacion" type="number" min="0" max="9" placeholder="0-9"
+              [class.border-red-400]="hasError('digitoVerificacion')"
+              class="h-9 w-24 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+            @if (hasError('digitoVerificacion')) { <span class="text-[11px] text-red-500">{{
+              getError('digitoVerificacion') }}</span> }
+          </div>
+          }
+          <div class="flex flex-col gap-1">
+            <label class="text-[11.5px] font-semibold text-slate-700">NATURALEZA JURÍDICA <span
+                class="text-red-500">*</span></label>
+            <div class="flex gap-4">
+              @for (n of facade.naturalezasJuridicas(); track n.id) {
+              <label class="flex items-center gap-2 cursor-pointer"><input formControlName="naturalezaJuridicaId"
+                  type="radio" [value]="n.id" class="accent-emerald-600"><span
+                  class="text-[13px] font-medium text-slate-800">{{ n.nombre }}</span></label>
+              }
+            </div>
+            @if (hasError('naturalezaJuridicaId')) { <span class="text-[11px] text-red-500">{{
+              getError('naturalezaJuridicaId') }}</span> }
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[11.5px] font-semibold text-slate-700">{{ isNatural ? 'NOMBRE COMPLETO' : 'RAZÓN SOCIAL'
+              }} <span class="text-red-500">*</span></label>
+            <input formControlName="nombreRazonSocial" type="text"
+              [placeholder]="isNatural ? 'Primer nombre Primer apellido' : 'Razón social de la empresa'"
+              [class.border-red-400]="hasError('nombreRazonSocial')"
+              class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+            @if (hasError('nombreRazonSocial')) { <span class="text-[11px] text-red-500">{{
+              getError('nombreRazonSocial') }}</span> }
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">CORREO ELECTRÓNICO</label>
+              <input formControlName="correoElectronico" type="email" placeholder="correo@dominio.com"
+                [class.border-red-400]="hasError('correoElectronico')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+              @if (hasError('correoElectronico')) { <span class="text-[11px] text-red-500">{{
+                getError('correoElectronico') }}</span> }
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">TELÉFONO</label>
+              <input formControlName="telefono" type="tel" placeholder="3001234567"
+                [class.border-red-400]="hasError('telefono')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+              @if (hasError('telefono')) { <span class="text-[11px] text-red-500">{{ getError('telefono') }}</span> }
+            </div>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[11.5px] font-semibold text-slate-700">DIRECCIÓN</label>
+            <input formControlName="direccion" type="text" placeholder="Calle, carrera, vereda..."
+              class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">DEPARTAMENTO</label>
+              <select formControlName="departamentoId"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+                <option [value]="null" class="text-slate-500">Seleccione departamento...</option>
+                @for (d of facade.departamentos(); track d.id) { <option [value]="d.id" class="text-slate-900">{{
+                  d.nombre }}</option> }
+              </select>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">CIUDAD / MUNICIPIO</label>
+              <select formControlName="ciudadId"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+                <option [value]="null" class="text-slate-500">Seleccione ciudad...</option>
+                @for (c of facade.ciudadesDisponibles(); track c.id) { <option [value]="c.id" class="text-slate-900">{{
+                  c.nombre }}</option> }
+              </select>
+            </div>
+          </div>
+          <div class="border-t border-slate-200 pt-4">
+            <p class="text-[11.5px] font-bold text-slate-600 uppercase tracking-wider mb-3">Datos de Vinculación</p>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <label class="text-[11.5px] font-semibold text-slate-700">TIPO DE VÍNCULO <span
+                    class="text-red-500">*</span></label>
+                <select formControlName="tipoVinculoPersonaId" [class.border-red-400]="hasError('tipoVinculoPersonaId')"
+                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                  <option value="" class="text-slate-500">Seleccione tipo...</option>
+                  @for (v of facade.tiposVinculo(); track v.id) { <option [value]="v.id" class="text-slate-900">{{
+                    v.nombre }}</option> }
+                </select>
+                @if (hasError('tipoVinculoPersonaId')) { <span class="text-[11px] text-red-500">{{
+                  getError('tipoVinculoPersonaId') }}</span> }
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[11.5px] font-semibold text-slate-700">% PROPIEDAD <span
+                    class="text-red-500">*</span></label>
+                <input formControlName="porcentajePropiedad" type="number" min="1" max="100" placeholder="100"
+                  [class.border-red-400]="hasError('porcentajePropiedad')"
+                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                @if (hasError('porcentajePropiedad')) { <span class="text-[11px] text-red-500">{{
+                  getError('porcentajePropiedad') }}</span> }
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div class="flex flex-col gap-1">
+                <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE INICIO <span
+                    class="text-red-500">*</span></label>
+                <input formControlName="fechaInicio" type="date" [class.border-red-400]="hasError('fechaInicio')"
+                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                @if (hasError('fechaInicio')) { <span class="text-[11px] text-red-500">{{ getError('fechaInicio')
+                  }}</span> }
+              </div>
+              <div class="flex items-center gap-2 mt-5">
+                <input formControlName="esResponsablePrincipal" type="checkbox" id="chkResponsable"
+                  class="w-4 h-4 rounded accent-emerald-600">
+                <label for="chkResponsable"
+                  class="text-[12.5px] font-medium text-slate-800 cursor-pointer select-none">Es responsable
+                  principal</label>
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+        }
+        @if (facade.activeTab() === 'Observaciones') {
+        <div class="space-y-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-[11.5px] font-semibold text-slate-700">OBSERVACIONES DEL REGISTRO</label>
+            <textarea formControlName="observaciones" rows="6" placeholder="Ingrese observaciones relevantes..."
+              [class.border-red-400]="hasError('observaciones')"
+              class="border border-slate-300 rounded-md px-3 py-2 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500"></textarea>
+            <div class="flex justify-between text-[11px] text-slate-400"><span>Campo opcional</span><span>{{
+                (form.get('observaciones')?.value?.length || 0) }} / 1000</span></div>
+            @if (hasError('observaciones')) { <span class="text-[11px] text-red-500">{{ getError('observaciones')
+              }}</span> }
+          </div>
+        </div>
+        }
+      </form>
+    </div>
+    <div class="shrink-0 px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        @for (tab of facade.tabs(); track tab; let i = $index) {
+        <div [class.bg-emerald-500]="facade.currentStep() > i" [class.bg-[#1e3a7b]]="facade.currentStep() === i + 1"
+          [class.bg-slate-200]="facade.currentStep() < i + 1" class="h-1.5 w-10 rounded-full transition-colors"></div>
+        }
+        <span class="text-[11px] text-slate-500 font-medium ml-1">Paso {{ facade.currentStep() }} de {{
+          facade.tabs().length }}</span>
+      </div>
+      <div class="flex gap-2">
+        @if (facade.currentStep() > 1) {
+        <button (click)="onAnterior()" type="button"
+          class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50">←
+          Anterior</button>
+        }
+        <button (click)="facade.cerrarRegistro()" type="button"
+          class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-600 bg-white hover:bg-slate-50">Cancelar</button>
+        <button (click)="onSiguiente()" type="button" [disabled]="facade.registroLoading()"
+          class="h-9 px-5 rounded-md bg-emerald-600 text-white text-[13px] font-semibold hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center gap-2">
+          @if (facade.registroLoading()) {
+          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          Guardando...
+          } @else if (facade.currentStep() === facade.tabs().length) {
+          Guardar Registro
+          } @else {
+          Siguiente →
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+}
