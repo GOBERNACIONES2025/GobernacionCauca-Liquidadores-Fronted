@@ -3,7 +3,7 @@
   <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity" (click)="!isLoading && onClose()">
     
     <!-- MODAL PANEL -->
-    <div (click)="$event.stopPropagation()" class="bg-white rounded-lg shadow-2xl w-full max-w-[720px] overflow-hidden flex flex-col transform transition-all">
+    <div (click)="$event.stopPropagation()" class="bg-white rounded-lg shadow-2xl w-full max-w-[720px] overflow-hidden flex flex-col transform transition-all text-slate-900" data-theme="light">
       
       <!-- Header -->
       <div class="bg-white border-b border-slate-200 px-6 py-5 flex items-start justify-between">
@@ -39,7 +39,9 @@
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipo Documento</label>
             <div class="relative">
-              <select formControlName="tipoDocumentoId" class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+              <select formControlName="tipoDocumentoId"
+                      [class.border-red-400]="hasError('tipoDocumentoId')"
+                      class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                 @for (tipo of facade.tiposDocumento(); track tipo.id) {
                   <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
                 }
@@ -48,6 +50,9 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
+            @if (hasError('tipoDocumentoId')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('tipoDocumentoId') }}</span>
+            }
           </div>
 
           <!-- Número Documento -->
@@ -55,7 +60,12 @@
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
               Número Documento <span class="text-red-500">*</span>
             </label>
-            <input type="text" formControlName="numeroDocumento" placeholder="1035421980" [class]="'w-full h-10 rounded-md border px-3 text-[13px] text-slate-700 bg-white outline-none transition-all disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ' + (form.get('numeroDocumento')?.invalid && form.get('numeroDocumento')?.touched ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-300 focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]')">
+            <input type="text" formControlName="numeroDocumento" placeholder="1035421980"
+                   [class.border-red-400]="hasError('numeroDocumento')"
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white outline-none transition-all focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+            @if (hasError('numeroDocumento')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('numeroDocumento') }}</span>
+            }
           </div>
 
           <!-- Nombre / Razón Social -->
@@ -63,25 +73,45 @@
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
               Nombre / Razón Social <span class="text-red-500">*</span>
             </label>
-            <input type="text" formControlName="nombreRazonSocial" placeholder="Samuel Díaz Pérez" [class]="'w-full h-10 rounded-md border px-3 text-[13px] text-slate-700 bg-white outline-none transition-all ' + (form.get('nombreRazonSocial')?.invalid && form.get('nombreRazonSocial')?.touched ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500' : 'border-slate-300 focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]')">
+            <input type="text" formControlName="nombreRazonSocial" placeholder="Samuel Díaz Pérez"
+                   [class.border-red-400]="hasError('nombreRazonSocial')"
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white outline-none transition-all focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]">
+            @if (hasError('nombreRazonSocial')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('nombreRazonSocial') }}</span>
+            }
           </div>
 
           <!-- Correo Electrónico -->
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Correo Electrónico</label>
-            <input type="email" formControlName="correoElectronico" placeholder="nombre@email.com" class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+            <input type="email" formControlName="correoElectronico" placeholder="nombre@email.com"
+                   [class.border-red-400]="hasError('correoElectronico')"
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+            @if (hasError('correoElectronico')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('correoElectronico') }}</span>
+            }
           </div>
 
           <!-- Teléfono -->
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Teléfono</label>
-            <input type="tel" formControlName="telefono" placeholder="311 425 6780" class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+            <input type="tel" formControlName="telefono" placeholder="311 425 6780"
+                   [class.border-red-400]="hasError('telefono')"
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+            @if (hasError('telefono')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('telefono') }}</span>
+            }
           </div>
 
           <!-- Dirección -->
           <div class="md:col-span-2">
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Dirección de Residencia / Notificación</label>
-            <input type="text" formControlName="direccion" placeholder="Calle 5 # 10-20" class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+            <input type="text" formControlName="direccion" placeholder="Calle 5 # 10-20"
+                   [class.border-red-400]="hasError('direccion')"
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+            @if (hasError('direccion')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('direccion') }}</span>
+            }
           </div>
 
           <!-- Departamento (Cascada) -->
