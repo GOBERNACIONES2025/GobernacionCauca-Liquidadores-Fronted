@@ -58,19 +58,19 @@ export class VehiculoPaso2Validator {
     }
 
 
-    if (!isValidId(val.correoElectronico)) {
-      errors.push({
-        campo: 'correoElectronico',
-        mensaje: "Debe completar el correo electrónico",
-        paso: 2
-      });
-    } else if (!emailRegex.test(val.correoElectronico)) {
-      errors.push({
-        campo: 'correoElectronico',
-        mensaje: "El formato del correo electrónico no es válido (ejemplo: usuario@dominio.com)",
-        paso: 2
-      });
-    }
+    // if (!isValidId(val.correoElectronico)) {
+    //   errors.push({
+    //     campo: 'correoElectronico',
+    //     mensaje: "Debe completar el correo electrónico",
+    //     paso: 2
+    //   });
+    // } else if (!emailRegex.test(val.correoElectronico)) {
+    //   errors.push({
+    //     campo: 'correoElectronico',
+    //     mensaje: "El formato del correo electrónico no es válido (ejemplo: usuario@dominio.com)",
+    //     paso: 2
+    //   });
+    // }
 
     // ── TIPO DE DOCUMENTO ────────────────────────────────────────────────
     if (!isValidId(val.tipoDocumentoId)) {

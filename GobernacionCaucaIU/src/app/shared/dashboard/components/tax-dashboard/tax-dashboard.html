@@ -109,7 +109,7 @@
       <div class="flex items-center justify-between mb-4">
         <div>
           <h2 class="text-sm font-extrabold text-slate-900 tracking-tight">Comportamiento Mensual de Recaudo</h2>
-          <p class="text-[11px] text-slate-400">Recaudo consolidado vs Meta proyectada en millones de pesos</p>
+          <p class="text-[11px] text-slate-400">Recaudo consolidado mes a mes</p>
         </div>
         <div class="badge badge-sm font-bold bg-blue-50 text-blue-700 border-none">
           Vigencia {{ dashboardService.vigencia() }}
@@ -227,12 +227,19 @@
                 <span class="badge badge-sm font-bold text-[10px]"
                   [ngClass]="{
                     'bg-emerald-50 text-emerald-700 border-emerald-200': item.status === 'APROBADO' || item.status === 'PAGADO',
-                    'bg-amber-50 text-amber-800 border-amber-200': item.status === 'PENDIENTE',
+                    'bg-amber-50 text-amber-800 border-amber-200': item.status === 'PENDIENTE' || item.status === 'BORRADOR',
                     'bg-blue-50 text-blue-700 border-blue-200': item.status === 'LIQUIDADO',
                     'bg-rose-50 text-rose-700 border-rose-200': item.status === 'RECHAZADO'
                   }">
                   {{ item.status }}
                 </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="py-10 text-center text-slate-400 text-xs">
+                <i class="fa-solid fa-inbox text-2xl mb-2 text-slate-300 block"></i>
+                No hay operaciones registradas para la vigencia seleccionada.
               </td>
             </tr>
           }
