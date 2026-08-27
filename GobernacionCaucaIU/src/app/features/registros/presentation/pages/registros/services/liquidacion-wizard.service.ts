@@ -22,6 +22,7 @@ export interface ActoTemp {
   tarifaInfo: string;
   valorActo: number;
   baseDeclarada: number;
+  inmuebleId?: number | null;
   matriculaInmobiliaria?: string;
   avaluoCatastral?: number;
   exencionId?: number | null;
@@ -44,6 +45,14 @@ export class LiquidacionWizardService {
   radicadoGenerado = signal<string>('');
   fechaRadicado = signal<string>(new Date().toISOString().split('T')[0]);
   vigenciaFiscal = signal<number | null>(null);
+
+  // Estados de Solicitud (1: RADICADA, 2: EN_REVISION, 3: PENDIENTE, 4: LIQUIDADA, 5: DEVUELTA, 6: ANULADA, 7: CERRADA)
+  estadoSolicitudId = signal<number>(1);
+  estadoSolicitudNombre = signal<string>('Radicada');
+  
+  // Banderas de control de mutabilidad
+  esSoloLectura = computed(() => [4, 6, 7].includes(this.estadoSolicitudId()) || this.liquidacionGeneradaExitosa());
+  esEditable = computed(() => !this.esSoloLectura());
   
   // ===================== FORMULARIOS =====================
 
@@ -85,6 +94,7 @@ export class LiquidacionWizardService {
   
   actoForm: FormGroup = this.fb.group({
     tipoActoRegistroId: [null as number | null, Validators.required],
+    inmuebleId: [null as number | null],
     valorActo: [0, [Validators.required, Validators.min(0)]],
     baseDeclarada: [0, [Validators.required, Validators.min(0)]],
     matriculaInmobiliaria: [''],
@@ -128,6 +138,8 @@ export class LiquidacionWizardService {
     this.solicitudId.set(null);
     this.etapaGuardada.set(0);
     this.radicadoGenerado.set('');
+    this.estadoSolicitudId.set(1);
+    this.estadoSolicitudNombre.set('Radicada');
     
     this.paso1Form.reset({
       contribuyenteId: null,
@@ -155,6 +167,7 @@ export class LiquidacionWizardService {
     
     this.actoForm.reset({
       tipoActoRegistroId: null,
+      inmuebleId: null,
       valorActo: 0,
       baseDeclarada: 0,
       matriculaInmobiliaria: '',
@@ -182,6 +195,12 @@ export class LiquidacionWizardService {
     this.solicitudId.set(solicitud.solicitudId);
     this.etapaGuardada.set(solicitud.etapaActual);
     this.radicadoGenerado.set(solicitud.numeroRadicado);
+    this.estadoSolicitudId.set(solicitud.estadoSolicitudId || 1);
+    this.estadoSolicitudNombre.set(solicitud.nombreEstado || 'Radicada');
+
+    if (solicitud.estadoSolicitudId === 4) {
+      this.liquidacionGeneradaExitosa.set(true);
+    }
     
     // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
     // Si etapa es 1 (Radicación completada), saltamos al paso 2
@@ -243,8 +262,9 @@ export class LiquidacionWizardService {
           tarifaInfo: '',
           valorActo: a.valorActo,
           baseDeclarada: a.baseDeclarada,
-          matriculaInmobiliaria: '', // El backend usa inmuebleId, habría que adaptarlo si es string o num
-          avaluoCatastral: 0,
+          inmuebleId: a.inmuebleId || null,
+          matriculaInmobiliaria: a.matriculaInmobiliaria || '',
+          avaluoCatastral: a.avaluoCatastral || 0,
           exencionId: null, // Asignar si viene en el DTO
           exencionNombre: null,
           intervinientes: a.intervinientes ? a.intervinientes.map((i: any) => ({

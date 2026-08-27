@@ -31,10 +31,14 @@ export class ContribuyentesApiService {
    * @param {number} [pageSize=10] - Cantidad de registros por página.
    * @returns {Observable<ApiResponse<PagedResult<Contribuyente>>>} Respuesta paginada.
    */
-  obtenerTodos(pageNumber: number = 1, pageSize: number = 10): Observable<ApiResponse<PagedResult<Contribuyente>>> {
+  obtenerTodos(pageNumber: number = 1, pageSize: number = 10, search?: string): Observable<ApiResponse<PagedResult<Contribuyente>>> {
+    const params: any = { pageNumber, pageSize };
+    if (search && search.trim() !== '') {
+      params.search = search.trim();
+    }
     return this.api.get<ApiResponse<PagedResult<Contribuyente>>>(
       this.baseUrl,
-      { params: { pageNumber, pageSize } },
+      { params },
       'REGISTROS'
     );
   }

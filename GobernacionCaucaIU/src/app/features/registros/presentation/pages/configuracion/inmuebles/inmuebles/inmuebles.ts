@@ -1,8 +1,11 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormArray, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { InmueblesFacade } from '../../../../../application/facades/Inmuebles/inmuebles.facade';
 import { MunicipiosFacade } from '../../../../../application/facades/Territorios/municipios.facade';
 import { VigenciasFacade } from '../../../../../application/facades/Normatividad/vigencias.facade';
@@ -12,7 +15,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-inmuebles',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './inmuebles.html',
   styleUrl: './inmuebles.css'
 })
@@ -26,6 +29,11 @@ export class InmueblesComponent implements OnInit {
   breadcrumbs = ['Configuración', 'Inmuebles', 'Inmuebles y Avalúos'];
 
   searchQuery = signal<string>('');
+  private searchSubject = new Subject<string>();
+
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+
   selectedMunicipioFilter = signal<number | 'todos'>('todos');
 
   isSlideOverOpen = false;
@@ -46,26 +54,46 @@ export class InmueblesComponent implements OnInit {
     return this.inmuebleForm.get('avaluos') as FormArray;
   }
 
-  // Filtered list
+  // Filtered list (client side fallback if needed, but mostly from backend)
   inmueblesFiltrados = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const municipioFilter = this.selectedMunicipioFilter();
-    let items = this.facade.inmuebles();
-
-    if (municipioFilter !== 'todos') {
-      items = items.filter(i => i.municipioId === municipioFilter);
-    }
-
-    if (query) {
-      items = items.filter(i => 
-        i.matriculaInmobiliaria.toLowerCase().includes(query) || 
-        (i.municipioNombre && i.municipioNombre.toLowerCase().includes(query)) ||
-        (i.direccion && i.direccion.toLowerCase().includes(query))
-      );
-    }
-
-    return items;
+    return this.facade.inmuebles();
   });
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarDatos();
+    });
+  }
+
+  onSearchChange(value: string) {
+    this.searchQuery.set(value);
+    this.searchSubject.next(value);
+  }
+
+  cargarDatos() {
+    const params: any = {
+      pageNumber: this.pageNumber(),
+      pageSize: this.pageSize(),
+      busqueda: this.searchQuery() || undefined,
+      municipioId: this.selectedMunicipioFilter() !== 'todos' ? this.selectedMunicipioFilter() : undefined
+    };
+    this.facade.cargarInmuebles(params);
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarDatos();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarDatos();
+  }
 
   counts = computed(() => {
     const all = this.facade.inmuebles();
@@ -75,13 +103,15 @@ export class InmueblesComponent implements OnInit {
   });
 
   ngOnInit() {
-    this.facade.cargarInmuebles();
+    this.cargarDatos();
     this.municipiosFacade.cargarMunicipios(1, 100);
     this.vigenciasFacade.cargarVigencias(1, 100);
   }
 
   setMunicipioFilter(filter: number | 'todos') {
     this.selectedMunicipioFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarDatos();
   }
 
   createAvaluoGroup(avaluo?: AvaluoCatastralCommandDto) {
@@ -172,7 +202,7 @@ export class InmueblesComponent implements OnInit {
           next: () => {
             this.toast.success(`Inmueble ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarInmuebles();
+            this.cargarDatos();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar el inmueble`);
@@ -189,7 +219,7 @@ export class InmueblesComponent implements OnInit {
           next: () => {
             this.toast.success(`Inmueble ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarInmuebles();
+            this.cargarDatos();
           },
           error: (err: any) => {
             this.toast.error(`Error al registrar el inmueble`);

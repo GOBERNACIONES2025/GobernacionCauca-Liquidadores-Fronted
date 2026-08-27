@@ -10,6 +10,7 @@ import { TiposIdentificacionFacade } from '../../../../../../application/facades
 import { DepartamentosFacade } from '../../../../../../application/facades/Territorios/departamentos.facade';
 import { VigenciasFacade } from '../../../../../../application/facades/Normatividad/vigencias.facade';
 import { SolicitudesLiquidacionFacade } from '../../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
+import { ContribuyentesApiService } from '../../../../../../infrastructure/api/Contribuyentes/contribuyentes-api.service';
 import { ToastService } from '../../../../../../../../core/services/toast.service';
 
 @Component({
@@ -27,13 +28,18 @@ export class StepRadicacionComponent implements OnInit {
   deptFacade = inject(DepartamentosFacade);
   vigenciasFacade = inject(VigenciasFacade);
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
+  contribuyentesApi = inject(ContribuyentesApiService);
   toastService = inject(ToastService);
   
   modoCreacion = false;
   busquedaRealizada = false;
+  buscandoContribuyente = false;
 
   ngOnInit() {
     this.vigenciasFacade.cargarVigencias(1, 100);
+    this.tiposPersonaFacade.cargarTiposPersona();
+    this.tiposIdentificacionFacade.cargarTiposIdentificacion();
+    this.deptFacade.cargarDepartamentos(1, 100);
   }
 
   buscarContribuyente() {
@@ -41,31 +47,51 @@ export class StepRadicacionComponent implements OnInit {
     if (!numDoc) return;
 
     this.busquedaRealizada = true;
-    const encontrado = (this.contribuyentesFacade.contribuyentes() as any[]).find((c: any) => c.numeroIdentificacion === numDoc);
-    
-    if (encontrado) {
-      this.modoCreacion = false;
-      this.wizardService.paso1Form.patchValue({
-        contribuyenteId: encontrado.id,
-        tipoPersonaId: encontrado.tipoPersonaId,
-        tipoIdentificacionId: encontrado.tipoIdentificacionId,
-        nombre: encontrado.nombre,
-        email: encontrado.email,
-        telefono: encontrado.telefono,
-        direccion: encontrado.direccion
-      });
-    } else {
-      this.modoCreacion = true;
-      this.wizardService.paso1Form.patchValue({
-        contribuyenteId: null,
-        tipoPersonaId: null,
-        tipoIdentificacionId: null,
-        nombre: '',
-        email: '',
-        telefono: '',
-        direccion: ''
-      });
-    }
+    this.buscandoContribuyente = true;
+
+    this.contribuyentesApi.obtenerTodos(1, 10, numDoc).subscribe({
+      next: (res: any) => {
+        this.buscandoContribuyente = false;
+        const raw = res?.data;
+        const items: any[] = Array.isArray(raw) ? raw : (raw?.items || []);
+        
+        const cleanDoc = numDoc.trim().toLowerCase();
+        const encontrado = items.find((c: any) => 
+          String(c.numeroIdentificacion || c.numeroDocumento || c.documento || c.identificacion || '').trim().toLowerCase() === cleanDoc
+        );
+
+        if (encontrado) {
+          this.modoCreacion = false;
+          this.wizardService.paso1Form.patchValue({
+            contribuyenteId: encontrado.id,
+            tipoPersonaId: encontrado.tipoPersonaId ?? encontrado.tipoPersona?.id,
+            tipoIdentificacionId: encontrado.tipoIdentificacionId ?? encontrado.tipoIdentificacion?.id,
+            numeroIdentificacion: encontrado.numeroIdentificacion || numDoc,
+            nombre: encontrado.nombre || encontrado.nombreCompleto || encontrado.razonSocial,
+            email: encontrado.email,
+            telefono: encontrado.telefono,
+            direccion: encontrado.direccion
+          });
+          this.toastService.success(`Contribuyente encontrado: ${encontrado.nombre || cleanDoc}`);
+        } else {
+          this.modoCreacion = true;
+          this.wizardService.paso1Form.patchValue({
+            contribuyenteId: null,
+            tipoPersonaId: null,
+            tipoIdentificacionId: null,
+            nombre: '',
+            email: '',
+            telefono: '',
+            direccion: ''
+          });
+          this.toastService.info('Contribuyente no registrado. Diligencie los campos para crearlo.');
+        }
+      },
+      error: () => {
+        this.buscandoContribuyente = false;
+        this.toastService.error('Error al consultar el contribuyente.');
+      }
+    });
   }
 
   habilitarCreacionManual() {
@@ -80,7 +106,27 @@ export class StepRadicacionComponent implements OnInit {
     });
   }
 
+  limpiarBusquedaContribuyente() {
+    this.busquedaRealizada = false;
+    this.modoCreacion = false;
+    this.wizardService.paso1Form.patchValue({
+      contribuyenteId: null,
+      numeroIdentificacion: '',
+      tipoPersonaId: null,
+      tipoIdentificacionId: null,
+      nombre: '',
+      email: '',
+      telefono: '',
+      direccion: ''
+    });
+  }
+
   continuar() {
+    if (this.wizardService.esSoloLectura()) {
+      this.wizardService.currentStep.set(2);
+      return;
+    }
+
     if (this.wizardService.etapaGuardada() >= 1 && !this.wizardService.paso1Form.dirty) {
       this.wizardService.currentStep.set(2);
       return;

@@ -14,7 +14,7 @@ import { InmueblesApiService } from '../../../../../../infrastructure/api/Inmueb
 import { ToastService } from '../../../../../../../../core/services/toast.service';
 import { ActoRegistradoDto } from '../../../../../../domain/models/Radicacion/solicitud-wizard.model';
 import { TipoActoRegistro } from '../../../../../../domain/models/Registro/tipo-acto-registro.model';
-import { Inmueble, CrearInmuebleRequest } from '../../../../../../domain/models/Inmuebles/inmueble.model';
+import { Inmueble, CrearInmuebleRequest, ActualizarInmuebleRequest } from '../../../../../../domain/models/Inmuebles/inmueble.model';
 
 @Component({
   selector: 'app-step-actos',
@@ -42,6 +42,8 @@ export class StepActosComponent implements OnInit, OnDestroy {
   inmuebleEncontrado = signal<Inmueble | null>(null);
   mostrarFormNuevoInmueble = signal<boolean>(false);
   guardandoNuevoInmueble = signal<boolean>(false);
+  actoEditandoId = signal<string | null>(null);
+  editandoInmuebleId = signal<number | null>(null);
 
   nuevoInmuebleForm = this.fb.nonNullable.group({
     municipioId: [0, [Validators.required, Validators.min(1)]],
@@ -131,6 +133,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
     if (this.esSinCuantia) {
       // Actos sin cuantía: forzar valores en 0
       form.patchValue({
+        inmuebleId: null,
         valorActo: 0,
         avaluoCatastral: 0,
         baseDeclarada: 0,
@@ -153,6 +156,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
     } else {
       // Actos comerciales/mercantiles/muebles con cuantía
       form.patchValue({
+        inmuebleId: null,
         avaluoCatastral: 0,
         matriculaInmobiliaria: ''
       }, { emitEvent: false });
@@ -201,8 +205,14 @@ export class StepActosComponent implements OnInit, OnDestroy {
       finalize(() => this.buscandoInmueble.set(false))
     ).subscribe({
       next: (res: any) => {
-        if (res.success && res.data.items.length > 0) {
-          const inmueble = res.data.items[0];
+        const raw = res?.data;
+        const items: any[] = Array.isArray(raw) ? raw : (raw?.items || []);
+        const cleanMat = matricula.trim().toLowerCase();
+        const inmueble = items.find((i: any) => 
+          String(i.matriculaInmobiliaria || '').trim().toLowerCase() === cleanMat
+        );
+
+        if (inmueble) {
           this.inmuebleEncontrado.set(inmueble);
           
           const vigenciaActual = this.wizardService.paso1Form.get('vigenciaFiscal')?.value;
@@ -210,9 +220,11 @@ export class StepActosComponent implements OnInit, OnDestroy {
           const valorAvaluo = avaluoObj ? avaluoObj.valor : 0;
 
           this.wizardService.actoForm.patchValue({
+            inmuebleId: inmueble.id,
             matriculaInmobiliaria: inmueble.matriculaInmobiliaria,
             avaluoCatastral: valorAvaluo
           });
+          this.actualizarBaseDeclaradaSugerida();
           this.toastService.success('Inmueble encontrado y asignado.');
         } else {
           this.mostrarFormNuevoInmueble.set(true);
@@ -225,7 +237,35 @@ export class StepActosComponent implements OnInit, OnDestroy {
     });
   }
 
-  crearNuevoInmueble(): void {
+  abrirEdicionInmueble(): void {
+    const inm = this.inmuebleEncontrado();
+    if (!inm) return;
+
+    this.editandoInmuebleId.set(inm.id);
+    this.mostrarFormNuevoInmueble.set(true);
+
+    const vigenciaActual = this.wizardService.paso1Form.get('vigenciaFiscal')?.value;
+    const avaluoObj = inm.avaluos?.find((a: any) => a.vigenciaId === vigenciaActual) || inm.avaluos?.[0];
+    const valorAvaluo = avaluoObj ? avaluoObj.valor : (this.wizardService.actoForm.get('avaluoCatastral')?.value || 0);
+
+    this.nuevoInmuebleForm.patchValue({
+      municipioId: inm.municipioId,
+      direccion: inm.direccion || '',
+      avaluoCatastral: valorAvaluo
+    });
+  }
+
+  cancelarEdicionInmueble(): void {
+    this.mostrarFormNuevoInmueble.set(false);
+    this.editandoInmuebleId.set(null);
+    this.nuevoInmuebleForm.reset({
+      municipioId: 0,
+      direccion: '',
+      avaluoCatastral: 0
+    });
+  }
+
+  guardarInmueble(): void {
     if (this.nuevoInmuebleForm.invalid) {
       this.nuevoInmuebleForm.markAllAsTouched();
       this.toastService.warning('Complete los campos obligatorios del inmueble.');
@@ -240,54 +280,100 @@ export class StepActosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const payload: CrearInmuebleRequest = {
-      matriculaInmobiliaria: this.matriculaBuscada().trim(),
-      municipioId: formValues.municipioId,
-      direccion: formValues.direccion,
-      avaluos: [
-        {
-          vigenciaId: vigenciaActual,
-          valor: formValues.avaluoCatastral,
-          fuente: 'Creado desde Wizard de Liquidación'
-        }
-      ]
-    };
+    const munObj = (this.municipiosFacade.municipios() as any[]).find((m: any) => m.id === Number(formValues.municipioId));
+    const munNombre = munObj?.nombre || 'Municipio Seleccionado';
 
-    this.guardandoNuevoInmueble.set(true);
-    this.inmueblesApi.crear(payload).pipe(
-      finalize(() => this.guardandoNuevoInmueble.set(false))
-    ).subscribe({
-      next: (res: any) => {
-        if (res.success) {
-          this.toastService.success('Inmueble creado exitosamente.');
-          // Asignar al formulario de acto
+    const editId = this.editandoInmuebleId();
+
+    if (editId) {
+      // ACTUALIZAR INMUEBLE EXISTENTE
+      const updatePayload: ActualizarInmuebleRequest = {
+        id: editId,
+        matriculaInmobiliaria: this.matriculaBuscada().trim(),
+        municipioId: formValues.municipioId,
+        direccion: formValues.direccion,
+        avaluos: [
+          {
+            vigenciaId: vigenciaActual,
+            valor: formValues.avaluoCatastral,
+            fuente: 'Actualizado desde Wizard de Liquidación'
+          }
+        ]
+      };
+
+      this.guardandoNuevoInmueble.set(true);
+      this.inmueblesApi.actualizar(editId, updatePayload).pipe(
+        finalize(() => this.guardandoNuevoInmueble.set(false))
+      ).subscribe({
+        next: () => {
+          this.toastService.success('Datos del inmueble actualizados.');
           this.wizardService.actoForm.patchValue({
-            matriculaInmobiliaria: payload.matriculaInmobiliaria,
             avaluoCatastral: formValues.avaluoCatastral
           });
-          // Simular el inmueble encontrado visualmente
-          this.inmuebleEncontrado.set({
-            id: res.data,
-            matriculaInmobiliaria: payload.matriculaInmobiliaria,
-            municipioId: payload.municipioId,
-            municipioNombre: 'Municipio Seleccionado', // Ideal sería cruzarlo con el facade, pero es visual
-            createdAt: new Date().toISOString(),
-            avaluos: payload.avaluos as any
+          this.inmuebleEncontrado.update(inm => {
+            if (!inm) return null;
+            return {
+              ...inm,
+              municipioId: formValues.municipioId,
+              municipioNombre: munNombre,
+              direccion: formValues.direccion,
+              avaluos: updatePayload.avaluos as any
+            };
           });
-          this.mostrarFormNuevoInmueble.set(false);
-          this.nuevoInmuebleForm.reset({
-            municipioId: 0,
-            direccion: '',
-            avaluoCatastral: 0
-          });
-        } else {
-          this.toastService.error(res.message || 'Error al crear el inmueble.');
+          this.actualizarBaseDeclaradaSugerida();
+          this.cancelarEdicionInmueble();
+        },
+        error: () => {
+          this.toastService.error('Error al actualizar el inmueble.');
         }
-      },
-      error: () => {
-        this.toastService.error('Error de red al crear inmueble.');
-      }
-    });
+      });
+    } else {
+      // CREAR NUEVO INMUEBLE
+      const createPayload: CrearInmuebleRequest = {
+        matriculaInmobiliaria: this.matriculaBuscada().trim(),
+        municipioId: formValues.municipioId,
+        direccion: formValues.direccion,
+        avaluos: [
+          {
+            vigenciaId: vigenciaActual,
+            valor: formValues.avaluoCatastral,
+            fuente: 'Creado desde Wizard de Liquidación'
+          }
+        ]
+      };
+
+      this.guardandoNuevoInmueble.set(true);
+      this.inmueblesApi.crear(createPayload).pipe(
+        finalize(() => this.guardandoNuevoInmueble.set(false))
+      ).subscribe({
+        next: (res: any) => {
+          if (res.success) {
+            this.toastService.success('Inmueble creado exitosamente.');
+            this.wizardService.actoForm.patchValue({
+              inmuebleId: res.data,
+              matriculaInmobiliaria: createPayload.matriculaInmobiliaria,
+              avaluoCatastral: formValues.avaluoCatastral
+            });
+            this.inmuebleEncontrado.set({
+              id: res.data,
+              matriculaInmobiliaria: createPayload.matriculaInmobiliaria,
+              municipioId: createPayload.municipioId,
+              municipioNombre: munNombre,
+              direccion: formValues.direccion,
+              createdAt: new Date().toISOString(),
+              avaluos: createPayload.avaluos as any
+            });
+            this.actualizarBaseDeclaradaSugerida();
+            this.cancelarEdicionInmueble();
+          } else {
+            this.toastService.error(res.message || 'Error al crear el inmueble.');
+          }
+        },
+        error: () => {
+          this.toastService.error('Error al crear el inmueble.');
+        }
+      });
+    }
   }
 
   guardarActoAlExpediente(): void {
@@ -298,9 +384,9 @@ export class StepActosComponent implements OnInit, OnDestroy {
       const tipoActo = this.selectedTipoActoDetalle;
       const exencion = (this.exencionesFacade.exenciones() as any[]).find((e: any) => e.id === Number(val.exencionId));
 
-      const valorActoNum = this.esSinCuantia ? 0 : Number(val.valorActo);
-      const avaluoNum = (this.requiereInmueble && !this.esSinCuantia) ? Number(val.avaluoCatastral) : 0;
-      const baseDeclaradaNum = this.esSinCuantia ? 0 : Number(val.baseDeclarada);
+      const valorActoNum = this.esSinCuantia ? 0 : Number(val.valorActo || 0);
+      const avaluoNum = (this.requiereInmueble && !this.esSinCuantia) ? Number(val.avaluoCatastral || 0) : 0;
+      const baseDeclaradaNum = this.esSinCuantia ? 0 : Number(val.baseDeclarada || 0);
 
       // Verificación de piso mínimo legal
       const pisoMinimo = this.requiereInmueble ? Math.max(valorActoNum, avaluoNum) : valorActoNum;
@@ -309,39 +395,160 @@ export class StepActosComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const nuevoActo: ActoTemp = {
-        idTemp: Math.random().toString(),
-        tipoActoId: Number(val.tipoActoRegistroId),
-        tipoActoCodigo: tipoActo?.codigo || '',
-        tipoActoNombre: tipoActo?.nombre || '',
-        categoriaNombre: tipoActo?.categoriaActo?.nombre || '',
-        naturalezaNombre: tipoActo?.naturalezaActo?.nombre || '',
-        tarifaInfo: '',
-        valorActo: valorActoNum,
-        baseDeclarada: baseDeclaradaNum,
-        matriculaInmobiliaria: this.requiereInmueble ? val.matriculaInmobiliaria : '',
-        avaluoCatastral: avaluoNum,
-        exencionId: val.exencionId ? Number(val.exencionId) : null,
-        exencionNombre: exencion ? exencion.nombre : null,
-        intervinientes: []
-      };
+      const inmuebleIdFinal = this.requiereInmueble ? (val.inmuebleId || this.inmuebleEncontrado()?.id || null) : null;
+      if (this.requiereInmueble && (!inmuebleIdFinal || inmuebleIdFinal <= 0)) {
+        this.toastService.error('Para actos inmobiliarios, es obligatorio buscar y seleccionar un inmueble existente o registrar uno nuevo.');
+        return;
+      }
 
-      this.wizardService.actosExpediente.update(list => [...list, nuevoActo]);
+      const matriculaFinal = this.requiereInmueble ? (val.matriculaInmobiliaria || this.inmuebleEncontrado()?.matriculaInmobiliaria || '') : '';
+
+      const editandoId = this.actoEditandoId();
+      if (editandoId) {
+        this.wizardService.actosExpediente.update(list => list.map(a => {
+          if (String(a.idTemp) === String(editandoId)) {
+            return {
+              ...a,
+              tipoActoId: Number(val.tipoActoRegistroId),
+              tipoActoCodigo: tipoActo?.codigo || a.tipoActoCodigo,
+              tipoActoNombre: tipoActo?.nombre || a.tipoActoNombre,
+              categoriaNombre: tipoActo?.categoriaActo?.nombre || a.categoriaNombre,
+              naturalezaNombre: tipoActo?.naturalezaActo?.nombre || a.naturalezaNombre,
+              valorActo: valorActoNum,
+              baseDeclarada: baseDeclaradaNum,
+              inmuebleId: inmuebleIdFinal,
+              matriculaInmobiliaria: matriculaFinal,
+              avaluoCatastral: avaluoNum,
+              exencionId: val.exencionId ? Number(val.exencionId) : null,
+              exencionNombre: exencion ? exencion.nombre : null
+            };
+          }
+          return a;
+        }));
+        this.toastService.success('Acto modificado exitosamente con los nuevos valores.');
+      } else {
+        const nuevoActo: ActoTemp = {
+          idTemp: Math.random().toString(),
+          tipoActoId: Number(val.tipoActoRegistroId),
+          tipoActoCodigo: tipoActo?.codigo || '',
+          tipoActoNombre: tipoActo?.nombre || '',
+          categoriaNombre: tipoActo?.categoriaActo?.nombre || '',
+          naturalezaNombre: tipoActo?.naturalezaActo?.nombre || '',
+          tarifaInfo: '',
+          valorActo: valorActoNum,
+          baseDeclarada: baseDeclaradaNum,
+          inmuebleId: inmuebleIdFinal,
+          matriculaInmobiliaria: matriculaFinal,
+          avaluoCatastral: avaluoNum,
+          exencionId: val.exencionId ? Number(val.exencionId) : null,
+          exencionNombre: exencion ? exencion.nombre : null,
+          intervinientes: []
+        };
+        this.wizardService.actosExpediente.update(list => [...list, nuevoActo]);
+        this.toastService.success('Acto añadido al expediente.');
+      }
+
       this.wizardService.isAddingActo.set(false);
+      this.actoEditandoId.set(null);
       this.wizardService.actoForm.reset({
         tipoActoRegistroId: null,
+        inmuebleId: null,
         valorActo: 0,
         baseDeclarada: 0,
         matriculaInmobiliaria: '',
         avaluoCatastral: 0,
         exencionId: null
       });
+      this.inmuebleEncontrado.set(null);
+      this.matriculaBuscada.set('');
+      this.mostrarFormNuevoInmueble.set(false);
       this.wizardService.intervinientesActoActual.set([]);
-      this.toastService.success('Acto añadido al expediente.');
     } else {
       this.wizardService.actoForm.markAllAsTouched();
       this.toastService.warning('Por favor complete los campos requeridos con valores válidos.');
     }
+  }
+
+  editarActo(acto: ActoTemp): void {
+    if (this.wizardService.esSoloLectura()) return;
+    this.actoEditandoId.set(acto.idTemp);
+    this.wizardService.isAddingActo.set(true);
+    this.matriculaBuscada.set(acto.matriculaInmobiliaria || '');
+    this.mostrarFormNuevoInmueble.set(false);
+
+    this.wizardService.actoForm.patchValue({
+      tipoActoRegistroId: acto.tipoActoId,
+      inmuebleId: acto.inmuebleId || null,
+      valorActo: acto.valorActo,
+      baseDeclarada: acto.baseDeclarada,
+      matriculaInmobiliaria: acto.matriculaInmobiliaria || '',
+      avaluoCatastral: acto.avaluoCatastral || 0,
+      exencionId: acto.exencionId || null
+    });
+
+    this.aplicarReglasSegunTipoActo();
+    this.wizardService.actoForm.patchValue({
+      baseDeclarada: acto.baseDeclarada,
+      valorActo: acto.valorActo,
+      avaluoCatastral: acto.avaluoCatastral || 0
+    }, { emitEvent: false });
+
+    // Si tiene inmueble asociado, recuperar información completa del inmueble por API
+    if (acto.inmuebleId) {
+      this.buscandoInmueble.set(true);
+      this.inmueblesApi.obtenerPorId(acto.inmuebleId).pipe(
+        finalize(() => this.buscandoInmueble.set(false))
+      ).subscribe({
+        next: (res: any) => {
+          if (res && res.success && res.data) {
+            const inm: Inmueble = res.data;
+            this.inmuebleEncontrado.set(inm);
+            this.matriculaBuscada.set(inm.matriculaInmobiliaria);
+            
+            const vigenciaActual = this.wizardService.paso1Form.get('vigenciaFiscal')?.value;
+            const avaluoObj = inm.avaluos?.find((a: any) => a.vigenciaId === vigenciaActual) || inm.avaluos?.[0];
+            const valorAvaluo = acto.avaluoCatastral || avaluoObj?.valor || 0;
+
+            this.wizardService.actoForm.patchValue({
+              inmuebleId: inm.id,
+              matriculaInmobiliaria: inm.matriculaInmobiliaria,
+              avaluoCatastral: valorAvaluo
+            });
+            this.actualizarBaseDeclaradaSugerida();
+          }
+        },
+        error: () => {
+          if (acto.matriculaInmobiliaria) {
+            this.inmuebleEncontrado.set({
+              id: acto.inmuebleId || 0,
+              matriculaInmobiliaria: acto.matriculaInmobiliaria,
+              municipioId: 0,
+              municipioNombre: 'Predio Asociado',
+              direccion: '',
+              createdAt: '',
+              avaluos: [{ id: 0, vigenciaId: 0, valor: acto.avaluoCatastral || 0, fuente: '' }]
+            });
+          }
+        }
+      });
+    } else if (acto.matriculaInmobiliaria) {
+      this.matriculaBuscada.set(acto.matriculaInmobiliaria);
+      this.buscarPorMatricula();
+    } else {
+      this.inmuebleEncontrado.set(null);
+    }
+  }
+
+  desvincularInmueble(): void {
+    this.inmuebleEncontrado.set(null);
+    this.matriculaBuscada.set('');
+    this.mostrarFormNuevoInmueble.set(false);
+    this.wizardService.actoForm.patchValue({
+      inmuebleId: null,
+      matriculaInmobiliaria: '',
+      avaluoCatastral: 0
+    });
+    this.aplicarReglasSegunTipoActo();
   }
 
   eliminarActoDelExpediente(idTemp: string): void {
@@ -352,13 +559,29 @@ export class StepActosComponent implements OnInit, OnDestroy {
   }
 
   abrirFormularioNuevoActo(): void {
+    if (this.wizardService.esSoloLectura()) return;
+    this.actoEditandoId.set(null);
     this.wizardService.isAddingActo.set(true);
     this.matriculaBuscada.set('');
     this.inmuebleEncontrado.set(null);
     this.mostrarFormNuevoInmueble.set(false);
+    this.wizardService.actoForm.reset({
+      tipoActoRegistroId: null,
+      inmuebleId: null,
+      valorActo: 0,
+      baseDeclarada: 0,
+      matriculaInmobiliaria: '',
+      avaluoCatastral: 0,
+      exencionId: null
+    });
   }
 
   continuar(): void {
+    if (this.wizardService.esSoloLectura()) {
+      this.wizardService.currentStep.set(4);
+      return;
+    }
+
     if (this.wizardService.actosExpediente().length === 0) {
       this.toastService.warning('Debe registrar al menos un acto.');
       return;
@@ -372,7 +595,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
 
     const actosPayload: ActoRegistradoDto[] = this.wizardService.actosExpediente().map(a => ({
       tipoActoRegistroId: a.tipoActoId,
-      inmuebleId: null,
+      inmuebleId: a.inmuebleId || null,
       valorActo: a.valorActo,
       baseDeclarada: a.baseDeclarada,
       observacion: null,

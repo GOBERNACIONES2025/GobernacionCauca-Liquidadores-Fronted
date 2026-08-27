@@ -148,10 +148,13 @@
     </table>
   </div>
   
-  <!-- Footer Counter -->
-  <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
-    Mostrando {{ inmueblesFiltrados().length }} de {{ counts().total }} registros
-  </div>
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="facade.totalInmuebles()"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
 </div>
 
 <!-- Slide-Over Component for Create / Edit -->

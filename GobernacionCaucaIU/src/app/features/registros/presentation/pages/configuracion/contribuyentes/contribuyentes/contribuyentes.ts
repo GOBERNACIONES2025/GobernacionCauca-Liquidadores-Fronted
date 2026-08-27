@@ -1,8 +1,11 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { ContribuyentesFacade } from '../../../../../application/facades/Contribuyentes/contribuyentes.facade';
 import { TiposPersonaFacade } from '../../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
@@ -12,7 +15,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-contribuyentes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './contribuyentes.html',
   styleUrl: './contribuyentes.css'
 })
@@ -26,6 +29,11 @@ export class Contribuyentes implements OnInit {
   breadcrumbs = ['Configuración', 'Contribuyentes', 'Directorio de Contribuyentes'];
 
   searchQuery = signal<string>('');
+  private searchSubject = new Subject<string>();
+
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  
   selectedTipoPersonaFilter = signal<number | 'todos'>('todos');
 
   isSlideOverOpen = false;
@@ -45,27 +53,46 @@ export class Contribuyentes implements OnInit {
     email: ['', [Validators.email]]
   });
 
-  // Filtered list
+  // Filtered list (client side for tipoPersona si no es backend filter, backend for search)
   contribuyentesFiltrados = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
     const tipoPersonaFilter = this.selectedTipoPersonaFilter();
     let items = this.facade.contribuyentes();
 
     if (tipoPersonaFilter !== 'todos') {
       items = items.filter(c => c.tipoPersona?.id === tipoPersonaFilter);
     }
-
-    if (query) {
-      items = items.filter(c => 
-        c.numeroIdentificacion.toLowerCase().includes(query) || 
-        c.nombre.toLowerCase().includes(query) ||
-        (c.email && c.email.toLowerCase().includes(query)) ||
-        (c.telefono && c.telefono.toLowerCase().includes(query))
-      );
-    }
-
     return items;
   });
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarDatos();
+    });
+  }
+
+  onSearchChange(value: string) {
+    this.searchQuery.set(value);
+    this.searchSubject.next(value);
+  }
+
+  cargarDatos() {
+    this.facade.cargarContribuyentes(this.pageNumber(), this.pageSize(), this.searchQuery());
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarDatos();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarDatos();
+  }
 
   counts = computed(() => {
     const all = this.facade.contribuyentes();
@@ -75,7 +102,7 @@ export class Contribuyentes implements OnInit {
   });
 
   ngOnInit() {
-    this.facade.cargarContribuyentes(1, 100);
+    this.cargarDatos();
     this.tiposPersonaFacade.cargarTiposPersona(1, 100);
     this.tiposIdentificacionFacade.cargarTiposIdentificacion(1, 100);
   }
@@ -139,7 +166,7 @@ export class Contribuyentes implements OnInit {
           next: () => {
             this.toast.success(`Contribuyente ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarContribuyentes(1, 100);
+            this.cargarDatos();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar el contribuyente`);
@@ -159,7 +186,7 @@ export class Contribuyentes implements OnInit {
           next: () => {
             this.toast.success(`Contribuyente ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarContribuyentes(1, 100);
+            this.cargarDatos();
           },
           error: (err: any) => {
             this.toast.error(`Error al registrar el contribuyente`);

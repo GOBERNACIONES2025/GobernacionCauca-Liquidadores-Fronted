@@ -32,6 +32,11 @@ export class StepDocumentoComponent {
   }
 
   continuar() {
+    if (this.wizardService.esSoloLectura()) {
+      this.wizardService.currentStep.set(3);
+      return;
+    }
+
     const tieneArchivoPrevio = !!this.wizardService.documentoSoporteNombre();
     const tieneArchivoNuevo = !!this.wizardService.documentoSoporteFile;
 

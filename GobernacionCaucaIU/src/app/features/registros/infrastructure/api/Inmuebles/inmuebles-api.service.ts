@@ -38,8 +38,9 @@ export class InmueblesApiService {
     };
 
     if (params?.municipioId) queryParams.municipioId = params.municipioId;
-    if (params?.matriculaInmobiliaria) queryParams.matriculaInmobiliaria = params.matriculaInmobiliaria;
-    if (params?.busqueda) queryParams.busqueda = params.busqueda;
+    if (params?.search) queryParams.search = params.search;
+    if (params?.busqueda) queryParams.search = params.busqueda;
+    if (params?.matriculaInmobiliaria) queryParams.search = params.matriculaInmobiliaria;
 
     return this.api.get<ApiResponse<PagedResult<Inmueble>>>(
       this.baseUrl,

@@ -5,7 +5,7 @@ import { LiquidacionWizardService } from '../../../services/liquidacion-wizard.s
 import { GeneracionLiquidacionFacade } from '../../../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { SolicitudesLiquidacionFacade } from '../../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
 import { ToastService } from '../../../../../../../../core/services/toast.service';
-import { concatMap } from 'rxjs/operators';
+import { concatMap, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
 @Component({
@@ -26,74 +26,58 @@ export class StepLiquidacionComponent implements OnInit {
   isCompleting = signal<boolean>(false);
 
   ngOnInit() {
-    this.completarYSimular();
+    // Si ya tenemos la simulación o ya está generada, no volvemos a simular
+    if (!this.wizardService.liquidacionSimulada() && !this.wizardService.liquidacionGeneradaExitosa()) {
+      this.cargarSimulacion();
+    }
   }
 
-  private completarYSimular() {
+  cargarSimulacion() {
     const solicitudId = this.wizardService.solicitudId();
-    if (!solicitudId) {
-      this.toast.error('No se encontró la solicitud.');
-      return;
-    }
+    if (!solicitudId) return;
 
-    this.isCompleting.set(true);
-    // Primero completamos la solicitud (marca etapa 5 y valida)
-    this.solicitudesFacade.completarSolicitud(solicitudId).pipe(
-      concatMap(res => {
-        if (res.success) {
-          this.wizardService.etapaGuardada.set(5);
-          this.isSimulating.set(true);
-          // Construir payload de simulación (stateless) usando el estado del Wizard
-          const form1 = this.wizardService.paso1Form.value;
-          const payloadSimulacion = {
-            radicacion: {
-              numeroRadicado: form1.numeroRadicado,
-              fechaRadicacion: form1.fechaRadicado,
-              vigenciaId: form1.vigenciaFiscal,
-              departamentoId: form1.departamentoId,
-              observacion: form1.observacionRadicacion
-            },
-            actos: this.wizardService.actosExpediente().map(a => ({
-              tipoActoRegistroId: a.tipoActoId,
-              valorActo: a.valorActo,
-              baseDeclarada: a.baseDeclarada,
-              inmuebleId: null,
-              exencionesIds: a.exencionId ? [a.exencionId] : [],
-              intervinientes: (a.intervinientes || []).map(inv => ({
-                contribuyenteId: inv.contribuyenteId,
-                rolIntervinienteId: inv.rolId,
-                porcentajeParticipacion: inv.porcentaje
-              }))
-            }))
-          };
-
-          // Luego simulamos para mostrar los totales
-          return this.generacionFacade.simularLiquidacion(payloadSimulacion);
-        } else {
-          this.toast.error(res.message || 'Error al completar la solicitud');
-          return of(null);
-        }
-      })
-    ).subscribe({
-      next: (simRes) => {
-        if (simRes && simRes.success && simRes.data) {
-          this.wizardService.liquidacionSimulada.set(simRes.data);
-        } else if (simRes && !simRes.success) {
-          this.toast.error(simRes.message || 'Error al simular la liquidación');
-        }
-        this.isCompleting.set(false);
-        this.isSimulating.set(false);
+    this.isSimulating.set(true);
+    const form1 = this.wizardService.paso1Form.value;
+    const payloadSimulacion = {
+      radicacion: {
+        numeroRadicado: form1.numeroRadicado,
+        fechaRadicacion: form1.fechaRadicado,
+        vigenciaId: form1.vigenciaFiscal,
+        departamentoId: form1.departamentoId,
+        observacion: form1.observacionRadicacion
       },
-      error: (err) => {
-        this.toast.error('Error del servidor en el proceso');
-        this.isCompleting.set(false);
-        this.isSimulating.set(false);
+      actos: this.wizardService.actosExpediente().map(a => ({
+        tipoActoRegistroId: a.tipoActoId,
+        valorActo: a.valorActo,
+        baseDeclarada: a.baseDeclarada,
+        inmuebleId: a.inmuebleId || null,
+        exencionesIds: a.exencionId ? [a.exencionId] : [],
+        intervinientes: (a.intervinientes || []).map(inv => ({
+          contribuyenteId: inv.contribuyenteId,
+          rolIntervinienteId: inv.rolId,
+          porcentajeParticipacion: inv.porcentaje
+        }))
+      }))
+    };
+
+    this.generacionFacade.simularLiquidacion(payloadSimulacion).pipe(
+      finalize(() => this.isSimulating.set(false))
+    ).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.wizardService.liquidacionSimulada.set(res.data);
+        } else {
+          this.toast.error(res.message || 'Error al simular la liquidación');
+        }
+      },
+      error: (err: any) => {
+        this.toast.error('Error de servidor al simular liquidación');
       }
     });
   }
 
   retroceder() {
-    this.wizardService.currentStep.set(3);
+    this.wizardService.currentStep.set(4);
   }
 
   generarLiquidacionOficial() {
@@ -109,17 +93,18 @@ export class StepLiquidacionComponent implements OnInit {
         if (res.success && res.data) {
           this.wizardService.liquidacionGeneradaExitosa.set(true);
           this.wizardService.idLiquidacionFinal.set(res.data);
-          this.toast.success(`¡Liquidación generada con radicado ${this.wizardService.radicadoGenerado()}!`);
-          
-          // En lugar de navegar, mantenemos al usuario en el componente para que pueda descargar el PDF
-          // this.router.navigate(['/liquidaciones']);
+          this.wizardService.estadoSolicitudId.set(4); // 4: LIQUIDADA
+          this.wizardService.estadoSolicitudNombre.set('Liquidada');
+          this.wizardService.etapaGuardada.set(5);
+          this.toast.success(`¡Liquidación oficial generada exitosamente con radicado ${this.wizardService.radicadoGenerado()}!`);
         } else {
           this.toast.error(res.message || 'Error al generar liquidación');
         }
         this.isGenerating.set(false);
       },
       error: (err) => {
-        this.toast.error('Error de servidor al generar liquidación oficial');
+        const errorMsg = err?.error?.message || err?.error?.detail || 'Error de servidor al generar liquidación oficial';
+        this.toast.error(errorMsg);
         this.isGenerating.set(false);
       }
     });

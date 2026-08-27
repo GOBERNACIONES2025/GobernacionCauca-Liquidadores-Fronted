@@ -2,17 +2,37 @@
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
     <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
       <div>
-        <h3 class="text-sm font-bold text-slate-800">Resumen de Liquidación Previa</h3>
-        <p class="text-xs text-slate-500">Revise los valores antes de generar el documento oficial.</p>
+        <h3 class="text-sm font-bold text-slate-800">
+          {{ wizardService.liquidacionGeneradaExitosa() ? 'Liquidación Oficial Emitida' : 'Resumen de Liquidación Previa (Simulación)' }}
+        </h3>
+        <p class="text-xs text-slate-500">
+          {{ wizardService.liquidacionGeneradaExitosa() ? 'Documento tributario vigente generado oficialmente.' : 'Revise los valores antes de emitir la liquidación oficial definitiva.' }}
+        </p>
       </div>
       @if (wizardService.liquidacionSimulada(); as resumen) {
         <div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold font-mono border border-blue-200 shadow-sm">
-          No. {{ resumen.numeroLiquidacion }}
+          {{ wizardService.liquidacionGeneradaExitosa() ? 'Liq. Oficial #' + (wizardService.idLiquidacionFinal() || resumen.numeroLiquidacion) : 'Simulación #' + resumen.numeroLiquidacion }}
         </div>
       }
     </div>
     
     <div class="p-8">
+      @if (wizardService.liquidacionGeneradaExitosa()) {
+        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
+          <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-emerald-900">Liquidación Oficial Generada Exitosamente</h4>
+            <p class="text-xs text-emerald-700 mt-0.5">
+              Este trámite ya tiene una liquidación oficial vigente emitida. El documento se encuentra sellado y no admite más modificaciones.
+            </p>
+          </div>
+        </div>
+      }
+
       @if (isSimulating()) {
         <div class="flex flex-col items-center justify-center py-12 gap-3 text-slate-500">
           <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -72,7 +92,7 @@
     <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center">
       @if (!wizardService.liquidacionGeneradaExitosa()) {
         <button (click)="retroceder()" [disabled]="isGenerating()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors disabled:opacity-50">
-          ← Volver a Actos
+          ← Volver a Intervinientes
         </button>
         <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating()" class="px-8 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-3 disabled:opacity-70">
           @if (isGenerating()) {

@@ -61,4 +61,5 @@ export interface InmuebleQueryParams {
   municipioId?: number;
   matriculaInmobiliaria?: string;
   busqueda?: string;
+  search?: string;
 }
