@@ -26,7 +26,6 @@ import { EstadosPago } from './presentation/pages/configuracion/pagos/estados-pa
 import { EstadosSolicitud } from './presentation/pages/configuracion/radicacion/estados-solicitud/estados-solicitud';
 import { Contribuyentes } from './presentation/pages/configuracion/contribuyentes/contribuyentes/contribuyentes';
 import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/configuracion/entidades/entidades-tipo-acto-permitido/entidades-tipo-acto-permitido';
-import { ActosExencionComponent } from './presentation/pages/configuracion/exenciones/actos-exencion/actos-exencion';
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
 import { Registros } from './presentation/pages/registros/registros';
@@ -137,10 +136,6 @@ export const registrosRoutes: Routes = [
           {
             path: 'exenciones/exenciones',
             component: Exenciones
-          },
-          {
-            path: 'exenciones/actos-exencion',
-            component: ActosExencionComponent
           },
           {
             path: 'contribuyentes/directorio',

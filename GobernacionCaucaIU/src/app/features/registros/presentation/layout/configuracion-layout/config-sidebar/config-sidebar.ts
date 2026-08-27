@@ -26,7 +26,6 @@ import { EstadosLiquidacionFacade } from '../../../../application/facades/Liquid
 import { EstadosPagoFacade } from '../../../../application/facades/Pagos/estados-pago.facade';
 import { EstadosSolicitudFacade } from '../../../../application/facades/Radicacion/estados-solicitud.facade';
 import { EntidadesTipoActoPermitidoFacade } from '../../../../application/facades/Registro/entidades-tipo-acto-permitido.facade';
-import { ActosExencionFacade } from '../../../../application/facades/Exenciones/actos-exencion.facade';
 import { ContribuyentesFacade } from '../../../../application/facades/Contribuyentes/contribuyentes.facade';
 import { InmueblesFacade } from '../../../../application/facades/Inmuebles/inmuebles.facade';
 
@@ -75,7 +74,6 @@ export class ConfigSidebar {
   private estadosPagoFacade = inject(EstadosPagoFacade);
   private estadosSolicitudFacade = inject(EstadosSolicitudFacade);
   private entidadesTipoActoPermitidoFacade = inject(EntidadesTipoActoPermitidoFacade);
-  private actosExencionFacade = inject(ActosExencionFacade);
   private contribuyentesFacade = inject(ContribuyentesFacade);
   private inmueblesFacade = inject(InmueblesFacade);
 
@@ -208,11 +206,6 @@ export class ConfigSidebar {
           route: '/registros/configuracion/exenciones/exenciones',
           count: this.exencionesFacade.totalExenciones() || this.exencionesFacade.exenciones().length, 
           hasWarning: true 
-        },
-        { 
-          name: 'Actos con Exención', 
-          route: '/registros/configuracion/exenciones/actos-exencion',
-          count: this.actosExencionFacade.totalActosExencion() || this.actosExencionFacade.actosExencion().length 
         }
       ]
     },
