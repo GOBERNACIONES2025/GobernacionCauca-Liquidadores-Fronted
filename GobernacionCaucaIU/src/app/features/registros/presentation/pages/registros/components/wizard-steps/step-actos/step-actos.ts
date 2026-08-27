@@ -1,23 +1,25 @@
-import { Component, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject, of, throwError } from 'rxjs';
-import { takeUntil, concatMap, catchError } from 'rxjs/operators';
-import { LiquidacionWizardService, ActoTemp, IntervinienteTemp } from '../../../services/liquidacion-wizard.service';
+import { ReactiveFormsModule, Validators, FormBuilder, FormsModule } from '@angular/forms';
+import { Subject, throwError, of } from 'rxjs';
+import { takeUntil, concatMap, catchError, finalize } from 'rxjs/operators';
+import { LiquidacionWizardService, ActoTemp } from '../../../services/liquidacion-wizard.service';
 import { TiposActoRegistroFacade } from '../../../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { ExencionesFacade } from '../../../../../../application/facades/Exenciones/exenciones.facade';
 import { RolesIntervinienteFacade } from '../../../../../../application/facades/Intervinientes/roles-interviniente.facade';
 import { SolicitudesLiquidacionFacade } from '../../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
 import { InmueblesFacade } from '../../../../../../application/facades/Inmuebles/inmuebles.facade';
+import { MunicipiosFacade } from '../../../../../../application/facades/Territorios/municipios.facade';
+import { InmueblesApiService } from '../../../../../../infrastructure/api/Inmuebles/inmuebles-api.service';
 import { ToastService } from '../../../../../../../../core/services/toast.service';
 import { ActoRegistradoDto } from '../../../../../../domain/models/Radicacion/solicitud-wizard.model';
 import { TipoActoRegistro } from '../../../../../../domain/models/Registro/tipo-acto-registro.model';
-import { Inmueble } from '../../../../../../domain/models/Inmuebles/inmueble.model';
+import { Inmueble, CrearInmuebleRequest } from '../../../../../../domain/models/Inmuebles/inmueble.model';
 
 @Component({
   selector: 'app-step-actos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './step-actos.html'
 })
 export class StepActosComponent implements OnInit, OnDestroy {
@@ -27,9 +29,25 @@ export class StepActosComponent implements OnInit, OnDestroy {
   rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
   inmueblesFacade = inject(InmueblesFacade);
+  municipiosFacade = inject(MunicipiosFacade);
+  inmueblesApi = inject(InmueblesApiService);
   toastService = inject(ToastService);
+  fb = inject(FormBuilder);
 
   private destroy$ = new Subject<void>();
+
+  // Estado para la búsqueda/creación de Inmuebles
+  matriculaBuscada = signal<string>('');
+  buscandoInmueble = signal<boolean>(false);
+  inmuebleEncontrado = signal<Inmueble | null>(null);
+  mostrarFormNuevoInmueble = signal<boolean>(false);
+  guardandoNuevoInmueble = signal<boolean>(false);
+
+  nuevoInmuebleForm = this.fb.nonNullable.group({
+    municipioId: [0, [Validators.required, Validators.min(1)]],
+    direccion: [''],
+    avaluoCatastral: [0, [Validators.required, Validators.min(0)]]
+  });
 
   get selectedTipoActoDetalle(): TipoActoRegistro | null {
     const id = this.wizardService.actoForm.get('tipoActoRegistroId')?.value;
@@ -62,7 +80,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargarCatalogoActosSegunEntidad();
-    this.inmueblesFacade.cargarInmuebles({ pageSize: 100 });
+    this.municipiosFacade.cargarMunicipios(1, 100);
     this.configurarSuscripcionesReactividad();
   }
 
@@ -168,23 +186,108 @@ export class StepActosComponent implements OnInit, OnDestroy {
     form.get('baseDeclarada')?.updateValueAndValidity({ emitEvent: false });
   }
 
-  seleccionarInmuebleExistente(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const inmuebleId = Number(select.value);
-    if (!inmuebleId) return;
-
-    const inmueble = (this.inmueblesFacade.inmuebles() as Inmueble[]).find(i => i.id === inmuebleId);
-    if (inmueble) {
-      const vigenciaActual = this.wizardService.paso1Form.get('vigenciaFiscal')?.value;
-      const avaluoObj = inmueble.avaluos?.find(a => a.vigenciaId === vigenciaActual) 
-                     || inmueble.avaluos?.[0];
-      const valorAvaluo = avaluoObj ? avaluoObj.valor : 0;
-
-      this.wizardService.actoForm.patchValue({
-        matriculaInmobiliaria: inmueble.matriculaInmobiliaria,
-        avaluoCatastral: valorAvaluo
-      });
+  buscarPorMatricula(): void {
+    const matricula = this.matriculaBuscada().trim();
+    if (!matricula) {
+      this.toastService.warning('Por favor, ingrese una matrícula inmobiliaria.');
+      return;
     }
+
+    this.buscandoInmueble.set(true);
+    this.inmuebleEncontrado.set(null);
+    this.mostrarFormNuevoInmueble.set(false);
+
+    this.inmueblesApi.obtenerTodos({ matriculaInmobiliaria: matricula, pageSize: 1 }).pipe(
+      finalize(() => this.buscandoInmueble.set(false))
+    ).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data.items.length > 0) {
+          const inmueble = res.data.items[0];
+          this.inmuebleEncontrado.set(inmueble);
+          
+          const vigenciaActual = this.wizardService.paso1Form.get('vigenciaFiscal')?.value;
+          const avaluoObj = inmueble.avaluos?.find((a: any) => a.vigenciaId === vigenciaActual) || inmueble.avaluos?.[0];
+          const valorAvaluo = avaluoObj ? avaluoObj.valor : 0;
+
+          this.wizardService.actoForm.patchValue({
+            matriculaInmobiliaria: inmueble.matriculaInmobiliaria,
+            avaluoCatastral: valorAvaluo
+          });
+          this.toastService.success('Inmueble encontrado y asignado.');
+        } else {
+          this.mostrarFormNuevoInmueble.set(true);
+          this.toastService.warning('Inmueble no encontrado. Por favor, registre los datos para crearlo.');
+        }
+      },
+      error: () => {
+        this.toastService.error('Error al buscar el inmueble.');
+      }
+    });
+  }
+
+  crearNuevoInmueble(): void {
+    if (this.nuevoInmuebleForm.invalid) {
+      this.nuevoInmuebleForm.markAllAsTouched();
+      this.toastService.warning('Complete los campos obligatorios del inmueble.');
+      return;
+    }
+
+    const formValues = this.nuevoInmuebleForm.getRawValue();
+    const vigenciaActual = this.wizardService.paso1Form.get('vigenciaFiscal')?.value;
+
+    if (!vigenciaActual) {
+      this.toastService.error('Vigencia fiscal no definida en el Paso 1.');
+      return;
+    }
+
+    const payload: CrearInmuebleRequest = {
+      matriculaInmobiliaria: this.matriculaBuscada().trim(),
+      municipioId: formValues.municipioId,
+      direccion: formValues.direccion,
+      avaluos: [
+        {
+          vigenciaId: vigenciaActual,
+          valor: formValues.avaluoCatastral,
+          fuente: 'Creado desde Wizard de Liquidación'
+        }
+      ]
+    };
+
+    this.guardandoNuevoInmueble.set(true);
+    this.inmueblesApi.crear(payload).pipe(
+      finalize(() => this.guardandoNuevoInmueble.set(false))
+    ).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.toastService.success('Inmueble creado exitosamente.');
+          // Asignar al formulario de acto
+          this.wizardService.actoForm.patchValue({
+            matriculaInmobiliaria: payload.matriculaInmobiliaria,
+            avaluoCatastral: formValues.avaluoCatastral
+          });
+          // Simular el inmueble encontrado visualmente
+          this.inmuebleEncontrado.set({
+            id: res.data,
+            matriculaInmobiliaria: payload.matriculaInmobiliaria,
+            municipioId: payload.municipioId,
+            municipioNombre: 'Municipio Seleccionado', // Ideal sería cruzarlo con el facade, pero es visual
+            createdAt: new Date().toISOString(),
+            avaluos: payload.avaluos as any
+          });
+          this.mostrarFormNuevoInmueble.set(false);
+          this.nuevoInmuebleForm.reset({
+            municipioId: 0,
+            direccion: '',
+            avaluoCatastral: 0
+          });
+        } else {
+          this.toastService.error(res.message || 'Error al crear el inmueble.');
+        }
+      },
+      error: () => {
+        this.toastService.error('Error de red al crear inmueble.');
+      }
+    });
   }
 
   guardarActoAlExpediente(): void {
@@ -250,6 +353,9 @@ export class StepActosComponent implements OnInit, OnDestroy {
 
   abrirFormularioNuevoActo(): void {
     this.wizardService.isAddingActo.set(true);
+    this.matriculaBuscada.set('');
+    this.inmuebleEncontrado.set(null);
+    this.mostrarFormNuevoInmueble.set(false);
   }
 
   continuar(): void {

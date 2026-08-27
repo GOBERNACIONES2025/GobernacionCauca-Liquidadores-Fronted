@@ -31,11 +31,11 @@ export class MunicipiosFacade {
   /**
    * Carga la lista de municipios de forma paginada y actualiza el estado (Signals).
    */
-  cargarMunicipios(pageNumber: number = 1, pageSize: number = 10): void {
+  cargarMunicipios(pageNumber: number = 1, pageSize: number = 10, search?: string): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.municipios.set(response.data.items || []);

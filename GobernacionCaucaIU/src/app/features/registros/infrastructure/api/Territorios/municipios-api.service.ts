@@ -41,10 +41,15 @@ export class MunicipiosApiService {
    * @param {number} [pageSize=10] - El número máximo de registros a retornar por página.
    * @returns {Observable<ApiResponse<PagedResult<Municipio>>>} Flujo observable con la respuesta paginada y metadatos.
    */
-  obtenerTodos(pageNumber: number = 1, pageSize: number = 10): Observable<ApiResponse<PagedResult<Municipio>>> {
+  obtenerTodos(pageNumber: number = 1, pageSize: number = 10, search?: string): Observable<ApiResponse<PagedResult<Municipio>>> {
+    const params: any = { pageNumber, pageSize };
+    if (search) {
+      params.busqueda = search;
+    }
+    
     return this.api.get<ApiResponse<PagedResult<Municipio>>>(
       this.baseUrl,
-      { params: { pageNumber, pageSize } },
+      { params },
       'REGISTROS'
     );
   }

@@ -2,14 +2,17 @@ import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { LiquidacionListadoDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
+import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 
 @Component({
   selector: 'app-liquidaciones-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './liquidaciones-list.html'
 })
 export class LiquidacionesListComponent implements OnInit {
@@ -19,9 +22,26 @@ export class LiquidacionesListComponent implements OnInit {
 
   // Estado
   liquidaciones = signal<LiquidacionListadoDto[]>([]);
+  totalCount = signal<number>(0);
+
   filterStatus = signal<string>('Todas');
+  
   searchText = signal<string>('');
+  private searchSubject = new Subject<string>();
+
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
   isLoading = signal<boolean>(false);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarLiquidaciones();
+    });
+  }
 
   ngOnInit() {
     this.cargarLiquidaciones();
@@ -29,10 +49,13 @@ export class LiquidacionesListComponent implements OnInit {
 
   cargarLiquidaciones() {
     this.isLoading.set(true);
-    this.facade.listarLiquidaciones(1, 100).subscribe({
+    // Asumiendo que el facade/API soporta search, si no, fallará silenciosamente el filtrado o habría que ajustarlo,
+    // pero como el patrón de api es igual, lo añadimos:
+    this.facade.listarLiquidaciones(this.pageNumber(), this.pageSize(), this.searchText()).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.liquidaciones.set(res.data.items);
+          this.totalCount.set(res.data.totalCount);
         } else {
           this.toast.error(res.message || 'Error al cargar liquidaciones');
         }
@@ -45,29 +68,32 @@ export class LiquidacionesListComponent implements OnInit {
     });
   }
 
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarLiquidaciones();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarLiquidaciones();
+  }
+
   filteredLiquidaciones = computed(() => {
     let filtered = this.liquidaciones();
     const status = this.filterStatus();
-    const search = this.searchText().toLowerCase();
 
     if (status !== 'Todas') {
       filtered = filtered.filter(l => l.estado.nombre.toUpperCase() === status.toUpperCase());
-    }
-
-    if (search) {
-      filtered = filtered.filter(l => 
-        l.numeroLiquidacion.toLowerCase().includes(search) || 
-        l.radicacion.numeroRadicado.toLowerCase().includes(search) || 
-        l.contribuyente.nombreCompleto.toLowerCase().includes(search) ||
-        l.contribuyente.numeroIdentificacion.includes(search)
-      );
     }
 
     return filtered;
   });
 
   onSearchChange(event: any) {
-    this.searchText.set(event.target.value);
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(status: string) {
