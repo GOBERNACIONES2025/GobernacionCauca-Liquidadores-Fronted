@@ -109,58 +109,31 @@
         }
         
         @for (item of municipiosFiltrados(); track item.id) {
-          <tr class="hover:bg-slate-50/70 transition-colors group">
-            <!-- Cod DANE -->
-            <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
-              {{ item.codigoDane }}
-            </td>
-            
-            <!-- Nombre -->
-            <td class="py-3.5 px-4 text-slate-700 font-medium text-sm">
-              {{ item.nombre }}
-            </td>
-
-            <!-- Departamento -->
-            <td class="py-3.5 px-4">
-              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200/60">
-                {{ getDepartamentoNombre(item) }}
-              </span>
-            </td>
-            
-            <!-- Estado -->
-            <td class="py-3.5 px-4">
+          <tr class="hover:bg-slate-50/80 transition-colors group">
+            <td class="py-3 px-4 text-xs font-medium text-slate-800">{{ item.codigoDane }}</td>
+            <td class="py-3 px-4 text-xs font-semibold text-slate-900">{{ item.nombre }}</td>
+            <td class="py-3 px-4 text-xs text-slate-600 truncate">{{ getDepartamentoNombre(item) }}</td>
+            <td class="py-3 px-4">
               @if (item.activo) {
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                   Activo
                 </span>
               } @else {
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 shadow-2xs">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
                   <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
                   Inactivo
                 </span>
               }
             </td>
-
-            <!-- Acciones -->
-            <td class="py-3.5 px-4 text-right">
-              <div class="flex items-center justify-end gap-1.5">
-                <!-- Edit button -->
-                <button 
-                  (click)="edit(item)" 
-                  title="Editar municipio"
-                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors">
-                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <td class="py-3 px-4 text-right">
+              <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button (click)="edit(item)" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="Editar">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                   </svg>
                 </button>
-                
-                <!-- Toggle Estado / View button -->
-                <button 
-                  (click)="toggleActivo(item)"
-                  [title]="item.activo ? 'Desactivar municipio' : 'Activar municipio'"
-                  class="p-1 rounded border border-transparent transition-colors"
-                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                <button (click)="toggleActivo(item)" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded-md transition-colors" [title]="item.activo ? 'Desactivar' : 'Activar'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -174,10 +147,14 @@
     </table>
   </div>
   
-  <!-- Footer Counter -->
-  <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
-    Mostrando {{ municipiosFiltrados().length }} de {{ counts().total }} registros
-  </div>
+  
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="facade.totalMunicipios()"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
 </div>
 
 <!-- Slide-Over Component for Create / Edit -->
