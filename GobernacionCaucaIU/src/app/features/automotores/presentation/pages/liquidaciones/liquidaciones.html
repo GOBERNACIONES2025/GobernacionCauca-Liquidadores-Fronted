@@ -958,14 +958,23 @@
           </table>
         </div>
 
-        <!-- TOTAL A PAGAR Y CÓDIGO DE BARRAS / FECHA DE PAGO INMEDIATA -->
+        <!-- TOTAL A PAGAR Y CÓDIGO DE BARRAS / FECHA LÍMITE DE PAGO DINÁMICA -->
         <div class="bg-slate-900 text-white rounded-xl p-4 flex items-center justify-between">
           <div>
-            <span class="text-[10px] font-extrabold text-amber-400 uppercase tracking-wide block">Fecha Límite de Pago Inmediata</span>
-            <span class="text-xs font-bold text-slate-200">HOY MISMO (Atención en Ventanilla / Caja)</span>
+            <span [class]="'text-[10px] font-extrabold uppercase tracking-wide block ' + (facade.reciboModalData()?.esFechaInmediata ? 'text-amber-400' : 'text-emerald-400')">
+              Fecha Límite de Pago Oportuno
+            </span>
+            <span class="text-xs font-bold text-slate-200">
+              {{ facade.reciboModalData()?.fechaLimiteTexto }}
+              @if (facade.reciboModalData()?.esFechaInmediata) {
+                <span class="text-[10px] font-extrabold text-amber-400 block mt-0.5">(Aplica Sanciones / Mora por Vencimiento)</span>
+              } @else {
+                <span class="text-[10px] font-extrabold text-emerald-400 block mt-0.5">(Pago normal sin Sanciones ni Mora)</span>
+              }
+            </span>
           </div>
           <div class="text-right">
-            <span class="text-[10px] font-extrabold text-slate-400 uppercase block">TOTAL TOTAL A PAGAR</span>
+            <span class="text-[10px] font-extrabold text-slate-400 uppercase block">TOTAL COMPROBANTE A PAGAR</span>
             <span class="text-xl font-black text-emerald-400">${{ facade.reciboModalData()?.totalPagar | number:'1.0-0' }}</span>
           </div>
         </div>

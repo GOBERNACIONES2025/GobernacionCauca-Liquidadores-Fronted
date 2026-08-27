@@ -57,7 +57,8 @@ export interface ReciboModel {
   contribuyenteNombre: string;
   contribuyenteDocumento: string;
   fechaEmision: Date;
-  fechaVencimientoInmediata: Date;
+  fechaLimiteTexto: string;
+  esFechaInmediata: boolean;
   totalPagar: number;
   items: {
     numeroLiquidacion: string;
@@ -186,6 +187,7 @@ export class LiquidacionesFacade {
 
   /** Abre el recibo oficial individual para 1 vigencia específica */
   abrirReciboIndividual(item: LiquidacionItem): void {
+    const tieneMora = item.sancionExtemporaneidad > 0 || item.interesesMora > 0 || item.vigenciaAnio < 2026;
     this.reciboModalData.set({
       esUnificado: false,
       placa: item.placa,
@@ -194,7 +196,8 @@ export class LiquidacionesFacade {
       contribuyenteNombre: item.contribuyenteNombre,
       contribuyenteDocumento: item.contribuyenteDocumento,
       fechaEmision: new Date(),
-      fechaVencimientoInmediata: new Date(),
+      fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
+      esFechaInmediata: tieneMora,
       totalPagar: item.totalPagar,
       items: [{
         numeroLiquidacion: item.numeroLiquidacion,
@@ -210,6 +213,7 @@ export class LiquidacionesFacade {
 
   /** Abre el recibo oficial unificado / completo para todas las vigencias emitidas de una placa */
   abrirReciboUnificado(grupo: GrupoLiquidacionEmitida): void {
+    const tieneMora = grupo.vigencias.some(v => v.sancionExtemporaneidad > 0 || v.interesesMora > 0 || v.vigenciaAnio < 2026);
     this.reciboModalData.set({
       esUnificado: true,
       placa: grupo.placa,
@@ -218,7 +222,8 @@ export class LiquidacionesFacade {
       contribuyenteNombre: grupo.contribuyenteNombre,
       contribuyenteDocumento: grupo.contribuyenteDocumento,
       fechaEmision: new Date(),
-      fechaVencimientoInmediata: new Date(),
+      fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
+      esFechaInmediata: tieneMora,
       totalPagar: grupo.totalVehiculo,
       items: grupo.vigencias.map(v => ({
         numeroLiquidacion: v.numeroLiquidacion,
