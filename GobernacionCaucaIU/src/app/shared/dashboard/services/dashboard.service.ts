@@ -146,15 +146,14 @@ export class DashboardService {
       },
       {
         id: 'cumplimiento',
-        title: 'Efectividad Operativa',
-        value: '96.8',
-        suffix: '%',
-        subtext: 'Tiempo prom. respuesta: 18 min',
-        trend: 'up',
-        trendValue: '+2.1%',
-        icon: 'fa-solid fa-bolt',
-        colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-        tooltip: 'Índice de oportunidad en expedición de paz y salvos y liquidaciones oficiales',
+        title: 'Extemporaneidad / Sanciones',
+        value: isVehicular ? '15.934' : isRegistros ? '3.880' : '1.850',
+        subtext: isVehicular ? '12.4% del total de trámites' : isRegistros ? '8.6% del total de trámites' : '15.2% del total de trámites',
+        trend: 'down',
+        trendValue: '-1.8%',
+        icon: 'fa-solid fa-triangle-exclamation',
+        colorClass: 'bg-orange-50 text-orange-700 border-orange-200',
+        tooltip: 'Total de trámites presentados con cobro de sanción por extemporaneidad y su porcentaje correspondiente',
       },
     ];
 
@@ -407,6 +406,10 @@ export class DashboardService {
   }
 
   private buildEficienciaOption(meta: TaxModuleMeta): EChartsOption {
+    const isVehicular = meta.key === 'automotores';
+    const isRegistros = meta.key === 'registros';
+    const val = isVehicular ? 12.4 : isRegistros ? 8.6 : 15.2;
+
     return {
       tooltip: {
         trigger: 'item',
@@ -414,7 +417,7 @@ export class DashboardService {
       },
       series: [
         {
-          name: 'Efectividad Operativa',
+          name: 'Extemporaneidad / Sanciones',
           type: 'gauge',
           center: ['50%', '55%'],
           radius: '85%',
@@ -460,8 +463,8 @@ export class DashboardService {
           },
           data: [
             {
-              value: 96.8,
-              name: 'Oportunidad de Liquidación',
+              value: val,
+              name: 'Tasa de Extemporaneidad',
             },
           ],
         },
