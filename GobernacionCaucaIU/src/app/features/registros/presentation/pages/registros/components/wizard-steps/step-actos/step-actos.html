@@ -97,15 +97,32 @@
               <div>
                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">Acto / Negocio Jurídico *</label>
                 <select formControlName="tipoActoRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
-                  <option [ngValue]="null">Seleccione...</option>
+                  <option [ngValue]="null">Seleccione un acto...</option>
                   @for (ta of tiposActoFacade.tiposActoRegistro(); track ta.id) {
                     <option [value]="ta.id">{{ ta.codigo }} - {{ ta.nombre }}</option>
                   }
                 </select>
                 @if (selectedTipoActoDetalle) {
-                  <div class="mt-2 text-xs text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
-                    <span class="font-medium text-slate-700">Categoría:</span> {{ selectedTipoActoDetalle.categoriaNaturalezaJuridica?.nombre }} <br>
-                    <span class="font-medium text-slate-700">Naturaleza:</span> {{ selectedTipoActoDetalle.naturalezaJuridica?.nombre }}
+                  <div class="mt-2.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span class="font-medium text-slate-700">Categoría:</span> {{ selectedTipoActoDetalle.categoriaActo.nombre || 'General' }} <br>
+                      <span class="font-medium text-slate-700">Naturaleza:</span> {{ selectedTipoActoDetalle.naturalezaActo.nombre || 'General' }}
+                    </div>
+                    <div class="flex gap-1.5">
+                      @if (esSinCuantia) {
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">
+                          Sin Cuantía (Tarifa Fija)
+                        </span>
+                      } @else if (requiereInmueble) {
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800">
+                          Inmueble (ORIP)
+                        </span>
+                      } @else {
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-800">
+                          Con Cuantía (No Inmueble)
+                        </span>
+                      }
+                    </div>
                   </div>
                 }
               </div>
@@ -118,30 +135,120 @@
                     <option [value]="ex.id">{{ ex.nombre }}</option>
                   }
                 </select>
+                <p class="text-[11px] text-slate-400 mt-1.5">Seleccione si el acto aplica a exenciones normativas especiales.</p>
               </div>
             </div>
           </div>
 
-          <!-- 2. VALORES -->
-          <div class="mb-8">
-            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">2. Cuantía e Inmueble</h4>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Valor del Acto *</label>
-                <input formControlName="valorActo" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Avalúo Catastral</label>
-                <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right" />
-              </div>
-              <div class="col-span-2 bg-blue-50/50 p-4 rounded-lg border border-blue-100 relative">
-                <label class="block text-xs font-bold text-blue-900 mb-1.5 uppercase tracking-wide">Base Gravable Final *</label>
-                <div class="absolute right-4 top-10 text-slate-400">COP</div>
-                <input formControlName="baseDeclarada" type="number" class="w-full text-lg font-bold p-2.5 bg-white border-2 border-blue-200 rounded-lg focus:ring-0 focus:border-blue-500 outline-none transition-all text-right text-blue-900 pr-12 shadow-sm" />
-                <p class="text-[10px] text-slate-500 mt-1">Suele ser el mayor valor entre el Acto y el Avalúo.</p>
-              </div>
+          <!-- 2. VALORES Y LIQUIDACIÓN -->
+          @if (selectedTipoActoDetalle) {
+            <div class="mb-8 animate-in fade-in duration-200">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+                2. Cuantía e Información del Acto
+              </h4>
+
+              <!-- CASO A: ACTO SIN CUANTÍA -->
+              @if (esSinCuantia) {
+                <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-5 flex items-start gap-4">
+                  <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h5 class="text-sm font-bold text-amber-900">Acto sin cuantía (Tarifa fija)</h5>
+                    <p class="text-xs text-amber-800 mt-1 leading-relaxed">
+                      Este acto no requiere base gravable variable ni avalúo catastral. El motor liquidará el impuesto aplicando la tarifa fija reglamentaria en UVT/Pesos para este tipo de trámite.
+                    </p>
+                  </div>
+                </div>
+              }
+
+              <!-- CASO B: ACTO INMOBILIARIO CON CUANTÍA -->
+              @else if (requiereInmueble) {
+                <div class="space-y-4">
+                  <!-- Selector de Predio existente / Matrícula -->
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+                    <div class="md:col-span-1">
+                      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Predio / Inmueble Registrado</label>
+                      <select (change)="seleccionarInmuebleExistente($event)" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+                        <option [value]="0">Seleccione un predio registrado...</option>
+                        @for (inm of inmueblesFacade.inmuebles(); track inm.id) {
+                          <option [value]="inm.id">{{ inm.matriculaInmobiliaria }} - {{ inm.municipioNombre }}</option>
+                        }
+                      </select>
+                    </div>
+                    <div class="md:col-span-1">
+                      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Matrícula Inmobiliaria *</label>
+                      <input formControlName="matriculaInmobiliaria" type="text" placeholder="Ej: 120-12345" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                    </div>
+                    <div class="md:col-span-1">
+                      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Avalúo Catastral Vigente *</label>
+                      <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
+                    </div>
+                  </div>
+
+                  <!-- Valores y Base Gravable -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Valor del Contrato / Acto *</label>
+                      <input formControlName="valorActo" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
+                      <p class="text-[11px] text-slate-400 mt-1">Valor pactado en la escritura o documento.</p>
+                    </div>
+
+                    <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-200 relative">
+                      <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-bold text-blue-900 uppercase tracking-wide">Base Gravable Final *</label>
+                        <span class="text-[10px] text-blue-700 font-medium bg-blue-100/70 px-2 py-0.5 rounded">Art. 229 Ley 223/95</span>
+                      </div>
+                      <div class="relative">
+                        <input formControlName="baseDeclarada" type="number" class="w-full text-lg font-bold p-2.5 bg-white border-2 border-blue-300 rounded-lg focus:ring-0 focus:border-blue-600 outline-none transition-all text-right text-blue-900 pr-12 shadow-sm" />
+                        <div class="absolute right-3.5 top-3 text-xs font-semibold text-slate-400">COP</div>
+                      </div>
+                      <div class="flex justify-between items-center mt-1.5 text-[11px]">
+                        <span class="text-slate-500">Piso mínimo legal: <strong class="text-slate-700">{{ pisoMinimoLegal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></span>
+                        @if (wizardService.actoForm.get('baseDeclarada')?.value < pisoMinimoLegal) {
+                          <span class="text-red-600 font-semibold">⚠️ Inferior al mínimo</span>
+                        } @else {
+                          <span class="text-emerald-700 font-medium">✓ Base válida</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- CASO C: ACTO COMERCIAL / MERCANTIL / MUEBLE CON CUANTÍA -->
+              @else {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Valor del Acto / Contrato *</label>
+                    <input formControlName="valorActo" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
+                    <p class="text-[11px] text-slate-400 mt-1">Monto económico o capital registrado del acto.</p>
+                  </div>
+
+                  <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-200 relative">
+                    <div class="flex justify-between items-center mb-1.5">
+                      <label class="block text-xs font-bold text-blue-900 uppercase tracking-wide">Base Gravable Declarada *</label>
+                      <span class="text-[10px] text-blue-700 font-medium bg-blue-100/70 px-2 py-0.5 rounded">No Inmueble</span>
+                    </div>
+                    <div class="relative">
+                      <input formControlName="baseDeclarada" type="number" class="w-full text-lg font-bold p-2.5 bg-white border-2 border-blue-300 rounded-lg focus:ring-0 focus:border-blue-600 outline-none transition-all text-right text-blue-900 pr-12 shadow-sm" />
+                      <div class="absolute right-3.5 top-3 text-xs font-semibold text-slate-400">COP</div>
+                    </div>
+                    <div class="flex justify-between items-center mt-1.5 text-[11px]">
+                      <span class="text-slate-500">Piso mínimo: <strong class="text-slate-700">{{ pisoMinimoLegal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></span>
+                      @if (wizardService.actoForm.get('baseDeclarada')?.value < pisoMinimoLegal) {
+                        <span class="text-red-600 font-semibold">⚠️ Inferior al valor</span>
+                      } @else {
+                        <span class="text-emerald-700 font-medium">✓ Base válida</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
-          </div>
+          }
         </form>
       </div>
       

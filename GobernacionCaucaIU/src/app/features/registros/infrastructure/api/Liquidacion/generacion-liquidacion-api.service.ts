@@ -50,7 +50,7 @@ export class GeneracionLiquidacionApiService {
    * @returns {Observable<ApiResponse<number>>} ID de la liquidación generada.
    */
   generarLiquidacion(command: GenerarLiquidacionDto): Observable<ApiResponse<number>> {
-    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/generar`, command, {}, 'REGISTROS');
+    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/${command.solicitudId}/generar`, {}, {}, 'REGISTROS');
   }
 
   /**
