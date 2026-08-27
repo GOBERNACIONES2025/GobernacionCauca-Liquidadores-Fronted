@@ -44,7 +44,7 @@ export class EntidadesRegistroFacade {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize, tipoEntidadRegistroId, departamentoId, municipioId).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, tipoEntidadRegistroId, departamentoId, municipioId }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.entidadesRegistro.set(response.data.items || []);

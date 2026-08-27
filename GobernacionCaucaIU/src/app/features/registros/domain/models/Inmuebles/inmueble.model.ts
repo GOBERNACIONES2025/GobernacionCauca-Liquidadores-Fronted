@@ -62,4 +62,5 @@ export interface InmuebleQueryParams {
   matriculaInmobiliaria?: string;
   busqueda?: string;
   search?: string;
+  searchTerm?: string;
 }

@@ -34,11 +34,11 @@ export class TiposBeneficiarioExencionFacade {
   /**
    * Carga la lista paginada de tipos de beneficiarios.
    */
-  cargarTiposBeneficiario(pageNumber: number = 1, pageSize: number = 10): void {
+  cargarTiposBeneficiario(pageNumber: number = 1, pageSize: number = 10, search?: string): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.tiposBeneficiario.set(response.data.items || []);

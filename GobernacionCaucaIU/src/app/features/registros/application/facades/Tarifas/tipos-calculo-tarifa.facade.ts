@@ -30,11 +30,11 @@ export class TiposCalculoTarifaFacade {
   /**
    * Carga la lista paginada de tipos de cálculo de tarifa.
    */
-  cargarTiposCalculoTarifa(pageNumber: number = 1, pageSize: number = 10): void {
+  cargarTiposCalculoTarifa(pageNumber: number = 1, pageSize: number = 10, search?: string): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.tiposCalculoTarifa.set(response.data.items || []);

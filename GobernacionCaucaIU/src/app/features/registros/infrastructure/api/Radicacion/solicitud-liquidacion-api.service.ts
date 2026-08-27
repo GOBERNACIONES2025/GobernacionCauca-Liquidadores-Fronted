@@ -21,11 +21,37 @@ export class SolicitudLiquidacionApiService {
   private readonly baseUrl = '/SolicitudLiquidacion';
   private readonly dbContext = 'REGISTROS';
 
-  listarSolicitudes(pageNumber: number = 1, pageSize: number = 10, search?: string, estadoId?: number): Observable<ApiResponse<PagedResult<SolicitudListadoDto>>> {
-    let url = `${this.baseUrl}?PageNumber=${pageNumber}&PageSize=${pageSize}`;
-    if (search) url += `&Search=${encodeURIComponent(search)}`;
-    if (estadoId) url += `&EstadoSolicitudId=${estadoId}`;
-    return this.api.get<ApiResponse<PagedResult<SolicitudListadoDto>>>(url, {}, this.dbContext);
+  listarSolicitudes(
+    paramsOrPage: number | any = 1, 
+    pageSize: number = 10, 
+    search?: string, 
+    estadoId?: number
+  ): Observable<ApiResponse<PagedResult<SolicitudListadoDto>>> {
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.estadoId || paramsOrPage.estadoSolicitudId) {
+        params.EstadoSolicitudId = paramsOrPage.estadoId ?? paramsOrPage.estadoSolicitudId;
+      }
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (search && search.trim() !== '') params.SearchTerm = search.trim();
+      if (estadoId) params.EstadoSolicitudId = estadoId;
+    }
+    return this.api.get<ApiResponse<PagedResult<SolicitudListadoDto>>>(this.baseUrl, { params }, this.dbContext);
+  }
+
+  obtenerTodos(
+    paramsOrPage: number | any = 1, 
+    pageSize: number = 10, 
+    search?: string, 
+    estadoId?: number
+  ): Observable<ApiResponse<PagedResult<SolicitudListadoDto>>> {
+    return this.listarSolicitudes(paramsOrPage, pageSize, search, estadoId);
   }
 
   crearSolicitud(command: CrearSolicitudDto): Observable<ApiResponse<number>> {

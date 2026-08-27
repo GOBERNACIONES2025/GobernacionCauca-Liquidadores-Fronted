@@ -31,10 +31,29 @@ export class ContribuyentesApiService {
    * @param {number} [pageSize=10] - Cantidad de registros por página.
    * @returns {Observable<ApiResponse<PagedResult<Contribuyente>>>} Respuesta paginada.
    */
-  obtenerTodos(pageNumber: number = 1, pageSize: number = 10, search?: string): Observable<ApiResponse<PagedResult<Contribuyente>>> {
-    const params: any = { pageNumber, pageSize };
-    if (search && search.trim() !== '') {
-      params.search = search.trim();
+  obtenerTodos(
+    paramsOrPage: number | any = 1, 
+    pageSize: number = 10, 
+    searchTerm?: string,
+    activo?: boolean,
+    filtrosEspecificos?: any
+  ): Observable<ApiResponse<PagedResult<Contribuyente>>> {
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+      if (paramsOrPage.tipoIdentificacionId) params.TipoIdentificacionId = paramsOrPage.tipoIdentificacionId;
+      if (paramsOrPage.tipoPersonaId) params.TipoPersonaId = paramsOrPage.tipoPersonaId;
+      if (paramsOrPage.numeroIdentificacion) params.NumeroIdentificacion = paramsOrPage.numeroIdentificacion;
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') params.SearchTerm = searchTerm.trim();
+      if (activo !== undefined && activo !== null) params.Activo = activo;
+      if (filtrosEspecificos) Object.assign(params, filtrosEspecificos);
     }
     return this.api.get<ApiResponse<PagedResult<Contribuyente>>>(
       this.baseUrl,

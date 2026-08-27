@@ -34,11 +34,11 @@ export class TiposNormaFacade {
   /**
    * Carga la lista paginada de tipos de norma.
    */
-  cargarTiposNorma(pageNumber: number = 1, pageSize: number = 10): void {
+  cargarTiposNorma(pageNumber: number = 1, pageSize: number = 10, search?: string): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.tiposNorma.set(response.data.items || []);

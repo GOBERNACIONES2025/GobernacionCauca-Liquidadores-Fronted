@@ -35,16 +35,35 @@ export class EntidadesRegistroApiService {
    * @returns {Observable<ApiResponse<PagedResult<EntidadRegistro>>>} Respuesta paginada.
    */
   obtenerTodos(
-    pageNumber: number = 1, 
+    paramsOrPage: number | any = 1, 
     pageSize: number = 10, 
+    searchTerm?: string,
     tipoEntidadRegistroId?: number, 
     departamentoId?: number, 
-    municipioId?: number
+    municipioId?: number,
+    activo?: boolean,
+    filtrosEspecificos?: any
   ): Observable<ApiResponse<PagedResult<EntidadRegistro>>> {
-    const params: any = { pageNumber, pageSize };
-    if (tipoEntidadRegistroId) params.tipoEntidadRegistroId = tipoEntidadRegistroId;
-    if (departamentoId) params.departamentoId = departamentoId;
-    if (municipioId) params.municipioId = municipioId;
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.tipoEntidadRegistroId) params.TipoEntidadRegistroId = paramsOrPage.tipoEntidadRegistroId;
+      if (paramsOrPage.departamentoId) params.DepartamentoId = paramsOrPage.departamentoId;
+      if (paramsOrPage.municipioId) params.MunicipioId = paramsOrPage.municipioId;
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') params.SearchTerm = searchTerm.trim();
+      if (tipoEntidadRegistroId) params.TipoEntidadRegistroId = tipoEntidadRegistroId;
+      if (departamentoId) params.DepartamentoId = departamentoId;
+      if (municipioId) params.MunicipioId = municipioId;
+      if (activo !== undefined && activo !== null) params.Activo = activo;
+      if (filtrosEspecificos) Object.assign(params, filtrosEspecificos);
+    }
 
     return this.api.get<ApiResponse<PagedResult<EntidadRegistro>>>(
       this.baseUrl,

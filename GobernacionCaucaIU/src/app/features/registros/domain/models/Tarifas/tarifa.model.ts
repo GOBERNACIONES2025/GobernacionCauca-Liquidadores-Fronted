@@ -70,5 +70,7 @@ export interface TarifaQueryParams {
   tipoCalculoTarifaId?: number;
   pageNumber?: number;
   pageSize?: number;
+  search?: string;
+  searchTerm?: string;
+  activo?: boolean;
 }
-

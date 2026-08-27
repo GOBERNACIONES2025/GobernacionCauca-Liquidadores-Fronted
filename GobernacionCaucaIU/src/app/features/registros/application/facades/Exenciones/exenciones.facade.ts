@@ -43,7 +43,7 @@ export class ExencionesFacade {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize, departamentoId, terminoBusqueda).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, departamentoId, searchTerm: terminoBusqueda }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.exenciones.set(response.data.items || []);

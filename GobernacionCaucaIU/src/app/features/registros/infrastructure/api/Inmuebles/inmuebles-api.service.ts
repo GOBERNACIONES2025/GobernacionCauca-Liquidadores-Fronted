@@ -31,16 +31,37 @@ export class InmueblesApiService {
    * @param {InmuebleQueryParams} [params] - Filtros de paginación, municipio, matrícula o texto libre.
    * @returns {Observable<ApiResponse<PagedResult<Inmueble>>>} Respuesta estructurada con los inmuebles paginados.
    */
-  obtenerTodos(params?: InmuebleQueryParams): Observable<ApiResponse<PagedResult<Inmueble>>> {
-    const queryParams: any = {
-      pageNumber: params?.pageNumber ?? 1,
-      pageSize: params?.pageSize ?? 10,
-    };
-
-    if (params?.municipioId) queryParams.municipioId = params.municipioId;
-    if (params?.search) queryParams.search = params.search;
-    if (params?.busqueda) queryParams.search = params.busqueda;
-    if (params?.matriculaInmobiliaria) queryParams.search = params.matriculaInmobiliaria;
+  obtenerTodos(
+    paramsOrPage: number | InmuebleQueryParams = 1,
+    pageSize: number = 10,
+    searchTerm?: string,
+    activo?: boolean,
+    filtrosEspecificos?: any
+  ): Observable<ApiResponse<PagedResult<Inmueble>>> {
+    const queryParams: any = {};
+    if (typeof paramsOrPage === 'object') {
+      queryParams.PageNumber = paramsOrPage.pageNumber ?? 1;
+      queryParams.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search ?? paramsOrPage.busqueda ?? paramsOrPage.matriculaInmobiliaria;
+      if (term && term.trim() !== '') {
+        queryParams.SearchTerm = term.trim();
+      }
+      if (paramsOrPage.municipioId) {
+        queryParams.MunicipioId = paramsOrPage.municipioId;
+      }
+    } else {
+      queryParams.PageNumber = paramsOrPage ?? 1;
+      queryParams.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') {
+        queryParams.SearchTerm = searchTerm.trim();
+      }
+      if (activo !== undefined && activo !== null) {
+        queryParams.Activo = activo;
+      }
+      if (filtrosEspecificos) {
+        Object.assign(queryParams, filtrosEspecificos);
+      }
+    }
 
     return this.api.get<ApiResponse<PagedResult<Inmueble>>>(
       this.baseUrl,

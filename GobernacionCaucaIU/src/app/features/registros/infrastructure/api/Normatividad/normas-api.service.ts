@@ -35,12 +35,32 @@ export class NormasApiService {
    * @returns {Observable<ApiResponse<PagedResult<NormaListado>>>} Lista de normas.
    */
   obtenerTodos(
-    departamentoId?: number, 
-    pageNumber: number = 1, 
-    pageSize: number = 10
+    paramsOrPage: number | any = 1, 
+    pageSize: number = 10, 
+    searchTerm?: string,
+    departamentoId?: number,
+    activo?: boolean,
+    filtrosEspecificos?: any
   ): Observable<ApiResponse<PagedResult<NormaListado>>> {
-    const params: any = { pageNumber, pageSize };
-    if (departamentoId) params.departamentoId = departamentoId;
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.departamentoId) params.DepartamentoId = paramsOrPage.departamentoId;
+      if (paramsOrPage.tipoNormaId) params.TipoNormaId = paramsOrPage.tipoNormaId;
+      if (paramsOrPage.estadoNormaId) params.EstadoNormaId = paramsOrPage.estadoNormaId;
+      if (paramsOrPage.vigenciaId) params.VigenciaId = paramsOrPage.vigenciaId;
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') params.SearchTerm = searchTerm.trim();
+      if (departamentoId) params.DepartamentoId = departamentoId;
+      if (activo !== undefined && activo !== null) params.Activo = activo;
+      if (filtrosEspecificos) Object.assign(params, filtrosEspecificos);
+    }
 
     return this.api.get<ApiResponse<PagedResult<NormaListado>>>(
       this.baseUrl,

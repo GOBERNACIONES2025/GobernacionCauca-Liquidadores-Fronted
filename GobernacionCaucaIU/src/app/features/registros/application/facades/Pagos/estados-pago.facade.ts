@@ -34,11 +34,11 @@ export class EstadosPagoFacade {
   /**
    * Carga la lista paginada de estados de pago.
    */
-  cargarEstadosPago(pageNumber: number = 1, pageSize: number = 10): void {
+  cargarEstadosPago(pageNumber: number = 1, pageSize: number = 10, search?: string): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.estadosPago.set(response.data.items || []);
