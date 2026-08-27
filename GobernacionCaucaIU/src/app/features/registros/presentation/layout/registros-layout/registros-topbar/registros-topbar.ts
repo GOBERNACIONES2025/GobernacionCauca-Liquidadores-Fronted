@@ -1,15 +1,16 @@
 import { Component, inject, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthStateService } from '../../../../../../core/auth/auth-state.service';
 
 @Component({
   selector: 'app-registros-topbar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './registros-topbar.html',
   styleUrl: './registros-topbar.css',
 })
+
 export class RegistrosTopbar {
   private authState = inject(AuthStateService);
   private router = inject(Router);

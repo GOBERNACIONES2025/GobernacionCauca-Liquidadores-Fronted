@@ -1,5 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { BaseApiService } from '../../../../core/services/base-api.service';
+import { PropietariosApiService } from '../../infrastructure/api/propietarios-api.service';
+import { CatalogoApiService } from '../../infrastructure/api/catalogo-api.service';
+import { DepartamentosApiService } from '../../infrastructure/api/departamentos-api.service';
 import { 
   Contribuyente, 
   Expediente, 
@@ -18,7 +20,9 @@ import { catchError } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ContribuyentesFacade {
-  private api = inject(BaseApiService);
+  private propietariosApi = inject(PropietariosApiService);
+  private catalogoApi = inject(CatalogoApiService);
+  private departamentosApi = inject(DepartamentosApiService);
 
   // Estado centralizado
   readonly contribuyentes = signal<Contribuyente[]>([]);
@@ -131,11 +135,7 @@ export class ContribuyentesFacade {
     this.loading.set(true);
     this.error.set(null);
 
-    const params: any = { page, pageSize };
-    if (buscar) params.buscar = buscar;
-    if (soloActivos !== undefined) params.soloActivos = soloActivos;
-
-    this.api.get<ApiResponse<PagedResult<Contribuyente>>>('/propietarios', { params }, 'AUTOMOTORES').subscribe({
+    this.propietariosApi.getPropietarios({ page, pageSize, buscar, soloActivos }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           const items = response.data.items || [];
@@ -166,21 +166,21 @@ export class ContribuyentesFacade {
     this.catalogosLoading.set(true);
 
     forkJoin({
-      departamentos: this.api.get<any>('/departamentos', {}, 'AUTOMOTORES').pipe(catchError(() => of(null))),
-      tiposDoc: this.api.get<any>('/catalogo/tipos-documento', {}, 'AUTOMOTORES').pipe(catchError(() => of(null))),
-      naturalezas: this.api.get<any>('/catalogo/naturalezas-juridicas', {}, 'AUTOMOTORES').pipe(catchError(() => of(null)))
+      departamentos: this.departamentosApi.getDepartamentos().pipe(catchError(() => of(null))),
+      tiposDoc: this.catalogoApi.getTiposDocumento().pipe(catchError(() => of(null))),
+      naturalezas: this.catalogoApi.getNaturalezasJuridicas().pipe(catchError(() => of(null)))
     }).subscribe({
       next: ({ departamentos, tiposDoc, naturalezas }) => {
         // Departamentos
-        const deptData = departamentos?.data || (Array.isArray(departamentos) ? departamentos : null);
+        const deptData = (departamentos && 'data' in departamentos && departamentos.data) ? departamentos.data : (Array.isArray(departamentos) ? departamentos : null);
         this.departamentos.set(deptData && deptData.length > 0 ? deptData : this.defaultDepartamentos);
 
         // Tipos de Documento
-        const tipData = tiposDoc?.data || (Array.isArray(tiposDoc) ? tiposDoc : null);
+        const tipData = (tiposDoc && 'data' in tiposDoc && tiposDoc.data) ? tiposDoc.data : (Array.isArray(tiposDoc) ? tiposDoc : null);
         this.tiposDocumento.set(tipData && tipData.length > 0 ? tipData : this.defaultTiposDocumento);
 
         // Naturalezas Jurídicas
-        const natData = naturalezas?.data || (Array.isArray(naturalezas) ? naturalezas : null);
+        const natData = (naturalezas && 'data' in naturalezas && naturalezas.data) ? naturalezas.data : (Array.isArray(naturalezas) ? naturalezas : null);
         this.naturalezasJuridicas.set(natData && natData.length > 0 ? natData : this.defaultNaturalezasJuridicas);
 
         this.catalogosLoading.set(false);
@@ -203,9 +203,9 @@ export class ContribuyentesFacade {
       return;
     }
     this.ciudadesLoading.set(true);
-    this.api.get<any>(`/departamentos/${departamentoId}/ciudades`, {}, 'AUTOMOTORES').subscribe({
+    this.departamentosApi.getCiudadesByDepartamento(departamentoId).subscribe({
       next: (res) => {
-        const data = res?.data || (Array.isArray(res) ? res : null);
+        const data = (res && 'data' in res && res.data) ? res.data : (Array.isArray(res) ? res : null);
         if (data && data.length > 0) {
           this.ciudades.set(data);
         } else {
@@ -237,7 +237,7 @@ export class ContribuyentesFacade {
     this.error.set(null);
     this.selectedExpediente.set(null);
 
-    this.api.get<ApiResponse<Expediente>>(`/propietarios/${id}/expediente`, {}, 'AUTOMOTORES').subscribe({
+    this.propietariosApi.getExpediente(id).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.selectedExpediente.set(response.data);
@@ -264,13 +264,13 @@ export class ContribuyentesFacade {
    * Crea un nuevo contribuyente
    */
   crearContribuyente(data: any): Observable<ApiResponse<Contribuyente>> {
-    return this.api.post<ApiResponse<Contribuyente>>('/propietarios', data, {}, 'AUTOMOTORES');
+    return this.propietariosApi.crearPropietario(data);
   }
 
   /**
    * Actualiza un contribuyente existente
    */
   actualizarContribuyente(id: number, data: any): Observable<ApiResponse<Contribuyente>> {
-    return this.api.put<ApiResponse<Contribuyente>>(`/propietarios/${id}`, data, {}, 'AUTOMOTORES');
+    return this.propietariosApi.actualizarPropietario(id, data);
   }
 }
