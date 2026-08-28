@@ -10,31 +10,10 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 })
 export class AutomotoresLayout {
   readonly isSidebarOpen = signal<boolean>(true);
-  readonly isConfigOpen = signal<boolean>(false);
   readonly isProfileMenuOpen = signal<boolean>(false);
-  readonly activeConfigTab = signal<string>('general');
 
   toggleSidebar(): void {
     this.isSidebarOpen.update(v => !v);
-  }
-
-  toggleConfig(): void {
-    const nextState = !this.isConfigOpen();
-    this.isConfigOpen.set(nextState);
-    if (nextState) {
-      this.isSidebarOpen.set(false);
-    } else {
-      this.isSidebarOpen.set(true);
-    }
-  }
-
-  closeConfig(): void {
-    this.isConfigOpen.set(false);
-    this.isSidebarOpen.set(true);
-  }
-
-  selectConfigTab(tab: string): void {
-    this.activeConfigTab.set(tab);
   }
 
   toggleProfileMenu(): void {

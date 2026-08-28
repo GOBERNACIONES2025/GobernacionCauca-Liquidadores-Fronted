@@ -96,4 +96,12 @@ export class VehiculosApiService {
   obtenerPropietarios(dni: string): Observable<any> {
     return this.api.get<any>('/Propietarios', {}, 'AUTOMOTORES');
   }
+
+  getPendientesAprobacion(): Observable<ApiResponse<VehiculoItemDto[]>> {
+    return this.api.get<ApiResponse<VehiculoItemDto[]>>('/vehiculos/pendientes-aprobacion', {}, 'AUTOMOTORES');
+  }
+
+  cambiarEstadoAprobacion(id: number, nuevoEstado: string): Observable<ApiResponse<any>> {
+    return this.api.put<ApiResponse<any>>(`/vehiculos/${id}/estado-aprobacion`, {}, { params: { nuevoEstado } }, 'AUTOMOTORES');
+  }
 }

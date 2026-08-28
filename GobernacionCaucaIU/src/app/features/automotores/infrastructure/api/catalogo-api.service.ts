@@ -62,7 +62,7 @@ export class CatalogoApiService {
     if (tipoVehiculo) params['tipoVehiculo'] = tipoVehiculo.trim();
     if (tipoVehiculoId) params['tipoVehiculoId'] = tipoVehiculoId;
 
-    return this.api.get<ApiResponse<MarcaDto[]>>('/catalogo/marcas', { params }, 'AUTOMOTORES');
+    return this.api.get<ApiResponse<MarcaDto[]>>('/Catalogo/marcas', { params }, 'AUTOMOTORES');
   }
 
   getLineas(marca?: string, marcaId?: number, tipoVehiculo?: string): Observable<ApiResponse<LineaDto[]>> {
