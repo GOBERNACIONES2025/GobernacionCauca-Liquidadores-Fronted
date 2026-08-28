@@ -147,7 +147,8 @@ export class LiquidacionesFacade {
 
   /** Abre la vista previa del documento oficial PDF usando el Visor de Documentos (Inline) */
   abrirPdfPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const urlRuta = `http://localhost:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}&descargar=false${vigencia ? '&vigencia=' + vigencia : ''}`;
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    const urlRuta = `http://${host}:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}&descargar=false${vigencia ? '&vigencia=' + vigencia : ''}`;
     const nombreDoc = esUnificado ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
 
     this.pdfDocumentos.set([{
@@ -167,7 +168,8 @@ export class LiquidacionesFacade {
 
   /** Descarga directamente el archivo PDF de la liquidación oficial (Attachment) */
   descargarPdfDirecto(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const urlRuta = `http://localhost:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}&descargar=true${vigencia ? '&vigencia=' + vigencia : ''}`;
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    const urlRuta = `http://${host}:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}&descargar=true${vigencia ? '&vigencia=' + vigencia : ''}`;
     window.open(urlRuta, '_blank');
   }
 
