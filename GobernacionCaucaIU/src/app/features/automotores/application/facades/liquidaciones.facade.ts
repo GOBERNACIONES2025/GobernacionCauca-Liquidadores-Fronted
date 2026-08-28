@@ -152,7 +152,9 @@ export class LiquidacionesFacade {
 
     this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
       next: (blob) => {
-        const blobUrl = URL.createObjectURL(new Blob([blob], { type: 'text/html' }));
+        const isPdf = blob.type === 'application/pdf' || blob.size > 4000;
+        const mimeType = isPdf ? 'application/pdf' : 'text/html';
+        const blobUrl = URL.createObjectURL(new Blob([blob], { type: mimeType }));
         const nombreDoc = esUnificado 
           ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
           : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
@@ -161,7 +163,7 @@ export class LiquidacionesFacade {
           id: placa,
           nombreArchivo: nombreDoc,
           rutaArchivo: blobUrl,
-          tipoArchivo: 'text/html'
+          tipoArchivo: mimeType
         }]);
         this.isPdfViewerOpen.set(true);
       },
