@@ -100,7 +100,7 @@
             <div class="flex flex-col gap-1">
               <label class="text-[11.5px] font-semibold text-slate-700">CILINDRAJE (CC) <span
                   class="text-red-500">*</span></label>
-              <input formControlName="cilindraje" type="number" placeholder="Ej: 1500" min="1"
+              <input formControlName="cilindraje" type="number" placeholder="Ej: 1500" min="50"
                 [class.border-red-400]="hasError('cilindraje')"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
               @if (hasError('cilindraje')) { <span class="text-[11px] text-red-500">{{ getError('cilindraje') }}</span>
@@ -170,18 +170,26 @@
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">ORGANISMO DE TRÁNSITO</label>
+              <label class="text-[11.5px] font-semibold text-slate-700">ORGANISMO DE TRÁNSITO <span class="text-red-500">*</span></label>
               <select formControlName="organismoTransitoId"
+                [class.border-red-400]="hasError('organismoTransitoId')"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
                 <option value="" class="text-slate-500">Seleccione organismo...</option>
                 @for (o of facade.organismosTransito(); track o.id) { <option [value]="o.id" class="text-slate-900">{{
                   o.nombre }}</option> }
               </select>
+              @if (hasError('organismoTransitoId')) {
+                <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('organismoTransitoId') }}</span>
+              }
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE MATRÍCULA</label>
+              <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE MATRÍCULA <span class="text-red-500">*</span></label>
               <input formControlName="fechaMatricula" type="date"
+                [class.border-red-400]="hasError('fechaMatricula')"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+              @if (hasError('fechaMatricula')) {
+                <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('fechaMatricula') }}</span>
+              }
             </div>
           </div>
         </div>
@@ -197,15 +205,17 @@
           </div>
           @if (form.get('incluirPropietario')?.value) {
           <div class="flex flex-col gap-1">
-            <label class="text-[11.5px] font-semibold text-slate-700">BÚSQUEDA POR DOCUMENTO</label>
+            <label class="text-[11.5px] font-semibold text-slate-700">BÚSQUEDA POR DOCUMENTO <span class="text-red-500">*</span></label>
             <div class="flex gap-2">
               <select formControlName="tipoDocumentoId" [class.border-red-400]="hasError('tipoDocumentoId')"
-                class="h-9 w-35 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 shrink-0">
+                class="h-9 w-36 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 shrink-0">
                 <option value="" class="text-slate-500">Tipo</option>
                 @for (t of facade.tiposDocumento(); track t.id) { <option [value]="t.id" class="text-slate-900">{{
                   t.codigo }}</option> }
               </select>
-              <input formControlName="numeroDocumento" type="text" placeholder="Número de documento..."
+              <input formControlName="numeroDocumento" type="text"
+                [placeholder]="getPlaceholderDocumento()"
+                (input)="onDocumentoInput($event)"
                 [class.border-red-400]="hasError('numeroDocumento')"
                 class="h-9 flex-1 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
               <button (click)="buscarPropietario()" type="button" [disabled]="facade.buscandoPropietario()"
@@ -214,12 +224,17 @@
               <button (click)="limpiarPropietario()" type="button"
                 class="h-9 px-3 rounded-md bg-slate-100 text-slate-700 text-[12px] font-medium hover:bg-slate-200 shrink-0">Limpiar</button>
             </div>
-            @if (hasError('tipoDocumentoId')) { <span class="text-[11px] text-red-500">{{ getError('tipoDocumentoId')
-              }}</span> }
-            @if (hasError('numeroDocumento')) { <span class="text-[11px] text-red-500">{{ getError('numeroDocumento')
-              }}</span> }
-            @if (propietarioEncontradoMsg()) { <span class="text-[11.5px] text-blue-600 font-medium">{{
-              propietarioEncontradoMsg() }}</span> }
+            @if (hasError('tipoDocumentoId')) { <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('tipoDocumentoId') }}</span> }
+            @if (hasError('numeroDocumento')) { <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('numeroDocumento') }}</span> }
+            @if (propietarioEncontradoMsg()) {
+              <div class="mt-1 px-3 py-1.5 rounded-md text-[12px] font-medium"
+                   [class.bg-blue-50]="propietarioEncontradoMsg()?.startsWith('ℹ️') || propietarioEncontradoMsg()?.startsWith('✅')"
+                   [class.text-blue-700]="propietarioEncontradoMsg()?.startsWith('ℹ️') || propietarioEncontradoMsg()?.startsWith('✅')"
+                   [class.bg-amber-50]="propietarioEncontradoMsg()?.startsWith('⚠️')"
+                   [class.text-amber-800]="propietarioEncontradoMsg()?.startsWith('⚠️')">
+                {{ propietarioEncontradoMsg() }}
+              </div>
+            }
           </div>
           @if (form.get('tipoDocumentoId')?.value == 2) {
           <div class="flex flex-col gap-1">

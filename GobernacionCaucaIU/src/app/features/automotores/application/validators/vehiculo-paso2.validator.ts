@@ -58,19 +58,17 @@ export class VehiculoPaso2Validator {
     }
 
 
-    // if (!isValidId(val.correoElectronico)) {
-    //   errors.push({
-    //     campo: 'correoElectronico',
-    //     mensaje: "Debe completar el correo electrónico",
-    //     paso: 2
-    //   });
-    // } else if (!emailRegex.test(val.correoElectronico)) {
-    //   errors.push({
-    //     campo: 'correoElectronico',
-    //     mensaje: "El formato del correo electrónico no es válido (ejemplo: usuario@dominio.com)",
-    //     paso: 2
-    //   });
-    // }
+    // ── CORREO ELECTRÓNICO (Opcional, pero si se escribe debe ser válido) ─
+    if (isRequired(val.correoElectronico)) {
+      const email = String(val.correoElectronico).trim();
+      if (!isEmail(email)) {
+        errors.push({
+          campo: 'correoElectronico',
+          mensaje: 'El formato del correo electrónico no es válido (ejemplo: usuario@dominio.com).',
+          paso: 2
+        });
+      }
+    }
 
     // ── TIPO DE DOCUMENTO ────────────────────────────────────────────────
     if (!isValidId(val.tipoDocumentoId)) {
@@ -90,24 +88,50 @@ export class VehiculoPaso2Validator {
       });
     } else {
       const doc = String(val.numeroDocumento).trim();
-      if (!minLength(doc, 4)) {
-        errors.push({
-          campo: 'numeroDocumento',
-          mensaje: 'El número de documento debe tener al menos 4 caracteres.',
-          paso: 2
-        });
-      } else if (!maxLength(doc, 20)) {
-        errors.push({
-          campo: 'numeroDocumento',
-          mensaje: 'El número de documento no puede superar 20 caracteres.',
-          paso: 2
-        });
-      } else if (!/^[a-zA-Z0-9\-]+$/.test(doc)) {
-        errors.push({
-          campo: 'numeroDocumento',
-          mensaje: 'El número de documento solo puede contener letras, números y guiones.',
-          paso: 2
-        });
+      const tipo = Number(val.tipoDocumentoId);
+
+      if ([1, 2, 4, 6].includes(tipo)) {
+        // Tipos de documento estrictamente numéricos (CC, NIT, TI, RC)
+        if (!isOnlyDigits(doc)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'Para este tipo de documento solo se permiten números (sin letras ni puntos).',
+            paso: 2
+          });
+        } else if (!minLength(doc, 4)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento debe tener al menos 4 dígitos.',
+            paso: 2
+          });
+        } else if (!maxLength(doc, 12)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento no puede superar 12 dígitos.',
+            paso: 2
+          });
+        }
+      } else {
+        // Tipos alfanuméricos (Pasaporte, Cédula de Extranjería)
+        if (!minLength(doc, 4)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento debe tener al menos 4 caracteres.',
+            paso: 2
+          });
+        } else if (!maxLength(doc, 20)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento no puede superar 20 caracteres.',
+            paso: 2
+          });
+        } else if (!/^[a-zA-Z0-9\-]+$/.test(doc)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento solo puede contener letras, números y guiones.',
+            paso: 2
+          });
+        }
       }
     }
 

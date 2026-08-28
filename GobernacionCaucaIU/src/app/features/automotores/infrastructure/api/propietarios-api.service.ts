@@ -26,6 +26,10 @@ export class PropietariosApiService {
     return this.api.get<ApiResponse<PagedResult<PropietarioDto>>>('/propietarios', { params }, 'AUTOMOTORES');
   }
 
+  getAll(filtros?: PropietarioFiltros): Observable<ApiResponse<PagedResult<PropietarioDto>>> {
+    return this.getPropietarios(filtros);
+  }
+
   getPropietarioById(id: number): Observable<ApiResponse<PropietarioDto>> {
     return this.api.get<ApiResponse<PropietarioDto>>(`/propietarios/${id}`, {}, 'AUTOMOTORES');
   }

@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-automotores-layout',
@@ -9,32 +10,24 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   templateUrl: './automotores-layout.html'
 })
 export class AutomotoresLayout {
-  readonly isSidebarOpen = signal<boolean>(true);
-  readonly isConfigOpen = signal<boolean>(false);
+  private router = inject(Router);
+
+  readonly isSidebarOpen = signal<boolean>(false);
+  readonly isSidebarHovered = signal<boolean>(false);
   readonly isProfileMenuOpen = signal<boolean>(false);
-  readonly activeConfigTab = signal<string>('general');
+
+  constructor() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      if (event.url.includes('/automotores/configuracion')) {
+        this.isSidebarOpen.set(false);
+      }
+    });
+  }
 
   toggleSidebar(): void {
     this.isSidebarOpen.update(v => !v);
-  }
-
-  toggleConfig(): void {
-    const nextState = !this.isConfigOpen();
-    this.isConfigOpen.set(nextState);
-    if (nextState) {
-      this.isSidebarOpen.set(false);
-    } else {
-      this.isSidebarOpen.set(true);
-    }
-  }
-
-  closeConfig(): void {
-    this.isConfigOpen.set(false);
-    this.isSidebarOpen.set(true);
-  }
-
-  selectConfigTab(tab: string): void {
-    this.activeConfigTab.set(tab);
   }
 
   toggleProfileMenu(): void {
