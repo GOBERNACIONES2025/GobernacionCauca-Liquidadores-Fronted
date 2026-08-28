@@ -4,9 +4,9 @@ import {
   OnInit,
   OnDestroy,
   signal,
-  Input,
   Output,
-  EventEmitter
+  EventEmitter,
+  effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -21,26 +21,6 @@ import {
   VehiculoItem
 } from '../../../domain/models/vehiculo.model';
 
-/**
- * @file vehiculo-wizard.ts
- * @description Componente hijo responsable del wizard de registro/edición de vehículos.
- *
- * Extrae toda la lógica del wizard que estaba en vehiculos.ts:
- *   - FormGroup completo con sus 20+ campos
- *   - Cascadas: tipo -> marca -> línea, departamento -> ciudad
- *   - Búsqueda de propietario por documento
- *   - Validación por paso usando VehiculoCompletoValidator
- *   - Construcción del DTO y delegación a la facade
- *
- * La VehiculosFacade sigue siendo la única fuente de verdad para el estado.
- * Este componente SOLO decide cuándo llamar a la facade — nunca la reemplaza.
- *
- * Inputs:
- *   - toastFn: función para mostrar toast (del componente padre Vehiculos)
- *
- * Uso en vehiculos.html:
- *   <app-vehiculo-wizard (toastEmit)="onToast($event)" />
- */
 @Component({
   selector: 'app-vehiculo-wizard',
   standalone: true,
@@ -55,7 +35,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
 
   // ─── Outputs ──────────────────────────────────────────────────────────────
-  /** Emite cuando hay que mostrar un toast al componente padre */
   @Output() toastEmit = new EventEmitter<{
     title: string;
     desc: string;
@@ -63,25 +42,191 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }>();
 
   // ─── Estado local del wizard ──────────────────────────────────────────────
-  /** Errores del paso actual para mostrar en el template */
   readonly erroresPaso = signal<FieldError[]>([]);
-
-  /** Indica si se está mostrando un estado de "propietario encontrado en BD" */
   readonly propietarioEncontradoMsg = signal<string | null>(null);
 
   // ─── Formulario ───────────────────────────────────────────────────────────
   form!: FormGroup;
   private subs: Subscription[] = [];
 
+  // ─── Constructor Reactivo (Sincroniza apertura del drawer nuevo vs edición)
+  constructor() {
+    effect(() => {
+      const isOpen = this.facade.isDrawerOpen();
+      const isNuevo = this.facade.isNuevoRegistro();
+      const sel = this.facade.selectedVehiculo();
+
+      if (isOpen) {
+        if (isNuevo) {
+          this.initForm();
+        } else if (sel) {
+          this.initForm();
+          this.poblarParaEdicion(sel);
+        }
+      }
+    });
+
+    // Sincroniza selects reactivamente cuando los catálogos se actualicen
+    effect(() => {
+      const servs = this.facade.serviciosVehiculo();
+      if (servs.length > 0 && this.form) {
+        const currentServ = this.form.get('servicio')?.value;
+        const normalized = this.normalizarServicio(currentServ);
+        if (normalized && normalized !== currentServ) {
+          this.form.get('servicio')?.setValue(normalized, { emitEvent: false });
+        }
+      }
+    });
+
+    effect(() => {
+      const combs = this.facade.combustibles();
+      if (combs.length > 0 && this.form) {
+        const currentComb = this.form.get('combustible')?.value;
+        const normalized = this.normalizarCombustible(currentComb);
+        if (normalized && normalized !== currentComb) {
+          this.form.get('combustible')?.setValue(normalized, { emitEvent: false });
+        }
+      }
+    });
+  }
+
   // ─── Computed helpers para el template ───────────────────────────────────
   get isNatural(): boolean {
     return this.form?.get('naturalezaJuridicaId')?.value == 1;
   }
 
-  // ─── Ciclo de vida ────────────────────────────────────────────────────────
+  getPlaceholderDocumento(): string {
+    const tipo = Number(this.form?.get('tipoDocumentoId')?.value);
+    switch (tipo) {
+      case 1: return 'Ej: 1035421980 (Solo números)';
+      case 2: return 'Ej: 900123456 (NIT sin dígito)';
+      case 3: return 'Ej: 123456789 (Cédula de Extranjería)';
+      case 4: return 'Ej: 1023456789 (Tarjeta de Identidad)';
+      case 5: return 'Ej: AB123456 (Pasaporte)';
+      case 6: return 'Ej: 1023456789 (Registro Civil)';
+      default: return 'Número de documento...';
+    }
+  }
 
+  onDocumentoInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const tipo = Number(this.form.get('tipoDocumentoId')?.value);
+    // Tipos numéricos: 1 (CC), 2 (NIT), 4 (TI), 6 (RC)
+    if ([1, 2, 4, 6].includes(tipo)) {
+      const soloDigitos = input.value.replace(/\D/g, '');
+      if (input.value !== soloDigitos) {
+        input.value = soloDigitos;
+        this.form.get('numeroDocumento')?.setValue(soloDigitos, { emitEvent: false });
+      }
+    }
+  }
+
+  // ─── Normalizadores para selects ─────────────────────────────────────────
+  private normalizarCombustible(comb?: string | number | null): string {
+    const raw = comb !== null && comb !== undefined ? String(comb).trim() : '';
+    const catalogo = this.facade.combustibles();
+
+    const cleanStr = (str: string) =>
+      str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+    if (!raw) {
+      const matchGas = catalogo.find(c => cleanStr(c.nombre).includes('gasol'));
+      return matchGas ? matchGas.nombre : 'Gasolina';
+    }
+
+    const exact = catalogo.find(c => c.nombre === raw);
+    if (exact) return exact.nombre;
+
+    if (!isNaN(Number(raw))) {
+      const byId = catalogo.find(c => Number(c.id) === Number(raw));
+      if (byId) return byId.nombre;
+    }
+    const byCodigo = catalogo.find(c => c.codigo && cleanStr(c.codigo) === cleanStr(raw));
+    if (byCodigo) return byCodigo.nombre;
+
+    const rawClean = cleanStr(raw);
+    const matchClean = catalogo.find(c => cleanStr(c.nombre) === rawClean);
+    if (matchClean) return matchClean.nombre;
+
+    if (rawClean.includes('gasol')) {
+      const match = catalogo.find(c => cleanStr(c.nombre).includes('gasol'));
+      return match ? match.nombre : 'Gasolina';
+    }
+    if (rawClean.includes('dies')) {
+      const match = catalogo.find(c => cleanStr(c.nombre).includes('dies'));
+      return match ? match.nombre : 'Diésel';
+    }
+    if (rawClean.includes('elec')) {
+      const match = catalogo.find(c => cleanStr(c.nombre).includes('elec'));
+      return match ? match.nombre : 'Eléctrico';
+    }
+    if (rawClean.includes('hib')) {
+      const match = catalogo.find(c => cleanStr(c.nombre).includes('hib'));
+      return match ? match.nombre : 'Híbrido';
+    }
+    if (rawClean.includes('gas')) {
+      const match = catalogo.find(c => cleanStr(c.nombre).includes('gas'));
+      return match ? match.nombre : 'Gas GNV';
+    }
+
+    return raw;
+  }
+
+  private normalizarServicio(serv?: string | number | null): string {
+    const raw = serv !== null && serv !== undefined ? String(serv).trim() : '';
+    const catalogo = this.facade.serviciosVehiculo();
+
+    const cleanStr = (str: string) =>
+      str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+
+    if (!raw) {
+      const matchPart = catalogo.find(s => cleanStr(s.nombre).includes('partic') || cleanStr(s.nombre).includes('priv'));
+      return matchPart ? matchPart.nombre : 'Particular';
+    }
+
+    const exact = catalogo.find(s => s.nombre === raw);
+    if (exact) return exact.nombre;
+
+    if (!isNaN(Number(raw))) {
+      const byId = catalogo.find(s => Number(s.id) === Number(raw));
+      if (byId) return byId.nombre;
+    }
+    const byCodigo = catalogo.find(s => s.codigo && cleanStr(s.codigo) === cleanStr(raw));
+    if (byCodigo) return byCodigo.nombre;
+
+    const rawClean = cleanStr(raw);
+    const matchClean = catalogo.find(s => cleanStr(s.nombre) === rawClean);
+    if (matchClean) return matchClean.nombre;
+
+    if (rawClean.includes('part') || rawClean.includes('priv') || rawClean === '1') {
+      const match = catalogo.find(s => cleanStr(s.nombre).includes('part') || cleanStr(s.nombre).includes('priv'));
+      return match ? match.nombre : 'Particular';
+    }
+    if (rawClean.includes('publ') || rawClean === '2') {
+      const match = catalogo.find(s => cleanStr(s.nombre).includes('publ'));
+      return match ? match.nombre : 'Público';
+    }
+    if (rawClean.includes('ofic') || rawClean === '3') {
+      const match = catalogo.find(s => cleanStr(s.nombre).includes('ofic'));
+      return match ? match.nombre : 'Oficial';
+    }
+    if (rawClean.includes('espec') || rawClean === '4') {
+      const match = catalogo.find(s => cleanStr(s.nombre).includes('espec'));
+      return match ? match.nombre : 'Especial';
+    }
+    if (rawClean.includes('diplo') || rawClean === '5') {
+      const match = catalogo.find(s => cleanStr(s.nombre).includes('diplo'));
+      return match ? match.nombre : 'Diplomático';
+    }
+
+    return raw;
+  }
+
+  // ─── Ciclo de vida ────────────────────────────────────────────────────────
   ngOnInit(): void {
-    this.initForm();
+    if (!this.form) {
+      this.initForm();
+    }
   }
 
   ngOnDestroy(): void {
@@ -89,8 +234,10 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Inicialización del formulario ────────────────────────────────────────
-
   initForm(): void {
+    this.subs.forEach(s => s.unsubscribe());
+    this.subs = [];
+
     this.form = this.fb.group({
       // Paso 1: Datos del Vehículo
       tipoVehiculo: [''],
@@ -100,8 +247,8 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       estadoMatriculaId: [null],
       modelo: [null],
       cilindraje: [null],
-      combustible: [''],
-      servicio: [''],
+      combustible: [this.normalizarCombustible(null)],
+      servicio: [this.normalizarServicio(null)],
       color: [''],
       pasajeros: [null],
       organismoTransitoId: [null],
@@ -135,7 +282,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Cascadas de dependencias entre campos ────────────────────────────────
-
   private configurarCascadas(): void {
     // Cascada 1: Tipo de Vehículo -> habilita Marca y carga marcas disponibles
     const s1 = this.form.get('tipoVehiculo')!.valueChanges.subscribe(tipo => {
@@ -162,17 +308,23 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Cascada 3: Línea -> auto-completa cilindraje y combustible
+    // Cascada 3: Línea -> auto-completa cilindraje y combustible si están vacíos
     const s3 = this.form.get('linea')!.valueChanges.subscribe(lineaNombre => {
       if (!lineaNombre) return;
       const linea = this.facade.lineasDisponibles().find(
         l => l.nombre.toLowerCase() === lineaNombre.toLowerCase()
       );
       if (linea) {
-        this.form.patchValue({
-          cilindraje: linea.cilindraje || this.form.get('cilindraje')?.value || null,
-          combustible: linea.combustible || this.form.get('combustible')?.value || ''
-        }, { emitEvent: false });
+        const patch: any = {};
+        if (linea.cilindraje && !this.form.get('cilindraje')?.value) {
+          patch.cilindraje = linea.cilindraje;
+        }
+        if (linea.combustible && !this.form.get('combustible')?.value) {
+          patch.combustible = this.normalizarCombustible(linea.combustible);
+        }
+        if (Object.keys(patch).length > 0) {
+          this.form.patchValue(patch, { emitEvent: false });
+        }
       }
     });
 
@@ -186,15 +338,25 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.subs.push(s1, s2, s3, s4);
+    // Cascada 5: Cambio en tipoDocumento -> limpiar valor si no cumple formato
+    const s5 = this.form.get('tipoDocumentoId')!.valueChanges.subscribe(() => {
+      const numDoc = this.form.get('numeroDocumento')?.value;
+      if (numDoc) {
+        const inputEvent = { target: { value: numDoc } } as unknown as Event;
+        this.onDocumentoInput(inputEvent);
+      }
+    });
+
+    this.subs.push(s1, s2, s3, s4, s5);
   }
 
   // ─── Pre-poblado para edición ─────────────────────────────────────────────
-
   poblarParaEdicion(v: VehiculoItem): void {
     const tipoInicial = v.tipoVehiculo || v.clase || 'Automóvil';
     const marcaInicial = v.marca || '';
     const lineaInicial = v.linea || '';
+    const combustibleInicial = this.normalizarCombustible(v.tipoCombustible || v.combustible);
+    const servicioInicial = this.normalizarServicio(v.servicio || (v as any).tipoServicio);
 
     this.form.get('marca')!.enable({ emitEvent: false });
     this.form.get('linea')!.enable({ emitEvent: false });
@@ -204,23 +366,23 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
     this.form.patchValue({
       placa: v.placa,
-      estadoMatriculaId: v.estadoMatriculaId ? String(v.estadoMatriculaId) : '1',
+      estadoMatriculaId: v.estadoMatriculaId ? Number(v.estadoMatriculaId) : 1,
       marca: marcaInicial,
       linea: lineaInicial,
       modelo: v.modelo,
-      servicio: v.servicio || 'Particular',
+      servicio: servicioInicial,
       tipoVehiculo: tipoInicial,
-      combustible: v.tipoCombustible || v.combustible || 'Gasolina',
+      combustible: combustibleInicial,
       cilindraje: v.cilindraje,
       pasajeros: v.pasajeros || 5,
-      organismoTransitoId: v.organismoTransitoId ? String(v.organismoTransitoId) : '',
+      organismoTransitoId: v.organismoTransitoId ? Number(v.organismoTransitoId) : null,
       fechaMatricula: v.fechaMatricula || '',
       incluirPropietario: true,
       tipoDocumentoId: 1,
       numeroDocumento: v.propietario?.numeroDocumento || v.propietarioDocumento || '',
       naturalezaJuridicaId: v.propietario?.tipoPersona === 'Jurídica' ? 2 : 1,
       nombreRazonSocial: v.propietario?.nombre || v.propietarioNombre || '',
-      tipoVinculoPersonaId: '1',
+      tipoVinculoPersonaId: 1,
       porcentajePropiedad: 100,
       esResponsablePrincipal: true
     }, { emitEvent: false });
@@ -236,20 +398,23 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
         if (veh) {
           const tipoVeh = veh.tipoVehiculo || veh.clase || tipoInicial;
+          const combVeh = this.normalizarCombustible(veh.combustible || veh.tipoCombustible || combustibleInicial);
+          const servVeh = this.normalizarServicio(veh.servicio || (veh as any).tipoServicio || v.servicio || (v as any).tipoServicio);
+
           if (tipoVeh) this.facade.cargarMarcasPorTipo(tipoVeh);
           if (veh.marca) this.facade.cargarLineasPorMarca(veh.marca, tipoVeh);
 
           this.form.patchValue({
-            estadoMatriculaId: veh.estadoMatriculaId ? String(veh.estadoMatriculaId) : '1',
+            estadoMatriculaId: veh.estadoMatriculaId ? Number(veh.estadoMatriculaId) : (v.estadoMatriculaId ? Number(v.estadoMatriculaId) : 1),
             marca: veh.marca || marcaInicial,
             linea: veh.linea || lineaInicial,
             modelo: veh.modelo || v.modelo,
-            servicio: veh.servicio || v.servicio || 'Particular',
+            servicio: servVeh,
             tipoVehiculo: tipoVeh,
-            combustible: veh.combustible || v.tipoCombustible || 'Gasolina',
+            combustible: combVeh,
             cilindraje: veh.cilindraje || v.cilindraje,
             pasajeros: veh.pasajeros || v.pasajeros || 5,
-            organismoTransitoId: veh.organismoTransitoId ? String(veh.organismoTransitoId) : '',
+            organismoTransitoId: veh.organismoTransitoId ? Number(veh.organismoTransitoId) : (v.organismoTransitoId ? Number(v.organismoTransitoId) : null),
             fechaMatricula: veh.fechaMatricula || v.fechaMatricula || ''
           }, { emitEvent: false });
         }
@@ -269,7 +434,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
             direccion: prop.direccion || '',
             departamentoId: deptId,
             ciudadId: prop.ciudadId ? Number(prop.ciudadId) : null,
-            tipoVinculoPersonaId: prop.tipoVinculoId ? String(prop.tipoVinculoId) : '1',
+            tipoVinculoPersonaId: prop.tipoVinculoId ? Number(prop.tipoVinculoId) : 1,
             porcentajePropiedad: prop.porcentajePropiedad || 100,
             fechaInicio: prop.fechaInicio || '',
             esResponsablePrincipal: prop.esResponsablePrincipal ?? true
@@ -284,7 +449,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Control de campos del propietario ────────────────────────────────────
-
   bloquearCamposPropietario(): void {
     const campos = [
       'tipoDocumentoId', 'numeroDocumento', 'naturalezaJuridicaId',
@@ -304,42 +468,59 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Búsqueda de propietario por documento ────────────────────────────────
-
   buscarPropietario(): void {
+    const tipoDocId = Number(this.form.get('tipoDocumentoId')?.value);
     const numDoc = this.form.get('numeroDocumento')?.value;
-    const tipoDocId = this.form.get('tipoDocumentoId')?.value || 1;
-    if (!numDoc || !String(numDoc).trim()) return;
 
-    this.facade.buscarPropietario(tipoDocId, String(numDoc).trim()).subscribe(propietario => {
-      if (propietario) {
-        const nombreCompleto = propietario.nombreCompleto ||
-          propietario.razonSocial ||
-          [propietario.primerNombre, propietario.segundoNombre,
-           propietario.primerApellido, propietario.segundoApellido]
-            .filter(Boolean).join(' ');
+    if (!tipoDocId || isNaN(tipoDocId)) {
+      this.propietarioEncontradoMsg.set('⚠️ Seleccione primero el tipo de documento para realizar la búsqueda.');
+      return;
+    }
 
-        const deptId = propietario.departamentoId ? Number(propietario.departamentoId) : null;
-        if (deptId) this.facade.cargarCiudadesPorDepartamento(deptId);
+    if (!numDoc || !String(numDoc).trim()) {
+      this.propietarioEncontradoMsg.set('⚠️ Ingrese un número de documento para realizar la búsqueda.');
+      return;
+    }
 
-        this.form.patchValue({
-          personaId: propietario.id || propietario.personaId,
-          nombreRazonSocial: nombreCompleto,
-          naturalezaJuridicaId: propietario.naturalezaJuridicaId || (propietario.razonSocial ? 2 : 1),
-          tipoDocumentoId: propietario.tipoDocumentoId || tipoDocId,
-          digitoVerificacion: propietario.digitoVerificacion || null,
-          correoElectronico: propietario.correoElectronico || propietario.email || '',
-          telefono: propietario.telefono || '',
-          direccion: propietario.direccion || propietario.direccionResidencia || '',
-          departamentoId: deptId,
-          ciudadId: propietario.ciudadId || propietario.municipioId || null
-        }, { emitEvent: false });
+    const docLimpio = String(numDoc).trim();
 
-        this.bloquearCamposPropietario();
-        this.propietarioEncontradoMsg.set(`Persona encontrada: ${nombreCompleto}`);
-      } else {
+    this.facade.buscarPropietario(tipoDocId, docLimpio).subscribe({
+      next: (propietario) => {
+        if (propietario) {
+          const nombreCompleto = propietario.nombreCompleto ||
+            propietario.razonSocial ||
+            [propietario.primerNombre, propietario.segundoNombre,
+             propietario.primerApellido, propietario.segundoApellido]
+              .filter(Boolean).join(' ');
+
+          const deptId = propietario.departamentoId ? Number(propietario.departamentoId) : null;
+          if (deptId) this.facade.cargarCiudadesPorDepartamento(deptId);
+
+          this.form.patchValue({
+            personaId: propietario.id || propietario.personaId,
+            nombreRazonSocial: nombreCompleto,
+            naturalezaJuridicaId: propietario.naturalezaJuridicaId || (propietario.razonSocial ? 2 : 1),
+            tipoDocumentoId: propietario.tipoDocumentoId || tipoDocId,
+            digitoVerificacion: propietario.digitoVerificacion || null,
+            correoElectronico: propietario.correoElectronico || propietario.email || '',
+            telefono: propietario.telefono || '',
+            direccion: propietario.direccion || propietario.direccionResidencia || '',
+            departamentoId: deptId,
+            ciudadId: propietario.ciudadId || propietario.municipioId || null
+          }, { emitEvent: false });
+
+          this.bloquearCamposPropietario();
+          this.propietarioEncontradoMsg.set(`✅ Persona encontrada en base de datos: ${nombreCompleto}`);
+        } else {
+          this.form.patchValue({ personaId: null });
+          this.desbloquearCamposPropietario();
+          this.propietarioEncontradoMsg.set('ℹ️ Documento no registrado previamente. Puede ingresar los datos para crear el propietario.');
+        }
+      },
+      error: () => {
         this.form.patchValue({ personaId: null });
         this.desbloquearCamposPropietario();
-        this.propietarioEncontradoMsg.set('Documento no registrado. Puede ingresar los datos manualmente.');
+        this.propietarioEncontradoMsg.set('ℹ️ No fue posible consultar el documento. Puede ingresar los datos manualmente.');
       }
     });
   }
@@ -362,28 +543,20 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Helper para mostrar error de campo en el template ───────────────────
-
-  /**
-   * Retorna el mensaje de error para un campo dado según los errores del paso actual.
-   * Usar en el HTML: getError('placa')
-   */
   getError(campo: string): string | null {
     return this.erroresPaso().find(e => e.campo === campo)?.mensaje ?? null;
   }
 
-  /** Indica si un campo tiene error en el paso actual */
   hasError(campo: string): boolean {
     return this.erroresPaso().some(e => e.campo === campo);
   }
 
   // ─── Navegación del wizard con validación por paso ───────────────────────
-
   onSiguiente(): void {
     const pasoActual = this.facade.currentStep();
     const totalPasos = this.facade.tabs().length;
 
     if (pasoActual < totalPasos) {
-      // Valida solo el paso actual antes de avanzar
       const result = this.validator.validarPaso(pasoActual, this.form);
       if (!result.isValid) {
         this.erroresPaso.set(result.errors);
@@ -392,7 +565,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       this.erroresPaso.set([]);
       this.facade.siguientePaso();
     } else {
-      // Último paso: finalizar registro
       this.onFinalizarRegistro();
     }
   }
@@ -403,9 +575,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Submit final ─────────────────────────────────────────────────────────
-
   onFinalizarRegistro(): void {
-    // Validación completa de todos los pasos antes de enviar
     const result = this.validator.validarCompleto(this.form);
 
     if (!result.isValid) {
@@ -433,7 +603,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Construcción del DTO ─────────────────────────────────────────────────
-
   private construirPayload(): RegistrarVehiculoDto {
     const val = this.form.getRawValue();
     let propietarioInicial: PropietarioInicialDto | null = null;
@@ -472,9 +641,9 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
         primerApellido: pApellido,
         segundoApellido: sApellido,
         razonSocial,
-        correoElectronico: val.correoElectronico || null,
-        telefono: val.telefono || null,
-        direccion: val.direccion || null,
+        correoElectronico: val.correoElectronico ? String(val.correoElectronico).trim() : null,
+        telefono: val.telefono ? String(val.telefono).trim() : null,
+        direccion: val.direccion ? String(val.direccion).trim() : null,
         departamentoId: val.departamentoId ? Number(val.departamentoId) : null,
         ciudadId: val.ciudadId ? Number(val.ciudadId) : null,
         tipoVinculoPersonaId: Number(val.tipoVinculoPersonaId) || 1,
@@ -504,7 +673,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   }
 
   // ─── Llamadas a la facade ─────────────────────────────────────────────────
-
   private crearVehiculo(payload: RegistrarVehiculoDto): void {
     this.facade.crearVehiculo(payload).subscribe({
       next: () => {
@@ -513,7 +681,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
         this.initForm();
         this.toastEmit.emit({
           title: 'Registro Exitoso',
-          desc: `El vehículo con placa ${payload.placa} fue enviado a revisión (PENDIENTE DE APROBACIÓN).`,
+          desc: `El vehículo con placa ${payload.placa} fue registrado exitosamente.`,
           type: 'success'
         });
       },
@@ -532,9 +700,18 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
   private actualizarVehiculo(payload: RegistrarVehiculoDto): void {
     const vehiculoId = this.facade.selectedVehiculo()?.id;
-    if (!vehiculoId) return;
+    if (!vehiculoId) {
+      this.toastEmit.emit({
+        title: 'Error al Actualizar',
+        desc: 'No se encontró el identificador del vehículo a modificar.',
+        type: 'error'
+      });
+      return;
+    }
 
-    const updatePayload = {
+    const val = this.form.getRawValue();
+    const updatePayload: any = {
+      placa: payload.placa,
       marca: payload.marca,
       linea: payload.linea,
       modelo: payload.modelo,
@@ -546,8 +723,16 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       pasajeros: payload.pasajeros,
       estadoMatriculaId: payload.estadoMatriculaId,
       organismoTransitoId: payload.organismoTransitoId,
-      fechaMatricula: payload.fechaMatricula
+      fechaMatricula: payload.fechaMatricula,
+      propietarioNombre: val.nombreRazonSocial ? String(val.nombreRazonSocial).trim() : undefined,
+      propietarioDocumento: val.numeroDocumento ? String(val.numeroDocumento).trim() : undefined,
+      tipoVinculoPersonaId: Number(val.tipoVinculoPersonaId) || 1,
+      porcentajePropiedad: Number(val.porcentajePropiedad) || 100
     };
+
+    if (payload.propietarioInicial) {
+      updatePayload.propietarioInicial = payload.propietarioInicial;
+    }
 
     this.facade.actualizarVehiculo(vehiculoId, updatePayload).subscribe({
       next: () => {
@@ -555,7 +740,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
         this.facade.cerrarRegistro();
         this.toastEmit.emit({
           title: 'Vehículo Actualizado',
-          desc: `Los datos de la placa ${payload.placa} se guardaron exitosamente.`,
+          desc: `Los datos del vehículo con placa ${payload.placa} se guardaron exitosamente.`,
           type: 'success'
         });
       },

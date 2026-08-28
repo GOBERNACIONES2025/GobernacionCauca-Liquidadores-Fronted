@@ -5,6 +5,8 @@ import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 import { VehiculoItem } from '../../../domain/models/vehiculo.model';
 import { VehiculoWizardComponent } from '../../../presentation/components/vehiculo-wizard/vehiculo-wizard';
+import { AuditoriaVehiculoValidator } from '../../../application/validators/auditoria-vehiculo.validator';
+import { FieldError } from '../../../application/validators/validation-result';
 
 @Component({
   selector: 'app-vehiculos',
@@ -15,6 +17,7 @@ import { VehiculoWizardComponent } from '../../../presentation/components/vehicu
 export class Vehiculos implements OnInit {
   readonly facade = inject(VehiculosFacade);
   readonly liqFacade = inject(LiquidacionesFacade);
+  readonly auditoriaValidator = inject(AuditoriaVehiculoValidator);
   /** fb solo se usa para editFormAuditoria — el wizard tiene su propio FormBuilder */
   private fb = inject(FormBuilder);
 
@@ -43,7 +46,16 @@ export class Vehiculos implements OnInit {
   readonly modoEdicionAuditoria = signal<boolean>(false);
   readonly buscandoPropietarioAuditoria = signal<boolean>(false);
   readonly propietarioAuditoriaEncontrado = signal<string | null>(null);
+  readonly erroresAuditoria = signal<FieldError[]>([]);
   editFormAuditoria!: FormGroup;
+
+  getAuditoriaError(campo: string): string | null {
+    return this.erroresAuditoria().find(e => e.campo === campo)?.mensaje ?? null;
+  }
+
+  hasAuditoriaError(campo: string): boolean {
+    return this.erroresAuditoria().some(e => e.campo === campo);
+  }
 
   initEditFormAuditoria(item: VehiculoItem): void {
     let serv = (item.servicio || 'Particular').trim();
@@ -83,7 +95,10 @@ export class Vehiculos implements OnInit {
 
   buscarPropietarioAuditoria(): void {
     const numDoc = this.editFormAuditoria.get('propietarioDocumento')?.value;
-    if (!numDoc || !String(numDoc).trim()) return;
+    if (!numDoc || !String(numDoc).trim()) {
+      this.propietarioAuditoriaEncontrado.set('⚠️ Ingrese un número de documento para realizar la búsqueda.');
+      return;
+    }
 
     const docLimpio = String(numDoc).replace(/[^0-9kK]/g, '').trim();
 
@@ -120,11 +135,13 @@ export class Vehiculos implements OnInit {
     this.facade.cargarCatalogos();
     this.initEditFormAuditoria(item);
     this.modoEdicionAuditoria.set(false);
+    this.erroresAuditoria.set([]);
     this.vehiculoAuditoriaModal.set(item);
   }
 
   cerrarAuditoriaModal(): void {
     this.modoEdicionAuditoria.set(false);
+    this.erroresAuditoria.set([]);
     this.vehiculoAuditoriaModal.set(null);
   }
 
@@ -134,18 +151,22 @@ export class Vehiculos implements OnInit {
 
   activarEdicionAuditoria(item: VehiculoItem): void {
     this.initEditFormAuditoria(item);
+    this.erroresAuditoria.set([]);
     this.modoEdicionAuditoria.set(true);
   }
 
   cancelarEdicionAuditoria(): void {
+    this.erroresAuditoria.set([]);
     this.modoEdicionAuditoria.set(false);
   }
 
   guardarEdicionAuditoria(id: number, aprobarAlGuardar: boolean = false): void {
-    if (this.editFormAuditoria.invalid) {
-      this.editFormAuditoria.markAllAsTouched();
+    const result = this.auditoriaValidator.validar(this.editFormAuditoria);
+    if (!result.isValid) {
+      this.erroresAuditoria.set(result.errors);
       return;
     }
+    this.erroresAuditoria.set([]);
 
     const val = this.editFormAuditoria.getRawValue();
     const updatePayload = {
