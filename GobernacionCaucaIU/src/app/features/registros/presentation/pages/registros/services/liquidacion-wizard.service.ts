@@ -263,8 +263,8 @@ export class LiquidacionWizardService {
           valorActo: a.valorActo,
           baseDeclarada: a.baseDeclarada,
           inmuebleId: a.inmuebleId || null,
-          matriculaInmobiliaria: a.matriculaInmobiliaria || '',
-          avaluoCatastral: a.avaluoCatastral || 0,
+          matriculaInmobiliaria: a.inmuebleMatricula || a.matriculaInmobiliaria || '',
+          avaluoCatastral: a.inmuebleAvaluo || a.avaluoCatastral || 0,
           exencionId: a.exencionesIds && a.exencionesIds.length > 0 ? a.exencionesIds[0] : null,
           exencionNombre: null,
           intervinientes: a.intervinientes ? a.intervinientes.map((i: any) => ({

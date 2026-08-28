@@ -75,6 +75,8 @@ export interface SolicitudActoRegistradoDto {
   tipoActoRegistroId: number;
   tipoActoRegistroNombre?: string;
   inmuebleId?: number | null;
+  inmuebleMatricula?: string | null;
+  inmuebleAvaluo?: number | null;
   valorActo: number;
   baseDeclarada: number;
   observacion?: string | null;
