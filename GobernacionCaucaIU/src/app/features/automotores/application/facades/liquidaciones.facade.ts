@@ -274,20 +274,64 @@ export class LiquidacionesFacade {
     this.reciboModalData.set(null);
   }
 
-  /** Total proyectado acumulado del lote masivo habilitado con datos en BD */
+  /** Selección individual de vigencias por vehículo en el proceso masivo */
+  readonly selectedVigenciasMasivasMap = signal<Record<string, number[]>>({});
+  readonly vigenciaFiltroMasivo = signal<number>(0); // 0 = Todas, 2026, 2025, etc.
+
+  /** Total Lote Masivo Proyectado en tiempo real */
   readonly totalLoteMasivoProyectado = computed(() => {
     const sims = this.preSimulacionesMasivo();
     if (!sims || sims.length === 0) return 0;
-    return sims.reduce((sum, s) => sum + this.calcularSubtotalSimulacion(s), 0);
+    const mapa = this.selectedVigenciasMasivasMap();
+    return sims.reduce((sum, s) => {
+      const aniosSeleccionados = mapa[s.placa] || [];
+      const subtotalVeh = s.vigencias
+        .filter(v => aniosSeleccionados.includes(v.anio) && !v.parametrosFaltantesEnDb)
+        .reduce((vSum, v) => vSum + v.totalVigencia, 0);
+      return sum + subtotalVeh;
+    }, 0);
   });
 
-  /** Calcula el subtotal liquidable de un vehículo individual en el lote masivo */
+  /** Calcula el subtotal individual para un vehículo en el modal masivo */
   calcularSubtotalSimulacion(sim: SimulacionLiquidacion): number {
     if (!sim || !sim.vigencias) return 0;
-    const vf = this.vigenciaFiltro();
+    const aniosSeleccionados = this.selectedVigenciasMasivasMap()[sim.placa] || [];
     return sim.vigencias
-      .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0 && (vf === 0 || v.anio === vf))
+      .filter(v => aniosSeleccionados.includes(v.anio) && !v.parametrosFaltantesEnDb)
       .reduce((sum, v) => sum + v.totalVigencia, 0);
+  }
+
+  /** Activa o desactiva una vigencia individual para un vehículo en la lista masiva */
+  toggleVigenciaMasivaVehiculo(placa: string, anio: number): void {
+    const currMap = { ...this.selectedVigenciasMasivasMap() };
+    let anios = currMap[placa] ? [...currMap[placa]] : [];
+    if (anios.includes(anio)) {
+      anios = anios.filter(a => a !== anio);
+    } else {
+      anios.push(anio);
+    }
+    currMap[placa] = anios;
+    this.selectedVigenciasMasivasMap.set(currMap);
+  }
+
+  /** Aplica el filtro maestro por vigencia para todos los vehículos en el lote masivo */
+  setVigenciaFiltroMasivo(vigencia: number): void {
+    this.vigenciaFiltroMasivo.set(vigencia);
+    const sims = this.preSimulacionesMasivo();
+    const newMap: Record<string, number[]> = {};
+
+    for (const s of sims) {
+      const validas = s.vigencias
+        .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0)
+        .map(v => v.anio);
+
+      if (vigencia > 0) {
+        newMap[s.placa] = validas.filter(a => a === vigencia);
+      } else {
+        newMap[s.placa] = validas;
+      }
+    }
+    this.selectedVigenciasMasivasMap.set(newMap);
   }
 
   /**
@@ -477,6 +521,8 @@ export class LiquidacionesFacade {
     this.preSimulacionesMasivo.set([]);
     this.loadingPreSimulacionMasiva.set(true);
     this.vehiculoExpandidoMasivo.set(null);
+    this.selectedVigenciasMasivasMap.set({});
+    this.vigenciaFiltroMasivo.set(0);
 
     const placasDestino = this.selectedPlacas().length > 0 
       ? this.selectedPlacas() 
@@ -498,6 +544,14 @@ export class LiquidacionesFacade {
       this.loadingPreSimulacionMasiva.set(false);
       const validSims = sims.filter((s): s is SimulacionLiquidacion => s !== null);
       this.preSimulacionesMasivo.set(validSims);
+
+      const initMap: Record<string, number[]> = {};
+      for (const s of validSims) {
+        initMap[s.placa] = s.vigencias
+          .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0)
+          .map(v => v.anio);
+      }
+      this.selectedVigenciasMasivasMap.set(initMap);
     });
   }
 
@@ -517,34 +571,52 @@ export class LiquidacionesFacade {
     this.ejecutandoMasivo.set(false);
     this.preSimulacionesMasivo.set([]);
     this.vehiculoExpandidoMasivo.set(null);
+    this.selectedVigenciasMasivasMap.set({});
   }
 
   /**
-   * Ejecuta la liquidación masiva a través del Backend API (.NET 10).
+   * Ejecuta la liquidación masiva a través del Backend API (.NET 10) con persistencia en BD.
    */
   ejecutarLiquidacionMasiva(): void {
     this.ejecutandoMasivo.set(true);
     this.resultadoMasivo.set(null);
 
-    const req: LiquidacionMasivaRequest = {
-      placas: this.selectedPlacas().length > 0 ? this.selectedPlacas() : undefined,
-      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : undefined
-    };
+    const sims = this.preSimulacionesMasivo();
+    const mapVigencias = this.selectedVigenciasMasivasMap();
 
-    this.api.post<ApiResponse<LiquidacionMasivaResultado>>('/liquidaciones/masiva', req).pipe(
-      catchError(err => {
-        console.warn('Error en proceso de liquidación masiva:', err);
-        this.ejecutandoMasivo.set(false);
-        return of(null);
-      })
-    ).subscribe(res => {
+    const requests = sims.map(sim => {
+      const aniosOficializar = mapVigencias[sim.placa] || [];
+      if (aniosOficializar.length === 0) return of([]);
+
+      const req: SimularLiquidacionRequest = {
+        placa: sim.placa,
+        vigencias: aniosOficializar
+      };
+      return this.api.post<ApiResponse<LiquidacionItem[]>>('/liquidaciones/oficializar', req).pipe(
+        map(res => res?.data || []),
+        catchError(() => of([]))
+      );
+    });
+
+    forkJoin(requests).subscribe(results => {
       this.ejecutandoMasivo.set(false);
-      if (res && res.data) {
-        this.resultadoMasivo.set(res.data);
-        this.selectedPlacas.set([]);
-        this.cargarLiquidaciones();
-        this.cargarKpis();
-      }
+      const todosItems = results.flat().filter((i): i is LiquidacionItem => i !== null);
+      
+      const totalRecaudo = todosItems.reduce((sum, item) => sum + item.totalPagar, 0);
+      const placasProcesadas = new Set(todosItems.map(i => i.placa)).size;
+
+      this.resultadoMasivo.set({
+        totalVehiculosProcesados: placasProcesadas,
+        totalVigenciasLiquidadas: todosItems.length,
+        totalRecaudoGenerado: totalRecaudo,
+        numerosLiquidacionGenerados: todosItems.map(i => i.numeroLiquidacion),
+        detalleLiquidaciones: todosItems,
+        mensaje: `Se expedieron exitosamente ${todosItems.length} liquidación(es) oficial(es) en BD para ${placasProcesadas} vehículo(s) por un valor total de $${totalRecaudo.toLocaleString('es-CO')}.`
+      });
+
+      this.selectedPlacas.set([]);
+      this.cargarLiquidaciones();
+      this.cargarKpis();
     });
   }
 

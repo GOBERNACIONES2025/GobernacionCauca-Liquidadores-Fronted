@@ -72,5 +72,6 @@ export interface LiquidacionMasivaResultado {
   totalVigenciasLiquidadas: number;
   totalRecaudoGenerado: number;
   numerosLiquidacionGenerados: string[];
+  detalleLiquidaciones?: any[];
   mensaje: string;
 }
