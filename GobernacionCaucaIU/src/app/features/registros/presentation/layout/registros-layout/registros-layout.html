@@ -9,12 +9,14 @@
     
     <!-- Main Sidebar -->
     <div 
+      (mouseenter)="isSidebarHovered.set(true)"
+      (mouseleave)="isSidebarHovered.set(false)"
       class="shrink-0 h-full transition-all duration-300 overflow-hidden"
-      [class.w-64]="!isSidebarCollapsed()"
-      [class.w-16]="isSidebarCollapsed()"
+      [class.w-64]="!isSidebarCollapsed() || isSidebarHovered()"
+      [class.w-16]="isSidebarCollapsed() && !isSidebarHovered()"
     >
       <app-registros-sidebar 
-        [isCollapsed]="isSidebarCollapsed()" 
+        [isCollapsed]="isSidebarCollapsed() && !isSidebarHovered()" 
         (toggleCollapse)="toggleSidebar()">
       </app-registros-sidebar>
     </div>

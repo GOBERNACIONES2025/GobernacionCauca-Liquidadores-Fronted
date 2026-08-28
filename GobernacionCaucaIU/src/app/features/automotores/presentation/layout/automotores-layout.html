@@ -101,15 +101,17 @@
   <div class="flex flex-1 overflow-hidden relative bg-vehiculos-bg-main">
     <!-- MAIN SIDEBAR -->
     <aside
-      [class.w-64]="isSidebarOpen()"
-      [class.w-16]="!isSidebarOpen()"
+      (mouseenter)="isSidebarHovered.set(true)"
+      (mouseleave)="isSidebarHovered.set(false)"
+      [class.w-64]="isSidebarOpen() || isSidebarHovered()"
+      [class.w-16]="!(isSidebarOpen() || isSidebarHovered())"
       class="bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transition-all duration-300 z-10"
     >
       <!-- Navigation Links Container -->
       <div class="flex-1 overflow-y-auto py-4 space-y-6">
         <!-- Section 1: MÓDULO TRIBUTARIO -->
         <div>
-          @if (isSidebarOpen()) {
+          @if (isSidebarOpen() || isSidebarHovered()) {
             <h3 class="px-4 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
               Módulo Tributario
             </h3>
@@ -120,10 +122,10 @@
               routerLink="/automotores/dashboard"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Dashboard'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Dashboard'"
             >
               <i class="fa-solid fa-chart-pie text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Dashboard General</span>
               }
             </a>
@@ -133,10 +135,10 @@
               routerLink="/automotores/vehiculos"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Vehículos'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Vehículos'"
             >
               <i class="fa-solid fa-car text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Vehículos</span>
               }
             </a>
@@ -146,10 +148,10 @@
               routerLink="/automotores/contribuyentes-index"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Contribuyentes'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Contribuyentes'"
             >
               <i class="fa-solid fa-users text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Contribuyentes</span>
               }
             </a>
@@ -159,10 +161,10 @@
               routerLink="/automotores/valores-estatales"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Valores Estatales'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Valores Estatales'"
             >
               <i class="fa-solid fa-dollar-sign text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Valores Estatales</span>
               }
             </a>
@@ -172,10 +174,10 @@
               routerLink="/automotores/liquidaciones"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Liquidaciones & Facturación'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Liquidaciones & Facturación'"
             >
               <i class="fa-solid fa-file-invoice-dollar text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Liquidaciones & Facturación</span>
               }
             </a>
@@ -185,10 +187,10 @@
               routerLink="/automotores/certificados"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Certificados'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Certificados'"
             >
               <i class="fa-solid fa-award text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Certificados</span>
               }
             </a>
@@ -197,7 +199,7 @@
 
         <!-- Section 2: SISTEMA -->
         <div>
-          @if (isSidebarOpen()) {
+          @if (isSidebarOpen() || isSidebarHovered()) {
             <h3 class="px-4 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
               Sistema
             </h3>
@@ -208,10 +210,10 @@
               routerLink="/automotores/auditoria"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Auditoría'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Auditoría'"
             >
               <i class="fa-regular fa-file-lines text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Auditoría</span>
               }
             </a>
@@ -221,10 +223,10 @@
               routerLink="/automotores/reglas-tributarias"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Reglas Tributarias'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Reglas Tributarias'"
             >
               <i class="fa-regular fa-circle-dot text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Reglas Tributarias</span>
               }
             </a>
@@ -234,10 +236,10 @@
               routerLink="/automotores/configuracion"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent cursor-pointer"
-              [title]="isSidebarOpen() ? '' : 'Configuración y Catálogos'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Configuración y Catálogos'"
             >
               <i class="fa-solid fa-wrench text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Configuración y Catálogos</span>
               }
             </a>
@@ -246,10 +248,10 @@
       </div>
 
       <!-- Footer Version -->
-      @if (isSidebarOpen()) {
+      @if (isSidebarOpen() || isSidebarHovered()) {
         <div class="border-t border-slate-200 p-4 text-[11px] text-slate-400 space-y-0.5">
           <p class="font-medium text-slate-500">Liquidadores</p>
-          <p>© Copyright 2026 101 S.A.S.</p>
+          <p>© Copyright 2026 1cero1 S.A.S.</p>
         </div>
       }
     </aside>
