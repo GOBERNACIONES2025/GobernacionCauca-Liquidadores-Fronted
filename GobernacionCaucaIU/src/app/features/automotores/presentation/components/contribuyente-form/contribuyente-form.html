@@ -1,4 +1,4 @@
-<!-- MODAL OVERLAY -->
+﻿<!-- MODAL OVERLAY -->
 @if (isOpen) {
   <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-opacity" (click)="!isLoading && onClose()">
     
@@ -22,9 +22,13 @@
           
           <!-- Tipo de Persona -->
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipo de Persona</label>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Tipo de Persona <span class="text-red-500">*</span>
+            </label>
             <div class="relative">
-              <select formControlName="naturalezaJuridicaId" class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+              <select formControlName="naturalezaJuridicaId"
+                      [class.border-red-400]="hasError('naturalezaJuridicaId')"
+                      class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                 @for (nat of facade.naturalezasJuridicas(); track nat.id) {
                   <option [ngValue]="nat.id">{{ nat.nombre }}</option>
                 }
@@ -33,11 +37,16 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
+            @if (hasError('naturalezaJuridicaId')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('naturalezaJuridicaId') }}</span>
+            }
           </div>
 
           <!-- Tipo Documento -->
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Tipo Documento</label>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Tipo Documento <span class="text-red-500">*</span>
+            </label>
             <div class="relative">
               <select formControlName="tipoDocumentoId"
                       [class.border-red-400]="hasError('tipoDocumentoId')"
@@ -51,7 +60,7 @@
               </div>
             </div>
             @if (hasError('tipoDocumentoId')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('tipoDocumentoId') }}</span>
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('tipoDocumentoId') }}</span>
             }
           </div>
 
@@ -60,57 +69,81 @@
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
               Número Documento <span class="text-red-500">*</span>
             </label>
-            <input type="text" formControlName="numeroDocumento" placeholder="1035421980"
+            <input type="text" formControlName="numeroDocumento"
+                   [placeholder]="getPlaceholderDocumento()"
+                   (input)="onDocumentoInput($event)"
                    [class.border-red-400]="hasError('numeroDocumento')"
-                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white outline-none transition-all focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 placeholder:text-slate-400 bg-white outline-none transition-all focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
             @if (hasError('numeroDocumento')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('numeroDocumento') }}</span>
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('numeroDocumento') }}</span>
             }
           </div>
+
+          <!-- Dígito de Verificación (solo si es NIT) -->
+          @if (form.get('tipoDocumentoId')?.value == 2) {
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+                Dígito de Verificación <span class="text-red-500">*</span>
+              </label>
+              <input type="number" formControlName="digitoVerificacion" placeholder="0-9" min="0" max="9"
+                     [class.border-red-400]="hasError('digitoVerificacion')"
+                     class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white outline-none transition-all focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] disabled:bg-slate-100">
+              @if (hasError('digitoVerificacion')) {
+                <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('digitoVerificacion') }}</span>
+              }
+            </div>
+          }
 
           <!-- Nombre / Razón Social -->
           <div>
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-              Nombre / Razón Social <span class="text-red-500">*</span>
+              {{ isNatural ? 'Nombre Completo' : 'Razón Social' }} <span class="text-red-500">*</span>
             </label>
-            <input type="text" formControlName="nombreRazonSocial" placeholder="Samuel Díaz Pérez"
+            <input type="text" formControlName="nombreRazonSocial"
+                   [placeholder]="isNatural ? 'Primer nombre Primer apellido' : 'Razón social de la empresa'"
                    [class.border-red-400]="hasError('nombreRazonSocial')"
-                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white outline-none transition-all focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]">
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 placeholder:text-slate-400 bg-white outline-none transition-all focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]">
             @if (hasError('nombreRazonSocial')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('nombreRazonSocial') }}</span>
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('nombreRazonSocial') }}</span>
             }
           </div>
 
           <!-- Correo Electrónico -->
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Correo Electrónico</label>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Correo Electrónico <span class="text-red-500">*</span>
+            </label>
             <input type="email" formControlName="correoElectronico" placeholder="nombre@email.com"
                    [class.border-red-400]="hasError('correoElectronico')"
-                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 placeholder:text-slate-400 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
             @if (hasError('correoElectronico')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('correoElectronico') }}</span>
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('correoElectronico') }}</span>
             }
           </div>
 
           <!-- Teléfono -->
           <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Teléfono</label>
-            <input type="tel" formControlName="telefono" placeholder="311 425 6780"
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Teléfono <span class="text-red-500">*</span>
+            </label>
+            <input type="tel" formControlName="telefono" placeholder="3114256780"
                    [class.border-red-400]="hasError('telefono')"
-                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 placeholder:text-slate-400 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
             @if (hasError('telefono')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('telefono') }}</span>
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('telefono') }}</span>
             }
           </div>
 
           <!-- Dirección -->
           <div class="md:col-span-2">
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Dirección de Residencia / Notificación</label>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Dirección de Residencia / Notificación <span class="text-red-500">*</span>
+            </label>
             <input type="text" formControlName="direccion" placeholder="Calle 5 # 10-20"
                    [class.border-red-400]="hasError('direccion')"
-                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
+                   class="w-full h-10 rounded-md border border-slate-300 px-3 text-[13px] text-slate-700 placeholder:text-slate-400 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all">
             @if (hasError('direccion')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block">{{ getError('direccion') }}</span>
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('direccion') }}</span>
             }
           </div>
 
@@ -120,7 +153,9 @@
               Departamento <span class="text-red-500">*</span>
             </label>
             <div class="relative">
-              <select formControlName="departamentoId" [class]="'w-full h-10 rounded-md border px-3 pr-8 text-[13px] text-slate-700 bg-white outline-none transition-all appearance-none cursor-pointer ' + (form.get('departamentoId')?.invalid && form.get('departamentoId')?.touched ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]')">
+              <select formControlName="departamentoId"
+                      [class.border-red-400]="hasError('departamentoId')"
+                      class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer">
                 <option [ngValue]="null" disabled selected>Seleccione Departamento...</option>
                 @for (dept of facade.departamentos(); track dept.id) {
                   <option [ngValue]="dept.id">{{ dept.nombre }}</option>
@@ -130,6 +165,9 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
+            @if (hasError('departamentoId')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('departamentoId') }}</span>
+            }
           </div>
 
           <!-- Ciudad / Municipio (Cascada) -->
@@ -138,7 +176,9 @@
               Ciudad / Municipio <span class="text-red-500">*</span>
             </label>
             <div class="relative">
-              <select formControlName="ciudadId" [class]="'w-full h-10 rounded-md border px-3 pr-8 text-[13px] text-slate-700 bg-white outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed ' + (form.get('ciudadId')?.invalid && form.get('ciudadId')?.touched ? 'border-red-400 focus:border-red-500' : 'border-slate-300 focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238]')">
+              <select formControlName="ciudadId"
+                      [class.border-red-400]="hasError('ciudadId')"
+                      class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
                 <option [ngValue]="null" disabled selected>{{ form.get('ciudadId')?.disabled ? 'Seleccione primero un departamento...' : 'Seleccione Municipio...' }}</option>
                 @for (cd of facade.ciudades(); track cd.id) {
                   <option [ngValue]="cd.id">{{ cd.nombre }}</option>
@@ -155,13 +195,20 @@
                 }
               </div>
             </div>
+            @if (hasError('ciudadId')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('ciudadId') }}</span>
+            }
           </div>
 
           <!-- Estado Tributario -->
           <div class="md:col-span-2">
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">Estado Tributario</label>
+            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              Estado Tributario <span class="text-red-500">*</span>
+            </label>
             <div class="relative">
-              <select formControlName="estadoTributario" class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
+              <select formControlName="estadoTributario"
+                      [class.border-red-400]="hasError('estadoTributario')"
+                      class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed">
                 <option value="Al día">Al día</option>
                 <option value="Moroso">Moroso</option>
                 <option value="Deudor">Deudor</option>
@@ -170,6 +217,9 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
+            @if (hasError('estadoTributario')) {
+              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('estadoTributario') }}</span>
+            }
           </div>
 
         </form>

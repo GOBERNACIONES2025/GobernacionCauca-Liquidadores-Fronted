@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import {
   buildResult,
@@ -16,20 +16,8 @@ import {
  * @file contribuyente.validator.ts
  * @description Validator para el formulario de creación/edición de Contribuyentes.
  *
+ * Todos los campos del formulario son OBLIGATORIOS según la regla de negocio.
  * Equivalente a AbstractValidator<ContribuyenteDto> de FluentValidation.
- * Usado por el ContribuyenteFormComponent — NO por el wizard de vehículos.
- *
- * Campos que valida:
- *   - tipoDocumentoId      (requerido)
- *   - numeroDocumento      (requerido, 4-20 chars, alfanumérico)
- *   - digitoVerificacion   (requerido solo para NIT — id=2)
- *   - naturalezaJuridicaId (requerido)
- *   - nombreRazonSocial    (requerido, mínimo 3 chars, máx 250)
- *   - correoElectronico    (opcional, formato válido)
- *   - telefono             (opcional, solo dígitos, máx 20)
- *   - direccion            (opcional, máx 250)
- *
- * Nota: departamentoId y ciudadId son opcionales en este formulario.
  */
 @Injectable({ providedIn: 'root' })
 export class ContribuyenteValidator {
@@ -45,6 +33,14 @@ export class ContribuyenteValidator {
   validar(fg: FormGroup): ValidationResult {
     const val = fg.getRawValue();
     const errors: FieldError[] = [];
+
+    // ── TIPO DE PERSONA (NATURALEZA JURÍDICA) ────────────────────────────
+    if (!isValidId(val.naturalezaJuridicaId)) {
+      errors.push({
+        campo: 'naturalezaJuridicaId',
+        mensaje: 'Seleccione el tipo de persona.'
+      });
+    }
 
     // ── TIPO DE DOCUMENTO ────────────────────────────────────────────────
     if (!isValidId(val.tipoDocumentoId)) {
@@ -62,21 +58,44 @@ export class ContribuyenteValidator {
       });
     } else {
       const doc = String(val.numeroDocumento).trim();
-      if (!minLength(doc, 4)) {
-        errors.push({
-          campo: 'numeroDocumento',
-          mensaje: 'El número de documento debe tener al menos 4 caracteres.'
-        });
-      } else if (!maxLength(doc, 20)) {
-        errors.push({
-          campo: 'numeroDocumento',
-          mensaje: 'El número de documento no puede superar 20 caracteres.'
-        });
-      } else if (!/^[a-zA-Z0-9\-]+$/.test(doc)) {
-        errors.push({
-          campo: 'numeroDocumento',
-          mensaje: 'El número de documento solo puede contener letras, números y guiones.'
-        });
+      const tipo = Number(val.tipoDocumentoId);
+
+      if ([1, 2, 4, 6].includes(tipo)) {
+        // Tipos numéricos (CC, NIT, TI, RC)
+        if (!isOnlyDigits(doc)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'Para este tipo de documento solo se permiten números.'
+          });
+        } else if (!minLength(doc, 4)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento debe tener al menos 4 dígitos.'
+          });
+        } else if (!maxLength(doc, 12)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento no puede superar 12 dígitos.'
+          });
+        }
+      } else {
+        // Tipos alfanuméricos (Pasaporte, CE)
+        if (!minLength(doc, 4)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento debe tener al menos 4 caracteres.'
+          });
+        } else if (!maxLength(doc, 20)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento no puede superar 20 caracteres.'
+          });
+        } else if (!/^[a-zA-Z0-9\-]+$/.test(doc)) {
+          errors.push({
+            campo: 'numeroDocumento',
+            mensaje: 'El número de documento solo puede contener letras, números y guiones.'
+          });
+        }
       }
     }
 
@@ -93,14 +112,6 @@ export class ContribuyenteValidator {
           mensaje: 'El dígito de verificación solo puede ser un número (0-9).'
         });
       }
-    }
-
-    // ── NATURALEZA JURÍDICA ──────────────────────────────────────────────
-    if (!isValidId(val.naturalezaJuridicaId)) {
-      errors.push({
-        campo: 'naturalezaJuridicaId',
-        mensaje: 'Seleccione la naturaleza jurídica.'
-      });
     }
 
     // ── NOMBRE / RAZÓN SOCIAL ─────────────────────────────────────────────
@@ -121,11 +132,16 @@ export class ContribuyenteValidator {
       });
     }
 
-    // ── CORREO ELECTRÓNICO (opcional) ─────────────────────────────────────
-    if (val.correoElectronico && !isEmail(val.correoElectronico)) {
+    // ── CORREO ELECTRÓNICO (OBLIGATORIO) ──────────────────────────────────
+    if (!isRequired(val.correoElectronico)) {
       errors.push({
         campo: 'correoElectronico',
-        mensaje: 'El correo electrónico no tiene un formato válido.'
+        mensaje: 'El correo electrónico es obligatorio.'
+      });
+    } else if (!isEmail(val.correoElectronico)) {
+      errors.push({
+        campo: 'correoElectronico',
+        mensaje: 'El correo electrónico no tiene un formato válido (ejemplo: usuario@dominio.com).'
       });
     } else if (!maxLength(val.correoElectronico, 180)) {
       errors.push({
@@ -134,24 +150,71 @@ export class ContribuyenteValidator {
       });
     }
 
-    // ── TELÉFONO (opcional) ──────────────────────────────────────────────
-    if (val.telefono && !isOnlyDigits(val.telefono)) {
+    // ── TELÉFONO (OBLIGATORIO) ────────────────────────────────────────────
+    if (!isRequired(val.telefono)) {
       errors.push({
         campo: 'telefono',
-        mensaje: 'El teléfono solo debe contener dígitos.'
+        mensaje: 'El teléfono de contacto es obligatorio.'
       });
-    } else if (!maxLength(val.telefono, 20)) {
-      errors.push({
-        campo: 'telefono',
-        mensaje: 'El teléfono no puede superar 20 caracteres.'
-      });
+    } else {
+      const tel = String(val.telefono).replace(/\s/g, '');
+      if (!isOnlyDigits(tel)) {
+        errors.push({
+          campo: 'telefono',
+          mensaje: 'El teléfono solo debe contener números.'
+        });
+      } else if (!minLength(tel, 7)) {
+        errors.push({
+          campo: 'telefono',
+          mensaje: 'El teléfono debe tener al menos 7 dígitos.'
+        });
+      } else if (!maxLength(tel, 20)) {
+        errors.push({
+          campo: 'telefono',
+          mensaje: 'El teléfono no puede superar 20 dígitos.'
+        });
+      }
     }
 
-    // ── DIRECCIÓN (opcional) ──────────────────────────────────────────────
-    if (!maxLength(val.direccion, 250)) {
+    // ── DIRECCIÓN (OBLIGATORIA) ───────────────────────────────────────────
+    if (!isRequired(val.direccion)) {
+      errors.push({
+        campo: 'direccion',
+        mensaje: 'La dirección de residencia / notificación es obligatoria.'
+      });
+    } else if (!minLength(String(val.direccion).trim(), 5)) {
+      errors.push({
+        campo: 'direccion',
+        mensaje: 'La dirección debe tener al menos 5 caracteres.'
+      });
+    } else if (!maxLength(val.direccion, 250)) {
       errors.push({
         campo: 'direccion',
         mensaje: 'La dirección no puede superar 250 caracteres.'
+      });
+    }
+
+    // ── DEPARTAMENTO (OBLIGATORIO) ────────────────────────────────────────
+    if (!isValidId(val.departamentoId)) {
+      errors.push({
+        campo: 'departamentoId',
+        mensaje: 'Seleccione el departamento.'
+      });
+    }
+
+    // ── CIUDAD / MUNICIPIO (OBLIGATORIO) ──────────────────────────────────
+    if (!isValidId(val.ciudadId)) {
+      errors.push({
+        campo: 'ciudadId',
+        mensaje: 'Seleccione la ciudad o municipio.'
+      });
+    }
+
+    // ── ESTADO TRIBUTARIO (OBLIGATORIO) ───────────────────────────────────
+    if (!isRequired(val.estadoTributario)) {
+      errors.push({
+        campo: 'estadoTributario',
+        mensaje: 'Seleccione el estado tributario.'
       });
     }
 

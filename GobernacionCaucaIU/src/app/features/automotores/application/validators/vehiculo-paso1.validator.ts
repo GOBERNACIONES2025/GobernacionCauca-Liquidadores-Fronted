@@ -3,6 +3,7 @@ import { FormGroup } from '@angular/forms';
 import {
   buildResult,
   FieldError,
+  isNotFutureDate,
   isRequired,
   isValidId,
   maxLength,
@@ -179,16 +180,40 @@ export class VehiculoPaso1Validator {
         mensaje: 'El cilindraje es obligatorio.',
         paso: 1
       });
-    } else if (!minValue(cilindraje, 1)) {
+    } else if (!minValue(cilindraje, 50)) {
       errors.push({
         campo: 'cilindraje',
-        mensaje: 'El cilindraje debe ser mayor a 0 cc.',
+        mensaje: 'El cilindraje debe ser mínimo de 50 cc.',
         paso: 1
       });
-    } else if (!maxValue(cilindraje, 99999)) {
+    } else if (!maxValue(cilindraje, 15000)) {
       errors.push({
         campo: 'cilindraje',
-        mensaje: 'Verifique el cilindraje ingresado.',
+        mensaje: 'Verifique el cilindraje ingresado (máximo 15,000 cc).',
+        paso: 1
+      });
+    }
+
+    // ── ORGANISMO DE TRÁNSITO ─────────────────────────────────────────────
+    if (!isValidId(val.organismoTransitoId)) {
+      errors.push({
+        campo: 'organismoTransitoId',
+        mensaje: 'Seleccione el organismo de tránsito.',
+        paso: 1
+      });
+    }
+
+    // ── FECHA DE MATRÍCULA ────────────────────────────────────────────────
+    if (!isRequired(val.fechaMatricula)) {
+      errors.push({
+        campo: 'fechaMatricula',
+        mensaje: 'La fecha de matrícula es obligatoria.',
+        paso: 1
+      });
+    } else if (!isNotFutureDate(val.fechaMatricula)) {
+      errors.push({
+        campo: 'fechaMatricula',
+        mensaje: 'La fecha de matrícula no puede ser posterior a hoy.',
         paso: 1
       });
     }

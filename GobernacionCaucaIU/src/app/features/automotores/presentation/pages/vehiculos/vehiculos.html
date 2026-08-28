@@ -1,10 +1,10 @@
-﻿<main class="flex-1 overflow-y-auto px-6 py-5 min-w-0 bg-slate-50 relative h-full">
-  <div class="flex gap-5 h-full min-h-0">
+<main class="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 sm:py-5 min-w-0 bg-slate-50 relative h-full">
+  <div class="flex flex-col lg:flex-row gap-5 h-full min-h-0">
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       
       <!-- BREADCRUMB & HEADER -->
-      <div class="mb-5">
-        <div class="flex items-center gap-1.5 text-[11.5px] text-slate-400 mb-2">
+      <div class="mb-4 sm:mb-5">
+        <div class="flex items-center gap-1.5 text-[11.5px] text-slate-400 mb-2 overflow-x-auto whitespace-nowrap">
           <span class="flex items-center gap-1.5">
             <span class="font-normal hover:text-slate-600 cursor-pointer">Inicio</span>
           </span>
@@ -18,13 +18,13 @@
           </span>
         </div>
 
-        <div class="flex items-start justify-between gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <h1 class="text-[17px] font-bold text-slate-900 m-0 leading-snug">Módulo Vehículos — Expediente Vehicular</h1>
-            <p class="text-[12px] text-slate-400 mt-1">vehicular.Vehiculos · vehicular.Personas · vehicular.PropiedadVehiculo</p>
+            <h1 class="text-[16px] sm:text-[17px] font-bold text-slate-900 m-0 leading-snug">Módulo Vehículos — Expediente Vehicular</h1>
+            <p class="text-[11.5px] sm:text-[12px] text-slate-400 mt-0.5">vehicular.Vehiculos · vehicular.Personas · vehicular.PropiedadVehiculo</p>
           </div>
           
-          <div class="flex gap-2 items-center shrink-0">
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
             <span class="tooltip-wrap inline-flex">
               <button (click)="facade.abrirRunt()" type="button" class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-blue-50 text-[#1e3a7b] border border-[#1e3a7b] hover:bg-blue-100/70 shadow-sm">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
@@ -52,10 +52,10 @@
         </div>
       </div>
 
-      <!-- KPI CARDS -->
-      <div class="flex flex-col sm:flex-row gap-3.5 mb-4.5">
+      <!-- KPI CARDS (Responsive Grid: 1 col on mobile, 2 on tablet, 4 on desktop) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 mb-4 sm:mb-4.5">
         <!-- Vigencia Fiscal -->
-        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2.5 flex-1 min-w-0">
+        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2.5 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#70b2381a] flex items-center justify-center text-[#70b238]">
               <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -73,7 +73,7 @@
         </div>
 
         <!-- Valor UVT -->
-        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2.5 flex-1 min-w-0">
+        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2.5 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#1e3a7b14] flex items-center justify-center text-[#1e3a7b]">
               <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
@@ -91,7 +91,7 @@
         </div>
 
         <!-- Sanción Mínima -->
-        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2.5 flex-1 min-w-0">
+        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2.5 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#ea580c14] flex items-center justify-center text-[#ea580c]">
               <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
@@ -105,7 +105,7 @@
         </div>
 
         <!-- Total Vehículos Registrados (Con desglose completo) -->
-        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm flex flex-col gap-2 flex-1 min-w-0">
+        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#1e3a7b14] flex items-center justify-center text-[#1e3a7b]">
               <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"></path><circle cx="7" cy="17" r="2"></circle><path d="M9 17h6"></path><circle cx="17" cy="17" r="2"></circle></svg>
@@ -145,8 +145,8 @@
       <div class="bg-white border border-slate-200 rounded-lg shadow-sm flex-1 flex flex-col overflow-hidden min-h-0">
         
         <!-- Filter Header -->
-        <div class="p-3.5 border-b border-slate-200 flex gap-2 items-center flex-wrap shrink-0">
-          <div class="relative flex-none w-[220px]">
+        <div class="p-3.5 border-b border-slate-200 flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center flex-wrap shrink-0">
+          <div class="relative flex-1 sm:flex-none sm:w-[220px] md:w-[260px]">
             <span class="absolute left-[9px] top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
               <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
             </span>
@@ -159,59 +159,63 @@
               class="w-full h-8 rounded-md border border-slate-200 pl-[30px] pr-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#1e3a7b] focus:ring-1 focus:ring-[#1e3a7b] transition-all">
           </div>
 
-          <select 
-            [ngModel]="facade.filtroEstado()" 
-            (ngModelChange)="facade.setFiltroEstado($event)"
-            class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b]">
-            <option value="Todos">Todos los estados</option>
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-            <option value="Traslado">Traslado</option>
-          </select>
+          <div class="flex items-center gap-2 flex-wrap flex-1 sm:flex-none">
+            <select 
+              [ngModel]="facade.filtroEstado()" 
+              (ngModelChange)="facade.setFiltroEstado($event)"
+              class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b] flex-1 sm:flex-none">
+              <option value="Todos">Todos los estados</option>
+              <option value="Activo">Activo</option>
+              <option value="Inactivo">Inactivo</option>
+              <option value="Traslado">Traslado</option>
+            </select>
 
-          <select 
-            [ngModel]="facade.filtroTipo()" 
-            (ngModelChange)="facade.setFiltroTipo($event)"
-            class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b]">
-            <option value="Todos">Todos los tipos</option>
-            <option value="Automóvil">Automóvil</option>
-            <option value="Camioneta">Camioneta</option>
-            <option value="Motocicleta">Motocicleta</option>
-            <option value="Bus">Bus</option>
-            <option value="Camión">Camión</option>
-          </select>
+            <select 
+              [ngModel]="facade.filtroTipo()" 
+              (ngModelChange)="facade.setFiltroTipo($event)"
+              class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b] flex-1 sm:flex-none">
+              <option value="Todos">Todos los tipos</option>
+              <option value="Automóvil">Automóvil</option>
+              <option value="Camioneta">Camioneta</option>
+              <option value="Motocicleta">Motocicleta</option>
+              <option value="Bus">Bus</option>
+              <option value="Camión">Camión</option>
+            </select>
 
-          <span class="tooltip-wrap inline-flex">
-            <button 
-              type="button" 
-              (click)="facade.refrescarDashboard()"
-              [disabled]="facade.loading()"
-              class="inline-flex items-center justify-center h-[30px] px-2.5 rounded-md text-[12px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50">
-              @if (facade.loading()) {
-                <svg class="animate-spin h-3.5 w-3.5 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              } @else {
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-              }
+            <span class="tooltip-wrap inline-flex shrink-0">
+              <button 
+                type="button" 
+                (click)="facade.refrescarDashboard()"
+                [disabled]="facade.loading()"
+                class="inline-flex items-center justify-center h-[30px] px-2.5 rounded-md text-[12px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50">
+                @if (facade.loading()) {
+                  <svg class="animate-spin h-3.5 w-3.5 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                } @else {
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                }
+              </button>
+              <span class="tooltip-box">Actualizar datos</span>
+            </span>
+          </div>
+
+          <div class="hidden md:block md:flex-1"></div>
+
+          <div class="flex items-center gap-2.5 ml-auto sm:ml-0 shrink-0">
+            <button type="button" class="inline-flex items-center justify-center gap-1.5 h-[30px] px-2.5 rounded-md text-[12px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Exportar
             </button>
-            <span class="tooltip-box">Actualizar datos</span>
-          </span>
 
-          <div class="flex-1"></div>
-
-          <button type="button" class="inline-flex items-center justify-center gap-1.5 h-[30px] px-2.5 rounded-md text-[12px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Exportar
-          </button>
-
-          <div class="text-[12px] text-slate-400 font-medium">{{ facade.filteredVehiculos().length }} registros</div>
+            <div class="text-[12px] text-slate-400 font-medium whitespace-nowrap">{{ facade.filteredVehiculos().length }} registros</div>
+          </div>
         </div>
 
         <!-- Table Container -->
-        <div class="overflow-y-auto flex-1">
-          <table class="w-full border-collapse text-[13px]">
+        <div class="overflow-x-auto overflow-y-auto flex-1">
+          <table class="w-full border-collapse text-[13px] min-w-[780px]">
             <thead class="sticky top-0 z-10">
               <tr>
                 <th class="bg-[#1e3a7b] py-2.5 px-3 w-9 text-center">
@@ -369,7 +373,7 @@
         </div>
 
         <!-- Table Footer / Pagination -->
-        <div class="p-2.5 px-4.5 border-t border-slate-200 flex justify-between items-center shrink-0 bg-white">
+        <div class="p-2.5 px-4.5 border-t border-slate-200 flex flex-col sm:flex-row gap-2 justify-between items-center shrink-0 bg-white">
           <span class="text-[12px] text-slate-500 font-medium">
             Página {{ facade.paginaActual() }} de {{ facade.totalPaginas() }} · {{ facade.totalVehiculos() }} registros
           </span>
@@ -401,7 +405,7 @@
     <!-- PANEL LATERAL DE DETALLE / EXPEDIENTE (Vehículo Seleccionado)           -->
     <!-- ======================================================================= -->
     @if (facade.selectedVehiculo(); as sv) {
-      <div class="w-[380px] shrink-0 flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-in slide-in-from-right-4 duration-200">
+      <div class="w-full lg:w-[380px] shrink-0 flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-in slide-in-from-right-4 duration-200">
         
         <!-- Header Verde -->
         <div class="bg-[#70b238] p-3.5 px-4.5 flex items-center justify-between shrink-0 text-white">
@@ -920,72 +924,97 @@
 
   <!-- MODAL DE VEHÍCULOS PENDIENTES DE APROBACIÓN -->
   @if (facade.isModalPendientesOpen()) {
-    <div class="fixed inset-0 z-[120] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div class="fixed inset-0 z-[120] bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4" (click)="facade.cerrarModalPendientes()">
+      <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[88vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         
         <!-- Modal Header -->
-        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="px-5 sm:px-6 py-4 border-b border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-lg shrink-0">
-              ⏳
+            <div class="w-10 h-10 rounded-xl bg-[#1e3a7b]/10 text-[#1e3a7b] flex items-center justify-center shrink-0 border border-[#1e3a7b]/15">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="m9 12 2 2 4-4"></path>
+              </svg>
             </div>
             <div>
-              <h3 class="text-base font-bold text-slate-900 m-0 flex items-center gap-2">
-                Vehículos Pendientes de Aprobación
-                <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-amber-200 text-amber-900">
+              <div class="flex items-center gap-2">
+                <h3 class="text-[15px] font-bold text-slate-900 m-0">Vehículos Pendientes de Aprobación</h3>
+                <span class="px-2 py-0.5 text-[11px] font-semibold rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                   {{ vehiculosPendientesFiltrados().length }}
                 </span>
-              </h3>
-              <p class="text-xs text-slate-500 m-0">Audita la información registrada antes de activar la matrícula en el sistema.</p>
+              </div>
+              <p class="text-[12px] text-slate-500 m-0 mt-0.5">Audita y valida la información antes de activar la matrícula tributaria en el sistema.</p>
             </div>
           </div>
 
-          <div class="flex items-center gap-2">
-            <input 
-              type="text" 
-              [ngModel]="filtroModalPendientes()" 
-              (ngModelChange)="filtroModalPendientes.set($event)" 
-              placeholder="🔍 Buscar placa, marca, prop..." 
-              class="w-56 px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500/20 bg-white" />
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <div class="relative flex-1 sm:w-60">
+              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+              </span>
+              <input 
+                type="text" 
+                [ngModel]="filtroModalPendientes()" 
+                (ngModelChange)="filtroModalPendientes.set($event)" 
+                placeholder="Buscar placa, marca, prop..." 
+                class="font-black w-full pl-8 pr-3 py-1.5 text-[12.5px] rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] transition-all" />
+            </div>
 
-            <button (click)="facade.cerrarModalPendientes()" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer shrink-0">
+            <button (click)="facade.cerrarModalPendientes()" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer shrink-0">
               <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
           </div>
         </div>
 
-        <!-- Modal Body (con scroll auto de max-h-[60vh]) -->
-        <div class="p-6 overflow-y-auto max-h-[60vh] flex-1 space-y-4">
+        <!-- Modal Body -->
+        <div class="p-4 sm:p-6 overflow-y-auto max-h-[62vh] flex-1 space-y-4 bg-slate-50/50">
           @if (facade.cargandoPendientes()) {
-            <div class="py-12 text-center text-slate-400">
-              <svg class="animate-spin h-7 w-7 text-amber-600 mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-              Cargando vehículos pendientes de revisión...
+            <div class="py-16 text-center text-slate-500">
+              <svg class="animate-spin h-7 w-7 text-[#1e3a7b] mx-auto mb-2.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              <div class="text-[13px] font-semibold text-slate-700">Cargando vehículos pendientes de revisión...</div>
+              <div class="text-[11.5px] text-slate-400 mt-0.5">Consultando registros en espera de validación</div>
             </div>
           } @else if (vehiculosPendientesFiltrados().length === 0) {
-            <div class="py-12 text-center text-slate-400">
-              <span class="text-3xl mb-2 block">🎉</span>
-              <p class="font-semibold text-slate-700 m-0">No se encontraron vehículos pendientes</p>
-              <p class="text-xs text-slate-400 mt-1">
-                {{ filtroModalPendientes() ? 'Ningún registro coincide con la búsqueda actual.' : 'Todos los vehículos se encuentran aprobados al día.' }}
+            <div class="py-14 text-center">
+              <div class="w-12 h-12 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200/60 flex items-center justify-center mx-auto mb-3">
+                <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+              <p class="font-bold text-slate-800 text-[14px] m-0">
+                {{ filtroModalPendientes() ? 'No se encontraron resultados' : 'No hay vehículos pendientes de aprobación' }}
+              </p>
+              <p class="text-[12px] text-slate-400 mt-1 max-w-sm mx-auto">
+                {{ filtroModalPendientes() ? 'Ningún registro coincide con el término de búsqueda ingresado.' : 'Todos los registros vehiculares se encuentran aprobados y al día.' }}
               </p>
             </div>
           } @else {
-            <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+            <div class="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden shadow-xs bg-white">
               @for (item of vehiculosPendientesFiltrados(); track item.id) {
-                <div class="p-4 bg-white hover:bg-slate-50/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div class="space-y-1">
-                    <div class="flex items-center gap-2">
+                <div class="p-4 bg-white hover:bg-slate-50/70 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div class="space-y-1.5 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
                       <span class="co-plate">{{ item.placa }}</span>
                       <span class="font-bold text-slate-900 text-sm">{{ item.marca }} {{ item.linea }}</span>
-                      <span class="text-xs text-slate-500">· Mod. {{ item.modelo }}</span>
-                      <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                      <span class="text-xs text-slate-500">· Modelo {{ item.modelo }}</span>
+                      <span class="px-2 py-0.5 text-[10.5px] font-semibold rounded-full bg-amber-50 text-amber-800 border border-amber-200/80">
                         {{ item.estadoAprobacion || 'PENDIENTE' }}
                       </span>
                     </div>
-                    <div class="text-xs text-slate-600 flex items-center gap-3">
-                      <span>👤 Propietario: <strong>{{ item.propietarioNombre }}</strong></span>
-                      <span>📄 Doc: {{ item.propietarioDocumento }}</span>
-                      <span>⚙️ {{ item.cilindraje }} cc · {{ item.combustible }}</span>
+                    <div class="text-[12px] text-slate-600 flex items-center gap-3.5 flex-wrap">
+                      <span class="inline-flex items-center gap-1.5">
+                        <svg width="13" height="13" class="text-slate-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        Propietario: <strong class="text-slate-800">{{ item.propietarioNombre }}</strong>
+                      </span>
+                      <span class="inline-flex items-center gap-1.5">
+                        <svg width="13" height="13" class="text-slate-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        Doc: <span class="font-medium text-slate-700">{{ item.propietarioDocumento }}</span>
+                      </span>
+                      <span class="inline-flex items-center gap-1.5">
+                        <svg width="13" height="13" class="text-slate-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        {{ item.cilindraje }} cc · {{ item.combustible }}
+                      </span>
                     </div>
                   </div>
 
@@ -994,27 +1023,31 @@
                       (click)="onVerDetallePendiente(item)" 
                       type="button" 
                       title="Ver expediente completo del vehículo"
-                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-bold shadow-xs cursor-pointer transition-colors border border-blue-200">
-                      👁️ Ver Detalle
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold shadow-xs cursor-pointer transition-colors border border-slate-200">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                      Ver Ficha
                     </button>
 
                     <button 
                       (click)="onCambiarEstadoAprobacion(item.id, 'APROBADO')" 
                       type="button" 
-                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors border-none">
-                      ✅ Aprobar
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#70b238] hover:bg-[#5f972f] text-white text-xs font-semibold shadow-xs cursor-pointer transition-colors border-none">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                      Aprobar
                     </button>
                     <button 
                       (click)="onCambiarEstadoAprobacion(item.id, 'REVISION')" 
                       type="button" 
-                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors border-none">
-                      🔄 Revisión
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold shadow-xs cursor-pointer transition-colors border border-amber-200/80">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                      Revisión
                     </button>
                     <button 
                       (click)="onCambiarEstadoAprobacion(item.id, 'RECHAZADO')" 
                       type="button" 
-                      class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-xs cursor-pointer transition-colors border-none">
-                      ❌ Rechazar
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold shadow-xs cursor-pointer transition-colors border border-red-200/80">
+                      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                      Rechazar
                     </button>
                   </div>
                 </div>
@@ -1024,9 +1057,9 @@
         </div>
 
         <!-- Modal Footer -->
-        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end">
+        <div class="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex justify-end">
           <button (click)="facade.cerrarModalPendientes()" type="button" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
-            Cerrar Ventana
+            Cerrar
           </button>
         </div>
       </div>
@@ -1035,130 +1068,195 @@
 
   <!-- MODAL ANIDADO SOBRE-PUESTO (z-[140]) DE AUDITORÍA DETALLADA DEL VEHÍCULO -->
   @if (vehiculoAuditoriaModal(); as vh) {
-    <div class="fixed inset-0 z-[140] bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="fixed inset-0 z-[140] bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
       <div (click)="$event.stopPropagation()" class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         
         <!-- Audit Modal Header -->
-        <div class="px-6 py-4 border-b border-slate-200 bg-slate-900 text-white flex items-center justify-between">
+        <div class="px-6 py-4 border-b border-[#1e3a7b] bg-[#1e3a7b] text-white flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <span class="co-plate text-slate-900 bg-amber-400 font-extrabold px-2.5 py-1 text-sm rounded shadow-xs">{{ vh.placa }}</span>
+            <span class="co-plate">{{ vh.placa }}</span>
             <div>
               <h3 class="text-base font-bold m-0 flex items-center gap-2 text-white">
-                {{ modoEdicionAuditoria() ? '✏️ Edición Directa de Registro' : 'Ficha de Auditoría Vehicular' }}
-                <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                {{ modoEdicionAuditoria() ? 'Modificación de Expediente' : 'Ficha de Auditoría Vehicular' }}
+                <span class="px-2 py-0.5 text-[10.5px] font-bold rounded-full bg-white/20 text-white border border-white/30">
                   {{ vh.estadoAprobacion || 'PENDIENTE' }}
                 </span>
               </h3>
-              <p class="text-xs text-slate-400 m-0">{{ vh.marca }} {{ vh.linea }} · Modelo {{ vh.modelo }}</p>
+              <p class="text-xs text-white/80 m-0">{{ vh.marca }} {{ vh.linea }} · Modelo {{ vh.modelo }}</p>
             </div>
           </div>
-          <button (click)="cerrarAuditoriaModal()" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
+          <button (click)="cerrarAuditoriaModal()" type="button" class="w-8 h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
 
         <!-- Audit Modal Body -->
-        <div class="p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+        <div class="p-4 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-700 bg-slate-50/40">
           
           @if (modoEdicionAuditoria()) {
             <!-- MODO EDICIÓN DIRECTA EN ESTA MISMA MODAL -->
             <form [formGroup]="editFormAuditoria" class="space-y-4">
-              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                <span>✏️</span> Modificar Especificaciones Técnicas
+              <div class="text-[11px] font-bold text-[#1e3a7b] uppercase tracking-wider pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Modificar Especificaciones Técnicas
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 bg-amber-50/50 p-4 rounded-xl border border-amber-200">
+              <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Marca *</label>
-                  <input type="text" formControlName="marca" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Marca <span class="text-red-500">*</span></label>
+                  <input type="text" formControlName="marca"
+                         [class.border-red-400]="hasAuditoriaError('marca')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white" />
+                  @if (hasAuditoriaError('marca')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('marca') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Línea *</label>
-                  <input type="text" formControlName="linea" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Línea <span class="text-red-500">*</span></label>
+                  <input type="text" formControlName="linea"
+                         [class.border-red-400]="hasAuditoriaError('linea')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white" />
+                  @if (hasAuditoriaError('linea')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('linea') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Año Modelo *</label>
-                  <input type="number" formControlName="modelo" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Año Modelo <span class="text-red-500">*</span></label>
+                  <input type="number" formControlName="modelo" min="1900" max="2035"
+                         [class.border-red-400]="hasAuditoriaError('modelo')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white" />
+                  @if (hasAuditoriaError('modelo')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('modelo') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Cilindraje (cc) *</label>
-                  <input type="number" formControlName="cilindraje" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Cilindraje (cc) <span class="text-red-500">*</span></label>
+                  <input type="number" formControlName="cilindraje" min="50" max="15000"
+                         [class.border-red-400]="hasAuditoriaError('cilindraje')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white" />
+                  @if (hasAuditoriaError('cilindraje')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('cilindraje') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Combustible</label>
-                  <select formControlName="combustible" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Combustible <span class="text-red-500">*</span></label>
+                  <select formControlName="combustible"
+                          [class.border-red-400]="hasAuditoriaError('combustible')"
+                          class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white">
                     <option value="Gasolina">Gasolina</option>
                     <option value="Diésel">Diésel</option>
                     <option value="Eléctrico">Eléctrico</option>
                     <option value="Híbrido">Híbrido</option>
-                    <option value="Gas">Gas GNV</option>
+                    <option value="Gas GNV">Gas GNV</option>
                   </select>
+                  @if (hasAuditoriaError('combustible')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('combustible') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Servicio</label>
-                  <select formControlName="servicio" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white">
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Servicio <span class="text-red-500">*</span></label>
+                  <select formControlName="servicio"
+                          [class.border-red-400]="hasAuditoriaError('servicio')"
+                          class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white">
                     <option value="Particular">Particular</option>
                     <option value="Privado">Privado</option>
                     <option value="Público">Público</option>
                     <option value="Oficial">Oficial</option>
                     <option value="Especial">Especial</option>
                   </select>
+                  @if (hasAuditoriaError('servicio')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('servicio') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Clase / Tipo</label>
-                  <input type="text" formControlName="clase" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Clase / Tipo <span class="text-red-500">*</span></label>
+                  <input type="text" formControlName="clase"
+                         [class.border-red-400]="hasAuditoriaError('clase')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white" />
+                  @if (hasAuditoriaError('clase')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('clase') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Número de Pasajeros</label>
-                  <input type="number" formControlName="pasajeros" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Número de Pasajeros <span class="text-red-500">*</span></label>
+                  <input type="number" formControlName="pasajeros" min="1"
+                         [class.border-red-400]="hasAuditoriaError('pasajeros')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white" />
+                  @if (hasAuditoriaError('pasajeros')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('pasajeros') }}</span>
+                  }
                 </div>
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Organismo de Tránsito</label>
-                  <input type="text" formControlName="organismoTransito" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Organismo de Tránsito <span class="text-red-500">*</span></label>
+                  <input type="text" formControlName="organismoTransito"
+                         [class.border-red-400]="hasAuditoriaError('organismoTransito')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white" />
+                  @if (hasAuditoriaError('organismoTransito')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('organismoTransito') }}</span>
+                  }
                 </div>
               </div>
 
-              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider pb-1 border-b border-slate-200 flex items-center gap-1.5 pt-2">
-                <span>👤</span> Modificar Información del Propietario
+              <div class="text-[11px] font-bold text-[#1e3a7b] uppercase tracking-wider pb-1 border-b border-slate-200 flex items-center gap-1.5 pt-2">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Modificar Información del Propietario
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-blue-50/40 p-4 rounded-xl border border-blue-200">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Número de Documento / NIT *</label>
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Número de Documento / NIT <span class="text-red-500">*</span></label>
                   <div class="flex gap-1.5">
                     <input 
                       type="text" 
                       formControlName="propietarioDocumento" 
                       (keyup.enter)="buscarPropietarioAuditoria()" 
                       placeholder="Ej: 11223344" 
-                      class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900" />
+                      [class.border-red-400]="hasAuditoriaError('propietarioDocumento')"
+                      class="flex-1 px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white font-semibold text-slate-900" />
                     <button 
                       (click)="buscarPropietarioAuditoria()" 
                       type="button" 
                       title="Buscar si la persona ya existe en la base de datos"
-                      class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shrink-0 cursor-pointer border-none transition-colors inline-flex items-center gap-1 shadow-xs">
+                      class="px-3 py-1.5 rounded-lg bg-[#1e3a7b] hover:bg-[#162c5b] text-white text-xs font-semibold shrink-0 cursor-pointer border-none transition-colors inline-flex items-center gap-1 shadow-xs">
                       @if (buscandoPropietarioAuditoria()) {
                         <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                       } @else {
-                        🔍 Buscar
+                        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                        Buscar
                       }
                     </button>
                   </div>
+                  @if (hasAuditoriaError('propietarioDocumento')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('propietarioDocumento') }}</span>
+                  }
                   @if (propietarioAuditoriaEncontrado()) {
-                    <div class="mt-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                    <div class="mt-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-md border"
+                         [class.text-emerald-700]="propietarioAuditoriaEncontrado()?.startsWith('✅') || propietarioAuditoriaEncontrado()?.startsWith('ℹ️')"
+                         [class.bg-emerald-50]="propietarioAuditoriaEncontrado()?.startsWith('✅') || propietarioAuditoriaEncontrado()?.startsWith('ℹ️')"
+                         [class.border-emerald-200]="propietarioAuditoriaEncontrado()?.startsWith('✅') || propietarioAuditoriaEncontrado()?.startsWith('ℹ️')"
+                         [class.text-amber-800]="propietarioAuditoriaEncontrado()?.startsWith('⚠️')"
+                         [class.bg-amber-50]="propietarioAuditoriaEncontrado()?.startsWith('⚠️')"
+                         [class.border-amber-200]="propietarioAuditoriaEncontrado()?.startsWith('⚠️')">
                       {{ propietarioAuditoriaEncontrado() }}
                     </div>
                   }
                 </div>
 
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre / Razón Social *</label>
-                  <input type="text" formControlName="propietarioNombre" placeholder="Ej: Juan Pérez o Empresa S.A.S." class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Nombre / Razón Social <span class="text-red-500">*</span></label>
+                  <input type="text" formControlName="propietarioNombre" placeholder="Ej: Juan Pérez o Empresa S.A.S."
+                         [class.border-red-400]="hasAuditoriaError('propietarioNombre')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white font-semibold text-slate-900" />
+                  @if (hasAuditoriaError('propietarioNombre')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('propietarioNombre') }}</span>
+                  }
                 </div>
 
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Vínculo de Propiedad</label>
-                  <select formControlName="tipoVinculoPersonaId" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900">
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">Vínculo de Propiedad <span class="text-red-500">*</span></label>
+                  <select formControlName="tipoVinculoPersonaId"
+                          [class.border-red-400]="hasAuditoriaError('tipoVinculoPersonaId')"
+                          class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white font-semibold text-slate-900">
                     @if (facade.tiposVinculo().length > 0) {
                       @for (tv of facade.tiposVinculo(); track tv.id) {
                         <option [value]="tv.id">{{ tv.nombre }}</option>
@@ -1170,11 +1268,19 @@
                       <option value="4">Locatario (Leasing)</option>
                     }
                   </select>
+                  @if (hasAuditoriaError('tipoVinculoPersonaId')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('tipoVinculoPersonaId') }}</span>
+                  }
                 </div>
 
                 <div>
-                  <label class="block text-[11px] font-bold text-slate-700 mb-1">% Porcentaje de Propiedad</label>
-                  <input type="number" formControlName="porcentajePropiedad" min="1" max="100" class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/20 bg-white font-semibold text-slate-900" />
+                  <label class="block text-[11px] font-bold text-slate-700 mb-1">% Porcentaje de Propiedad <span class="text-red-500">*</span></label>
+                  <input type="number" formControlName="porcentajePropiedad" min="1" max="100"
+                         [class.border-red-400]="hasAuditoriaError('porcentajePropiedad')"
+                         class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#1e3a7b]/20 focus:border-[#1e3a7b] bg-white font-semibold text-slate-900" />
+                  @if (hasAuditoriaError('porcentajePropiedad')) {
+                    <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getAuditoriaError('porcentajePropiedad') }}</span>
+                  }
                 </div>
               </div>
             </form>
@@ -1182,10 +1288,11 @@
             <!-- MODO LECTURA AUDITORÍA -->
             <!-- Seccion 1: Especificaciones Técnicas -->
             <div>
-              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-2.5 pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                <span>🚗</span> Especificaciones Técnicas del Vehículo
+              <div class="text-[11px] font-bold text-[#1e3a7b] uppercase tracking-wider mb-2.5 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M7 17v-4"></path><path d="M12 17V7"></path><path d="M17 17v-8"></path></svg>
+                Especificaciones Técnicas del Vehículo
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
                 <div>
                   <span class="text-slate-400 block text-[10.5px]">Placa / Matrícula</span>
                   <span class="font-bold text-slate-900">{{ vh.placa }}</span>
@@ -1227,10 +1334,11 @@
 
             <!-- Seccion 2: Datos del Propietario -->
             <div>
-              <div class="text-[11px] font-bold text-blue-900 uppercase tracking-wider mb-2.5 pb-1 border-b border-slate-200 flex items-center gap-1.5">
-                <span>👤</span> Información del Propietario Registrado
+              <div class="text-[11px] font-bold text-[#1e3a7b] uppercase tracking-wider mb-2.5 pb-1 border-b border-slate-200 flex items-center gap-1.5">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                Información del Propietario Registrado
               </div>
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
                 <div>
                   <span class="text-slate-400 block text-[10.5px]">Nombre / Razón Social</span>
                   <span class="font-bold text-slate-900 text-sm">{{ vh.propietarioNombre || 'No asignado' }}</span>
@@ -1245,7 +1353,9 @@
                 </div>
                 <div>
                   <span class="text-slate-400 block text-[10.5px]">Estado del Registro</span>
-                  <span class="font-bold text-amber-700">Pendiente Aprobación</span>
+                  <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold rounded-full bg-amber-50 text-amber-800 border border-amber-200/80">
+                    Pendiente Aprobación
+                  </span>
                 </div>
               </div>
             </div>
@@ -1253,59 +1363,65 @@
 
         </div>
 
-        <!-- Audit Modal Footer (EN UNA SOLA LÍNEA SIN MONTAR BOTONES) -->
-        <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex items-center justify-between gap-3">
+        <!-- Audit Modal Footer -->
+        <div class="px-5 sm:px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
           @if (modoEdicionAuditoria()) {
-            <button (click)="cancelarEdicionAuditoria()" type="button" class="px-4 py-2 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer shrink-0">
-              ✖️ Cancelar Edición
+            <button (click)="cancelarEdicionAuditoria()" type="button" class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer shrink-0">
+              Cancelar Edición
             </button>
 
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
               <button 
                 (click)="guardarEdicionAuditoria(vh.id, false)" 
                 type="button" 
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
-                💾 Guardar Cambios
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#1e3a7b] hover:bg-[#162c5b] text-white text-xs font-semibold shadow-sm cursor-pointer transition-colors border-none">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Guardar Cambios
               </button>
               <button 
                 (click)="guardarEdicionAuditoria(vh.id, true)" 
                 type="button" 
-                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
-                ✅ Guardar y Aprobar
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#70b238] hover:bg-[#5f972f] text-white text-xs font-semibold shadow-sm cursor-pointer transition-colors border-none">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Guardar y Aprobar
               </button>
             </div>
           } @else {
-            <div class="flex items-center gap-2 shrink-0">
-              <button (click)="cerrarAuditoriaModal()" type="button" class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer">
+            <div class="flex items-center gap-2 shrink-0 flex-wrap">
+              <button (click)="cerrarAuditoriaModal()" type="button" class="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
                 Volver a la Lista
               </button>
               <button 
                 (click)="activarEdicionAuditoria(vh)" 
                 type="button" 
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none"
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white text-[#1e3a7b] border border-[#1e3a7b] hover:bg-blue-50 text-xs font-semibold shadow-xs cursor-pointer transition-colors"
                 title="Modificar datos directamente en esta ventana">
-                ✏️ Modificar
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Modificar
               </button>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 shrink-0 flex-wrap justify-end">
               <button 
                 (click)="onCambiarEstadoAprobacion(vh.id, 'APROBADO'); cerrarAuditoriaModal()" 
                 type="button" 
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
-                ✅ Aprobar
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-[#70b238] hover:bg-[#5f972f] text-white text-xs font-semibold shadow-sm cursor-pointer transition-colors border-none">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Aprobar
               </button>
               <button 
                 (click)="onCambiarEstadoAprobacion(vh.id, 'REVISION'); cerrarAuditoriaModal()" 
                 type="button" 
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
-                🔄 Revisión
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold shadow-xs cursor-pointer transition-colors border border-amber-200/80">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                Revisión
               </button>
               <button 
                 (click)="onCambiarEstadoAprobacion(vh.id, 'RECHAZADO'); cerrarAuditoriaModal()" 
                 type="button" 
-                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm cursor-pointer transition-colors border-none">
-                ❌ Rechazar
+                class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold shadow-xs cursor-pointer transition-colors border border-red-200/80">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                Rechazar
               </button>
             </div>
           }
