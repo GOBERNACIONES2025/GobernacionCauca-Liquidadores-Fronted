@@ -100,6 +100,33 @@ export class LiquidacionesListComponent implements OnInit {
     this.filterStatus.set(status);
   }
 
+  // Modal de Pago
+  showPagoModal = signal<boolean>(false);
+  pagoLiquidacionSeleccionada = signal<LiquidacionListadoDto | null>(null);
+  
+  fechaPago = signal<string>(new Date().toISOString().split('T')[0]);
+  medioPago = signal<number>(1);
+  referenciaPago = signal<string>('');
+
+  abrirModalPago(liquidacion: LiquidacionListadoDto) {
+    this.pagoLiquidacionSeleccionada.set(liquidacion);
+    this.fechaPago.set(new Date().toISOString().split('T')[0]);
+    this.medioPago.set(1);
+    this.referenciaPago.set('');
+    this.showPagoModal.set(true);
+  }
+
+  cerrarModalPago() {
+    this.showPagoModal.set(false);
+    this.pagoLiquidacionSeleccionada.set(null);
+  }
+
+  confirmarPago() {
+    this.toast.success('Pago registrado exitosamente (simulado).');
+    this.cerrarModalPago();
+    this.cargarLiquidaciones();
+  }
+
   // Modal de Reliquidar
   showReliquidarModal = signal<boolean>(false);
   liquidacionIdTemp = signal<number | null>(null);
