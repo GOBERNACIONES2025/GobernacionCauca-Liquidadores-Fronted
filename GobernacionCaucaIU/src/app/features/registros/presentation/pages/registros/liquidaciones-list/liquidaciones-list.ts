@@ -100,8 +100,50 @@ export class LiquidacionesListComponent implements OnInit {
     this.filterStatus.set(status);
   }
 
-  reliquidar(solicitudId: number) {
-    this.router.navigate(['/registros/solicitudes/wizard', solicitudId]);
+  // Modal de Reliquidar
+  showReliquidarModal = signal<boolean>(false);
+  liquidacionIdTemp = signal<number | null>(null);
+  motivoReliquidacion = signal<string>('Modificación en los actos informados por el contribuyente');
+
+  reliquidar(id: number) {
+    this.liquidacionIdTemp.set(id);
+    this.motivoReliquidacion.set('Modificación en los actos informados por el contribuyente');
+    this.showReliquidarModal.set(true);
+  }
+
+  cerrarModalReliquidar() {
+    this.showReliquidarModal.set(false);
+    this.liquidacionIdTemp.set(null);
+  }
+
+  confirmarReliquidar() {
+    const id = this.liquidacionIdTemp();
+    const motivo = this.motivoReliquidacion();
+
+    if (!id) return;
+    
+    if (!motivo || motivo.trim().length < 5) {
+      this.toast.warning('El motivo de reliquidación debe tener al menos 5 caracteres.');
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.facade.reliquidarLiquidacion(id, motivo).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.toast.success('La liquidación ha sido anulada. Redirigiendo al formulario para ajustar los datos...');
+          this.cerrarModalReliquidar();
+          this.router.navigate(['/registros/solicitudes/wizard', res.data]);
+        } else {
+          this.toast.error(res.message || 'Error al intentar reliquidar.');
+          this.isLoading.set(false);
+        }
+      },
+      error: () => {
+        this.toast.error('Error de red al intentar reliquidar.');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   anular(id: number) {

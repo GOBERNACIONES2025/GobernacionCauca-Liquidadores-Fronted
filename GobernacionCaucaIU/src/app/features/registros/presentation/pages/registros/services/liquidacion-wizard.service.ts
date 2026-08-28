@@ -265,16 +265,16 @@ export class LiquidacionWizardService {
           inmuebleId: a.inmuebleId || null,
           matriculaInmobiliaria: a.matriculaInmobiliaria || '',
           avaluoCatastral: a.avaluoCatastral || 0,
-          exencionId: null, // Asignar si viene en el DTO
+          exencionId: a.exencionesIds && a.exencionesIds.length > 0 ? a.exencionesIds[0] : null,
           exencionNombre: null,
           intervinientes: a.intervinientes ? a.intervinientes.map((i: any) => ({
-            idTemp: i.id.toString(),
-            contribuyenteId: i.contribuyente.id,
-            nombre: i.contribuyente.nombre,
-            documento: i.contribuyente.numeroIdentificacion,
-            rolId: i.rolIntervinienteId,
-            rolNombre: i.rolIntervinienteNombre || 'Rol Desconocido',
-            porcentaje: i.porcentajeParticipacion
+            idTemp: (i.id || Math.random()).toString(),
+            contribuyenteId: i.contribuyente?.id || i.contribuyenteId || 0,
+            nombre: i.contribuyente?.nombre || i.contribuyente?.nombreCompleto || i.contribuyente?.razonSocial || i.nombre || 'Desconocido',
+            documento: i.contribuyente?.numeroIdentificacion || i.documento || '',
+            rolId: i.rolIntervinienteId || i.rolId || 0,
+            rolNombre: i.rolIntervinienteNombre || i.rolNombre || 'Rol Desconocido',
+            porcentaje: i.porcentajeParticipacion || i.porcentaje || 100
           })) : []
         }));
         
