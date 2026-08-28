@@ -145,32 +145,64 @@ export class LiquidacionesFacade {
   readonly isPdfViewerOpen = signal<boolean>(false);
   readonly pdfDocumentos = signal<any[]>([]);
 
-  /** Abre la vista previa del documento oficial PDF usando el Visor de Documentos (Inline) */
+  /** Abre la vista previa del documento oficial PDF usando Blob URL (Mismo estándar de Impuesto de Registro) */
   abrirPdfPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    const urlRuta = `http://${host}:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}&descargar=false${vigencia ? '&vigencia=' + vigencia : ''}`;
-    const nombreDoc = esUnificado ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
+    const params: any = { placa, esUnificado, descargar: false };
+    if (vigencia) params.vigencia = vigencia;
 
-    this.pdfDocumentos.set([{
-      id: placa,
-      nombreArchivo: nombreDoc,
-      rutaArchivo: urlRuta,
-      tipoArchivo: 'application/pdf'
-    }]);
-    this.isPdfViewerOpen.set(true);
+    this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
+      next: (blob) => {
+        const blobUrl = URL.createObjectURL(new Blob([blob], { type: 'text/html' }));
+        const nombreDoc = esUnificado 
+          ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
+          : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
+
+        this.pdfDocumentos.set([{
+          id: placa,
+          nombreArchivo: nombreDoc,
+          rutaArchivo: blobUrl,
+          tipoArchivo: 'text/html'
+        }]);
+        this.isPdfViewerOpen.set(true);
+      },
+      error: (err) => {
+        console.error('Error al solicitar la vista previa del PDF:', err);
+      }
+    });
   }
 
-  /** Cierra el visor de PDF */
+  /** Cierra el visor de PDF y libera memoria del Blob URL */
   cerrarPdfViewer(): void {
+    const docs = this.pdfDocumentos();
+    if (docs && docs.length > 0 && docs[0].rutaArchivo?.startsWith('blob:')) {
+      URL.revokeObjectURL(docs[0].rutaArchivo);
+    }
     this.isPdfViewerOpen.set(false);
     this.pdfDocumentos.set([]);
   }
 
-  /** Descarga directamente el archivo PDF de la liquidación oficial (Attachment) */
+  /** Descarga directamente el archivo PDF oficial (Mismo estándar de Impuesto de Registro) */
   descargarPdfDirecto(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-    const urlRuta = `http://${host}:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}&descargar=true${vigencia ? '&vigencia=' + vigencia : ''}`;
-    window.open(urlRuta, '_blank');
+    const params: any = { placa, esUnificado, descargar: true };
+    if (vigencia) params.vigencia = vigencia;
+
+    this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = esUnificado 
+          ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
+          : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        console.error('Error al descargar el archivo PDF:', err);
+      }
+    });
   }
 
   /** Agrupa las liquidaciones emitidas por placa vehicular para la vista de acordeón */

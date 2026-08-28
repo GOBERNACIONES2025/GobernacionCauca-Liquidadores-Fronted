@@ -1007,14 +1007,14 @@
           Cerrar
         </button>
         <button 
-          (click)="facade.abrirPdfPreview(facade.reciboModalData()!.placa, facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
+          (click)="facade.abrirPdfPreview(facade.reciboModalData()!.placa, facade.reciboModalData()!.esUnificado ? undefined : facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
           type="button" 
           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-none cursor-pointer shadow-sm">
           <i class="fa-solid fa-file-pdf"></i>
           Ver Preview PDF
         </button>
         <button 
-          (click)="facade.descargarPdfDirecto(facade.reciboModalData()!.placa, facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
+          (click)="facade.descargarPdfDirecto(facade.reciboModalData()!.placa, facade.reciboModalData()!.esUnificado ? undefined : facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
           type="button" 
           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white border-none cursor-pointer shadow-sm">
           <i class="fa-solid fa-download"></i>
