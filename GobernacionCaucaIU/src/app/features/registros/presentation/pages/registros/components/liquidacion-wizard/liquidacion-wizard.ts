@@ -7,8 +7,6 @@ import { StepDocumentoComponent } from '../wizard-steps/step-documento/step-docu
 import { StepActosComponent } from '../wizard-steps/step-actos/step-actos';
 import { StepIntervinientesComponent } from '../wizard-steps/step-intervinientes/step-intervinientes';
 import { StepLiquidacionComponent } from '../wizard-steps/step-liquidacion/step-liquidacion';
-import { StepPagoComponent } from '../wizard-steps/step-pago/step-pago';
-
 // Facades
 import { TiposPersonaFacade } from '../../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
@@ -31,8 +29,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
     StepDocumentoComponent, 
     StepActosComponent, 
     StepIntervinientesComponent,
-    StepLiquidacionComponent, 
-    StepPagoComponent
+    StepLiquidacionComponent
   ],
   templateUrl: './liquidacion-wizard.html'
 })
@@ -106,9 +103,7 @@ export class LiquidacionWizardComponent implements OnInit {
     { id: 2, name: 'Documento' },
     { id: 3, name: 'Actos' },
     { id: 4, name: 'Intervinientes' },
-    { id: 5, name: 'Liquidación' },
-    { id: 6, name: 'Pago' },
-    { id: 7, name: 'Historial' }
+    { id: 5, name: 'Liquidación' }
   ];
 
   isCompleted(stepId: number): boolean {

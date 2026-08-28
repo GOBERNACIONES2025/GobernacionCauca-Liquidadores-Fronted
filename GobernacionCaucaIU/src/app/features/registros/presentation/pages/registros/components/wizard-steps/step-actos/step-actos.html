@@ -58,14 +58,14 @@
                 </td>
                 <td class="p-4 text-center">
                   @if (!wizardService.esSoloLectura()) {
-                    <div class="flex items-center justify-center gap-1">
-                      <button (click)="editarActo(acto)" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Modificar acto">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <div class="flex items-center justify-center gap-2">
+                      <button (click)="editarActo(acto)" class="text-slate-400 hover:text-blue-600 transition-colors" title="Modificar acto">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                         </svg>
                       </button>
-                      <button (click)="eliminarActoDelExpediente(acto.idTemp)" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar acto">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <button (click)="eliminarActoDelExpediente(acto.idTemp)" class="text-slate-400 hover:text-red-600 transition-colors" title="Eliminar acto">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
@@ -86,7 +86,7 @@
         Volver al Paso 2
       </button>
       <button (click)="continuar()" class="px-6 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/30 flex items-center gap-2">
-        Siguiente: Añadir Intervinientes
+        {{ wizardService.esSoloLectura() ? 'Continuar' : 'Siguiente: Añadir Intervinientes' }}
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
@@ -284,8 +284,8 @@
                     @if (inmuebleEncontrado()) {
                       <div class="mt-4 pt-4 border-t border-slate-100">
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Avalúo Catastral Vigente a liquidar *</label>
-                        <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
-                        <p class="text-[11px] text-slate-400 mt-1">Este valor se auto-asigna del predio, pero puede ajustarlo si la normativa lo requiere.</p>
+                        <input formControlName="avaluoCatastral" type="number" [readonly]="true" class="w-full text-sm p-2.5 bg-slate-100 border border-slate-200 rounded-lg outline-none transition-all text-right font-medium text-slate-600 cursor-not-allowed" />
+                        <p class="text-[11px] text-slate-400 mt-1">Este valor se asigna automáticamente del predio vinculado y no puede ser modificado.</p>
                       </div>
                     }
                   </div>
@@ -362,7 +362,7 @@
         } @else {
           <div></div>
         }
-        <button (click)="guardarActoAlExpediente()" class="px-6 py-2.5 bg-slate-800 text-white font-medium text-sm rounded-lg hover:bg-slate-900 transition-colors shadow-md flex items-center gap-2">
+        <button (click)="guardarActoAlExpediente()" [disabled]="wizardService.actoForm.invalid" class="px-6 py-2.5 bg-slate-800 text-white font-medium text-sm rounded-lg hover:bg-slate-900 transition-colors shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
           {{ actoEditandoId() ? 'Guardar Cambios del Acto' : 'Guardar Acto en el Expediente' }}
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
