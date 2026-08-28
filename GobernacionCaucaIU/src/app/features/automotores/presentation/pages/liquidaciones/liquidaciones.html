@@ -381,6 +381,13 @@
                         <i class="fa-solid fa-file-invoice"></i> Recibo Unificado
                       </button>
                       <button 
+                        (click)="facade.abrirPdfPreview(grupo.placa, undefined, true)"
+                        type="button" 
+                        title="Ver Preview PDF del Recibo Unificado"
+                        class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white border-none shadow-xs cursor-pointer">
+                        <i class="fa-solid fa-file-pdf"></i> Preview PDF
+                      </button>
+                      <button 
                         (click)="facade.toggleExpandirPlacaEmitida(grupo.placa)"
                         type="button" 
                         class="inline-flex items-center justify-center h-7 px-2 rounded-md text-[11px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 border-none cursor-pointer">
@@ -436,14 +443,23 @@
                       </td>
 
                       <td class="py-2.5 px-4 text-center whitespace-nowrap">
-                        <!-- RECIBO INDIVIDUAL PARA 1 VIGENCIA -->
-                        <button 
-                          (click)="facade.abrirReciboIndividual(v)"
-                          type="button" 
-                          title="Imprimir Recibo Individual únicamente para la Vigencia {{ v.vigenciaAnio }}"
-                          class="inline-flex items-center justify-center gap-1 h-6 px-2.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-950 text-white border-none cursor-pointer">
-                          <i class="fa-solid fa-receipt"></i> Recibo {{ v.vigenciaAnio }}
-                        </button>
+                        <div class="flex items-center justify-center gap-1">
+                          <!-- RECIBO INDIVIDUAL PARA 1 VIGENCIA -->
+                          <button 
+                            (click)="facade.abrirReciboIndividual(v)"
+                            type="button" 
+                            title="Imprimir Recibo Individual únicamente para la Vigencia {{ v.vigenciaAnio }}"
+                            class="inline-flex items-center justify-center gap-1 h-6 px-2.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-950 text-white border-none cursor-pointer">
+                            <i class="fa-solid fa-receipt"></i> Recibo {{ v.vigenciaAnio }}
+                          </button>
+                          <button 
+                            (click)="facade.abrirPdfPreview(v.placa, v.vigenciaAnio, false)"
+                            type="button" 
+                            title="Ver Preview PDF para la Vigencia {{ v.vigenciaAnio }}"
+                            class="inline-flex items-center justify-center gap-1 h-6 px-2 rounded text-[10.5px] font-bold bg-amber-700 hover:bg-amber-800 text-white border-none cursor-pointer">
+                            <i class="fa-solid fa-file-pdf"></i> PDF
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   }
@@ -987,13 +1003,27 @@
         </div>
       </div>
 
-      <!-- PIE DE MODAL CON BOTÓN DE IMPRESIÓN -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+      <!-- PIE DE MODAL CON BOTÓN DE IMPRESIÓN Y PDF -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2.5 flex-wrap">
         <button 
           (click)="facade.cerrarReciboModal()" 
           type="button" 
           class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 border-none cursor-pointer">
           Cerrar
+        </button>
+        <button 
+          (click)="facade.abrirPdfPreview(facade.reciboModalData()!.placa, facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
+          type="button" 
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-none cursor-pointer shadow-sm">
+          <i class="fa-solid fa-file-pdf"></i>
+          Ver Preview PDF
+        </button>
+        <button 
+          (click)="facade.descargarPdfDirecto(facade.reciboModalData()!.placa, facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
+          type="button" 
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white border-none cursor-pointer shadow-sm">
+          <i class="fa-solid fa-download"></i>
+          Descargar PDF
         </button>
         <button 
           (click)="facade.cerrarReciboModal()" 
@@ -1006,3 +1036,11 @@
     </div>
   </div>
 }
+
+<!-- COMPONENTE REUTILIZABLE DOCUMENT VIEWER PARA PREVIEW PDF OFICIAL -->
+<app-document-viewer 
+  [isOpen]="facade.isPdfViewerOpen()" 
+  [documentos]="facade.pdfDocumentos()" 
+  (onClose)="facade.cerrarPdfViewer()" 
+  title="Visor Oficial de Liquidación Tributaria (PDF)">
+</app-document-viewer>

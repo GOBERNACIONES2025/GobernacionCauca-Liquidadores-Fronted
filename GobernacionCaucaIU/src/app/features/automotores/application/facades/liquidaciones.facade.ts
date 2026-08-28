@@ -122,6 +122,8 @@ export class LiquidacionesFacade {
   readonly error = signal<string | null>(null);
 
   readonly simulacion = signal<SimulacionLiquidacion | null>(null);
+  readonly simulacionCalculada = computed(() => this.simulacion());
+  readonly simulacionRaw = computed(() => this.simulacion());
   readonly selectedVigenciaAnios = signal<number[]>([]);
 
   /** Selección múltiple de placas para liquidación masiva */
@@ -138,6 +140,36 @@ export class LiquidacionesFacade {
   /** Agrupación y acordeón para pestaña de Emitidas */
   readonly placasExpandidasEmitidas = signal<string[]>([]);
   readonly reciboModalData = signal<ReciboModel | null>(null);
+
+  /** Visor de PDF DocumentViewer */
+  readonly isPdfViewerOpen = signal<boolean>(false);
+  readonly pdfDocumentos = signal<any[]>([]);
+
+  /** Abre la vista previa del documento oficial PDF usando el Visor de Documentos */
+  abrirPdfPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
+    const urlRuta = `http://localhost:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}${vigencia ? '&vigencia=' + vigencia : ''}`;
+    const nombreDoc = esUnificado ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
+
+    this.pdfDocumentos.set([{
+      id: placa,
+      nombreArchivo: nombreDoc,
+      rutaArchivo: urlRuta,
+      tipoArchivo: 'application/pdf'
+    }]);
+    this.isPdfViewerOpen.set(true);
+  }
+
+  /** Cierra el visor de PDF */
+  cerrarPdfViewer(): void {
+    this.isPdfViewerOpen.set(false);
+    this.pdfDocumentos.set([]);
+  }
+
+  /** Descarga directamente el archivo PDF de la liquidación oficial */
+  descargarPdfDirecto(placa: string, vigencia?: number, esUnificado: boolean = false): void {
+    const urlRuta = `http://localhost:5023/api/liquidaciones/pdf?placa=${encodeURIComponent(placa)}&esUnificado=${esUnificado}${vigencia ? '&vigencia=' + vigencia : ''}`;
+    window.open(urlRuta, '_blank');
+  }
 
   /** Agrupa las liquidaciones emitidas por placa vehicular para la vista de acordeón */
   readonly liquidacionesEmitidasAgrupadas = computed(() => {
