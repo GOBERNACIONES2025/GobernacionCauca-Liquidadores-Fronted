@@ -58,12 +58,17 @@ export interface ActoRegistradoLiquidacionDto {
 }
 
 /**
- * Payload completo para la generación de una liquidación (Wizard All-in-One).
+ * Payload completo para la generación de una liquidación (a partir de una solicitud completada).
  */
 export interface GenerarLiquidacionDto {
-  contribuyente: ContribuyenteLiquidacionDto;
+  solicitudId: number;
+}
+
+/**
+ * Payload completo para la simulación de una liquidación (stateless).
+ */
+export interface SimularLiquidacionDto {
   radicacion: RadicacionLiquidacionDto;
-  documento: DocumentoRegistroLiquidacionDto;
   actos: ActoRegistradoLiquidacionDto[];
 }
 
@@ -88,4 +93,72 @@ export interface ActualizarContribuyenteLiquidacionDtoRequest {
   telefono?: string | null;
   email?: string | null;
   activo: boolean;
+}
+
+export interface RadicacionLiquidacionListadoDto {
+  solicitudId: number;
+  numeroRadicado: string;
+  fechaRadicacion: string;
+  observacion: string;
+}
+
+export interface EstadoLiquidacionListadoDto {
+  id: number;
+  codigo: string;
+  nombre: string;
+  badgeClase: string;
+}
+
+export interface AccionesPermitidasDto {
+  permiteContinuar: boolean;
+  permiteCancelar: boolean;
+  permitePagar: boolean;
+  permiteDescargarPdf: boolean;
+  permiteVerDetalle: boolean;
+}
+
+export interface ContribuyenteLiquidacionListadoDto {
+  id: number;
+  tipoPersona: string;
+  tipoIdentificacion: string;
+  numeroIdentificacion: string;
+  nombreCompleto: string;
+  email: string;
+  telefono: string;
+  direccion: string;
+}
+
+export interface DocumentoRegistroListadoDto {
+  numeroDocumento: string;
+  fechaDocumento: string;
+  entidadRegistro: string;
+  tipoEntidad: string;
+  codigoEntidad: string;
+  municipioJurisdiccion: string;
+  tieneSoporteAdjunto: boolean;
+  nombreArchivoSoporte: string;
+}
+
+export interface TotalesLiquidacionListadoDto {
+  subtotal: number;
+  totalDescuentos: number;
+  totalPagar: number;
+}
+
+export interface LiquidacionListadoDto {
+  id: number;
+  numeroLiquidacion: string;
+  esVigente: boolean;
+  fechaLiquidacion: string;
+  fechaVencimiento: string;
+  diasParaVencer: number;
+  estaVencida: boolean;
+  createdAt: string;
+  creadoPor: string;
+  radicacion: RadicacionLiquidacionListadoDto;
+  estado: EstadoLiquidacionListadoDto;
+  accionesPermitidas: AccionesPermitidasDto;
+  contribuyente: ContribuyenteLiquidacionListadoDto;
+  documentoRegistro: DocumentoRegistroListadoDto;
+  totales: TotalesLiquidacionListadoDto;
 }

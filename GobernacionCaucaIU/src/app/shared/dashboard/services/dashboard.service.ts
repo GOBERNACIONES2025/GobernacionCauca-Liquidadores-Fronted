@@ -69,7 +69,7 @@ export class DashboardService {
   }
 
   /**
-   * Carga y orquesta los datos del Dashboard según el impuesto activo
+   * Carga y orquesta los datos del Dashboard según el impuesto activo desde la API
    */
   public loadDashboardData(taxKey?: TaxModuleKey, vigencia: number = this.vigencia()): void {
     const key = taxKey || this.currentTaxKey();
@@ -78,46 +78,77 @@ export class DashboardService {
 
     const meta = TAX_MODULES_CONFIG[key] || TAX_MODULES_CONFIG['automotores'];
 
-    // Si es automotores, intentamos consultar el endpoint real de KPIs
-    if (key === 'automotores') {
-      this.api.get<any>('/vehiculos/kpis', {}, 'AUTOMOTORES').subscribe({
+    if (key === 'registros') {
+      this.api.get<any>('Dashboard', { params: { vigencia } }, 'REGISTROS').subscribe({
         next: (res) => {
           const apiData = res?.data || {};
           this.buildDashboardForTax(meta, vigencia, apiData);
           this.loading.set(false);
         },
-        error: () => {
-          // Fallback controlado con datos coherentes en caso de no disponibilidad de la API
-          this.buildDashboardForTax(meta, vigencia);
+        error: (err) => {
+          console.error('Error al obtener datos del dashboard de registros:', err);
+          this.error.set('No fue posible cargar los datos del dashboard de Registros.');
+          this.buildDashboardForTax(meta, vigencia, {});
+          this.loading.set(false);
+        },
+      });
+    } else if (key === 'automotores') {
+      this.api.get<any>('/vehiculos/kpis', { params: { vigencia } }, 'AUTOMOTORES').subscribe({
+        next: (res) => {
+          const apiData = res?.data || {};
+          this.buildDashboardForTax(meta, vigencia, apiData);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error al obtener datos del dashboard de automotores:', err);
+          this.error.set('No fue posible cargar los datos del dashboard de Automotores.');
+          this.buildDashboardForTax(meta, vigencia, {});
           this.loading.set(false);
         },
       });
     } else {
-      // Para otros impuestos, generamos el dataset con métricas realistas y adaptadas
-      setTimeout(() => {
-        this.buildDashboardForTax(meta, vigencia);
-        this.loading.set(false);
-      }, 250);
+      this.buildDashboardForTax(meta, vigencia, {});
+      this.loading.set(false);
     }
   }
 
   /**
-   * Construye los KPIs, Gráficos ECharts y Actividades Recientes específicos para cada impuesto
+   * Construye los KPIs, Gráficos ECharts y Actividades Recientes basándose exclusivamente en los datos de la API
    */
   private buildDashboardForTax(meta: TaxModuleMeta, vigencia: number, apiData: any = {}): void {
-    const isVehicular = meta.key === 'automotores';
-    const isRegistros = meta.key === 'registros';
+    const kpiData = apiData?.kpi || {};
 
-    // 1. GENERACIÓN DE KPIS
+    const recaudoTotal = Number(kpiData.recaudoTotalVigencia ?? apiData.recaudoTotal ?? 0);
+    const varInteranual = Number(kpiData.variacionInteranual ?? 0);
+    const recaudoTrend: 'up' | 'down' | 'neutral' = varInteranual >= 0 ? 'up' : 'down';
+    const recaudoTrendVal = `${varInteranual >= 0 ? '+' : ''}${varInteranual}%`;
+
+    const totalTramites = Number(kpiData.totalActosRegistrales ?? apiData.totalVehiculos ?? apiData.totalTramites ?? 0);
+    const porcRegistrados = Number(kpiData.porcentajeRegistradosEnSistema ?? apiData.porcentajeActivos ?? 0);
+    const varActos = Number(kpiData.variacionActos ?? 0);
+    const totalTramitesTrend: 'up' | 'down' | 'neutral' = varActos >= 0 ? 'up' : 'down';
+    const totalTramitesTrendVal = `${varActos >= 0 ? '+' : ''}${varActos}%`;
+
+    const pendientes = Number(kpiData.tramitesPendientes ?? apiData.totalPendientesAprobacion ?? apiData.tramitesPendientes ?? 0);
+    const varPendientes = Number(kpiData.variacionTramitesPendientes ?? 0);
+    const pendientesTrend: 'up' | 'down' | 'neutral' = varPendientes <= 0 ? 'down' : 'up';
+    const pendientesTrendVal = `${varPendientes >= 0 ? '+' : ''}${varPendientes}%`;
+
+    const totalExtemp = Number(kpiData.totalExtemporaneidad ?? apiData?.extemporaneidad?.totalFueraDePlazo ?? apiData.procesosConSanciones ?? 0);
+    const porcExtemp = Number(kpiData.porcentajeExtemporaneidad ?? apiData?.extemporaneidad?.tasaExtemporaneidad ?? apiData.tasaExtemporaneidad ?? 0);
+    const varExtemp = Number(kpiData.variacionExtemporaneidad ?? 0);
+    const extempTrend: 'up' | 'down' | 'neutral' = varExtemp <= 0 ? 'down' : 'up';
+    const extempTrendVal = `${varExtemp >= 0 ? '+' : ''}${varExtemp}%`;
+
     const kpis: DashboardKpi[] = [
       {
         id: 'recaudo_total',
         title: 'Recaudo Total Vigencia',
-        value: isVehicular ? '14.850.420.000' : isRegistros ? '8.420.300.000' : '4.650.000.000',
+        value: recaudoTotal.toLocaleString('es-CO'),
         prefix: '$',
-        subtext: `Meta ${vigencia}: 84.5% alcanzada`,
-        trend: 'up',
-        trendValue: '+12.4%',
+        subtext: `Periodo fiscal ${vigencia}`,
+        trend: recaudoTrend,
+        trendValue: recaudoTrendVal,
         icon: 'fa-solid fa-hand-holding-dollar',
         colorClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
         tooltip: 'Monto total recaudado durante el periodo fiscal activo',
@@ -125,10 +156,10 @@ export class DashboardService {
       {
         id: 'total_tramites',
         title: `Total ${meta.entityName}`,
-        value: apiData.totalVehiculos || (isVehicular ? '128.450' : isRegistros ? '45.120' : '18.900'),
-        subtext: `${isVehicular ? '92% Activos' : '88% Registrados'} en sistema`,
-        trend: 'up',
-        trendValue: '+4.8%',
+        value: totalTramites.toLocaleString('es-CO'),
+        subtext: `${porcRegistrados}% Registrados en sistema`,
+        trend: totalTramitesTrend,
+        trendValue: totalTramitesTrendVal,
         icon: meta.icon,
         colorClass: 'bg-blue-50 text-blue-800 border-blue-200',
         tooltip: `Censo total acumulado de ${meta.entityName.toLowerCase()}`,
@@ -136,38 +167,35 @@ export class DashboardService {
       {
         id: 'pendientes',
         title: 'Trámites Pendientes',
-        value: apiData.totalPendientesAprobacion || (isVehicular ? '142' : isRegistros ? '58' : '23'),
+        value: pendientes.toLocaleString('es-CO'),
         subtext: 'Requieren validación o firma',
-        trend: 'down',
-        trendValue: '-18.2%',
+        trend: pendientesTrend,
+        trendValue: pendientesTrendVal,
         icon: 'fa-solid fa-clock-rotate-left',
         colorClass: 'bg-amber-50 text-amber-800 border-amber-200',
         tooltip: 'Declaraciones o expedientes en espera de aprobación de un liquidador',
       },
       {
         id: 'cumplimiento',
-        title: 'Efectividad Operativa',
-        value: '96.8',
-        suffix: '%',
-        subtext: 'Tiempo prom. respuesta: 18 min',
-        trend: 'up',
-        trendValue: '+2.1%',
-        icon: 'fa-solid fa-bolt',
-        colorClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-        tooltip: 'Índice de oportunidad en expedición de paz y salvos y liquidaciones oficiales',
+        title: 'Extemporaneidad / Sanciones',
+        value: totalExtemp.toLocaleString('es-CO'),
+        subtext: `${porcExtemp}% del total de trámites`,
+        trend: extempTrend,
+        trendValue: extempTrendVal,
+        icon: 'fa-solid fa-triangle-exclamation',
+        colorClass: 'bg-orange-50 text-orange-700 border-orange-200',
+        tooltip: 'Total de trámites presentados con cobro de sanción por extemporaneidad y su porcentaje correspondiente',
       },
     ];
 
-    // 2. GENERACIÓN DE OPCIONES DE GRÁFICOS ECHARTS
     const charts: DashboardChartsData = {
-      recaudoTrend: this.buildRecaudoTrendOption(meta, vigencia),
-      distribucionCategorias: this.buildDistribucionCategoriasOption(meta),
-      topMunicipios: this.buildTopMunicipiosOption(meta),
-      eficienciaTramites: this.buildEficienciaOption(meta),
+      recaudoTrend: this.buildRecaudoTrendOption(meta, vigencia, apiData),
+      distribucionCategorias: this.buildDistribucionCategoriasOption(meta, apiData),
+      topMunicipios: this.buildTopMunicipiosOption(meta, apiData),
+      eficienciaTramites: this.buildEficienciaOption(meta, apiData),
     };
 
-    // 3. ACTIVIDADES RECIENTES
-    const actividades: RecentActivityItem[] = this.buildActividadesRecientes(meta);
+    const actividades: RecentActivityItem[] = this.buildActividadesRecientes(meta, apiData);
 
     this.kpis.set(kpis);
     this.charts.set(charts);
@@ -178,13 +206,15 @@ export class DashboardService {
   // GENERADORES DE OPCIONES ECHARTS
   // --------------------------------------------------------------------------
 
-  private buildRecaudoTrendOption(meta: TaxModuleMeta, vigencia: number): EChartsOption {
-    const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const recaudosBase = meta.key === 'automotores' 
-      ? [1200, 1850, 2400, 3100, 2900, 2100, 1950, 2300, 2800, 3400, 3100, 3900]
-      : [800, 950, 1400, 1600, 1500, 1300, 1250, 1400, 1750, 1900, 1850, 2200];
-    
-    const metasBase = recaudosBase.map(v => Math.round(v * 1.12));
+  private buildRecaudoTrendOption(meta: TaxModuleMeta, vigencia: number, apiData: any = {}): EChartsOption {
+    const rawMeses = apiData?.recaudoMensual || apiData?.historicoMensual || [];
+    let meses: string[] = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    let recaudosBase: number[] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    if (Array.isArray(rawMeses) && rawMeses.length > 0) {
+      meses = rawMeses.map((m: any) => m.nombreMes || (typeof m.mes === 'string' ? m.mes : `Mes ${m.mes}`));
+      recaudosBase = rawMeses.map((m: any) => Number(m.recaudoReal ?? 0));
+    }
 
     return {
       tooltip: {
@@ -193,28 +223,19 @@ export class DashboardService {
         borderColor: '#334155',
         textStyle: { color: '#f8fafc', fontSize: 12 },
         formatter: (params: any) => {
-          let html = `<div class="font-bold text-xs mb-1.5 pb-1 border-b border-slate-700">${params[0]?.axisValue} - Vigencia ${vigencia}</div>`;
-          params.forEach((item: any) => {
-            const colorDot = `<span style="display:inline-block;margin-right:6px;border-radius:10px;width:9px;height:9px;background-color:${item.color};"></span>`;
-            html += `<div class="flex items-center justify-between gap-4 text-xs py-0.5">
-              <span>${colorDot}${item.seriesName}:</span>
-              <span class="font-semibold text-white">$${item.value.toLocaleString()} Millones</span>
-            </div>`;
-          });
-          return html;
+          const item = Array.isArray(params) ? params[0] : params;
+          return `<div class="font-bold text-xs mb-1.5 pb-1 border-b border-slate-700">${item?.axisValue} - Vigencia ${vigencia}</div>
+                  <div class="flex items-center justify-between gap-4 text-xs py-0.5">
+                    <span class="text-slate-300">Recaudo Real:</span>
+                    <span class="font-semibold text-white">$${Number(item?.value ?? 0).toLocaleString('es-CO')}</span>
+                  </div>`;
         },
-      },
-      legend: {
-        data: ['Recaudo Real', 'Meta Presupuestal'],
-        bottom: 0,
-        textStyle: { color: '#64748b', fontSize: 11 },
-        icon: 'roundRect',
       },
       grid: {
         left: '2%',
         right: '3%',
         top: '12%',
-        bottom: '12%',
+        bottom: '10%',
         containLabel: true,
       },
       xAxis: {
@@ -225,13 +246,13 @@ export class DashboardService {
       },
       yAxis: {
         type: 'value',
-        name: 'Millones (COP)',
+        name: 'Recaudo (COP)',
         nameTextStyle: { color: '#94a3b8', fontSize: 10 },
         splitLine: { lineStyle: { color: '#f1f5f9', type: 'dashed' } },
         axisLabel: {
           color: '#64748b',
           fontSize: 11,
-          formatter: (val: number) => `$${val}`,
+          formatter: (val: number) => `$${val.toLocaleString('es-CO')}`,
         },
       },
       series: [
@@ -258,44 +279,24 @@ export class DashboardService {
           },
           data: recaudosBase,
         },
-        {
-          name: 'Meta Presupuestal',
-          type: 'line',
-          smooth: true,
-          showSymbol: false,
-          lineStyle: { width: 2, type: 'dashed', color: meta.accentColor },
-          itemStyle: { color: meta.accentColor },
-          data: metasBase,
-        },
       ],
     };
   }
 
-  private buildDistribucionCategoriasOption(meta: TaxModuleMeta): EChartsOption {
+  private buildDistribucionCategoriasOption(meta: TaxModuleMeta, apiData: any = {}): EChartsOption {
+    const rawCategories = apiData?.distribucionTipologia || apiData?.distribucionCategorias || [];
     let dataCategories: { name: string; value: number; color?: string }[] = [];
 
-    if (meta.key === 'automotores') {
-      dataCategories = [
-        { name: 'Automóviles Particulares', value: 45, color: meta.primaryColor },
-        { name: 'Motocicletas > 125cc', value: 30, color: meta.accentColor },
-        { name: 'Camionetas y Camperos', value: 15, color: '#3b82f6' },
-        { name: 'Servicio Público', value: 7, color: '#f59e0b' },
-        { name: 'Otros / Oficiales', value: 3, color: '#94a3b8' },
-      ];
-    } else if (meta.key === 'registros') {
-      dataCategories = [
-        { name: 'Compraventa de Inmuebles', value: 50, color: meta.primaryColor },
-        { name: 'Hipotecas y Gravámenes', value: 25, color: meta.accentColor },
-        { name: 'Constitución de Sociedades', value: 12, color: '#06b6d4' },
-        { name: 'Cancelaciones y Levantamientos', value: 8, color: '#f59e0b' },
-        { name: 'Otros Actos Notariales', value: 5, color: '#94a3b8' },
-      ];
+    if (Array.isArray(rawCategories) && rawCategories.length > 0) {
+      const palette = [meta.primaryColor, meta.accentColor, '#3b82f6', '#f59e0b', '#06b6d4', '#94a3b8', '#8b5cf6', '#ec4899'];
+      dataCategories = rawCategories.map((item: any, idx: number) => ({
+        name: item.tipologia || item.categoriaNombre || item.nombre || 'Otros',
+        value: Number(item.porcentaje ?? item.cantidad ?? 0),
+        color: palette[idx % palette.length],
+      }));
     } else {
       dataCategories = [
-        { name: 'Declaraciones Principales', value: 60, color: meta.primaryColor },
-        { name: 'Gravámenes Secundarios', value: 25, color: meta.accentColor },
-        { name: 'Sanciones / Extemporaneidad', value: 10, color: '#f97316' },
-        { name: 'Exenciones de Ley', value: 5, color: '#10b981' },
+        { name: 'Sin datos registrados', value: 0, color: '#cbd5e1' },
       ];
     }
 
@@ -337,7 +338,7 @@ export class DashboardService {
               formatter: '{b}\n{c}%',
             },
           },
-          data: dataCategories.map(d => ({
+          data: dataCategories.map((d) => ({
             name: d.name,
             value: d.value,
             itemStyle: d.color ? { color: d.color } : undefined,
@@ -347,9 +348,18 @@ export class DashboardService {
     };
   }
 
-  private buildTopMunicipiosOption(meta: TaxModuleMeta): EChartsOption {
-    const municipios = ['Popayán', 'Santander de Q.', 'Puerto Tejada', 'Piendamó', 'Patía', 'Bolívar', 'Guapi'];
-    const valores = [4850, 2920, 1680, 1140, 950, 720, 410];
+  private buildTopMunicipiosOption(meta: TaxModuleMeta, apiData: any = {}): EChartsOption {
+    const rawMunicipios = apiData?.topMunicipios || [];
+    let municipios: string[] = [];
+    let valores: number[] = [];
+
+    if (Array.isArray(rawMunicipios) && rawMunicipios.length > 0) {
+      municipios = rawMunicipios.map((m: any) => m.municipio || m.municipioNombre || 'Municipio');
+      valores = rawMunicipios.map((m: any) => Number(m.totalTramites ?? m.cantidadTramites ?? m.recaudo ?? 0));
+    } else {
+      municipios = ['Sin registros'];
+      valores = [0];
+    }
 
     return {
       tooltip: {
@@ -360,7 +370,7 @@ export class DashboardService {
         formatter: (params: any) => {
           const item = params[0];
           return `<div class="font-bold">${item.name}</div>
-                  <div class="text-xs">Trámites / Recaudo: <span class="font-semibold text-emerald-400">${item.value.toLocaleString()} unidades</span></div>`;
+                  <div class="text-xs">Trámites: <span class="font-semibold text-emerald-400">${item.value.toLocaleString()} unidades</span></div>`;
         },
       },
       grid: {
@@ -406,7 +416,14 @@ export class DashboardService {
     };
   }
 
-  private buildEficienciaOption(meta: TaxModuleMeta): EChartsOption {
+  private buildEficienciaOption(meta: TaxModuleMeta, apiData: any = {}): EChartsOption {
+    const val = Number(
+      apiData?.extemporaneidad?.tasaExtemporaneidad ??
+      apiData?.kpi?.porcentajeExtemporaneidad ??
+      apiData?.tasaExtemporaneidad ??
+      0
+    );
+
     return {
       tooltip: {
         trigger: 'item',
@@ -414,7 +431,7 @@ export class DashboardService {
       },
       series: [
         {
-          name: 'Efectividad Operativa',
+          name: 'Extemporaneidad / Sanciones',
           type: 'gauge',
           center: ['50%', '55%'],
           radius: '85%',
@@ -460,8 +477,8 @@ export class DashboardService {
           },
           data: [
             {
-              value: 96.8,
-              name: 'Oportunidad de Liquidación',
+              value: val,
+              name: 'Tasa de Extemporaneidad',
             },
           ],
         },
@@ -469,92 +486,43 @@ export class DashboardService {
     };
   }
 
-  private buildActividadesRecientes(meta: TaxModuleMeta): RecentActivityItem[] {
-    const isVehicular = meta.key === 'automotores';
+  private buildActividadesRecientes(meta: TaxModuleMeta, apiData: any = {}): RecentActivityItem[] {
+    const rawOps = apiData?.ultimasOperaciones || apiData?.actividadesRecientes || [];
 
-    if (isVehicular) {
-      return [
-        {
-          id: '1',
-          code: 'LQ-2026-00941',
-          description: 'Liquidación Oficial Anual — Placa KJH821',
-          entity: 'Mazda CX-30 Grand Touring (2023)',
-          amount: 1420500,
-          user: 'carlos.mendoza',
-          date: 'Hoy',
-          time: '10:42 AM',
-          status: 'APROBADO',
-        },
-        {
-          id: '2',
-          code: 'LQ-2026-00940',
-          description: 'Declaración y Pago Electrónico PSE — Placa THY312',
-          entity: 'Renault Duster Zen 1.6 (2021)',
-          amount: 890000,
-          user: 'portal.ciudadano',
-          date: 'Hoy',
-          time: '10:15 AM',
-          status: 'PAGADO',
-        },
-        {
-          id: '3',
-          code: 'REG-2026-00122',
-          description: 'Solicitud de Exención — Entidad Pública',
-          entity: 'Toyota Hilux 4x4 (2024)',
-          amount: 0,
-          user: 'maria.gomez',
-          date: 'Hoy',
-          time: '09:50 AM',
-          status: 'PENDIENTE',
-        },
-        {
-          id: '4',
-          code: 'PZ-2026-00412',
-          description: 'Expedición de Paz y Salvo Vehicular — Placa URE901',
-          entity: 'Chevrolet Onix LTZ (2022)',
-          amount: 45000,
-          user: 'samuel.diaz',
-          date: 'Ayer',
-          time: '04:10 PM',
-          status: 'LIQUIDADO',
-        },
-      ];
+    if (Array.isArray(rawOps) && rawOps.length > 0) {
+      return rawOps.map((op: any, idx: number) => {
+        let fecha = 'Hoy';
+        let hora = '';
+        const fechaRaw = op.fechaHora || op.fecha;
+        if (fechaRaw) {
+          try {
+            const d = new Date(fechaRaw);
+            if (!isNaN(d.getTime())) {
+              const now = new Date();
+              const isToday = d.toDateString() === now.toDateString();
+              fecha = isToday ? 'Hoy' : d.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+              hora = d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+          } catch {
+            fecha = 'Hoy';
+          }
+        }
+
+        return {
+          id: op.id || op.codigoTramite || `OP-${idx + 1}`,
+          code: op.codigoTramite || `OP-${idx + 1}`,
+          description: op.descripcion || 'Operación registrada',
+          entity: op.entidadSujeto || op.entidad || 'N/A',
+          amount: Number(op.monto ?? 0),
+          user: op.operador || op.usuario || 'Sistema',
+          date: fecha,
+          time: hora,
+          status: (op.estado?.toUpperCase() || 'BORRADOR') as any,
+        };
+      });
     }
 
-    return [
-      {
-        id: '1',
-        code: 'ACT-2026-00310',
-        description: 'Escritura Pública No. 1420 — Compraventa Inmueble',
-        entity: 'Notaría Primera de Popayán',
-        amount: 3850000,
-        user: 'laura.silva',
-        date: 'Hoy',
-        time: '11:05 AM',
-        status: 'APROBADO',
-      },
-      {
-        id: '2',
-        code: 'ACT-2026-00309',
-        description: 'Cancelación de Hipoteca Abierta',
-        entity: 'Notaría Segunda Santander de Quilichao',
-        amount: 450000,
-        user: 'juan.perez',
-        date: 'Hoy',
-        time: '10:30 AM',
-        status: 'PAGADO',
-      },
-      {
-        id: '3',
-        code: 'ACT-2026-00308',
-        description: 'Constitución Sociedad S.A.S — Registro Mercantil',
-        entity: 'Cámara de Comercio del Cauca',
-        amount: 1120000,
-        user: 'portal.notarial',
-        date: 'Hoy',
-        time: '09:12 AM',
-        status: 'PENDIENTE',
-      },
-    ];
+    return [];
   }
 }
+

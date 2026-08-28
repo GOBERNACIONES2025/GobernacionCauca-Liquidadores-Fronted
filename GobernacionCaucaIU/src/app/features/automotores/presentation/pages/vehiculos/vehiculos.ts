@@ -296,6 +296,8 @@ export class Vehiculos implements OnInit {
     });
   }
 
+
+
   ngOnInit(): void {
     this.facade.refrescarDashboard();
   }

@@ -569,6 +569,14 @@ export class VehiculosFacade {
     );
   }
 
+  verificarPlacaExistente(placa: string): Observable<boolean> {
+    if (!placa || !placa.trim()) return of(false);
+    return this.api.get<ApiResponse<any>>(`/vehiculos/placa/${placa.trim()}`, {}, 'AUTOMOTORES').pipe(
+      map(res => !!(res && res.success && res.data)),
+      catchError(() => of(false))
+    );
+  }
+
   // --------------------------------------------------------------------------
   // ACTUALIZACIÓN DE VEHÍCULO (PUT /api/vehiculos/{id})
   // --------------------------------------------------------------------------

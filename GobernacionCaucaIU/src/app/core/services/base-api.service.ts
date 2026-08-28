@@ -33,7 +33,7 @@ export class BaseApiService {
    */
   get<T>(endpoint: string, options?: HttpOptions, targetModule?: TaxModuleType): Observable<T> {
     const url = this.buildUrl(endpoint, targetModule);
-    return this.http.get<T>(url, this.formatOptions(options));
+    return this.http.get<T>(url, this.formatOptions(options)) as Observable<T>;
   }
 
   /**
@@ -41,7 +41,7 @@ export class BaseApiService {
    */
   post<T>(endpoint: string, body: any, options?: HttpOptions, targetModule?: TaxModuleType): Observable<T> {
     const url = this.buildUrl(endpoint, targetModule);
-    return this.http.post<T>(url, body, this.formatOptions(options));
+    return this.http.post<T>(url, body, this.formatOptions(options)) as Observable<T>;
   }
 
   /**
@@ -49,7 +49,7 @@ export class BaseApiService {
    */
   put<T>(endpoint: string, body: any, options?: HttpOptions, targetModule?: TaxModuleType): Observable<T> {
     const url = this.buildUrl(endpoint, targetModule);
-    return this.http.put<T>(url, body, this.formatOptions(options));
+    return this.http.put<T>(url, body, this.formatOptions(options)) as Observable<T>;
   }
 
   /**
@@ -57,7 +57,7 @@ export class BaseApiService {
    */
   patch<T>(endpoint: string, body: any, options?: HttpOptions, targetModule?: TaxModuleType): Observable<T> {
     const url = this.buildUrl(endpoint, targetModule);
-    return this.http.patch<T>(url, body, this.formatOptions(options));
+    return this.http.patch<T>(url, body, this.formatOptions(options)) as Observable<T>;
   }
 
   /**
@@ -65,18 +65,13 @@ export class BaseApiService {
    */
   delete<T>(endpoint: string, options?: HttpOptions, targetModule?: TaxModuleType): Observable<T> {
     const url = this.buildUrl(endpoint, targetModule);
-    return this.http.delete<T>(url, this.formatOptions(options));
+    return this.http.delete<T>(url, this.formatOptions(options)) as Observable<T>;
   }
 
   /**
    * Formatea las opciones HTTP (parametros de consulta, headers, etc.)
    */
-  private formatOptions(options?: HttpOptions): {
-    headers?: { [header: string]: string | string[] };
-    params?: HttpParams;
-    withCredentials?: boolean;
-    body?: any;
-  } {
+  private formatOptions(options?: HttpOptions): any {
     if (!options) return {};
 
     let params = new HttpParams();
@@ -89,11 +84,17 @@ export class BaseApiService {
       });
     }
 
-    return {
+    const formatted: any = {
       headers: options.headers,
       params,
       withCredentials: options.withCredentials,
       body: options.body,
     };
+
+    if (options.responseType) {
+      formatted.responseType = options.responseType;
+    }
+
+    return formatted;
   }
 }

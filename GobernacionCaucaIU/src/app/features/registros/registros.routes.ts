@@ -26,7 +26,6 @@ import { EstadosPago } from './presentation/pages/configuracion/pagos/estados-pa
 import { EstadosSolicitud } from './presentation/pages/configuracion/radicacion/estados-solicitud/estados-solicitud';
 import { Contribuyentes } from './presentation/pages/configuracion/contribuyentes/contribuyentes/contribuyentes';
 import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/configuracion/entidades/entidades-tipo-acto-permitido/entidades-tipo-acto-permitido';
-import { ActosExencionComponent } from './presentation/pages/configuracion/exenciones/actos-exencion/actos-exencion';
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
 import { Registros } from './presentation/pages/registros/registros';
@@ -46,8 +45,20 @@ export const registrosRoutes: Routes = [
         loadComponent: () => import('../../shared/dashboard/components/tax-dashboard/tax-dashboard').then(m => m.TaxDashboardComponent)
       },
       {
-        path: 'liquidacion',
-        component: Registros
+        path: 'solicitudes',
+        loadComponent: () => import('./presentation/pages/registros/solicitudes-list/solicitudes-list').then(m => m.SolicitudesListComponent)
+      },
+      {
+        path: 'solicitudes/wizard',
+        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
+      },
+      {
+        path: 'solicitudes/wizard/:id',
+        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
+      },
+      {
+        path: 'liquidaciones',
+        loadComponent: () => import('./presentation/pages/registros/liquidaciones-list/liquidaciones-list').then(m => m.LiquidacionesListComponent)
       },
       {
         path: 'configuracion',
@@ -125,10 +136,6 @@ export const registrosRoutes: Routes = [
           {
             path: 'exenciones/exenciones',
             component: Exenciones
-          },
-          {
-            path: 'exenciones/actos-exencion',
-            component: ActosExencionComponent
           },
           {
             path: 'contribuyentes/directorio',

@@ -1,10 +1,7 @@
 import { Routes } from '@angular/router';
 import { Home } from './features/home/presentation/pages/home/home';
-import { AutomotoresLayout } from './features/automotores/presentation/layout/automotores-layout';
-import { Vehiculos } from './features/automotores/presentation/pages/vehiculos/vehiculos';
-import { ContribuyentesIndex } from './features/automotores/presentation/pages/contribuyentes-index/contribuyentes-index';
 import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
-import { LiquidacionesPage } from './features/automotores/presentation/pages/liquidaciones/liquidaciones';
+
 export const routes: Routes = [
   {
     path: '',
@@ -17,35 +14,7 @@ export const routes: Routes = [
   },
   {
     path: 'automotores',
-    component: AutomotoresLayout,
-    children: [
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full',
-      },
-      {
-        path: 'dashboard',
-        loadComponent: () => import('./shared/dashboard/components/tax-dashboard/tax-dashboard').then(m => m.TaxDashboardComponent),
-      },
-      {
-        path: 'vehiculos',
-        component: Vehiculos,
-      },
-      {
-        path: 'contribuyentes-index',
-        component: ContribuyentesIndex,
-      },
-      {
-        path: 'liquidaciones',
-        component: LiquidacionesPage,
-      },
-      {
-        path: 'facturacion',
-        redirectTo: 'liquidaciones',
-        pathMatch: 'full',
-      },
-    ],
+    loadChildren: () => import('./features/automotores/automotores.routes').then(m => m.automotoresRoutes)
   },
   {
     path: 'registros',

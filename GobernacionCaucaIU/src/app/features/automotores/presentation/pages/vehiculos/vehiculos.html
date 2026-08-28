@@ -673,8 +673,7 @@
 <!-- ========================================================================= -->
 <!-- WIZARD: REGISTRAR / EDITAR VEHÍCULO (componente VehiculoWizardComponent)  -->
 <!-- ========================================================================= -->
-<app-vehiculo-wizard (toastEmit)="onWizardToast($event)"></app-vehiculo-wizard>
-
+<app-vehiculo-wizard (toastEmit)="toastMessage.set($event)" />
 
 <!-- MODAL: CONFIRMAR INACTIVACIÓN DE VEHÍCULO -->
 @if (facade.isInactivarModalOpen()) {
@@ -767,7 +766,7 @@
               </svg>
               <div class="text-sm font-semibold">Calculando estado de cuenta, avalúos, sanciones e intereses...</div>
             </div>
-          } @else if (liqFacade.simulacionCalculada(); as sim) {
+          } @else if (liqFacade.simulacion(); as sim) {
             <!-- Resumen Vehículo y Propietario -->
             <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -823,7 +822,7 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-100">
-                    @for (v of liqFacade.simulacionRaw()?.vigencias || []; track v.anio) {
+                    @for (v of sim.vigencias; track v.anio) {
                       <tr [class]="'transition-colors ' + (liqFacade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40' : 'opacity-60')">
                         <td class="py-3 px-3 text-center">
                           <input type="checkbox" [checked]="liqFacade.selectedVigenciaAnios().includes(v.anio)" (change)="liqFacade.toggleVigencia(v.anio)" class="accent-[#70b238] cursor-pointer">

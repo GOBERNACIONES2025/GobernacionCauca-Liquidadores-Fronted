@@ -9,11 +9,13 @@ import { TiposNormaFacade } from '../../../../../application/facades/Normativida
 import { EstadosNormaFacade } from '../../../../../application/facades/Normatividad/estados-norma.facade';
 import { NormaListado } from '../../../../../domain/models/Normatividad/norma.model';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { DocumentViewerComponent } from '../../../../../../../shared/components/document-viewer/document-viewer';
+import { DocumentItem } from '../../../../../../../shared/components/document-viewer/document-viewer.model';
 
 @Component({
   selector: 'app-normas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, DocumentViewerComponent],
   templateUrl: './normas.html',
   styleUrl: './normas.css'
 })
@@ -32,6 +34,10 @@ export class Normas implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+  selectedFile: File | null = null;
+  
+  isViewerOpen = false;
+  currentDocs: DocumentItem[] = [];
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -44,10 +50,7 @@ export class Normas implements OnInit {
     numero: ['', [Validators.required, Validators.maxLength(50)]],
     anio: [new Date().getFullYear(), [Validators.required, Validators.min(1900), Validators.max(2100)]],
     fechaExpedicion: [new Date().toISOString().split('T')[0], Validators.required],
-    descripcion: [''],
-    documentoNombreArchivo: ['norma.pdf'],
-    documentoRutaArchivo: ['/documentos/norma.pdf'],
-    documentoTipoArchivo: ['application/pdf']
+    descripcion: ['']
   });
 
   // Filtered list
@@ -111,11 +114,9 @@ export class Normas implements OnInit {
       numero: '',
       anio: currentYear,
       fechaExpedicion: new Date().toISOString().split('T')[0],
-      descripcion: '',
-      documentoNombreArchivo: 'norma.pdf',
-      documentoRutaArchivo: '/documentos/norma.pdf',
-      documentoTipoArchivo: 'application/pdf'
+      descripcion: ''
     });
+    this.selectedFile = null;
     this.isSlideOverOpen = true;
   }
 
@@ -130,11 +131,9 @@ export class Normas implements OnInit {
       numero: item.numero,
       anio: item.anio,
       fechaExpedicion: fExp,
-      descripcion: '',
-      documentoNombreArchivo: item.documentoNormativos?.[0]?.nombreArchivo || 'norma.pdf',
-      documentoRutaArchivo: item.documentoNormativos?.[0]?.rutaArchivo || '/documentos/norma.pdf',
-      documentoTipoArchivo: item.documentoNormativos?.[0]?.tipoArchivo || 'application/pdf'
+      descripcion: ''
     });
+    this.selectedFile = null;
     this.isSlideOverOpen = true;
   }
 
@@ -164,6 +163,33 @@ export class Normas implements OnInit {
   closeSlideOver() {
     this.isSlideOverOpen = false;
     this.selectedId = null;
+    this.selectedFile = null;
+  }
+
+  openViewer(item: NormaListado) {
+    if (!item.documentoNormativos || item.documentoNormativos.length === 0) {
+      this.toast.info('Esta norma no tiene documentos adjuntos.');
+      return;
+    }
+    this.currentDocs = item.documentoNormativos.map(d => ({
+      id: d.id,
+      nombreArchivo: d.nombreArchivo,
+      rutaArchivo: d.rutaArchivo,
+      tipoArchivo: d.tipoArchivo
+    }));
+    this.isViewerOpen = true;
+  }
+
+  closeViewer() {
+    this.isViewerOpen = false;
+    this.currentDocs = [];
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.selectedFile = file;
+    }
   }
 
   saveNorma() {
@@ -193,17 +219,19 @@ export class Normas implements OnInit {
           }
         });
       } else {
-        this.facade.crear({
+        if (!this.selectedFile) {
+          this.toast.error('Debe adjuntar un documento normativo');
+          return;
+        }
+
+        this.facade.crear(this.selectedFile, {
           departamentoId: Number(val.departamentoId),
           tipoNormaId: Number(val.tipoNormaId),
           estadoNormaId: Number(val.estadoNormaId),
           numero: val.numero!,
           anio: Number(val.anio),
           fechaExpedicion: val.fechaExpedicion!,
-          descripcion: val.descripcion || '',
-          documentoNombreArchivo: val.documentoNombreArchivo || 'norma.pdf',
-          documentoRutaArchivo: val.documentoRutaArchivo || '/documentos/norma.pdf',
-          documentoTipoArchivo: val.documentoTipoArchivo || 'application/pdf'
+          descripcion: val.descripcion || ''
         }).subscribe({
           next: () => {
             this.toast.success(`Norma ${actionName} exitosamente`);

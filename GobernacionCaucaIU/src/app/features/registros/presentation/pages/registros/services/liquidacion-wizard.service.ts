@@ -1,8 +1,10 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
 
 export interface IntervinienteTemp {
   idTemp: string;
+  contribuyenteId?: number | null;
   nombre: string;
   documento: string;
   rolId: number;
@@ -37,18 +39,19 @@ export class LiquidacionWizardService {
   currentStep = signal<number>(1);
   
   // Datos fijos/temporales de la sesión
-  radicadoGenerado = signal<string>('RAD-2025-' + Math.floor(100000 + Math.random() * 900000));
+  solicitudId = signal<number | null>(null);
+  etapaGuardada = signal<number>(0);
+  radicadoGenerado = signal<string>('');
   fechaRadicado = signal<string>(new Date().toISOString().split('T')[0]);
-  vigenciaFiscal = signal<number>(2025);
-  departamentoNombre = signal<string>('Cundinamarca'); // Se ajustó a Cundinamarca por la imagen
+  vigenciaFiscal = signal<number | null>(null);
   
   // ===================== FORMULARIOS =====================
 
   // Paso 1: Radicación & Contribuyente
   paso1Form: FormGroup = this.fb.group({
     contribuyenteId: [null as number | null],
-    tipoPersonaId: [1, Validators.required],
-    tipoIdentificacionId: [1, Validators.required],
+    tipoPersonaId: [null as number | null, Validators.required],
+    tipoIdentificacionId: [null as number | null, Validators.required],
     numeroIdentificacion: ['', Validators.required],
     nombre: ['', Validators.required],
     email: [''],
@@ -56,10 +59,10 @@ export class LiquidacionWizardService {
     direccion: [''],
     
     // Datos de radicación
-    numeroRadicado: ['RAD-2025-' + Math.floor(100000 + Math.random() * 900000), Validators.required],
+    numeroRadicado: ['', Validators.required],
     fechaRadicado: [new Date().toISOString().split('T')[0], Validators.required],
-    vigenciaFiscal: [new Date().getFullYear(), [Validators.required, Validators.min(1900)]],
-    departamentoId: [1, Validators.required],
+    vigenciaFiscal: [null as number | null, Validators.required],
+    departamentoId: [null as number | null, Validators.required],
     observacionRadicacion: ['']
   });
 
@@ -71,6 +74,9 @@ export class LiquidacionWizardService {
     municipioJurisdiccionId: [null as number | null, Validators.required],
     descripcionDocumento: ['']
   });
+  
+  documentoSoporteFile: File | null = null;
+  documentoSoporteNombre = signal<string | null>(null);
 
   // Paso 3: Actos
   isAddingActo = signal<boolean>(true);
@@ -86,9 +92,26 @@ export class LiquidacionWizardService {
     exencionId: [null as number | null]
   });
 
-  intervinienteForm: FormGroup = this.fb.group({
+  // Paso 4: Intervinientes (NUEVO)
+  intervinienteSeleccionado = signal<any | null>(null);
+  creandoNuevoInterviniente = signal<boolean>(false);
+  actoSeleccionadoId = signal<string | null>(null);
+
+  intervinienteBusquedaForm: FormGroup = this.fb.group({
+    numeroIdentificacion: ['', Validators.required]
+  });
+
+  intervinienteNuevoForm: FormGroup = this.fb.group({
+    tipoPersonaId: [null as number | null, Validators.required],
+    tipoIdentificacionId: [null as number | null, Validators.required],
+    numeroIdentificacion: ['', Validators.required],
     nombre: ['', Validators.required],
-    documento: ['', Validators.required],
+    email: [''],
+    telefono: [''],
+    direccion: ['']
+  });
+
+  intervinienteAsignarForm: FormGroup = this.fb.group({
     rolId: [null as number | null, Validators.required],
     porcentaje: [100, [Validators.required, Validators.min(1), Validators.max(100)]]
   });
@@ -96,55 +119,28 @@ export class LiquidacionWizardService {
   // Paso 4: Liquidación
   liquidacionGeneradaExitosa = signal<boolean>(false);
   idLiquidacionFinal = signal<number | null>(null);
-  resumenCalculo = signal<{
-    totalBaseGravable: number;
-    totalImpuesto: number;
-    totalExencion: number;
-    totalPagar: number;
-  } | null>(null);
+  liquidacionSimulada = signal<LiquidacionSimuladaResponse | null>(null);
 
   // MÉTODOS DE UTILIDAD
-  
-  calcularResumenEstimado() {
-    let totalBase = 0;
-    let totalImp = 0;
-    let totalExen = 0;
-
-    this.actosExpediente().forEach(a => {
-      const base = a.baseDeclarada || a.valorActo || 0;
-      totalBase += base;
-      const imp = Math.round(base * 0.01);
-      totalImp += imp;
-      if (a.exencionId) {
-        totalExen += Math.round(imp * 0.5);
-      }
-    });
-
-    const totalPagar = Math.max(0, totalImp - totalExen);
-    this.resumenCalculo.set({
-      totalBaseGravable: totalBase,
-      totalImpuesto: totalImp,
-      totalExencion: totalExen,
-      totalPagar: totalPagar
-    });
-  }
 
   resetWizard() {
     this.currentStep.set(1);
-    this.radicadoGenerado.set('RAD-2025-' + Math.floor(100000 + Math.random() * 900000));
+    this.solicitudId.set(null);
+    this.etapaGuardada.set(0);
+    this.radicadoGenerado.set('');
     
     this.paso1Form.reset({
       contribuyenteId: null,
-      tipoPersonaId: 1,
-      tipoIdentificacionId: 1,
+      tipoPersonaId: null,
+      tipoIdentificacionId: null,
       numeroIdentificacion: '',
       nombre: '',
       email: '',
       telefono: '',
       direccion: '',
-      numeroRadicado: 'RAD-2025-' + Math.floor(100000 + Math.random() * 900000),
+      numeroRadicado: '',
       fechaRadicado: new Date().toISOString().split('T')[0],
-      vigenciaFiscal: new Date().getFullYear(),
+      vigenciaFiscal: null,
       departamentoId: null,
       observacionRadicacion: ''
     });
@@ -171,6 +167,99 @@ export class LiquidacionWizardService {
     this.isAddingActo.set(true);
     this.liquidacionGeneradaExitosa.set(false);
     this.idLiquidacionFinal.set(null);
-    this.resumenCalculo.set(null);
+    this.liquidacionSimulada.set(null);
+    this.documentoSoporteFile = null;
+    this.documentoSoporteNombre.set(null);
+    
+    this.intervinienteSeleccionado.set(null);
+    this.creandoNuevoInterviniente.set(false);
+    this.actoSeleccionadoId.set(null);
+    this.intervinienteBusquedaForm.reset();
+    this.intervinienteNuevoForm.reset();
+    this.intervinienteAsignarForm.reset({ rolId: null, porcentaje: 100 });
+  }
+  cargarDatosDesdeSolicitud(solicitud: any) {
+    this.solicitudId.set(solicitud.solicitudId);
+    this.etapaGuardada.set(solicitud.etapaActual);
+    this.radicadoGenerado.set(solicitud.numeroRadicado);
+    
+    // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
+    // Si etapa es 1 (Radicación completada), saltamos al paso 2
+    // Si etapa es 2 (Documento completado), saltamos al paso 3, etc.
+    const nextStep = Math.min(solicitud.etapaActual + 1, 5);
+    this.currentStep.set(nextStep);
+
+    // Poblar Paso 1
+    if (solicitud.numeroRadicado) {
+      this.paso1Form.patchValue({
+        numeroRadicado: solicitud.numeroRadicado,
+        fechaRadicacion: solicitud.fechaRadicacion ? solicitud.fechaRadicacion.substring(0, 10) : this.paso1Form.value.fechaRadicado,
+        vigenciaFiscal: solicitud.vigenciaId,
+        departamentoId: solicitud.departamentoId,
+        observacionRadicacion: solicitud.observacion
+      });
+    }
+
+    if (solicitud.contribuyente) {
+      this.paso1Form.patchValue({
+        contribuyenteId: solicitud.contribuyente.id,
+        tipoPersonaId: solicitud.contribuyente.tipoPersonaId,
+        tipoIdentificacionId: solicitud.contribuyente.tipoIdentificacionId,
+        numeroIdentificacion: solicitud.contribuyente.numeroIdentificacion,
+        nombre: solicitud.contribuyente.nombre,
+        email: solicitud.contribuyente.email,
+        telefono: solicitud.contribuyente.telefono,
+        direccion: solicitud.contribuyente.direccion
+      });
+    }
+
+    // Poblar Paso 2, 3 y 4
+    if (solicitud.documentos && solicitud.documentos.length > 0) {
+      const doc = solicitud.documentos[0];
+      this.paso2Form.patchValue({
+        numeroDocumento: doc.numeroDocumento,
+        fechaDocumento: doc.fechaDocumento ? doc.fechaDocumento.substring(0, 10) : '',
+        entidadRegistroId: doc.entidadRegistroId,
+        municipioJurisdiccionId: doc.municipioJurisdiccionId,
+        descripcionDocumento: doc.descripcion
+      });
+
+      this.documentoSoporteFile = null;
+      if (doc.nombreArchivo) {
+        this.documentoSoporteNombre.set(doc.nombreArchivo);
+      } else if (solicitud.etapaActual >= 2) {
+        this.documentoSoporteNombre.set('Documento adjunto en la base de datos');
+      }
+      
+      // Poblar Actos
+      if (doc.actos && doc.actos.length > 0) {
+        const actosTemp = doc.actos.map((a: any) => ({
+          idTemp: a.id.toString(), // Usamos el ID del backend como ID temporal para mantener la referencia
+          tipoActoId: a.tipoActoRegistroId,
+          tipoActoCodigo: '', // Se podría buscar del facade si hace falta
+          tipoActoNombre: a.tipoActoRegistroNombre || 'Acto Cargado',
+          categoriaNombre: '',
+          naturalezaNombre: '',
+          tarifaInfo: '',
+          valorActo: a.valorActo,
+          baseDeclarada: a.baseDeclarada,
+          matriculaInmobiliaria: '', // El backend usa inmuebleId, habría que adaptarlo si es string o num
+          avaluoCatastral: 0,
+          exencionId: null, // Asignar si viene en el DTO
+          exencionNombre: null,
+          intervinientes: a.intervinientes ? a.intervinientes.map((i: any) => ({
+            idTemp: i.id.toString(),
+            contribuyenteId: i.contribuyente.id,
+            nombre: i.contribuyente.nombre,
+            documento: i.contribuyente.numeroIdentificacion,
+            rolId: i.rolIntervinienteId,
+            rolNombre: i.rolIntervinienteNombre || 'Rol Desconocido',
+            porcentaje: i.porcentajeParticipacion
+          })) : []
+        }));
+        
+        this.actosExpediente.set(actosTemp);
+      }
+    }
   }
 }

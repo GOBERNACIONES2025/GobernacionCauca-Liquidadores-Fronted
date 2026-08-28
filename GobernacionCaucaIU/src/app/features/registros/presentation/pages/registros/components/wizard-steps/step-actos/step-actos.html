@@ -19,7 +19,6 @@
               <th class="p-4">Acto / Naturaleza</th>
               <th class="p-4">Exención</th>
               <th class="p-4 text-right">Cuantía (Base)</th>
-              <th class="p-4">Intervinientes</th>
               <th class="p-4 text-center">Acciones</th>
             </tr>
           </thead>
@@ -42,15 +41,6 @@
                 <td class="p-4 text-right">
                   <div class="font-bold text-slate-700">{{ acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
                 </td>
-                <td class="p-4">
-                  <div class="flex -space-x-2 overflow-hidden">
-                    @for (intv of acto.intervinientes; track intv.idTemp) {
-                      <div class="inline-block h-8 w-8 rounded-full ring-2 ring-white bg-blue-100 flex items-center justify-center" [title]="intv.nombre + ' (' + intv.rolNombre + ')'">
-                        <span class="text-xs font-bold text-blue-800">{{ intv.nombre.charAt(0) }}</span>
-                      </div>
-                    }
-                  </div>
-                </td>
                 <td class="p-4 text-center">
                   <button (click)="eliminarActoDelExpediente(acto.idTemp)" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar acto">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -70,7 +60,7 @@
         Volver al Paso 2
       </button>
       <button (click)="continuar()" class="px-6 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/30 flex items-center gap-2">
-        Siguiente: Calcular Liquidación
+        Siguiente: Añadir Intervinientes
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
@@ -107,14 +97,32 @@
               <div>
                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">Acto / Negocio Jurídico *</label>
                 <select formControlName="tipoActoRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+                  <option [ngValue]="null">Seleccione un acto...</option>
                   @for (ta of tiposActoFacade.tiposActoRegistro(); track ta.id) {
                     <option [value]="ta.id">{{ ta.codigo }} - {{ ta.nombre }}</option>
                   }
                 </select>
                 @if (selectedTipoActoDetalle) {
-                  <div class="mt-2 text-xs text-slate-500 bg-slate-50 p-2 rounded border border-slate-100">
-                    <span class="font-medium text-slate-700">Categoría:</span> {{ selectedTipoActoDetalle.categoriaNaturalezaJuridica?.nombre }} <br>
-                    <span class="font-medium text-slate-700">Naturaleza:</span> {{ selectedTipoActoDetalle.naturalezaJuridica?.nombre }}
+                  <div class="mt-2.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <span class="font-medium text-slate-700">Categoría:</span> {{ selectedTipoActoDetalle.categoriaActo.nombre || 'General' }} <br>
+                      <span class="font-medium text-slate-700">Naturaleza:</span> {{ selectedTipoActoDetalle.naturalezaActo.nombre || 'General' }}
+                    </div>
+                    <div class="flex gap-1.5">
+                      @if (esSinCuantia) {
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800">
+                          Sin Cuantía (Tarifa Fija)
+                        </span>
+                      } @else if (requiereInmueble) {
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800">
+                          Inmueble (ORIP)
+                        </span>
+                      } @else {
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-100 text-purple-800">
+                          Con Cuantía (No Inmueble)
+                        </span>
+                      }
+                    </div>
                   </div>
                 }
               </div>
@@ -127,96 +135,167 @@
                     <option [value]="ex.id">{{ ex.nombre }}</option>
                   }
                 </select>
+                <p class="text-[11px] text-slate-400 mt-1.5">Seleccione si el acto aplica a exenciones normativas especiales.</p>
               </div>
             </div>
           </div>
 
-          <!-- 2. VALORES -->
-          <div class="mb-8">
-            <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">2. Cuantía e Inmueble</h4>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Valor del Acto *</label>
-                <input formControlName="valorActo" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right" />
-              </div>
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Avalúo Catastral</label>
-                <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right" />
-              </div>
-              <div class="col-span-2 bg-blue-50/50 p-4 rounded-lg border border-blue-100 relative">
-                <label class="block text-xs font-bold text-blue-900 mb-1.5 uppercase tracking-wide">Base Gravable Final *</label>
-                <div class="absolute right-4 top-10 text-slate-400">COP</div>
-                <input formControlName="baseDeclarada" type="number" class="w-full text-lg font-bold p-2.5 bg-white border-2 border-blue-200 rounded-lg focus:ring-0 focus:border-blue-500 outline-none transition-all text-right text-blue-900 pr-12 shadow-sm" />
-                <p class="text-[10px] text-slate-500 mt-1">Suele ser el mayor valor entre el Acto y el Avalúo.</p>
-              </div>
+          <!-- 2. VALORES Y LIQUIDACIÓN -->
+          @if (selectedTipoActoDetalle) {
+            <div class="mb-8 animate-in fade-in duration-200">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">
+                2. Cuantía e Información del Acto
+              </h4>
+
+              <!-- CASO A: ACTO SIN CUANTÍA -->
+              @if (esSinCuantia) {
+                <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-5 flex items-start gap-4">
+                  <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 flex-shrink-0 mt-0.5">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h5 class="text-sm font-bold text-amber-900">Acto sin cuantía (Tarifa fija)</h5>
+                    <p class="text-xs text-amber-800 mt-1 leading-relaxed">
+                      Este acto no requiere base gravable variable ni avalúo catastral. El motor liquidará el impuesto aplicando la tarifa fija reglamentaria en UVT/Pesos para este tipo de trámite.
+                    </p>
+                  </div>
+                </div>
+              }
+
+              <!-- CASO B: ACTO INMOBILIARIO CON CUANTÍA -->
+              @else if (requiereInmueble) {
+                <div class="space-y-4">
+                  <!-- Búsqueda y Selección de Predio -->
+                  <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200">
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Matrícula Inmobiliaria *</label>
+                    <div class="flex gap-2">
+                      <input [ngModel]="matriculaBuscada()" (ngModelChange)="matriculaBuscada.set($event)" [ngModelOptions]="{standalone: true}" type="text" placeholder="Ej: 120-12345" class="flex-1 text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+                      <button type="button" (click)="buscarPorMatricula()" [disabled]="buscandoInmueble()" class="px-4 py-2 bg-slate-800 text-white rounded-lg text-sm font-semibold hover:bg-slate-700 disabled:opacity-50">
+                        @if (buscandoInmueble()) { Buscando... } @else { Buscar }
+                      </button>
+                    </div>
+
+                    <!-- Resultado Búsqueda Exitosa -->
+                    @if (inmuebleEncontrado()) {
+                      <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3">
+                        <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        </div>
+                        <div>
+                          <p class="text-xs font-bold text-emerald-900">Inmueble Vinculado</p>
+                          <p class="text-xs text-emerald-700">Mun: {{ inmuebleEncontrado()!.municipioNombre }} | Mat: {{ inmuebleEncontrado()!.matriculaInmobiliaria }}</p>
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Formulario Nuevo Inmueble (si no se encontró) -->
+                    @if (mostrarFormNuevoInmueble()) {
+                      <div class="mt-4 p-4 bg-white border border-blue-200 rounded-xl shadow-sm">
+                        <h4 class="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                          Registrar Nuevo Inmueble
+                        </h4>
+                        <form [formGroup]="nuevoInmuebleForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Municipio *</label>
+                            <select formControlName="municipioId" class="w-full text-sm p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                              <option [value]="0">Seleccione...</option>
+                              @for (mun of municipiosFacade.municipios(); track mun.id) {
+                                <option [value]="mun.id">{{ mun.nombre }}</option>
+                              }
+                            </select>
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Dirección (Opcional)</label>
+                            <input formControlName="direccion" type="text" class="w-full text-sm p-2 bg-slate-50 border border-slate-200 rounded-lg" />
+                          </div>
+                          <div>
+                            <label class="block text-xs font-medium text-slate-700 mb-1">Avalúo Vigente *</label>
+                            <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2 bg-slate-50 border border-slate-200 rounded-lg text-right" />
+                          </div>
+                          <div class="md:col-span-3 flex justify-end">
+                            <button type="button" (click)="crearNuevoInmueble()" [disabled]="guardandoNuevoInmueble()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">
+                              @if (guardandoNuevoInmueble()) { Guardando... } @else { Guardar Inmueble }
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    }
+
+                    <!-- Avalúo Asignado al Acto (Oculto si no hay inmueble vinculado) -->
+                    @if (inmuebleEncontrado()) {
+                      <div class="mt-4 pt-4 border-t border-slate-100">
+                        <label class="block text-xs font-semibold text-slate-700 mb-1.5">Avalúo Catastral Vigente a liquidar *</label>
+                        <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
+                        <p class="text-[11px] text-slate-400 mt-1">Este valor se auto-asigna del predio, pero puede ajustarlo si la normativa lo requiere.</p>
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Valores y Base Gravable -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1.5">Valor del Contrato / Acto *</label>
+                      <input formControlName="valorActo" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
+                      <p class="text-[11px] text-slate-400 mt-1">Valor pactado en la escritura o documento.</p>
+                    </div>
+
+                    <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-200 relative">
+                      <div class="flex justify-between items-center mb-1.5">
+                        <label class="block text-xs font-bold text-blue-900 uppercase tracking-wide">Base Gravable Final *</label>
+                        <span class="text-[10px] text-blue-700 font-medium bg-blue-100/70 px-2 py-0.5 rounded">Art. 229 Ley 223/95</span>
+                      </div>
+                      <div class="relative">
+                        <input formControlName="baseDeclarada" type="number" class="w-full text-lg font-bold p-2.5 bg-white border-2 border-blue-300 rounded-lg focus:ring-0 focus:border-blue-600 outline-none transition-all text-right text-blue-900 pr-12 shadow-sm" />
+                        <div class="absolute right-3.5 top-3 text-xs font-semibold text-slate-400">COP</div>
+                      </div>
+                      <div class="flex justify-between items-center mt-1.5 text-[11px]">
+                        <span class="text-slate-500">Piso mínimo legal: <strong class="text-slate-700">{{ pisoMinimoLegal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></span>
+                        @if (wizardService.actoForm.get('baseDeclarada')?.value < pisoMinimoLegal) {
+                          <span class="text-red-600 font-semibold">⚠️ Inferior al mínimo</span>
+                        } @else {
+                          <span class="text-emerald-700 font-medium">✓ Base válida</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- CASO C: ACTO COMERCIAL / MERCANTIL / MUEBLE CON CUANTÍA -->
+              @else {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Valor del Acto / Contrato *</label>
+                    <input formControlName="valorActo" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
+                    <p class="text-[11px] text-slate-400 mt-1">Monto económico o capital registrado del acto.</p>
+                  </div>
+
+                  <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-200 relative">
+                    <div class="flex justify-between items-center mb-1.5">
+                      <label class="block text-xs font-bold text-blue-900 uppercase tracking-wide">Base Gravable Declarada *</label>
+                      <span class="text-[10px] text-blue-700 font-medium bg-blue-100/70 px-2 py-0.5 rounded">No Inmueble</span>
+                    </div>
+                    <div class="relative">
+                      <input formControlName="baseDeclarada" type="number" class="w-full text-lg font-bold p-2.5 bg-white border-2 border-blue-300 rounded-lg focus:ring-0 focus:border-blue-600 outline-none transition-all text-right text-blue-900 pr-12 shadow-sm" />
+                      <div class="absolute right-3.5 top-3 text-xs font-semibold text-slate-400">COP</div>
+                    </div>
+                    <div class="flex justify-between items-center mt-1.5 text-[11px]">
+                      <span class="text-slate-500">Piso mínimo: <strong class="text-slate-700">{{ pisoMinimoLegal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong></span>
+                      @if (wizardService.actoForm.get('baseDeclarada')?.value < pisoMinimoLegal) {
+                        <span class="text-red-600 font-semibold">⚠️ Inferior al valor</span>
+                      } @else {
+                        <span class="text-emerald-700 font-medium">✓ Base válida</span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
-          </div>
-        </form>
-
-        <!-- 3. INTERVINIENTES -->
-        <div>
-          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-4 pb-2 border-b border-slate-100">3. Intervinientes del Acto</h4>
-          <div class="bg-slate-50 rounded-xl border border-slate-200 p-4 mb-4">
-            <form [formGroup]="wizardService.intervinienteForm" class="flex items-end gap-3" (ngSubmit)="agregarInterviniente()">
-              <div class="flex-1">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombre</label>
-                <input formControlName="nombre" type="text" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-              </div>
-              <div class="w-32">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Documento</label>
-                <input formControlName="documento" type="text" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-              </div>
-              <div class="w-48">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Rol</label>
-                <select formControlName="rolId" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none">
-                  @for (r of rolesIntervinienteFacade.rolesInterviniente(); track r.id) {
-                    <option [value]="r.id">{{ r.nombre }}</option>
-                  }
-                </select>
-              </div>
-              <div class="w-24">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">% Part.</label>
-                <input formControlName="porcentaje" type="number" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none text-right" />
-              </div>
-              <button type="submit" class="px-3 py-2 bg-slate-800 text-white rounded text-sm font-medium hover:bg-slate-700 transition-colors">
-                Añadir
-              </button>
-            </form>
-          </div>
-
-          <!-- Tabla intervinientes -->
-          @if (wizardService.intervinientesActoActual().length > 0) {
-            <table class="w-full text-sm text-left">
-              <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-y border-slate-200">
-                <tr>
-                  <th class="px-4 py-2">Interviniente</th>
-                  <th class="px-4 py-2">Rol Asignado</th>
-                  <th class="px-4 py-2 text-right">Participación</th>
-                  <th class="px-4 py-2"></th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                @for (intv of wizardService.intervinientesActoActual(); track intv.idTemp) {
-                  <tr>
-                    <td class="px-4 py-3">
-                      <div class="font-medium text-slate-800">{{ intv.nombre }}</div>
-                      <div class="text-xs text-slate-500">ID: {{ intv.documento }}</div>
-                    </td>
-                    <td class="px-4 py-3">
-                      <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
-                        {{ intv.rolNombre }}
-                      </span>
-                    </td>
-                    <td class="px-4 py-3 text-right font-medium">{{ intv.porcentaje }}%</td>
-                    <td class="px-4 py-3 text-right">
-                      <button (click)="eliminarInterviniente(intv.idTemp)" class="text-red-500 hover:text-red-700 text-xs font-medium">Quitar</button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
           }
-        </div>
+        </form>
       </div>
       
       <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center">

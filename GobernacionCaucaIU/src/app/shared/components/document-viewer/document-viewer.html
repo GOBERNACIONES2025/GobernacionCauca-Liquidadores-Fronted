@@ -1,0 +1,94 @@
+<!-- Modal Backdrop -->
+<div 
+  class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm transition-opacity"
+  [class.opacity-0]="!isOpen"
+  [class.pointer-events-none]="!isOpen"
+  [class.opacity-100]="isOpen"
+  (click)="close()">
+  
+  <!-- Modal Content -->
+  <div 
+    class="bg-white rounded-xl shadow-2xl w-full max-w-5xl h-[85vh] flex flex-col overflow-hidden transition-transform transform scale-95"
+    [class.scale-100]="isOpen"
+    (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/50">
+      <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+        <svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+        </svg>
+        {{ title }}
+      </h3>
+      
+      <div class="flex items-center gap-3">
+        <!-- Download Button -->
+        <button 
+          *ngIf="selectedDoc"
+          (click)="downloadCurrent()"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200">
+          <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          Descargar
+        </button>
+        
+        <!-- Close Button -->
+        <button 
+          (click)="close()" 
+          class="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+          <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="flex flex-1 overflow-hidden">
+      
+      <!-- Sidebar (Only visible if > 1 document) -->
+      <div *ngIf="documentos.length > 1" class="w-64 border-r border-slate-200 bg-slate-50 flex flex-col overflow-y-auto">
+        <div class="p-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
+          Documentos ({{ documentos.length }})
+        </div>
+        <ul class="flex-1 overflow-y-auto px-2 pb-4 space-y-1 custom-scrollbar">
+          <li *ngFor="let doc of documentos">
+            <button 
+              (click)="selectDocument(doc)"
+              class="w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex flex-col gap-1"
+              [class.bg-blue-100]="selectedDoc?.id === doc.id"
+              [class.text-blue-900]="selectedDoc?.id === doc.id"
+              [class.font-semibold]="selectedDoc?.id === doc.id"
+              [class.hover:bg-slate-200]="selectedDoc?.id !== doc.id"
+              [class.text-slate-700]="selectedDoc?.id !== doc.id">
+              
+              <span class="truncate block w-full">{{ doc.nombreArchivo }}</span>
+              <span class="text-[10px] text-slate-400 font-mono" *ngIf="doc.tipoArchivo">
+                {{ doc.tipoArchivo }}
+              </span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Main Viewer Area -->
+      <div class="flex-1 bg-slate-100 relative">
+        <div *ngIf="!safeUrl" class="absolute inset-0 flex items-center justify-center text-slate-400 text-sm flex-col gap-2">
+          <svg class="w-10 h-10 opacity-50" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+          No hay documento seleccionado o disponible
+        </div>
+
+        <iframe 
+          *ngIf="safeUrl"
+          [src]="safeUrl" 
+          class="w-full h-full border-none shadow-inner"
+          title="Visor de Documentos">
+        </iframe>
+      </div>
+      
+    </div>
+  </div>
+</div>

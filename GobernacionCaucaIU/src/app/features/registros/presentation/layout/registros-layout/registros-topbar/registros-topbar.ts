@@ -1,4 +1,4 @@
-import { Component, inject, computed, output } from '@angular/core';
+import { Component, inject, computed, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthStateService } from '../../../../../../core/auth/auth-state.service';
@@ -16,6 +16,11 @@ export class RegistrosTopbar {
   private router = inject(Router);
 
   readonly toggleSidebar = output<void>();
+  readonly isProfileMenuOpen = signal(false);
+
+  toggleProfileMenu() {
+    this.isProfileMenuOpen.update(v => !v);
+  }
 
   currentUser = this.authState.currentUser;
 

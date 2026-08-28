@@ -80,13 +80,13 @@
             <a href="#" class="block px-4 py-2 text-xs text-slate-200 hover:bg-slate-700 font-medium">
               <i class="fa-solid fa-user text-xs mr-2 text-slate-400"></i>Mi Perfil
             </a>
-            <button
-              (click)="toggleConfig(); toggleProfileMenu()"
-              type="button"
+            <a
+              routerLink="/automotores/configuracion"
+              (click)="toggleProfileMenu()"
               class="w-full text-left block px-4 py-2 text-xs text-slate-200 hover:bg-slate-700 font-medium cursor-pointer"
             >
-              <i class="fa-solid fa-gear text-xs mr-2 text-slate-400"></i>Configuración
-            </button>
+              <i class="fa-solid fa-gear text-xs mr-2 text-slate-400"></i>Configuración y Catálogos
+            </a>
             <div class="border-t border-slate-700 my-1"></div>
             <a href="#" class="block px-4 py-2 text-xs text-rose-400 hover:bg-slate-700 font-medium">
               <i class="fa-solid fa-right-from-bracket text-xs mr-2 text-rose-400"></i>Cerrar Sesión
@@ -101,15 +101,17 @@
   <div class="flex flex-1 overflow-hidden relative bg-vehiculos-bg-main">
     <!-- MAIN SIDEBAR -->
     <aside
-      [class.w-64]="isSidebarOpen()"
-      [class.w-16]="!isSidebarOpen()"
+      (mouseenter)="isSidebarHovered.set(true)"
+      (mouseleave)="isSidebarHovered.set(false)"
+      [class.w-64]="isSidebarOpen() || isSidebarHovered()"
+      [class.w-16]="!(isSidebarOpen() || isSidebarHovered())"
       class="bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 transition-all duration-300 z-10"
     >
       <!-- Navigation Links Container -->
       <div class="flex-1 overflow-y-auto py-4 space-y-6">
         <!-- Section 1: MÓDULO TRIBUTARIO -->
         <div>
-          @if (isSidebarOpen()) {
+          @if (isSidebarOpen() || isSidebarHovered()) {
             <h3 class="px-4 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
               Módulo Tributario
             </h3>
@@ -120,10 +122,10 @@
               routerLink="/automotores/dashboard"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Dashboard'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Dashboard'"
             >
               <i class="fa-solid fa-chart-pie text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Dashboard General</span>
               }
             </a>
@@ -133,10 +135,10 @@
               routerLink="/automotores/vehiculos"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Vehículos'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Vehículos'"
             >
               <i class="fa-solid fa-car text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Vehículos</span>
               }
             </a>
@@ -146,36 +148,25 @@
               routerLink="/automotores/contribuyentes-index"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Contribuyentes'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Contribuyentes'"
             >
               <i class="fa-solid fa-users text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Contribuyentes</span>
               }
             </a>
 
-            <!-- Valores Estatales -->
-            <a
-              routerLink="/automotores/valores-estatales"
-              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
-              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Valores Estatales'"
-            >
-              <i class="fa-solid fa-dollar-sign text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
-                <span class="truncate">Valores Estatales</span>
-              }
-            </a>
+
 
             <!-- Liquidaciones & Facturación -->
             <a
               routerLink="/automotores/liquidaciones"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Liquidaciones & Facturación'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Liquidaciones & Facturación'"
             >
               <i class="fa-solid fa-file-invoice-dollar text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Liquidaciones & Facturación</span>
               }
             </a>
@@ -185,10 +176,10 @@
               routerLink="/automotores/certificados"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Certificados'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Certificados'"
             >
               <i class="fa-solid fa-award text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Certificados</span>
               }
             </a>
@@ -197,21 +188,33 @@
 
         <!-- Section 2: SISTEMA -->
         <div>
-          @if (isSidebarOpen()) {
+          @if (isSidebarOpen() || isSidebarHovered()) {
             <h3 class="px-4 pb-2 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
               Sistema
             </h3>
           }
           <nav class="space-y-1">
+            <!-- Valores Estatales -->
+            <a
+              routerLink="/automotores/valores-estatales"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Valores Estatales'"
+            >
+              <i class="fa-solid fa-dollar-sign text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
+              @if (isSidebarOpen() || isSidebarHovered()) {
+                <span class="truncate">Valores Estatales</span>
+              }
+            </a>            
             <!-- Auditoría -->
             <a
               routerLink="/automotores/auditoria"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Auditoría'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Auditoría'"
             >
               <i class="fa-regular fa-file-lines text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Auditoría</span>
               }
             </a>
@@ -221,185 +224,38 @@
               routerLink="/automotores/reglas-tributarias"
               routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
               class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Reglas Tributarias'"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Reglas Tributarias'"
             >
               <i class="fa-regular fa-circle-dot text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
+              @if (isSidebarOpen() || isSidebarHovered()) {
                 <span class="truncate">Reglas Tributarias</span>
               }
             </a>
 
             <!-- Configuración -->
-            <button
-              (click)="toggleConfig()"
-              type="button"
-              [class.bg-blue-50/80]="isConfigOpen()"
-              [class.text-blue-900]="isConfigOpen()"
-              [class.font-semibold]="isConfigOpen()"
-              [class.border-emerald-600]="isConfigOpen()"
-              class="w-full flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group cursor-pointer border-l-4 border-transparent"
-              [title]="isSidebarOpen() ? '' : 'Configuración'"
+            <a
+              routerLink="/automotores/configuracion"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent cursor-pointer"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Configuración y Catálogos'"
             >
               <i class="fa-solid fa-wrench text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen()) {
-                <span class="truncate">Configuración</span>
+              @if (isSidebarOpen() || isSidebarHovered()) {
+                <span class="truncate">Configuración y Catálogos</span>
               }
-            </button>
+            </a>
           </nav>
         </div>
       </div>
 
       <!-- Footer Version -->
-      @if (isSidebarOpen()) {
+      @if (isSidebarOpen() || isSidebarHovered()) {
         <div class="border-t border-slate-200 p-4 text-[11px] text-slate-400 space-y-0.5">
           <p class="font-medium text-slate-500">Liquidadores</p>
-          <p>© Copyright 2026 101 S.A.S.</p>
+          <p>© Copyright 2026 1cero1 S.A.S.</p>
         </div>
       }
     </aside>
-
-    <!-- SECONDARY CONFIGURATION SIDEBAR -->
-    @if (isConfigOpen()) {
-      <aside
-        class="w-64 bg-white border-r border-slate-200 flex flex-col shrink-0 transition-all duration-300 z-10 shadow-lg"
-      >
-        <!-- Header of Config Sidebar -->
-        <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
-          <div class="flex items-center space-x-2">
-            <i class="fa-solid fa-wrench text-base text-blue-900"></i>
-            <div>
-              <h2 class="text-sm font-bold text-slate-800 leading-tight">Configuración</h2>
-              <span class="text-[10px] text-slate-400">Panel de Control</span>
-            </div>
-          </div>
-          <button
-            (click)="closeConfig()"
-            type="button"
-            class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
-            title="Cerrar Configuración"
-          >
-            <i class="fa-solid fa-xmark text-sm"></i>
-          </button>
-        </div>
-
-        <!-- Options list -->
-        <div class="flex-1 overflow-y-auto py-3 space-y-4">
-          <!-- Categoría 1: Sistema & Preferencias -->
-          <div>
-            <span class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-              Preferencias del Sistema
-            </span>
-            <div class="space-y-1">
-              <button
-                (click)="selectConfigTab('general')"
-                [class.bg-blue-50/80]="activeConfigTab() === 'general'"
-                [class.text-blue-900]="activeConfigTab() === 'general'"
-                [class.font-semibold]="activeConfigTab() === 'general'"
-                [class.border-emerald-600]="activeConfigTab() === 'general'"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
-              >
-                <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-sliders text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
-                  <span class="truncate">General y Apariencia</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-              </button>
-
-              <button
-                (click)="selectConfigTab('notificaciones')"
-                [class.bg-blue-50/80]="activeConfigTab() === 'notificaciones'"
-                [class.text-blue-900]="activeConfigTab() === 'notificaciones'"
-                [class.font-semibold]="activeConfigTab() === 'notificaciones'"
-                [class.border-emerald-600]="activeConfigTab() === 'notificaciones'"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
-              >
-                <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-bell text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
-                  <span class="truncate">Alertas y Notificaciones</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Categoría 2: Seguridad & Accesos -->
-          <div>
-            <span class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-              Seguridad & Accesos
-            </span>
-            <div class="space-y-1">
-              <button
-                (click)="selectConfigTab('roles')"
-                [class.bg-blue-50/80]="activeConfigTab() === 'roles'"
-                [class.text-blue-900]="activeConfigTab() === 'roles'"
-                [class.font-semibold]="activeConfigTab() === 'roles'"
-                [class.border-emerald-600]="activeConfigTab() === 'roles'"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
-              >
-                <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-user-shield text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
-                  <span class="truncate">Roles y Permisos</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-              </button>
-
-              <button
-                (click)="selectConfigTab('sesiones')"
-                [class.bg-blue-50/80]="activeConfigTab() === 'sesiones'"
-                [class.text-blue-900]="activeConfigTab() === 'sesiones'"
-                [class.font-semibold]="activeConfigTab() === 'sesiones'"
-                [class.border-emerald-600]="activeConfigTab() === 'sesiones'"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
-              >
-                <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-clock-rotate-left text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
-                  <span class="truncate">Historial de Sesiones</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Categoría 3: Integraciones & Parámetros -->
-          <div>
-            <span class="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-              Integraciones & Servicios
-            </span>
-            <div class="space-y-1">
-              <button
-                (click)="selectConfigTab('runt')"
-                [class.bg-blue-50/80]="activeConfigTab() === 'runt'"
-                [class.text-blue-900]="activeConfigTab() === 'runt'"
-                [class.font-semibold]="activeConfigTab() === 'runt'"
-                [class.border-emerald-600]="activeConfigTab() === 'runt'"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
-              >
-                <div class="flex items-center space-x-2.5">
-                  <i class="fa-solid fa-globe text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
-                  <span class="truncate">Conexión RUNT</span>
-                </div>
-                <span class="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">OK</span>
-              </button>
-
-              <button
-                (click)="selectConfigTab('reportes')"
-                [class.bg-blue-50/80]="activeConfigTab() === 'reportes'"
-                [class.text-blue-900]="activeConfigTab() === 'reportes'"
-                [class.font-semibold]="activeConfigTab() === 'reportes'"
-                [class.border-emerald-600]="activeConfigTab() === 'reportes'"
-                class="w-full flex items-center justify-between px-4 py-2.5 text-xs text-slate-600 hover:bg-slate-50 hover:text-slate-900 border-l-4 border-transparent transition cursor-pointer text-left group"
-              >
-                <div class="flex items-center space-x-2.5">
-                  <i class="fa-regular fa-file-lines text-sm text-slate-500 group-hover:text-blue-900 w-4 text-center shrink-0"></i>
-                  <span class="truncate">Plantillas de Reportes</span>
-                </div>
-                <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-      </aside>
-    }
 
     <!-- MAIN PAGE ROUTER OUTLET CONTAINER -->
     <main class="flex-1 bg-vehiculos-bg-main overflow-y-auto min-w-0 flex flex-col min-h-full">

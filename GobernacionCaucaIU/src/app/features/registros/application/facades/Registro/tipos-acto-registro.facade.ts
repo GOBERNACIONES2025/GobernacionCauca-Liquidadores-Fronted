@@ -56,6 +56,30 @@ export class TiposActoRegistroFacade {
   }
 
   /**
+   * Carga los tipos de acto permitidos y activos para una entidad de registro.
+   */
+  cargarTiposActoPorEntidad(entidadRegistroId: number): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.apiService.obtenerPorEntidad(entidadRegistroId).subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.tiposActoRegistro.set(response.data || []);
+          this.totalTiposActoRegistro.set(response.data.length);
+        } else {
+          this.error.set(response.message || 'Error al cargar tipos de acto para la entidad');
+        }
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.error.set(err.message || 'Error de conexión');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  /**
    * Selecciona un tipo de acto de registro por su ID.
    */
   seleccionarPorId(id: number): void {

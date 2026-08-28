@@ -1,8 +1,11 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { MunicipiosFacade } from '../../../../../application/facades/Territorios/municipios.facade';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
 import { Municipio } from '../../../../../domain/models/Territorios/municipio.model';
@@ -11,7 +14,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-municipios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './municipios.html',
   styleUrl: './municipios.css'
 })
@@ -24,6 +27,11 @@ export class Municipios implements OnInit {
   breadcrumbs = ['Configuración', 'Territorio', 'Municipio'];
 
   searchQuery = signal<string>('');
+  private searchSubject = new Subject<string>();
+
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
   isSlideOverOpen = false;
   selectedId: number | null = null;
@@ -39,28 +47,58 @@ export class Municipios implements OnInit {
     activo: [true]
   });
 
-  // Filtered municipios list for table
+  // Client side active/inactive filter only (if backend doesn't support state filter).
+  // Otherwise, we just return all from facade.
   municipiosFiltrados = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
     const filter = this.selectedFilter();
     let items = this.facade.municipios();
 
     if (filter === 'activos') {
-      items = items.filter(m => m.activo);
+      return items.filter(m => m.activo);
     } else if (filter === 'inactivos') {
-      items = items.filter(m => !m.activo);
+      return items.filter(m => !m.activo);
     }
-
-    if (query) {
-      items = items.filter(m => 
-        m.codigoDane.toLowerCase().includes(query) || 
-        m.nombre.toLowerCase().includes(query) ||
-        this.getDepartamentoNombre(m).toLowerCase().includes(query)
-      );
-    }
-
     return items;
   });
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarDatos();
+    });
+  }
+
+  onSearchChange(value: string) {
+    this.searchQuery.set(value);
+    this.searchSubject.next(value);
+  }
+
+  cargarDatos() {
+    this.facade.cargarMunicipios(this.pageNumber(), this.pageSize(), this.searchQuery());
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarDatos();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarDatos();
+  }
+
+  ngOnInit() {
+    this.cargarDatos();
+    this.departamentosFacade.cargarDepartamentos(1, 100);
+  }
+
+  setFilter(filter: 'todos' | 'activos' | 'inactivos') {
+    this.selectedFilter.set(filter);
+  }
 
   // Dynamic counts
   counts = computed(() => {
@@ -72,10 +110,6 @@ export class Municipios implements OnInit {
     };
   });
 
-  ngOnInit() {
-    this.facade.cargarMunicipios(1, 100);
-    this.departamentosFacade.cargarDepartamentos(1, 100);
-  }
 
   resolveDepartamentoId(item: Municipio): number {
     if (item.departamentoId) {
@@ -111,9 +145,7 @@ export class Municipios implements OnInit {
     return '';
   }
 
-  setFilter(filter: 'todos' | 'activos' | 'inactivos') {
-    this.selectedFilter.set(filter);
-  }
+
 
   openNew() {
     this.selectedId = null;
@@ -153,7 +185,7 @@ export class Municipios implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Municipio ${actionName} exitosamente`);
-        this.facade.cargarMunicipios(1, 100);
+        this.cargarDatos();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar estado del municipio`);
@@ -185,7 +217,7 @@ export class Municipios implements OnInit {
         next: () => {
           this.toast.success(`Municipio ${actionName} exitosamente`);
           this.closeSlideOver();
-          this.facade.cargarMunicipios(1, 100);
+          this.cargarDatos();
         },
         error: (err: any) => {
           this.toast.error(`Error al intentar guardar el municipio`);
