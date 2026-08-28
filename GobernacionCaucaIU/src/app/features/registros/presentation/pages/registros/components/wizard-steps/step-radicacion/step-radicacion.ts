@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { of, throwError } from 'rxjs';
+import { of, throwError, forkJoin } from 'rxjs';
 import { concatMap, catchError } from 'rxjs/operators';
 import { LiquidacionWizardService } from '../../../services/liquidacion-wizard.service';
 import { ContribuyentesFacade } from '../../../../../../application/facades/Contribuyentes/contribuyentes.facade';
@@ -72,6 +72,7 @@ export class StepRadicacionComponent implements OnInit {
             telefono: encontrado.telefono,
             direccion: encontrado.direccion
           });
+          this.wizardService.paso1Form.markAsDirty();
           this.toastService.success(`Contribuyente encontrado: ${encontrado.nombre || cleanDoc}`);
         } else {
           this.modoCreacion = true;
@@ -84,6 +85,7 @@ export class StepRadicacionComponent implements OnInit {
             telefono: '',
             direccion: ''
           });
+          this.wizardService.paso1Form.markAsDirty();
           this.toastService.info('Contribuyente no registrado. Diligencie los campos para crearlo.');
         }
       },
@@ -104,6 +106,17 @@ export class StepRadicacionComponent implements OnInit {
       telefono: '',
       direccion: ''
     });
+    this.wizardService.paso1Form.markAsDirty();
+  }
+
+  onNumeroIdentificacionChange() {
+    const currentId = this.wizardService.paso1Form.get('contribuyenteId')?.value;
+    if (currentId) {
+      this.wizardService.paso1Form.patchValue({ contribuyenteId: null });
+      this.busquedaRealizada = false;
+      this.modoCreacion = true;
+      this.wizardService.paso1Form.markAsDirty();
+    }
   }
 
   limpiarBusquedaContribuyente() {
@@ -119,6 +132,7 @@ export class StepRadicacionComponent implements OnInit {
       telefono: '',
       direccion: ''
     });
+    this.wizardService.paso1Form.markAsDirty();
   }
 
   continuar() {
@@ -138,7 +152,9 @@ export class StepRadicacionComponent implements OnInit {
       const crearDto = {
         numeroRadicado: formValue.numeroRadicado,
         vigenciaId: formValue.vigenciaFiscal,
-        departamentoId: formValue.departamentoId
+        departamentoId: formValue.departamentoId,
+        fechaRadicacion: formValue.fechaRadicado,
+        observacion: formValue.observacionRadicacion || ''
       };
       
       const contribuyenteDto = {
@@ -152,14 +168,32 @@ export class StepRadicacionComponent implements OnInit {
         direccion: formValue.direccion
       };
 
-      // Si ya hay solicitudId, solo actualizamos el contribuyente
+      // Si ya hay solicitudId, actualizamos contribuyente y radicado
       if (this.wizardService.solicitudId()) {
-        this.solicitudesFacade.registrarContribuyente(this.wizardService.solicitudId()!, contribuyenteDto).subscribe({
+        const id = this.wizardService.solicitudId()!;
+        const radicadoDto = {
+          numeroRadicado: formValue.numeroRadicado,
+          vigenciaId: formValue.vigenciaFiscal,
+          departamentoId: formValue.departamentoId,
+          fechaRadicacion: formValue.fechaRadicado,
+          observacion: formValue.observacionRadicacion || ''
+        };
+
+        this.solicitudesFacade.actualizarRadicado(id, radicadoDto).pipe(
+          concatMap(() => this.solicitudesFacade.registrarContribuyente(id, contribuyenteDto))
+        ).subscribe({
           next: () => {
             this.wizardService.currentStep.set(2);
-            this.wizardService.etapaGuardada.set(1);
+            this.wizardService.etapaGuardada.set(Math.max(this.wizardService.etapaGuardada(), 1));
+            this.toastService.success('Datos actualizados correctamente');
           },
-          error: (err) => this.toastService.error('Error al actualizar contribuyente')
+          error: (err) => {
+            if (err?.error?.status === 409 || err?.status === 409) {
+              this.toastService.error('El registro fue modificado. Por favor recarga e intenta de nuevo.');
+            } else {
+              this.toastService.error('Error al actualizar los datos');
+            }
+          }
         });
         return;
       }

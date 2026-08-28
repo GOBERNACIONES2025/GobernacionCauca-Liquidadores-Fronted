@@ -4,6 +4,7 @@ import { BaseApiService } from '../../../../../core/services/base-api.service';
 import { ApiResponse } from '../../../../../core/shared/models/shared.model';
 import { 
   CrearSolicitudDto, 
+  ActualizarRadicadoDto,
   RegistrarContribuyenteDto, 
   RegistrarDocumentoDto, 
   RegistrarActosDto, 
@@ -56,6 +57,10 @@ export class SolicitudLiquidacionApiService {
 
   crearSolicitud(command: CrearSolicitudDto): Observable<ApiResponse<number>> {
     return this.api.post<ApiResponse<number>>(`${this.baseUrl}`, command, {}, this.dbContext);
+  }
+
+  actualizarRadicado(id: number, command: ActualizarRadicadoDto): Observable<ApiResponse<boolean>> {
+    return this.api.patch<ApiResponse<boolean>>(`${this.baseUrl}/${id}/radicado`, command, {}, this.dbContext);
   }
 
   obtenerSolicitudPorId(id: number): Observable<ApiResponse<SolicitudLiquidacion>> {

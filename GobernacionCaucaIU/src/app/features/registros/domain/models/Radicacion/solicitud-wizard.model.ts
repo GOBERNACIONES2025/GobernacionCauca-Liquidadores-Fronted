@@ -2,6 +2,16 @@ export interface CrearSolicitudDto {
   numeroRadicado: string;
   vigenciaId: number;
   departamentoId: number;
+  fechaRadicacion: string;
+  observacion?: string;
+}
+
+export interface ActualizarRadicadoDto {
+  numeroRadicado: string;
+  vigenciaId: number;
+  departamentoId: number;
+  fechaRadicacion: string;
+  observacion?: string;
 }
 
 export interface RegistrarContribuyenteDto {

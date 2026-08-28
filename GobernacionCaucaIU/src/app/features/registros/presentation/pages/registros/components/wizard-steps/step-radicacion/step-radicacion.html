@@ -19,7 +19,7 @@
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Número de documento *</label>
           <input formControlName="numeroIdentificacion" type="text" placeholder="Ej: 1061..." 
                  (keyup.enter)="buscarContribuyente()" 
-                 [readonly]="busquedaRealizada && !modoCreacion"
+                 (input)="onNumeroIdentificacionChange()"
                  [class.border-red-500]="wizardService.paso1Form.get('numeroIdentificacion')?.invalid && wizardService.paso1Form.get('numeroIdentificacion')?.touched"
                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
         </div>
@@ -51,67 +51,39 @@
       <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Persona</div>
-          @if (!modoCreacion) {
-            <select formControlName="tipoPersonaId" class="w-full bg-transparent text-sm font-medium text-slate-900 border-none outline-none appearance-none cursor-default" style="pointer-events: none;">
-              @for (t of tiposPersonaFacade.tiposPersona(); track t.id) {
-                <option [value]="t.id">{{ t.nombre }}</option>
-              }
-            </select>
-          } @else {
-            <select formControlName="tipoPersonaId" 
-                    [class.border-red-500]="wizardService.paso1Form.get('tipoPersonaId')?.invalid && wizardService.paso1Form.get('tipoPersonaId')?.touched"
-                    class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none">
-              <option [ngValue]="null">Seleccione...</option>
-              @for (t of tiposPersonaFacade.tiposPersona(); track t.id) {
-                <option [value]="t.id">{{ t.nombre }}</option>
-              }
-            </select>
-          }
+          <select formControlName="tipoPersonaId" 
+                  [class.border-red-500]="wizardService.paso1Form.get('tipoPersonaId')?.invalid && wizardService.paso1Form.get('tipoPersonaId')?.touched"
+                  class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
+            <option [ngValue]="null">Seleccione...</option>
+            @for (t of tiposPersonaFacade.tiposPersona(); track t.id) {
+              <option [value]="t.id">{{ t.nombre }}</option>
+            }
+          </select>
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Documento</div>
-          @if (!modoCreacion) {
-            <select formControlName="tipoIdentificacionId" class="w-full bg-transparent text-sm font-medium text-slate-900 border-none outline-none appearance-none cursor-default" style="pointer-events: none;">
-              @for (t of tiposIdentificacionFacade.tiposIdentificacion(); track t.id) {
-                <option [value]="t.id">{{ t.codigo }}</option>
-              }
-            </select>
-          } @else {
-            <select formControlName="tipoIdentificacionId" 
-                    [class.border-red-500]="wizardService.paso1Form.get('tipoIdentificacionId')?.invalid && wizardService.paso1Form.get('tipoIdentificacionId')?.touched"
-                    class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none">
-              <option [ngValue]="null">Seleccione...</option>
-              @for (t of tiposIdentificacionFacade.tiposIdentificacion(); track t.id) {
-                <option [value]="t.id">{{ t.codigo }}</option>
-              }
-            </select>
-          }
+          <select formControlName="tipoIdentificacionId" 
+                  [class.border-red-500]="wizardService.paso1Form.get('tipoIdentificacionId')?.invalid && wizardService.paso1Form.get('tipoIdentificacionId')?.touched"
+                  class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
+            <option [ngValue]="null">Seleccione...</option>
+            @for (t of tiposIdentificacionFacade.tiposIdentificacion(); track t.id) {
+              <option [value]="t.id">{{ t.codigo }}</option>
+            }
+          </select>
         </div>
         <div class="col-span-2 md:col-span-2">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nombre / Razón Social</div>
-          @if (!modoCreacion) {
-            <div class="text-sm font-medium text-slate-900">{{ wizardService.paso1Form.get('nombre')?.value || '—' }}</div>
-          } @else {
-            <input formControlName="nombre" type="text" 
-                   [class.border-red-500]="wizardService.paso1Form.get('nombre')?.invalid && wizardService.paso1Form.get('nombre')?.touched"
-                   class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-          }
+          <input formControlName="nombre" type="text" 
+                 [class.border-red-500]="wizardService.paso1Form.get('nombre')?.invalid && wizardService.paso1Form.get('nombre')?.touched"
+                 class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</div>
-          @if (!modoCreacion) {
-            <div class="text-sm font-medium text-slate-900">{{ wizardService.paso1Form.get('email')?.value || '—' }}</div>
-          } @else {
-            <input formControlName="email" type="email" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-          }
+          <input formControlName="email" type="email" class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Teléfono</div>
-          @if (!modoCreacion) {
-            <div class="text-sm font-medium text-slate-900">{{ wizardService.paso1Form.get('telefono')?.value || '—' }}</div>
-          } @else {
-            <input formControlName="telefono" type="text" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-          }
+          <input formControlName="telefono" type="text" class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
         </div>
       </div>
     </div>
