@@ -23,7 +23,9 @@ export interface VigenciaLiquidada {
   diasMora: number;
   derechossistematizacion: number;
   totalVigencia: number;
-  estado: string; // "PRONTO PAGO (-10%)", "AL DIA (NORMAL)", "EN MORA"
+  estado: string; // "PRONTO PAGO (-10%)", "AL DIA (NORMAL)", "EN MORA", "PRESCRITA"
+  parametrosFaltantesEnDb?: boolean;
+  advertencia?: string;
   conceptos: ConceptoDetalle[];
 }
 
@@ -57,4 +59,18 @@ export interface SimulacionLiquidacion {
   totalDescuentos: number;
   totalSistematizacionEstampillas: number;
   totalPagar: number;
+}
+
+export interface LiquidacionMasivaRequest {
+  placas?: string[];
+  vigencia?: number;
+  fechaProyeccion?: string;
+}
+
+export interface LiquidacionMasivaResultado {
+  totalVehiculosProcesados: number;
+  totalVigenciasLiquidadas: number;
+  totalRecaudoGenerado: number;
+  numerosLiquidacionGenerados: string[];
+  mensaje: string;
 }

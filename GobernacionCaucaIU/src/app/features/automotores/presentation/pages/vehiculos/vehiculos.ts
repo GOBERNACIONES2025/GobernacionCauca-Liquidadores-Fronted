@@ -1,4 +1,4 @@
-﻿import { Component, inject, OnInit, HostListener, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, HostListener, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
@@ -273,6 +273,43 @@ export class Vehiculos implements OnInit {
         });
       }
     });
+  }
+
+  readonly placaExistenteWarning = signal<string | null>(null);
+
+  validarPlacaExistente(): void {
+    const valPlaca = this.form.get('placa')?.value;
+    if (!valPlaca || !String(valPlaca).trim()) {
+      this.placaExistenteWarning.set(null);
+      return;
+    }
+
+    const placaNorm = String(valPlaca).trim().toUpperCase();
+
+    if (this.facade.isNuevoRegistro()) {
+      const existeLocal = this.facade.vehiculos().some(v => v.placa.toUpperCase() === placaNorm) ||
+        this.facade.vehiculosPendientesAprobacion().some(v => v.placa.toUpperCase() === placaNorm);
+
+      if (existeLocal) {
+        this.placaExistenteWarning.set(`⚠️ La placa ${placaNorm} ya se encuentra registrada en el parque automotor.`);
+        this.form.get('placa')?.setErrors({ placaExistente: true });
+        return;
+      }
+
+      this.facade.verificarPlacaExistente(placaNorm).subscribe(existe => {
+        if (existe) {
+          this.placaExistenteWarning.set(`⚠️ La placa ${placaNorm} ya se encuentra registrada en el sistema.`);
+          this.form.get('placa')?.setErrors({ placaExistente: true });
+        } else {
+          this.placaExistenteWarning.set(null);
+          if (this.form.get('placa')?.hasError('placaExistente')) {
+            const errs = { ...this.form.get('placa')?.errors };
+            delete errs['placaExistente'];
+            this.form.get('placa')?.setErrors(Object.keys(errs).length ? errs : null);
+          }
+        }
+      });
+    }
   }
 
   ngOnInit(): void {
