@@ -1,5 +1,8 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
@@ -15,7 +18,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-tarifas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './tarifas.html',
   styleUrl: './tarifas.css'
 })
@@ -31,7 +34,20 @@ export class Tarifas implements OnInit {
 
   breadcrumbs = ['Configuración', 'Tarifas', 'Tarifa'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -57,52 +73,50 @@ export class Tarifas implements OnInit {
   });
 
   // Filtered list for table
-  tarifasFiltradas = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.tarifas();
-
-    if (filter === 'activos') {
-      items = items.filter(t => t.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(t => !t.activo);
-    }
-
-    if (query) {
-      items = items.filter(t => 
-        (t.tipoActoRegistro?.nombre && t.tipoActoRegistro.nombre.toLowerCase().includes(query)) ||
-        (t.departamento?.nombre && t.departamento.nombre.toLowerCase().includes(query)) ||
-        (t.norma?.numero && t.norma.numero.toLowerCase().includes(query)) ||
-        (t.tipoCalculoTarifa?.nombre && t.tipoCalculoTarifa.nombre.toLowerCase().includes(query)) ||
-        (t.vigencia?.anio && t.vigencia.anio.toString().includes(query))
-      );
-    }
-
-    return items;
-  });
+  tarifasFiltradas = computed(() => this.facade.tarifas());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.tarifas();
     return {
-      total: all.length,
-      active: all.filter(t => t.activo).length,
-      inactive: all.filter(t => !t.activo).length
+      total: this.facade.totalTarifas()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarTarifas();
-    this.departamentosFacade.cargarDepartamentos(1, 100);
-    this.tiposActoFacade.cargarTiposActoRegistro(1, 100);
-    this.vigenciasFacade.cargarVigencias(1, 100);
-    this.normasFacade.cargarNormas();
-    this.tiposCalculoFacade.cargarTiposCalculoTarifa(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarTarifas({ pageNumber: this.pageNumber(), pageSize: this.pageSize(), search: this.searchText(), activo });;
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -169,7 +183,7 @@ export class Tarifas implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Tarifa ${actionName} exitosamente`);
-        this.facade.cargarTarifas();
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar la tarifa`);
@@ -211,7 +225,7 @@ export class Tarifas implements OnInit {
           next: () => {
             this.toast.success(`Tarifa ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarTarifas();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar la tarifa`);
@@ -223,7 +237,7 @@ export class Tarifas implements OnInit {
           next: () => {
             this.toast.success(`Tarifa ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarTarifas();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear la tarifa`);

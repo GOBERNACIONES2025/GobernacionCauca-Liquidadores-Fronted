@@ -28,8 +28,8 @@ export class InmueblesComponent implements OnInit {
 
   breadcrumbs = ['Configuración', 'Inmuebles', 'Inmuebles y Avalúos'];
 
-  searchQuery = signal<string>('');
-  private searchSubject = new Subject<string>();
+  searchText = signal<string>('');
+  searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
@@ -69,8 +69,9 @@ export class InmueblesComponent implements OnInit {
     });
   }
 
-  onSearchChange(value: string) {
-    this.searchQuery.set(value);
+  onSearchChange(event: any) {
+    const value = event?.target ? event.target.value : event;
+    this.searchText.set(value);
     this.searchSubject.next(value);
   }
 
@@ -78,7 +79,7 @@ export class InmueblesComponent implements OnInit {
     const params: any = {
       pageNumber: this.pageNumber(),
       pageSize: this.pageSize(),
-      busqueda: this.searchQuery() || undefined,
+      busqueda: this.searchText() || undefined,
       municipioId: this.selectedMunicipioFilter() !== 'todos' ? this.selectedMunicipioFilter() : undefined
     };
     this.facade.cargarInmuebles(params);
@@ -96,9 +97,8 @@ export class InmueblesComponent implements OnInit {
   }
 
   counts = computed(() => {
-    const all = this.facade.inmuebles();
     return {
-      total: all.length
+      total: this.facade.totalInmuebles()
     };
   });
 

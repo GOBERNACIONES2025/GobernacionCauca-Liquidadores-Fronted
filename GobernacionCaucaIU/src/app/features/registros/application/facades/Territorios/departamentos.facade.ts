@@ -30,11 +30,11 @@ export class DepartamentosFacade {
   /**
    * Carga la lista de departamentos de forma paginada y actualiza el estado (Signals).
    */
-  cargarDepartamentos(pageNumber: number = 1, pageSize: number = 10, search?: string): void {
+  cargarDepartamentos(pageNumber: number = 1, pageSize: number = 10, search?: string, activo?: boolean): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize, search).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search, activo).subscribe({
       next: (response) => {
         if (response.data) {
           this.departamentos.set(response.data.items || []);

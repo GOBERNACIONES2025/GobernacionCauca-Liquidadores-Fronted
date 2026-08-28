@@ -26,8 +26,8 @@ export class Municipios implements OnInit {
 
   breadcrumbs = ['Configuración', 'Territorio', 'Municipio'];
 
-  searchQuery = signal<string>('');
-  private searchSubject = new Subject<string>();
+  searchText = signal<string>('');
+  searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
@@ -49,17 +49,7 @@ export class Municipios implements OnInit {
 
   // Client side active/inactive filter only (if backend doesn't support state filter).
   // Otherwise, we just return all from facade.
-  municipiosFiltrados = computed(() => {
-    const filter = this.selectedFilter();
-    let items = this.facade.municipios();
-
-    if (filter === 'activos') {
-      return items.filter(m => m.activo);
-    } else if (filter === 'inactivos') {
-      return items.filter(m => !m.activo);
-    }
-    return items;
-  });
+  municipiosFiltrados = computed(() => this.facade.municipios());
 
   constructor() {
     this.searchSubject.pipe(
@@ -71,13 +61,14 @@ export class Municipios implements OnInit {
     });
   }
 
-  onSearchChange(value: string) {
-    this.searchQuery.set(value);
+  onSearchChange(event: any) {
+    const value = event?.target ? event.target.value : event;
+    this.searchText.set(value);
     this.searchSubject.next(value);
   }
 
   cargarDatos() {
-    this.facade.cargarMunicipios(this.pageNumber(), this.pageSize(), this.searchQuery());
+    this.facade.cargarMunicipios(this.pageNumber(), this.pageSize(), this.searchText());
   }
 
   onPageChange(page: number) {
@@ -102,11 +93,8 @@ export class Municipios implements OnInit {
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.municipios();
     return {
-      total: all.length,
-      active: all.filter(m => m.activo).length,
-      inactive: all.filter(m => !m.activo).length
+      total: this.facade.totalMunicipios()
     };
   });
 

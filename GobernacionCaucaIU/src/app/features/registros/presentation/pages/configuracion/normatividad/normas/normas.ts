@@ -1,5 +1,8 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
@@ -15,7 +18,7 @@ import { DocumentItem } from '../../../../../../../shared/components/document-vi
 @Component({
   selector: 'app-normas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, DocumentViewerComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent],
   templateUrl: './normas.html',
   styleUrl: './normas.css'
 })
@@ -29,7 +32,20 @@ export class Normas implements OnInit {
 
   breadcrumbs = ['Configuración', 'Normatividad', 'Normas'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -54,51 +70,50 @@ export class Normas implements OnInit {
   });
 
   // Filtered list
-  normasFiltradas = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.normas();
-
-    if (filter === 'activos') {
-      items = items.filter(n => n.estadoNorma?.activo || n.estadoNorma?.nombre?.toLowerCase().includes('activ'));
-    } else if (filter === 'inactivos') {
-      items = items.filter(n => !n.estadoNorma?.activo && !n.estadoNorma?.nombre?.toLowerCase().includes('activ'));
-    }
-
-    if (query) {
-      items = items.filter(n => 
-        n.numero.toLowerCase().includes(query) ||
-        n.anio.toString().includes(query) ||
-        n.tipoNorma?.nombre?.toLowerCase().includes(query) ||
-        n.departamento?.nombre?.toLowerCase().includes(query) ||
-        n.estadoNorma?.nombre?.toLowerCase().includes(query)
-      );
-    }
-
-    return items;
-  });
+  normasFiltradas = computed(() => this.facade.normas());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.normas();
-    const active = all.filter(n => n.estadoNorma?.activo || n.estadoNorma?.nombre?.toLowerCase().includes('activ')).length;
     return {
-      total: all.length,
-      active: active,
-      inactive: all.length - active
+      total: this.facade.totalNormas()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarNormas();
-    this.departamentosFacade.cargarDepartamentos(1, 100);
-    this.tiposNormaFacade.cargarTiposNorma(1, 100);
-    this.estadosNormaFacade.cargarEstadosNorma(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarNormas(undefined, this.pageNumber(), this.pageSize());;
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -148,7 +163,7 @@ export class Normas implements OnInit {
       this.facade.eliminar(item.id, nuevoEstado.id).subscribe({
         next: () => {
           this.toast.success(`Estado de la norma actualizado a ${nuevoEstado.nombre}`);
-          this.facade.cargarNormas();
+          this.cargarItems();
         },
         error: (err: any) => {
           this.toast.error(`Error al actualizar el estado de la norma`);
@@ -211,7 +226,7 @@ export class Normas implements OnInit {
           next: () => {
             this.toast.success(`Norma ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarNormas();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar la norma`);
@@ -236,7 +251,7 @@ export class Normas implements OnInit {
           next: () => {
             this.toast.success(`Norma ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarNormas();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear la norma`);

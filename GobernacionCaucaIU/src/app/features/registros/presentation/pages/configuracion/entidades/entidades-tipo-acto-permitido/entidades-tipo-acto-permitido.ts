@@ -1,5 +1,8 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
@@ -12,7 +15,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-entidades-tipo-acto-permitido',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './entidades-tipo-acto-permitido.html',
   styleUrl: './entidades-tipo-acto-permitido.css'
 })
@@ -25,7 +28,20 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
 
   breadcrumbs = ['Configuración', 'Entidades', 'Actos Permitidos por Entidad'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
   selectedEntidadFilter = signal<number | 'todas'>('todas');
 
@@ -43,51 +59,49 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
   });
 
   // Filtered list
-  relacionesFiltradas = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    const entidadFilter = this.selectedEntidadFilter();
-    let items = this.facade.entidadesTipoActoPermitido();
-
-    if (filter === 'activos') {
-      items = items.filter(r => r.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(r => !r.activo);
-    }
-
-    if (entidadFilter !== 'todas') {
-      items = items.filter(r => r.entidadRegistro?.id === entidadFilter);
-    }
-
-    if (query) {
-      items = items.filter(r => 
-        r.entidadRegistro?.nombre?.toLowerCase().includes(query) || 
-        r.tipoActoRegistro?.nombre?.toLowerCase().includes(query) ||
-        r.tipoActoRegistro?.codigo?.toLowerCase().includes(query)
-      );
-    }
-
-    return items;
-  });
+  relacionesFiltradas = computed(() => this.facade.entidadesTipoActoPermitido());
 
   counts = computed(() => {
-    const all = this.facade.entidadesTipoActoPermitido();
     return {
-      total: all.length,
-      active: all.filter(r => r.activo).length,
-      inactive: all.filter(r => !r.activo).length
+      total: this.facade.totalEntidadesTipoActoPermitido()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarEntidadesTipoActoPermitido(1, 100);
-    this.entidadesFacade.cargarEntidadesRegistro(1, 100);
-    this.tiposActoFacade.cargarTiposActoRegistro(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarEntidadesTipoActoPermitido(this.pageNumber(), this.pageSize());
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   setEntidadFilter(filter: number | 'todas') {
     this.selectedEntidadFilter.set(filter);
@@ -128,7 +142,7 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Relación ${actionName} exitosamente`);
-        this.facade.cargarEntidadesTipoActoPermitido(1, 100);
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar la relación`);
@@ -157,7 +171,7 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
           next: () => {
             this.toast.success(`Relación ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarEntidadesTipoActoPermitido(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar la relación`);
@@ -172,7 +186,7 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
           next: () => {
             this.toast.success(`Relación ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarEntidadesTipoActoPermitido(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear la relación`);

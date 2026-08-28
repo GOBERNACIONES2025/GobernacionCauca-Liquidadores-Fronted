@@ -23,14 +23,14 @@
         </div>
         <input 
           type="text" 
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
+          [value]="searchText()"
+          (input)="onSearchChange($event)"
           placeholder="Buscar exención..." 
           class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
         />
-        @if (searchQuery()) {
+        @if (searchText()) {
           <button 
-            (click)="searchQuery.set('')"
+            (click)="searchText.set(''); searchSubject.next('')"
             class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -196,6 +196,14 @@
     </table>
   </div>
   
+  <!-- Paginación -->
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="counts().total"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
   <!-- Footer Counter -->
   <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
     Mostrando {{ exencionesFiltradas().length }} de {{ counts().total }} registros

@@ -34,11 +34,11 @@ export class CategoriasActoFacade {
   /**
    * Carga la lista paginada de categorías de acto.
    */
-  cargarCategoriasActo(pageNumber: number = 1, pageSize: number = 10, search?: string): void {
+  cargarCategoriasActo(pageNumber: number = 1, pageSize: number = 10, search?: string, activo?: boolean): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize, search).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search, activo).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.categoriasActo.set(response.data.items || []);

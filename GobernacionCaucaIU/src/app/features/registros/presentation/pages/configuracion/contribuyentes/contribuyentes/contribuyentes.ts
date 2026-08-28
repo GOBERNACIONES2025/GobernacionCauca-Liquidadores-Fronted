@@ -28,8 +28,8 @@ export class Contribuyentes implements OnInit {
 
   breadcrumbs = ['Configuración', 'Contribuyentes', 'Directorio de Contribuyentes'];
 
-  searchQuery = signal<string>('');
-  private searchSubject = new Subject<string>();
+  searchText = signal<string>('');
+  searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
@@ -54,15 +54,7 @@ export class Contribuyentes implements OnInit {
   });
 
   // Filtered list (client side for tipoPersona si no es backend filter, backend for search)
-  contribuyentesFiltrados = computed(() => {
-    const tipoPersonaFilter = this.selectedTipoPersonaFilter();
-    let items = this.facade.contribuyentes();
-
-    if (tipoPersonaFilter !== 'todos') {
-      items = items.filter(c => c.tipoPersona?.id === tipoPersonaFilter);
-    }
-    return items;
-  });
+  contribuyentesFiltrados = computed(() => this.facade.contribuyentes());
 
   constructor() {
     this.searchSubject.pipe(
@@ -74,13 +66,14 @@ export class Contribuyentes implements OnInit {
     });
   }
 
-  onSearchChange(value: string) {
-    this.searchQuery.set(value);
+  onSearchChange(event: any) {
+    const value = event?.target ? event.target.value : event;
+    this.searchText.set(value);
     this.searchSubject.next(value);
   }
 
   cargarDatos() {
-    this.facade.cargarContribuyentes(this.pageNumber(), this.pageSize(), this.searchQuery());
+    this.facade.cargarContribuyentes(this.pageNumber(), this.pageSize(), this.searchText());
   }
 
   onPageChange(page: number) {
@@ -95,9 +88,8 @@ export class Contribuyentes implements OnInit {
   }
 
   counts = computed(() => {
-    const all = this.facade.contribuyentes();
     return {
-      total: all.length
+      total: this.facade.totalContribuyentes()
     };
   });
 
