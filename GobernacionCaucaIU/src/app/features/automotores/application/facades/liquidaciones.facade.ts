@@ -8,6 +8,7 @@ import {
   LiquidacionMasivaResultado
 } from '../../domain/models/liquidacion.model';
 import { ApiResponse } from '../../domain/models/vehiculo.model';
+import { generatePdfBlobFromHtml, downloadPdfFromHtml } from '../../../../shared/utils/pdf-exporter.util';
 import { catchError, map } from 'rxjs/operators';
 import { of, forkJoin } from 'rxjs';
 
@@ -145,25 +146,27 @@ export class LiquidacionesFacade {
   readonly isPdfViewerOpen = signal<boolean>(false);
   readonly pdfDocumentos = signal<any[]>([]);
 
-  /** Abre la vista previa del documento oficial PDF usando Blob URL (Mismo estándar de Impuesto de Registro) */
+  /** Abre la vista previa del documento oficial en el visor modal interactivo */
   abrirPdfPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
     const params: any = { placa, esUnificado, descargar: false };
     if (vigencia) params.vigencia = vigencia;
 
     this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
-      next: (blob) => {
-        const isPdf = blob.type === 'application/pdf' || blob.size > 4000;
-        const mimeType = isPdf ? 'application/pdf' : 'text/html';
-        const blobUrl = URL.createObjectURL(new Blob([blob], { type: mimeType }));
+      next: async (blob) => {
+        const text = await blob.text();
+        const isHtml = text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('<div') || text.includes('<table');
         const nombreDoc = esUnificado 
           ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
           : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
 
+        const blobUrl = URL.createObjectURL(new Blob([blob], { type: isHtml ? 'text/html' : 'application/pdf' }));
+        
         this.pdfDocumentos.set([{
           id: placa,
           nombreArchivo: nombreDoc,
           rutaArchivo: blobUrl,
-          tipoArchivo: mimeType
+          tipoArchivo: isHtml ? 'text/html' : 'application/pdf',
+          contenidoHtml: isHtml ? text : undefined
         }]);
         this.isPdfViewerOpen.set(true);
       },
@@ -183,23 +186,31 @@ export class LiquidacionesFacade {
     this.pdfDocumentos.set([]);
   }
 
-  /** Descarga directamente el archivo PDF oficial (Mismo estándar de Impuesto de Registro) */
+  /** Descarga directamente el archivo PDF binario oficial (.pdf 100% válido) */
   descargarPdfDirecto(placa: string, vigencia?: number, esUnificado: boolean = false): void {
     const params: any = { placa, esUnificado, descargar: true };
     if (vigencia) params.vigencia = vigencia;
 
     this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = esUnificado 
+      next: async (blob) => {
+        const text = await blob.text();
+        const isHtml = text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('<div') || text.includes('<table');
+        const nombreDoc = esUnificado 
           ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
           : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+
+        if (isHtml) {
+          await downloadPdfFromHtml(text, nombreDoc);
+        } else {
+          const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = nombreDoc;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }
       },
       error: (err) => {
         console.error('Error al descargar el archivo PDF:', err);

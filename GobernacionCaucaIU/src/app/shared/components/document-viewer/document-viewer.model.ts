@@ -3,4 +3,5 @@ export interface DocumentItem {
   nombreArchivo: string;
   rutaArchivo: string;
   tipoArchivo?: string;
+  contenidoHtml?: string;
 }

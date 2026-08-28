@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-browser';
 import { DocumentItem } from './document-viewer.model';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
+import { downloadPdfFromHtml } from '../../utils/pdf-exporter.util';
 
 @Component({
   selector: 'app-document-viewer',
@@ -22,14 +23,22 @@ export class DocumentViewerComponent implements OnChanges {
   
   selectedDoc: DocumentItem | null = null;
   safeUrl: SafeResourceUrl | null = null;
+  htmlDocContent: string | null = null;
+  safeSrcdoc: SafeHtml | null = null;
+  zoomLevel: number = 100;
+  isDownloading: boolean = false;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['isOpen'] && this.isOpen) {
+      this.zoomLevel = 100;
+      this.isDownloading = false;
       if (this.documentos && this.documentos.length > 0) {
         this.selectDocument(this.documentos[0]);
       } else {
         this.selectedDoc = null;
         this.safeUrl = null;
+        this.htmlDocContent = null;
+        this.safeSrcdoc = null;
       }
     }
   }
@@ -42,8 +51,33 @@ export class DocumentViewerComponent implements OnChanges {
     return `${cleanApi}${cleanRuta}`;
   }
 
-  selectDocument(doc: DocumentItem) {
+  async selectDocument(doc: DocumentItem) {
     this.selectedDoc = doc;
+    this.htmlDocContent = doc.contenidoHtml || null;
+    this.safeUrl = null;
+    this.safeSrcdoc = null;
+    this.zoomLevel = 100;
+    this.isDownloading = false;
+
+    if (this.htmlDocContent) {
+      this.safeSrcdoc = this.sanitizer.bypassSecurityTrustHtml(this.htmlDocContent);
+      return;
+    }
+
+    if (doc.rutaArchivo?.startsWith('blob:')) {
+      try {
+        const response = await fetch(doc.rutaArchivo);
+        const text = await response.text();
+        if (text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('<div') || text.includes('<table')) {
+          this.htmlDocContent = text;
+          this.safeSrcdoc = this.sanitizer.bypassSecurityTrustHtml(text);
+          return;
+        }
+      } catch (e) {
+        console.error('Error al inspeccionar contenido del documento:', e);
+      }
+    }
+
     const url = this.buildUrl(doc.rutaArchivo);
     this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
   }
@@ -52,20 +86,77 @@ export class DocumentViewerComponent implements OnChanges {
     this.isOpen = false;
     this.selectedDoc = null;
     this.safeUrl = null;
+    this.htmlDocContent = null;
+    this.safeSrcdoc = null;
+    this.zoomLevel = 100;
+    this.isDownloading = false;
     this.onClose.emit();
   }
 
-  downloadCurrent() {
-    if (!this.selectedDoc) return;
-    
-    const url = this.buildUrl(this.selectedDoc.rutaArchivo);
+  zoomIn() {
+    this.zoomLevel = Math.min(200, this.zoomLevel + 15);
+  }
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.download = this.selectedDoc.nombreArchivo || 'documento';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  zoomOut() {
+    this.zoomLevel = Math.max(50, this.zoomLevel - 15);
+  }
+
+  resetZoom() {
+    this.zoomLevel = 100;
+  }
+
+  openInNewTab() {
+    if (this.htmlDocContent) {
+      const tab = window.open('', '_blank');
+      if (tab) {
+        tab.document.write(this.htmlDocContent);
+        tab.document.close();
+      }
+    } else if (this.selectedDoc?.rutaArchivo) {
+      window.open(this.buildUrl(this.selectedDoc.rutaArchivo), '_blank');
+    }
+  }
+
+  printCurrent() {
+    if (this.htmlDocContent) {
+      const printWin = window.open('', '_blank');
+      if (printWin) {
+        printWin.document.write(this.htmlDocContent);
+        printWin.document.close();
+        printWin.focus();
+        setTimeout(() => {
+          printWin.print();
+        }, 350);
+      }
+    } else if (this.selectedDoc?.rutaArchivo) {
+      window.open(this.buildUrl(this.selectedDoc.rutaArchivo), '_blank');
+    }
+  }
+
+  async downloadCurrent() {
+    if (!this.selectedDoc || this.isDownloading) return;
+    
+    const filename = this.selectedDoc.nombreArchivo || 'Recibo_Liquidacion.pdf';
+    this.isDownloading = true;
+
+    try {
+      if (this.htmlDocContent) {
+        await downloadPdfFromHtml(this.htmlDocContent, filename);
+        return;
+      }
+
+      const url = this.buildUrl(this.selectedDoc.rutaArchivo);
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (e) {
+      console.error('Error al descargar el documento:', e);
+    } finally {
+      this.isDownloading = false;
+    }
   }
 }
