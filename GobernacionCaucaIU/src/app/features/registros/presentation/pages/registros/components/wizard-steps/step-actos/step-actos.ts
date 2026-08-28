@@ -70,7 +70,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
     if (!cat) return false;
     const cod = (cat.codigo || '').trim().toUpperCase();
     const nom = (cat.nombre || '').trim().toUpperCase();
-    return cod === 'INM' || cod === 'INMOBILIARIO' || cod === 'ORIP' || nom.includes('INMOBILIAR') || nom.includes('PREDIAL') || nom.includes('INSTRUMENTOS PUBLICOS') || nom.includes('INSTRUMENTOS PÚBLICOS');
+    return cod === 'INM' || cod === 'GAR' || cod === 'INMOBILIARIO' || cod === 'ORIP' || nom.includes('INMOBILIAR') || nom.includes('PREDIAL') || nom.includes('INSTRUMENTOS PUBLICOS') || nom.includes('INSTRUMENTOS PÚBLICOS');
   }
 
   get pisoMinimoLegal(): number {
