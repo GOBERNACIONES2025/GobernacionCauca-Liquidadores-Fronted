@@ -48,7 +48,7 @@ export interface RecentActivityItem {
   user: string;
   date: string;
   time: string;
-  status: 'APROBADO' | 'PENDIENTE' | 'RECHAZADO' | 'LIQUIDADO' | 'PAGADO';
+  status: 'APROBADO' | 'PENDIENTE' | 'RECHAZADO' | 'LIQUIDADO' | 'PAGADO' | 'BORRADOR' | string;
   statusColor?: string;
 }
 
