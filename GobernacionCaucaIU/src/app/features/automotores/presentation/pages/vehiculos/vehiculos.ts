@@ -5,7 +5,7 @@ import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 import { VehiculoItem } from '../../../domain/models/vehiculo.model';
 import { VehiculoWizardComponent } from '../../../presentation/components/vehiculo-wizard/vehiculo-wizard';
-import { AuditoriaVehiculoValidator } from '../../../application/validators/auditoria-vehiculo.validator';
+import { AuditoriaVehiculoValidator } from '../../../application/validators/vehiculos/auditoria-vehiculo.validator';
 import { FieldError } from '../../../application/validators/validation-result';
 
 @Component({

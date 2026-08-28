@@ -13,7 +13,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angul
 import { Subscription } from 'rxjs';
 
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
-import { VehiculoCompletoValidator } from '../../../application/validators/vehiculo-completo.validator';
+import { VehiculoCompletoValidator } from '../../../application/validators/vehiculos/vehiculo-completo.validator';
 import { FieldError } from '../../../application/validators/validation-result';
 import {
   RegistrarVehiculoDto,

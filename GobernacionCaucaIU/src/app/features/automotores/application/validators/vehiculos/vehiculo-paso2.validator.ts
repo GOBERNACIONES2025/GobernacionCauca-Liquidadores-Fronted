@@ -13,7 +13,7 @@ import {
   minLength,
   minValue,
   ValidationResult
-} from './validation-result';
+} from '../validation-result';
 
 /**
  * @file vehiculo-paso2.validator.ts

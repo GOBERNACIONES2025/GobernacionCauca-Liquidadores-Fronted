@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Contribuyente } from '../../../domain/models/contribuyente.model';
 import { ContribuyentesFacade } from '../../../application/facades/contribuyentes.facade';
-import { ContribuyenteValidator } from '../../../application/validators/contribuyente.validator';
+import { ContribuyenteValidator } from '../../../application/validators/contribuyentes/contribuyente.validator';
+import { FieldError } from '../../../application/validators/validation-result';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -19,7 +20,7 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
   readonly validator = inject(ContribuyenteValidator);
 
   /** Errores de validación por campo (poblados por el validator en onSubmit) */
-  _erroresForm: import('../../../application/validators/validation-result').FieldError[] = [];
+  _erroresForm: FieldError[] = [];
 
   /** Obtiene el mensaje de error de un campo específico */
   getError(campo: string): string | null {

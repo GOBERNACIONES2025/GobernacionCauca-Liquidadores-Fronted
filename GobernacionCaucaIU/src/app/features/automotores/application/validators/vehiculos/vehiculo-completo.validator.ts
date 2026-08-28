@@ -1,6 +1,6 @@
-﻿import { Injectable, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { buildResult, FieldError, ValidationResult } from './validation-result';
+import { buildResult, FieldError, ValidationResult } from '../validation-result';
 import { VehiculoPaso1Validator } from './vehiculo-paso1.validator';
 import { VehiculoPaso2Validator } from './vehiculo-paso2.validator';
 import { VehiculoPaso3Validator } from './vehiculo-paso3.validator';

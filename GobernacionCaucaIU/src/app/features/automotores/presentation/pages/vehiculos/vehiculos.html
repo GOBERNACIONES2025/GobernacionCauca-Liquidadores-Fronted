@@ -25,13 +25,13 @@
           </div>
           
           <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <span class="tooltip-wrap inline-flex">
+            <!-- <span class="tooltip-wrap inline-flex">
               <button (click)="facade.abrirRunt()" type="button" class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-blue-50 text-[#1e3a7b] border border-[#1e3a7b] hover:bg-blue-100/70 shadow-sm">
                 <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                 Consultar RUNT
               </button>
               <span class="tooltip-box">Consultar en el RUNT</span>
-            </span>
+            </span> -->
 
             <!-- BOTÓN PENDIENTES DE APROBACIÓN CON BADGE -->
             <button (click)="facade.abrirModalPendientes()" type="button" class="relative inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-all bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 shadow-sm">
@@ -957,7 +957,7 @@
                 [ngModel]="filtroModalPendientes()" 
                 (ngModelChange)="filtroModalPendientes.set($event)" 
                 placeholder="Buscar placa, marca, prop..." 
-                class="font-black w-full pl-8 pr-3 py-1.5 text-[12.5px] rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] transition-all" />
+                class="text-black w-full pl-8 pr-3 py-1.5 text-[12.5px] rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] transition-all" />
             </div>
 
             <button (click)="facade.cerrarModalPendientes()" type="button" class="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer shrink-0">

@@ -10,7 +10,7 @@ import {
   maxLength,
   minLength,
   ValidationResult
-} from './validation-result';
+} from '../validation-result';
 
 /**
  * @file contribuyente.validator.ts
