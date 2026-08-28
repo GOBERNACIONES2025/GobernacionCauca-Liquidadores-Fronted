@@ -1,0 +1,48 @@
+<div class="flex flex-col gap-1.5 pb-2">
+  
+  <!-- Breadcrumbs -->
+  <nav class="flex items-center gap-1.5 text-xs text-slate-400 select-none flex-wrap">
+    @for (crumb of breadcrumbs; track $index; let isLast = $last) {
+      @if (!$first) {
+        <span class="text-slate-300 font-normal">›</span>
+      }
+      <span [class]="isLast ? 'text-blue-600 font-semibold' : 'hover:text-slate-600 transition-colors cursor-default'">
+        {{ crumb }}
+      </span>
+    }
+  </nav>
+
+  <!-- Title & Tags -->
+  <div class="flex items-center gap-3 mt-0.5 flex-wrap">
+    <h1 class="text-2xl font-bold text-slate-800 tracking-tight">{{ title }}</h1>
+    @for (tag of tags; track $index) {
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200/70 shadow-xs">
+        {{ tag.text }}
+      </span>
+    }
+  </div>
+
+  <!-- Counters (Subtitle) -->
+  @if (counts) {
+    <div class="flex items-center gap-2 text-xs text-slate-500 flex-wrap mt-0.5">
+      @if (counts.total !== undefined) {
+        <span class="font-medium"><strong class="text-slate-700 font-bold">{{ counts.total }}</strong> registros totales</span>
+      }
+      @if (counts.active !== undefined) {
+        <span class="text-slate-300">•</span>
+        <span class="inline-flex items-center gap-1.5 font-medium text-slate-600">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <strong class="text-slate-700 font-bold">{{ counts.active }}</strong> activos
+        </span>
+      }
+      @if (counts.inactive !== undefined) {
+        <span class="text-slate-300">•</span>
+        <span class="inline-flex items-center gap-1.5 font-medium text-slate-500">
+          <span class="w-1.5 h-1.5 rounded-full border border-slate-400 bg-transparent"></span>
+          <strong class="text-slate-700 font-bold">{{ counts.inactive }}</strong> inactivos
+        </span>
+      }
+    </div>
+  }
+</div>
+

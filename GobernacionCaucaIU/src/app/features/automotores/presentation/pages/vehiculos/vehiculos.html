@@ -665,68 +665,10 @@
   </div>
 }
 
+
 <!-- ========================================================================= -->
-<!-- DRAWER / MODAL MULTIPASO: REGISTRAR VEHÍCULO                              -->
+<!-- WIZARD: REGISTRAR / EDITAR VEHÍCULO (componente VehiculoWizardComponent)  -->
 <!-- ========================================================================= -->
-@if (facade.isDrawerOpen()) {
-  <div class="fade-in fixed inset-0 bg-slate-900/40 z-[300] flex justify-end backdrop-blur-[1.5px]" (click)="facade.cerrarRegistro()">
-    <div (click)="$event.stopPropagation()" class="drawer-enter w-[540px] max-w-full bg-white shadow-2xl flex flex-col overflow-hidden h-full">
-      
-      <!-- Drawer Header -->
-      <div class="bg-[#1e3a7b] px-5 py-4 flex items-center justify-between shrink-0 text-white">
-        <div>
-          <div class="text-[10px] font-bold text-white/60 uppercase tracking-widest">
-            {{ facade.isNuevoRegistro() ? 'Nuevo Registro' : 'Expediente Vehicular' }}
-          </div>
-          <div class="text-[15px] font-bold text-white mt-0.5">
-            {{ facade.isNuevoRegistro() ? 'Registrar Vehículo' : ('Expediente — ' + (facade.selectedVehiculo()?.placa || '')) }}
-          </div>
-        </div>
-        <button (click)="facade.cerrarRegistro()" class="bg-white/10 hover:bg-white/20 border-none rounded-md cursor-pointer p-1.5 flex text-white transition-colors">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <!-- Drawer Tabs Navigation -->
-      <div class="flex border-b border-slate-200 bg-white shrink-0 overflow-x-auto">
-        @for (tab of facade.tabs(); track tab; let idx = $index) {
-          <button 
-            (click)="facade.setTab(tab)"
-            [class]="'shrink-0 py-2.5 px-4 text-[12px] font-semibold cursor-pointer border-b-[2.5px] transition-colors whitespace-nowrap ' + (facade.activeTab() === tab ? 'text-[#1e3a7b] border-[#70b238]' : 'text-slate-400 border-transparent hover:text-slate-600')">
-            {{ tab }}
-          </button>
-        }
-      </div>
-
-      <!-- Drawer Body (Scrollable with Reactive Form) -->
-      <div class="flex-1 overflow-y-auto p-5" [formGroup]="form">
-        @if (facade.catalogosLoading()) {
-          <div class="flex flex-col items-center justify-center py-24 px-6 text-center">
-            <div class="relative w-14 h-14 mb-4 flex items-center justify-center">
-              <div class="absolute inset-0 rounded-full border-[3px] border-[#1e3a7b1a] border-t-[#1e3a7b] animate-spin"></div>
-              <svg width="22" height="22" class="text-[#1e3a7b] animate-pulse" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
-                <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"></path>
-                <circle cx="7" cy="17" r="2"></circle>
-                <path d="M9 17h6"></path>
-                <circle cx="17" cy="17" r="2"></circle>
-              </svg>
-            </div>
-            <h4 class="text-[15px] font-bold text-slate-800 mb-1">Cargando datos para vehiculos...</h4>
-            <p class="text-[12.5px] text-slate-500 max-w-xs leading-relaxed">Consultando catálogos y especificaciones oficiales.</p>
-          </div>
-        } @else {
-          <div class="flex flex-col gap-4">
-          
-          <!-- TAB 1: DATOS DEL VEHÍCULO (UNIFICADO) -->
-          @if (facade.activeTab() === 'Datos del Vehículo') {
-            <div class="rounded-md p-3 text-[12.5px] font-medium flex items-start gap-2 bg-[#1e3a7b0f] border-l-[3px] border-[#1e3a7b] text-[#1e3a7b]">
-              <span class="mt-0.5 shrink-0">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-              </span>
-              Los campos marcados con 🔒 están bloqueados por normativa y solo pueden modificarse mediante resolución administrativa.
-            </div>
-
-            <div class="grid grid-cols-2 gap-x-4.5 gap-y-3.5">
               <!-- 1. Tipo de Vehículo -->
               <div class="col-span-2 md:col-span-1">
                 <label class="flex items-center gap-1 text-[11px] font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">1. Tipo de Vehículo <span class="text-red-500">*</span></label>
@@ -1090,6 +1032,8 @@
     </div>
   </div>
 }
+=======
+>>>>>>> origin/main
 
 <!-- MODAL: CONFIRMAR INACTIVACIÓN DE VEHÍCULO -->
 @if (facade.isInactivarModalOpen()) {

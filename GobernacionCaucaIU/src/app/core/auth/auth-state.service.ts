@@ -13,8 +13,8 @@ export class AuthStateService {
   // Se configura la API en HTTPS (puerto 7250) y HTTP (puerto 5023)
   readonly moduleApiUrls = signal<Record<string, string>>({
     LOGIN: 'https://localhost:7250/api',
-    AUTOMOTORES: 'https://localhost:7250/api',
-    REGISTROS: 'http://localhost:5002/api',
+    AUTOMOTORES: 'http://192.168.25.175:5023/api',
+    REGISTROS: 'http://localhost:5098/api/v1',
   });
 
   // Signal computado para verificar si hay sesión activa

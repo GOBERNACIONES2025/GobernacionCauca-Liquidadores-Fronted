@@ -25,4 +25,5 @@ export interface HttpOptions {
   params?: { [param: string]: string | number | boolean | readonly (string | number | boolean)[] };
   responseType?: 'json' | 'text' | 'blob' | 'arraybuffer';
   withCredentials?: boolean;
+  body?: any;
 }

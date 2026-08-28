@@ -1,0 +1,112 @@
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+      <div>
+        <h3 class="text-sm font-bold text-slate-800">Resumen de Liquidación Previa</h3>
+        <p class="text-xs text-slate-500">Revise los valores antes de generar el documento oficial.</p>
+      </div>
+      @if (wizardService.liquidacionSimulada(); as resumen) {
+        <div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold font-mono border border-blue-200 shadow-sm">
+          No. {{ resumen.numeroLiquidacion }}
+        </div>
+      }
+    </div>
+    
+    <div class="p-8">
+      @if (isSimulating()) {
+        <div class="flex flex-col items-center justify-center py-12 gap-3 text-slate-500">
+          <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="text-sm font-medium">Calculando liquidación en el servidor...</span>
+        </div>
+      } @else if (wizardService.liquidacionSimulada(); as resumen) {
+        <div class="max-w-3xl mx-auto space-y-6">
+          
+          <!-- Tabla de Desglose por Acto -->
+          <div class="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-100/50 border-b border-slate-200">
+                <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="px-4 py-3">Acto</th>
+                  <th class="px-4 py-3 text-right">Base</th>
+                  <th class="px-4 py-3 text-right">Tarifa</th>
+                  <th class="px-4 py-3 text-right text-emerald-600">Exención</th>
+                  <th class="px-4 py-3 text-right text-blue-700">A Pagar</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (acto of resumen.actos; track acto.tipoActoRegistroId) {
+                  <tr>
+                    <td class="px-4 py-3">
+                      <div class="font-medium text-slate-800">{{ acto.nombreTipoActo }}</div>
+                      <div class="text-[10px] text-slate-400 font-mono">{{ acto.codigoTipoActo }}</div>
+                    </td>
+                    <td class="px-4 py-3 text-right text-slate-600">{{ acto.baseCalculo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                    <td class="px-4 py-3 text-right text-slate-600">{{ acto.tarifaAplicada }}%</td>
+                    <td class="px-4 py-3 text-right font-medium text-emerald-600">
+                      {{ acto.valorDescontado > 0 ? '-' : '' }}{{ acto.valorDescontado | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="px-4 py-3 text-right font-bold text-blue-700">{{ acto.valorPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                  </tr>
+                }
+                @if (resumen.actos.length === 0) {
+                  <tr>
+                    <td colspan="5" class="px-4 py-6 text-center text-slate-400 italic">No hay actos registrados para liquidar.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Total Global -->
+          <div class="flex justify-between items-center py-4 px-6 bg-blue-50/50 rounded-xl border border-blue-100 mt-4 shadow-sm">
+            <span class="text-base font-bold text-blue-900 uppercase">Gran Total A Pagar</span>
+            <span class="text-4xl font-black text-blue-700">{{ resumen.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+    
+    <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center">
+      @if (!wizardService.liquidacionGeneradaExitosa()) {
+        <button (click)="retroceder()" [disabled]="isGenerating()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors disabled:opacity-50">
+          ← Volver a Actos
+        </button>
+        <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating()" class="px-8 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-3 disabled:opacity-70">
+          @if (isGenerating()) {
+            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generando...
+          } @else {
+            Generar Liquidación Oficial
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          }
+        </button>
+      } @else {
+        <button (click)="irABandeja()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors">
+          Ir a mis Liquidaciones
+        </button>
+        <button (click)="descargarLiquidacion()" [disabled]="isGenerating()" class="px-8 py-3 bg-green-600 text-white font-bold text-sm rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-500/30 flex items-center gap-3 disabled:opacity-70">
+          @if (isGenerating()) {
+            <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Descargando...
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Descargar PDF Oficial
+          }
+        </button>
+      }
+    </div>
+  </div>
+</div>

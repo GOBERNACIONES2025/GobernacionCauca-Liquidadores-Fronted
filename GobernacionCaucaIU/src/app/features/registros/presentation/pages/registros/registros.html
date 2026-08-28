@@ -1,1 +1,15 @@
-<p>registros works!</p>
+<div class="h-full relative bg-slate-50">
+  
+  @if (viewMode() === 'list') {
+    <!-- Vista 1: Centro de Trabajo (Dashboard principal) -->
+    <div class="p-6">
+      <app-registros-list (newSolicitud)="iniciarNuevaSolicitud()"></app-registros-list>
+    </div>
+  } @else {
+    <!-- Vista 2: Asistente de Liquidación (Wizard) -->
+    <div class="h-full bg-white flex flex-col animate-in slide-in-from-right-4 duration-300">
+      <app-liquidacion-wizard (cancel)="cancelarWizard()"></app-liquidacion-wizard>
+    </div>
+  }
+
+</div>

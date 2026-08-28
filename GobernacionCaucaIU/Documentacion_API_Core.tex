@@ -1,0 +1,306 @@
+\documentclass[12pt,a4paper]{article}
+
+% --- PAQUETES DE IDIOMA Y FORMATO ---
+\usepackage[spanish,es-tabla]{babel}
+\usepackage[utf8]{utf8}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+% --- COLORES Y ESTILOS ---
+\usepackage{xcolor}
+\definecolor{primaryColor}{RGB}{15, 23, 42}       % Slate 900
+\definecolor{secondaryColor}{RGB}{30, 58, 138}    % Blue 900
+\definecolor{accentColor}{RGB}{16, 185, 129}      % Emerald 500
+\definecolor{codeBg}{RGB}{248, 250, 252}          % Slate 50
+\definecolor{codeBorder}{RGB}{226, 232, 240}      % Slate 200
+\definecolor{codeKeyword}{RGB}{147, 51, 234}     % Purple 600
+\definecolor{codeString}{RGB}{5, 150, 105}        % Emerald 600
+\definecolor{codeComment}{RGB}{100, 116, 139}     % Slate 500
+
+% --- PAQUETES GRÁFICOS Y DE CÓDIGO ---
+\usepackage{listings}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows, positioning}
+
+% --- CONFIGURACIÓN DE LISTINGS (CÓDIGO FUENTE) ---
+\lstdefinelanguage{TypeScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break, export, import, from, class, interface, extends, implements, constructor, private, public, protected, readonly, inject, signal, computed, Observable},
+  keywordstyle=\color{codeKeyword}\bfseries,
+  ndkeywords={class, export, boolean, number, string, void, any, Injectable, Component},
+  ndkeywordstyle=\color{secondaryColor}\bfseries,
+  identifierstyle=\color{primaryColor},
+  sensitive=true,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{codeComment}\itshape,
+  stringstyle=\color{codeString},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+  language=TypeScript,
+  backgroundcolor=\color{codeBg},
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  captionpos=b,
+  frame=single,
+  rulecolor=\color{codeBorder},
+  tabsize=2,
+  showstringspaces=false
+}
+
+% --- ENCABEZADO Y PIE DE PÁGINA ---
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{\textcolor{secondaryColor}{\textbf{Gobernación del Cauca --- Sistema de Liquidadores}}}
+\lhead{\textcolor{codeComment}{Documentación de Infraestructura HTTP Core}}
+\rfoot{Página \thepage}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=secondaryColor,
+    urlcolor=accentColor,
+    pdftitle={Documentación Técnica: Infraestructura HTTP y Consumo de APIs en Angular},
+    pdfauthor={Equipo de Desarrollo --- Gobernación del Cauca}
+}
+
+\begin{document}
+
+% --- PORTADA ---
+\begin{titlepage}
+    \centering
+    \vspace*{1cm}
+    
+    {\Huge \bfseries \textcolor{primaryColor}{SISTEMA DE LIQUIDADORES}}\\[0.4cm]
+    {\Large \textcolor{secondaryColor}{GOBERNACIÓN DEL CAUCA}}\\[1.5cm]
+    
+    \rule{\linewidth}{0.5mm}\\[0.4cm]
+    {\huge \bfseries \textcolor{primaryColor}{Infraestructura HTTP Genérica,\\ Interceptores y Consumo por Capas}}\\[0.2cm]
+    \rule{\linewidth}{0.5mm}\\[1.5cm]
+    
+    \begin{tcolorbox}[colframe=secondaryColor,colback=codeBg,arc=3mm,title=\textbf{Resumen Ejecutivo}]
+        Documento técnico de especificación sobre el diseño, arquitectura e implementación del módulo \textbf{Core} en Frontend (Angular 21+). Se detalla la función HTTP genérica con soporte multi-impuesto, la gestión reactiva con Angular Signals, los interceptores de seguridad JWT y el patrón de consumo por capas (Domain $\rightarrow$ Infrastructure $\rightarrow$ Application $\rightarrow$ Presentation).
+    \end{tcolorbox}
+    
+    \vfill
+    
+    {\large \textbf{Fecha:} Agosto 2026}\\[0.2cm]
+    {\large \textbf{Tecnologías:} Angular 21+, RxJS, TypeScript, ASP.NET Core API}\\[0.2cm]
+    {\large \textbf{Estado:} Implementado y Verificado}
+    
+    \vspace*{1cm}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% --- SECCIÓN 1 ---
+\section{Introducción y Arquitectura}
+
+El \textbf{Sistema de Liquidadores de la Gobernación del Cauca} está fundamentado en una arquitectura distribuida y modularizada. A nivel de Backend, el sistema separa la responsabilidad tributaria en múltiples APIs Web independientes:
+
+\begin{itemize}
+    \item \textbf{Login / Orquestador API:} Gestiona la autenticación centralizada, emite tokens JWT y devuelve la información del módulo tributario asignado junto a su URL base.
+    \item \textbf{API Impuesto de Automotores:} Modulo encargado de vehículos, propietarios, liquidaciones y tarifas de automotores.
+    \item \textbf{API Impuesto de Registros:} Módulo dedicado a actos, sujetos y liquidaciones del impuesto de registro.
+\end{itemize}
+
+Para reflejar este principio en el Frontend (Angular), la carpeta \texttt{src/app/core/} aloja los componentes transversales que gestionan de forma dinámica la comunicación HTTP, el almacenamiento de tokens y la seguridad global.
+
+---
+
+% --- SECCIÓN 2 ---
+\section{Infraestructura del Core HTTP}
+
+\subsection{Modelo Matemático de Enrutamiento de URLs}
+
+Cada impuesto posee su propia dirección IP o dominio. La construcción final de una petición HTTP se representa formalmente como la concatenación de la Base URL del módulo objetivo y la ruta relativa del recurso:
+
+\[
+\text{URL}_{\text{final}}(m, e) = \text{BaseUrl}(m) \mathbin{\Vert} \text{CleanEndpoint}(e)
+\]
+
+Donde:
+\begin{itemize}
+    \item $m \in \{\text{AUTOMOTORES}, \text{REGISTROS}, \text{LOGIN}, \dots\}$ es el módulo o impuesto seleccionado.
+    \item $e$ representa la ruta del recurso final (ej. \texttt{vehiculos/ABC123}).
+    \item $\text{BaseUrl}(m)$ obtiene la URL base configurada o retornada dinámicamente por la Login API.
+\end{itemize}
+
+---
+
+\subsection{Gestión de Estado Reactivo con Signals (\texttt{AuthStateService})}
+
+El servicio \texttt{AuthStateService} administra el estado del usuario autenticado, el módulo activo y la relación de URLs base mediante **Angular Signals**.
+
+\begin{lstlisting}[caption={Fragmento del AuthStateService (Signals reactivos)}]
+@Injectable({ providedIn: 'root' })
+export class AuthStateService {
+  readonly currentUser = signal<User | null>(null);
+  readonly currentModulo = signal<TaxModuleType | null>(null);
+
+  readonly moduleApiUrls = signal<Record<string, string>>({
+    LOGIN: 'http://localhost:5000/api',
+    AUTOMOTORES: 'http://localhost:5001/api',
+    REGISTROS: 'http://localhost:5002/api',
+  });
+
+  getApiUrl(modulo?: TaxModuleType): string {
+    const target = (modulo || this.currentModulo() || 'LOGIN').toUpperCase();
+    return this.moduleApiUrls()[target] || '';
+  }
+}
+\end{lstlisting}
+
+---
+
+\subsection{Servicio HTTP Genérico Multi-Impuesto (\texttt{BaseApiService})}
+
+\texttt{BaseApiService} es el núcleo de la comunicación HTTP. Encapsula las operaciones \texttt{GET}, \texttt{POST}, \texttt{PUT}, \texttt{PATCH} y \texttt{DELETE}, abstrayendo la complejidad del armado de URLs y aprovechando los interceptores globales de Angular.
+
+\begin{lstlisting}[caption={Servicio HTTP Genérico BaseApiService}]
+@Injectable({ providedIn: 'root' })
+export class BaseApiService {
+  private http = inject(HttpClient);
+  private authState = inject(AuthStateService);
+
+  public buildUrl(endpoint: string, targetModule?: TaxModuleType): string {
+    const baseUrl = this.authState.getApiUrl(targetModule);
+    const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `${cleanBase}${cleanEndpoint}`;
+  }
+
+  get<T>(endpoint: string, options?: HttpOptions, targetModule?: TaxModuleType): Observable<T> {
+    const url = this.buildUrl(endpoint, targetModule);
+    return this.http.get<T>(url, this.formatOptions(options));
+  }
+
+  post<T>(endpoint: string, body: any, options?: HttpOptions, targetModule?: TaxModuleType): Observable<T> {
+    const url = this.buildUrl(endpoint, targetModule);
+    return this.http.post<T>(url, body, this.formatOptions(options));
+  }
+}
+\end{lstlisting}
+
+---
+
+\subsection{Security y Interceptores HTTP}
+
+Se implementaron interceptores HTTP funcionales (\texttt{HttpInterceptorFn}) registrados en \texttt{app.config.ts}:
+
+\begin{enumerate}
+    \item \textbf{AuthInterceptor:} Extrae el \texttt{accessToken} guardado en \texttt{TokenStorageService} e inyecta la cabecera:
+    \[
+    \text{Authorization: Bearer } \langle \text{accessToken} \rangle
+    \]
+    \item \textbf{ErrorInterceptor:} Captura excepciones de red como HTTP 401 (\textit{Unauthorized}) y limpia automáticamente la sesión activa redirigiendo al usuario hacia \texttt{/login}.
+\end{enumerate}
+
+---
+
+% --- SECCIÓN 3 ---
+\section{Patrón de Consumo por Capas (Features)}
+
+Para preservar la arquitectura limpia en el frontend, el consumo de las APIs desde un módulo (ej. \texttt{automotores}) sigue una separación rigurosa de responsabilidades:
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.5cm, auto]
+    \node [draw, rectangle, fill=codeBg, rounded corners, width=4cm, align=center] (pres) {\textbf{Presentation}\\ (automotores-index.ts)};
+    \node [draw, rectangle, fill=codeBg, rounded corners, width=4cm, align=center, right=1.5cm of pres] (app) {\textbf{Application / Facade}\\ (vehiculos.facade.ts)};
+    \node [draw, rectangle, fill=codeBg, rounded corners, width=4cm, align=center, right=1.5cm of app] (infra) {\textbf{Infrastructure API}\\ (vehiculos-api.service.ts)};
+    \node [draw, rectangle, fill=codeBg, rounded corners, width=4cm, align=center, right=1.5cm of infra] (core) {\textbf{Core HTTP}\\ (base-api.service.ts)};
+
+    \draw[->, thick, secondaryColor] (pres) -- node[above] {\small Dispara evento} (app);
+    \draw[->, thick, secondaryColor] (app) -- node[above] {\small Solicita caso uso} (infra);
+    \draw[->, thick, secondaryColor] (infra) -- node[above] {\small Llama genérico} (core);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Capa 1: Infraestructura (\texttt{VehiculosApiService})}
+
+Clase encargada de conocer los endpoints de su propio módulo llamando al servicio genérico de \texttt{core}:
+
+\begin{lstlisting}[caption={Infraestructura: VehiculosApiService}]
+@Injectable({ providedIn: 'root' })
+export class VehiculosApiService {
+  private api = inject(BaseApiService);
+
+  obtenerPorPlaca(placa: string): Observable<Vehiculo> {
+    return this.api.get<Vehiculo>(`vehiculos/${placa}`, {}, 'AUTOMOTORES');
+  }
+}
+\end{lstlisting}
+
+\subsection{Capa 2: Aplicación / Facade (\texttt{VehiculosFacade})}
+
+Gestor de estado reactivo específico del Feature mediante **Signals**:
+
+\begin{lstlisting}[caption={Aplicación: VehiculosFacade}]
+@Injectable({ providedIn: 'root' })
+export class VehiculosFacade {
+  private api = inject(VehiculosApiService);
+
+  readonly vehiculo = signal<Vehiculo | null>(null);
+  readonly loading = signal<boolean>(false);
+  readonly error = signal<string | null>(null);
+
+  buscarVehiculo(placa: string): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.api.obtenerPorPlaca(placa).subscribe({
+      next: (data) => {
+        this.vehiculo.set(data);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.error.set('No se encontró el vehículo');
+        this.loading.set(false);
+      }
+    });
+  }
+}
+\end{lstlisting}
+
+\subsection{Capa 3: Presentación (\texttt{AutomotoresIndex})}
+
+Componente de interfaz gráfica que se conecta a la \texttt{Facade} sin invocar peticiones HTTP directamente:
+
+\begin{lstlisting}[caption={Presentación: AutomotoresIndex}]
+@Component({
+  selector: 'app-automotores-index',
+  standalone: true,
+  templateUrl: './automotores-index.html',
+})
+export class AutomotoresIndex {
+  readonly facade = inject(VehiculosFacade);
+  readonly placaInput = signal<string>('');
+
+  onBuscar(): void {
+    if (this.placaInput().trim()) {
+      this.facade.buscarVehiculo(this.placaInput());
+    }
+  }
+}
+\end{lstlisting}
+
+---
+
+% --- SECCIÓN 4 ---
+\section{Conclusiones}
+
+\begin{enumerate}
+    \item \textbf{Desacoplamiento total:} Las vistas y componentes no conocen URLs base ni encabezados de autorización.
+    \item \textbf{Seguridad centralizada:} El token JWT se inyecta y procesa en un único punto (\texttt{AuthInterceptor}).
+    \item \textbf{Escalabilidad:} La integración de nuevos impuestos (ej. Licores, Degüello) no requiere alterar la infraestructura existente en \texttt{core}.
+\end{enumerate}
+
+\end{document}
