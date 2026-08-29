@@ -92,6 +92,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargarCatalogoActosSegunEntidad();
+    this.exencionesFacade.cargarExenciones(1, 100);
     this.municipiosFacade.cargarMunicipios(1, 100);
     this.configurarSuscripcionesReactividad();
   }
@@ -392,7 +393,10 @@ export class StepActosComponent implements OnInit, OnDestroy {
     if (form.valid) {
       const val = form.value;
       const tipoActo = this.selectedTipoActoDetalle;
-      const exencion = (this.exencionesFacade.exenciones() as any[]).find((e: any) => e.id === Number(val.exencionId));
+      const exIdNum = (val.exencionId && Number(val.exencionId) > 0) ? Number(val.exencionId) : null;
+      const exencionesList = (this.exencionesFacade.exenciones() as any[]) || [];
+      const exencion = exencionesList.find((e: any) => e.id === exIdNum);
+      const exencionNombreFinal = exencion ? exencion.nombre : (exIdNum ? `Exención #${exIdNum}` : null);
 
       const valorActoNum = this.esSinCuantia ? 0 : Number(val.valorActo || 0);
       const avaluoNum = (this.requiereInmueble && !this.esSinCuantia) ? Number(val.avaluoCatastral || 0) : 0;
@@ -429,8 +433,8 @@ export class StepActosComponent implements OnInit, OnDestroy {
               inmuebleId: inmuebleIdFinal,
               matriculaInmobiliaria: matriculaFinal,
               avaluoCatastral: avaluoNum,
-              exencionId: val.exencionId ? Number(val.exencionId) : null,
-              exencionNombre: exencion ? exencion.nombre : null
+              exencionId: exIdNum,
+              exencionNombre: exencionNombreFinal
             };
           }
           return a;
@@ -450,8 +454,8 @@ export class StepActosComponent implements OnInit, OnDestroy {
           inmuebleId: inmuebleIdFinal,
           matriculaInmobiliaria: matriculaFinal,
           avaluoCatastral: avaluoNum,
-          exencionId: val.exencionId ? Number(val.exencionId) : null,
-          exencionNombre: exencion ? exencion.nombre : null,
+          exencionId: exIdNum,
+          exencionNombre: exencionNombreFinal,
           intervinientes: []
         };
         this.wizardService.actosExpediente.update(list => [...list, nuevoActo]);
@@ -493,7 +497,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
       baseDeclarada: acto.baseDeclarada,
       matriculaInmobiliaria: acto.matriculaInmobiliaria || '',
       avaluoCatastral: acto.avaluoCatastral || 0,
-      exencionId: acto.exencionId || null
+      exencionId: (acto.exencionId && Number(acto.exencionId) > 0) ? Number(acto.exencionId) : null
     });
 
     this.aplicarReglasSegunTipoActo();
@@ -609,7 +613,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
       valorActo: a.valorActo,
       baseDeclarada: a.baseDeclarada,
       observacion: null,
-      exencionesIds: a.exencionId ? [a.exencionId] : []
+      exencionesIds: (a.exencionId && Number(a.exencionId) > 0) ? [Number(a.exencionId)] : []
     }));
 
     this.solicitudesFacade.registrarActos(solicitudId, { actos: actosPayload }).pipe(

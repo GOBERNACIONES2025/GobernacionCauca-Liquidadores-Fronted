@@ -39,7 +39,13 @@ export class StepIntervinientesComponent implements OnInit {
   ngOnInit() {
     this.tiposPersonaFacade.cargarTiposPersona();
     this.tiposIdentificacionFacade.cargarTiposIdentificacion();
-    this.rolesIntervinienteFacade.cargarRolesInterviniente();
+    this.rolesIntervinienteFacade.cargarRolesInterviniente(1, 100);
+
+    // Auto-seleccionar el primer acto si existe y no hay selección activa
+    const actos = this.wizardService.actosExpediente();
+    if (actos.length > 0 && !this.wizardService.actoSeleccionadoId()) {
+      this.seleccionarActo(actos[0].idTemp);
+    }
   }
 
   seleccionarActo(actoId: string) {

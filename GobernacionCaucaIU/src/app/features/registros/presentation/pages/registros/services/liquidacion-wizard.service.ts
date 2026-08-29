@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
+import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 
 export interface IntervinienteTemp {
   idTemp: string;
@@ -35,6 +36,7 @@ export interface ActoTemp {
 })
 export class LiquidacionWizardService {
   private fb = inject(FormBuilder);
+  private exencionesFacade = inject(ExencionesFacade);
 
   // Estado visual
   currentStep = signal<number>(1);
@@ -252,32 +254,77 @@ export class LiquidacionWizardService {
       
       // Poblar Actos
       if (doc.actos && doc.actos.length > 0) {
-        const actosTemp = doc.actos.map((a: any) => ({
-          idTemp: a.id.toString(), // Usamos el ID del backend como ID temporal para mantener la referencia
-          tipoActoId: a.tipoActoRegistroId,
-          tipoActoCodigo: '', // Se podría buscar del facade si hace falta
-          tipoActoNombre: a.tipoActoRegistroNombre || 'Acto Cargado',
-          categoriaNombre: '',
-          naturalezaNombre: '',
-          tarifaInfo: '',
-          valorActo: a.valorActo,
-          baseDeclarada: a.baseDeclarada,
-          inmuebleId: a.inmuebleId || null,
-          matriculaInmobiliaria: a.inmuebleMatricula || a.matriculaInmobiliaria || '',
-          avaluoCatastral: a.inmuebleAvaluo || a.avaluoCatastral || 0,
-          exencionId: a.exencionesIds && a.exencionesIds.length > 0 ? a.exencionesIds[0] : null,
-          exencionNombre: null,
-          intervinientes: a.intervinientes ? a.intervinientes.map((i: any) => ({
-            idTemp: (i.id || Math.random()).toString(),
-            contribuyenteId: i.contribuyente?.id || i.contribuyenteId || 0,
-            nombre: i.contribuyente?.nombre || i.contribuyente?.nombreCompleto || i.contribuyente?.razonSocial || i.nombre || 'Desconocido',
-            documento: i.contribuyente?.numeroIdentificacion || i.documento || '',
-            rolId: i.rolIntervinienteId || i.rolId || 0,
-            rolNombre: i.rolIntervinienteNombre || i.rolNombre || 'Rol Desconocido',
-            porcentaje: i.porcentajeParticipacion || i.porcentaje || 100
-          })) : []
-        }));
-        
+        const actosTemp = doc.actos.map((a: any) => {
+          // 1. Extraer ID y Nombre de Exención de forma tolerante
+          let exId: number | null = null;
+          if (a.exencionId && Number(a.exencionId) > 0) {
+            exId = Number(a.exencionId);
+          } else if (Array.isArray(a.exencionesIds) && a.exencionesIds.length > 0) {
+            exId = Number(a.exencionesIds[0]);
+          } else if (Array.isArray(a.exenciones) && a.exenciones.length > 0) {
+            exId = Number(a.exenciones[0]?.exencionId || a.exenciones[0]?.id || a.exenciones[0]);
+          } else if (Array.isArray(a.actosExenciones) && a.actosExenciones.length > 0) {
+            exId = Number(a.actosExenciones[0]?.exencionId || a.actosExenciones[0]?.id);
+          }
+
+          let exNombre: string | null = a.exencionNombre || null;
+          if (!exNombre && Array.isArray(a.exenciones) && a.exenciones.length > 0) {
+            exNombre = a.exenciones[0]?.exencionNombre || a.exenciones[0]?.nombre || null;
+          }
+          if (!exNombre && Array.isArray(a.actosExenciones) && a.actosExenciones.length > 0) {
+            exNombre = a.actosExenciones[0]?.exencionNombre || a.actosExenciones[0]?.exencion?.nombre || null;
+          }
+          if (!exNombre && exId) {
+            const exList = (this.exencionesFacade.exenciones() as any[]) || [];
+            const exFound = exList.find((e: any) => e.id === exId);
+            if (exFound) {
+              exNombre = exFound.nombre;
+            } else {
+              exNombre = `Exención #${exId}`;
+            }
+          }
+
+          // 2. Extraer Intervinientes de forma tolerante
+          const rawIntvs = Array.isArray(a.intervinientes) ? a.intervinientes : (a.intervinientesActo || a.actoIntervinientes || []);
+          const intervinientesMapped = rawIntvs.map((i: any) => {
+            const contrib = i.contribuyente || {};
+            const contribId = Number(contrib.id || i.contribuyenteId || i.idContribuyente || 0);
+            const contribNombre = contrib.nombre || contrib.nombreCompleto || contrib.razonSocial || i.contribuyenteNombre || i.nombre || 'Desconocido';
+            const contribDoc = contrib.numeroIdentificacion || contrib.documento || i.numeroIdentificacion || i.documento || '';
+            const rolId = Number(i.rolIntervinienteId || i.rolId || i.idRol || 0);
+            const rolNombre = i.rolIntervinienteNombre || i.rolNombre || i.nombreRol || i.rol?.nombre || 'Rol Desconocido';
+            const porcentaje = Number(i.porcentajeParticipacion ?? i.porcentaje ?? i.porcentajeParticipacionActo ?? 100);
+
+            return {
+              idTemp: (i.id || Math.random()).toString(),
+              contribuyenteId: contribId,
+              nombre: contribNombre,
+              documento: contribDoc,
+              rolId: rolId,
+              rolNombre: rolNombre,
+              porcentaje: porcentaje
+            };
+          });
+
+          return {
+            idTemp: a.id ? a.id.toString() : Math.random().toString(),
+            tipoActoId: Number(a.tipoActoRegistroId || a.tipoActoId),
+            tipoActoCodigo: a.tipoActoCodigo || '',
+            tipoActoNombre: a.tipoActoRegistroNombre || a.tipoActoNombre || 'Acto Registrado',
+            categoriaNombre: a.categoriaNombre || '',
+            naturalezaNombre: a.naturalezaNombre || '',
+            tarifaInfo: a.tarifaInfo || '',
+            valorActo: Number(a.valorActo || 0),
+            baseDeclarada: Number(a.baseDeclarada || 0),
+            inmuebleId: a.inmuebleId ? Number(a.inmuebleId) : null,
+            matriculaInmobiliaria: a.inmuebleMatricula || a.matriculaInmobiliaria || '',
+            avaluoCatastral: Number(a.inmuebleAvaluo || a.avaluoCatastral || 0),
+            exencionId: exId,
+            exencionNombre: exNombre,
+            intervinientes: intervinientesMapped
+          };
+        });
+
         this.actosExpediente.set(actosTemp);
       }
     }
