@@ -58,7 +58,12 @@ export class StepActosComponent implements OnInit, OnDestroy {
   }
 
   get esSinCuantia(): boolean {
-    const nat = this.selectedTipoActoDetalle?.naturalezaActo;
+    const detalle = this.selectedTipoActoDetalle;
+    if (!detalle) return false;
+    if (typeof detalle.naturalezaActo?.esSinCuantia === 'boolean') {
+      return detalle.naturalezaActo.esSinCuantia;
+    }
+    const nat = detalle.naturalezaActo;
     if (!nat) return false;
     const cod = (nat.codigo || '').trim().toUpperCase();
     const nom = (nat.nombre || '').trim().toUpperCase();
@@ -66,7 +71,12 @@ export class StepActosComponent implements OnInit, OnDestroy {
   }
 
   get requiereInmueble(): boolean {
-    const cat = this.selectedTipoActoDetalle?.categoriaActo;
+    const detalle = this.selectedTipoActoDetalle;
+    if (!detalle) return false;
+    if (typeof detalle.requiereAvaluo === 'boolean') {
+      return detalle.requiereAvaluo;
+    }
+    const cat = detalle.categoriaActo;
     if (!cat) return false;
     const cod = (cat.codigo || '').trim().toUpperCase();
     const nom = (cat.nombre || '').trim().toUpperCase();

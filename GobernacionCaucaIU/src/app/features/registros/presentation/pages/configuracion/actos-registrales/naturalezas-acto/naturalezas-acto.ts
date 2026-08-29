@@ -51,6 +51,7 @@ export class NaturalezasActo implements OnInit {
     codigo: ['', [Validators.required, Validators.maxLength(10)]],
     nombre: ['', Validators.required],
     descripcion: [''],
+    esSinCuantia: [false],
     activo: [true]
   });
 
@@ -102,7 +103,7 @@ export class NaturalezasActo implements OnInit {
 
   openNew() {
     this.selectedId = null;
-    this.naturalezaForm.reset({ codigo: '', nombre: '', descripcion: '', activo: true });
+    this.naturalezaForm.reset({ codigo: '', nombre: '', descripcion: '', esSinCuantia: false, activo: true });
     this.isSlideOverOpen = true;
   }
 
@@ -112,6 +113,7 @@ export class NaturalezasActo implements OnInit {
       codigo: item.codigo,
       nombre: item.nombre,
       descripcion: item.descripcion || '',
+      esSinCuantia: item.esSinCuantia ?? false,
       activo: item.activo
     });
     this.isSlideOverOpen = true;
@@ -126,6 +128,7 @@ export class NaturalezasActo implements OnInit {
       codigo: item.codigo,
       nombre: item.nombre,
       descripcion: item.descripcion || '',
+      esSinCuantia: item.esSinCuantia ?? false,
       activo: nuevoEstado
     }).subscribe({
       next: () => {
@@ -155,6 +158,7 @@ export class NaturalezasActo implements OnInit {
           codigo: val.codigo!,
           nombre: val.nombre!,
           descripcion: val.descripcion || '',
+          esSinCuantia: val.esSinCuantia ?? false,
           activo: val.activo ?? true
         }).subscribe({
           next: () => {
@@ -171,7 +175,8 @@ export class NaturalezasActo implements OnInit {
         this.facade.crear({
           codigo: val.codigo!,
           nombre: val.nombre!,
-          descripcion: val.descripcion || ''
+          descripcion: val.descripcion || '',
+          esSinCuantia: val.esSinCuantia ?? false
         }).subscribe({
           next: () => {
             this.toast.success(`Naturaleza de acto ${actionName} exitosamente`);

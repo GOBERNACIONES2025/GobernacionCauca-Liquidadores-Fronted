@@ -56,6 +56,7 @@ export class TiposActoRegistro implements OnInit {
     naturalezaActoId: [null as number | null, Validators.required],
     codigo: ['', [Validators.required, Validators.maxLength(20)]],
     nombre: ['', Validators.required],
+    requiereAvaluo: [false],
     activo: [true]
   });
 
@@ -115,6 +116,7 @@ export class TiposActoRegistro implements OnInit {
       naturalezaActoId: primerNat,
       codigo: '',
       nombre: '',
+      requiereAvaluo: false,
       activo: true
     });
     this.isSlideOverOpen = true;
@@ -127,6 +129,7 @@ export class TiposActoRegistro implements OnInit {
       naturalezaActoId: item.naturalezaActo?.id || null,
       codigo: item.codigo,
       nombre: item.nombre,
+      requiereAvaluo: item.requiereAvaluo ?? false,
       activo: item.activo
     });
     this.isSlideOverOpen = true;
@@ -142,6 +145,7 @@ export class TiposActoRegistro implements OnInit {
       naturalezaActoId: item.naturalezaActo?.id || 1,
       codigo: item.codigo,
       nombre: item.nombre,
+      requiereAvaluo: item.requiereAvaluo ?? false,
       activo: nuevoEstado
     }).subscribe({
       next: () => {
@@ -172,6 +176,7 @@ export class TiposActoRegistro implements OnInit {
           naturalezaActoId: Number(val.naturalezaActoId),
           codigo: val.codigo!,
           nombre: val.nombre!,
+          requiereAvaluo: val.requiereAvaluo ?? false,
           activo: val.activo ?? true
         }).subscribe({
           next: () => {
@@ -189,7 +194,8 @@ export class TiposActoRegistro implements OnInit {
           categoriaActoId: Number(val.categoriaActoId),
           naturalezaActoId: Number(val.naturalezaActoId),
           codigo: val.codigo!,
-          nombre: val.nombre!
+          nombre: val.nombre!,
+          requiereAvaluo: val.requiereAvaluo ?? false
         }).subscribe({
           next: () => {
             this.toast.success(`Tipo de acto ${actionName} exitosamente`);

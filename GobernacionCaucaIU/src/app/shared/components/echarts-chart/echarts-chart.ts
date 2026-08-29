@@ -10,8 +10,8 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import * as echarts from 'echarts';
-import type { ECharts, EChartsOption } from 'echarts';
+export type EChartsOption = any;
+export type ECharts = any;
 
 @Component({
   selector: 'app-echarts-chart',
@@ -72,8 +72,11 @@ export class EchartsChartComponent implements OnInit, OnChanges, OnDestroy {
   private initChart(): void {
     if (!this.chartContainer?.nativeElement) return;
 
+    const echartsObj = (window as any)?.echarts;
+    if (!echartsObj) return;
+
     const el = this.chartContainer.nativeElement;
-    this.chartInstance = echarts.init(el, this.theme || undefined, {
+    this.chartInstance = echartsObj.init(el, this.theme || undefined, {
       renderer: 'canvas',
     });
 

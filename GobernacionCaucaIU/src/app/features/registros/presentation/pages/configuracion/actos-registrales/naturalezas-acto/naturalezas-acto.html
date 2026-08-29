@@ -88,20 +88,21 @@
           <th class="py-3 px-4 w-32">Código</th>
           <th class="py-3 px-4">Nombre</th>
           <th class="py-3 px-4">Descripción</th>
-          <th class="py-3 px-4 w-40">Estado</th>
+          <th class="py-3 px-4 w-32">Régimen / Cuantía</th>
+          <th class="py-3 px-4 w-32">Estado</th>
           <th class="py-3 px-4 w-28 text-right">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
         @if (facade.loading()) {
           <tr>
-            <td colspan="5" class="text-center py-12">
+            <td colspan="6" class="text-center py-12">
               <span class="loading loading-spinner text-primary"></span>
             </td>
           </tr>
         } @else if (naturalezasFiltradas().length === 0) {
           <tr>
-            <td colspan="5" class="text-center py-12 text-slate-400 text-xs">
+            <td colspan="6" class="text-center py-12 text-slate-400 text-xs">
               No se encontraron naturalezas coincidentes.
             </td>
           </tr>
@@ -122,6 +123,19 @@
             <!-- Descripcion -->
             <td class="py-3.5 px-4 text-slate-500 text-xs">
               {{ item.descripcion || '-' }}
+            </td>
+
+            <!-- Es Sin Cuantía -->
+            <td class="py-3.5 px-4">
+              @if (item.esSinCuantia) {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                  Sin Cuantía (Fija)
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200 shadow-2xs">
+                  Con Cuantía
+                </span>
+              }
             </td>
             
             <!-- Estado -->
@@ -240,8 +254,19 @@
       ></textarea>
     </div>
 
+    <!-- Es Sin Cuantía Switch -->
+    <div class="form-control w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+      <label class="label cursor-pointer justify-between p-0">
+        <div>
+          <span class="label-text font-bold text-xs uppercase text-slate-700">¿Es Sin Cuantía (Tarifa Fija)?</span>
+          <p class="text-[11px] text-slate-500 mt-0.5">Si se activa, los actos de esta naturaleza no exigirán valor económico ni avalúo y se liquidarán con tarifa fija.</p>
+        </div>
+        <input type="checkbox" formControlName="esSinCuantia" class="toggle toggle-warning toggle-sm" />
+      </label>
+    </div>
+
     <!-- Estado -->
-    <div class="form-control w-full mt-2">
+    <div class="form-control w-full mt-1">
       <label class="label cursor-pointer justify-start gap-4 p-0">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Estado Activo</span>
         <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />

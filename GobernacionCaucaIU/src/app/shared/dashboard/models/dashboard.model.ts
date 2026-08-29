@@ -1,4 +1,4 @@
-import type { EChartsOption } from 'echarts';
+export type EChartsOption = any;
 
 export type TaxModuleKey = 
   | 'automotores' 
