@@ -51,7 +51,7 @@ export class StepLiquidacionComponent implements OnInit {
         valorActo: a.valorActo,
         baseDeclarada: a.baseDeclarada,
         inmuebleId: a.inmuebleId || null,
-        exencionesIds: a.exencionId ? [a.exencionId] : [],
+        exencionesIds: a.exencionesIds || [],
         intervinientes: (a.intervinientes || []).map(inv => ({
           contribuyenteId: inv.contribuyenteId,
           rolIntervinienteId: inv.rolId,

@@ -48,10 +48,14 @@
                   <div class="font-bold text-blue-900 text-sm">{{ acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
                 </td>
                 <td class="p-4 text-sm text-slate-600">
-                  @if (acto.exencionNombre) {
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                      {{ acto.exencionNombre }}
-                    </span>
+                  @if (acto.exencionesNombres && acto.exencionesNombres.length > 0) {
+                    <div class="flex flex-wrap gap-1">
+                      @for (exName of acto.exencionesNombres; track exName) {
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                          {{ exName }}
+                        </span>
+                      }
+                    </div>
                   } @else {
                     <span class="text-slate-400 italic text-xs">Ninguna</span>
                   }
@@ -154,14 +158,13 @@
               </div>
               
               <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Aplicar Beneficio / Exención</label>
-                <select formControlName="exencionId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
-                  <option [ngValue]="null">Ninguna (Tarifa Plena)</option>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Aplicar Beneficios / Exenciones</label>
+                <select multiple formControlName="exencionesIds" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all h-24">
                   @for (ex of exencionesFacade.exenciones(); track ex.id) {
                     <option [ngValue]="ex.id">{{ ex.nombre }}</option>
                   }
                 </select>
-                <p class="text-[11px] text-slate-400 mt-1.5">Seleccione si el acto aplica a exenciones normativas especiales.</p>
+                <p class="text-[11px] text-slate-400 mt-1.5">Puede seleccionar múltiples opciones con Ctrl/Cmd + click.</p>
               </div>
             </div>
           </div>

@@ -26,8 +26,8 @@ export interface ActoTemp {
   inmuebleId?: number | null;
   matriculaInmobiliaria?: string;
   avaluoCatastral?: number;
-  exencionId?: number | null;
-  exencionNombre?: string | null;
+  exencionesIds?: number[];
+  exencionesNombres?: string[];
   intervinientes: IntervinienteTemp[];
 }
 
@@ -101,7 +101,7 @@ export class LiquidacionWizardService {
     baseDeclarada: [0, [Validators.required, Validators.min(0)]],
     matriculaInmobiliaria: [''],
     avaluoCatastral: [0],
-    exencionId: [null as number | null]
+    exencionesIds: [[] as number[]]
   });
 
   // Paso 4: Intervinientes (NUEVO)
@@ -174,7 +174,7 @@ export class LiquidacionWizardService {
       baseDeclarada: 0,
       matriculaInmobiliaria: '',
       avaluoCatastral: 0,
-      exencionId: null
+      exencionesIds: []
     });
     
     this.intervinientesActoActual.set([]);
@@ -255,34 +255,35 @@ export class LiquidacionWizardService {
       // Poblar Actos
       if (doc.actos && doc.actos.length > 0) {
         const actosTemp = doc.actos.map((a: any) => {
-          // 1. Extraer ID y Nombre de Exención de forma tolerante
-          let exId: number | null = null;
-          if (a.exencionId && Number(a.exencionId) > 0) {
-            exId = Number(a.exencionId);
-          } else if (Array.isArray(a.exencionesIds) && a.exencionesIds.length > 0) {
-            exId = Number(a.exencionesIds[0]);
+          // 1. Extraer IDs y Nombres de Exención de forma tolerante
+          let exIds: number[] = [];
+          if (Array.isArray(a.exencionesIds) && a.exencionesIds.length > 0) {
+            exIds = a.exencionesIds.map((id: any) => Number(id));
           } else if (Array.isArray(a.exenciones) && a.exenciones.length > 0) {
-            exId = Number(a.exenciones[0]?.exencionId || a.exenciones[0]?.id || a.exenciones[0]);
+            exIds = a.exenciones.map((e: any) => Number(e.exencionId || e.id || e));
           } else if (Array.isArray(a.actosExenciones) && a.actosExenciones.length > 0) {
-            exId = Number(a.actosExenciones[0]?.exencionId || a.actosExenciones[0]?.id);
+            exIds = a.actosExenciones.map((e: any) => Number(e.exencionId || e.id));
+          } else if (a.exencionId && Number(a.exencionId) > 0) {
+            exIds = [Number(a.exencionId)];
           }
 
-          let exNombre: string | null = a.exencionNombre || null;
-          if (!exNombre && Array.isArray(a.exenciones) && a.exenciones.length > 0) {
-            exNombre = a.exenciones[0]?.exencionNombre || a.exenciones[0]?.nombre || null;
+          let exNombres: string[] = [];
+          if (Array.isArray(a.exenciones) && a.exenciones.length > 0 && (a.exenciones[0]?.exencionNombre || a.exenciones[0]?.nombre)) {
+            exNombres = a.exenciones.map((e: any) => e.exencionNombre || e.nombre);
+          } else if (Array.isArray(a.actosExenciones) && a.actosExenciones.length > 0 && (a.actosExenciones[0]?.exencionNombre || a.actosExenciones[0]?.exencion?.nombre)) {
+            exNombres = a.actosExenciones.map((e: any) => e.exencionNombre || e.exencion?.nombre);
+          } else if (a.exencionNombre) {
+            exNombres = [a.exencionNombre];
           }
-          if (!exNombre && Array.isArray(a.actosExenciones) && a.actosExenciones.length > 0) {
-            exNombre = a.actosExenciones[0]?.exencionNombre || a.actosExenciones[0]?.exencion?.nombre || null;
-          }
-          if (!exNombre && exId) {
+
+          if (exNombres.length === 0 && exIds.length > 0) {
             const exList = (this.exencionesFacade.exenciones() as any[]) || [];
-            const exFound = exList.find((e: any) => e.id === exId);
-            if (exFound) {
-              exNombre = exFound.nombre;
-            } else {
-              exNombre = `Exención #${exId}`;
-            }
+            exNombres = exIds.map(id => {
+              const exFound = exList.find((e: any) => e.id === id);
+              return exFound ? exFound.nombre : `Exención #${id}`;
+            });
           }
+
 
           // 2. Extraer Intervinientes de forma tolerante
           const rawIntvs = Array.isArray(a.intervinientes) ? a.intervinientes : (a.intervinientesActo || a.actoIntervinientes || []);
@@ -319,8 +320,8 @@ export class LiquidacionWizardService {
             inmuebleId: a.inmuebleId ? Number(a.inmuebleId) : null,
             matriculaInmobiliaria: a.inmuebleMatricula || a.matriculaInmobiliaria || '',
             avaluoCatastral: Number(a.inmuebleAvaluo || a.avaluoCatastral || 0),
-            exencionId: exId,
-            exencionNombre: exNombre,
+            exencionesIds: exIds,
+            exencionesNombres: exNombres,
             intervinientes: intervinientesMapped
           };
         });

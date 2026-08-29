@@ -393,10 +393,12 @@ export class StepActosComponent implements OnInit, OnDestroy {
     if (form.valid) {
       const val = form.value;
       const tipoActo = this.selectedTipoActoDetalle;
-      const exIdNum = (val.exencionId && Number(val.exencionId) > 0) ? Number(val.exencionId) : null;
+      const exIds = (val.exencionesIds || []).map((id: any) => Number(id));
       const exencionesList = (this.exencionesFacade.exenciones() as any[]) || [];
-      const exencion = exencionesList.find((e: any) => e.id === exIdNum);
-      const exencionNombreFinal = exencion ? exencion.nombre : (exIdNum ? `Exención #${exIdNum}` : null);
+      const exencionesNombresFinales = exIds.map((id: number) => {
+        const ex = exencionesList.find((e: any) => e.id === id);
+        return ex ? ex.nombre : `Exención #${id}`;
+      });
 
       const valorActoNum = this.esSinCuantia ? 0 : Number(val.valorActo || 0);
       const avaluoNum = (this.requiereInmueble && !this.esSinCuantia) ? Number(val.avaluoCatastral || 0) : 0;
@@ -433,8 +435,8 @@ export class StepActosComponent implements OnInit, OnDestroy {
               inmuebleId: inmuebleIdFinal,
               matriculaInmobiliaria: matriculaFinal,
               avaluoCatastral: avaluoNum,
-              exencionId: exIdNum,
-              exencionNombre: exencionNombreFinal
+              exencionesIds: exIds,
+              exencionesNombres: exencionesNombresFinales
             };
           }
           return a;
@@ -454,8 +456,8 @@ export class StepActosComponent implements OnInit, OnDestroy {
           inmuebleId: inmuebleIdFinal,
           matriculaInmobiliaria: matriculaFinal,
           avaluoCatastral: avaluoNum,
-          exencionId: exIdNum,
-          exencionNombre: exencionNombreFinal,
+          exencionesIds: exIds,
+          exencionesNombres: exencionesNombresFinales,
           intervinientes: []
         };
         this.wizardService.actosExpediente.update(list => [...list, nuevoActo]);
@@ -471,7 +473,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
         baseDeclarada: 0,
         matriculaInmobiliaria: '',
         avaluoCatastral: 0,
-        exencionId: null
+        exencionesIds: []
       });
       this.inmuebleEncontrado.set(null);
       this.matriculaBuscada.set('');
@@ -497,7 +499,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
       baseDeclarada: acto.baseDeclarada,
       matriculaInmobiliaria: acto.matriculaInmobiliaria || '',
       avaluoCatastral: acto.avaluoCatastral || 0,
-      exencionId: (acto.exencionId && Number(acto.exencionId) > 0) ? Number(acto.exencionId) : null
+      exencionesIds: acto.exencionesIds || []
     });
 
     this.aplicarReglasSegunTipoActo();
@@ -613,7 +615,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
       valorActo: a.valorActo,
       baseDeclarada: a.baseDeclarada,
       observacion: null,
-      exencionesIds: (a.exencionId && Number(a.exencionId) > 0) ? [Number(a.exencionId)] : []
+      exencionesIds: a.exencionesIds || []
     }));
 
     this.solicitudesFacade.registrarActos(solicitudId, { actos: actosPayload }).pipe(
