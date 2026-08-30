@@ -1,22 +1,27 @@
 <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+    
+    <!-- Encabezado de la Sección -->
+    <div class="bg-slate-50 border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
-        <h3 class="text-sm font-bold text-slate-800">
-          {{ wizardService.liquidacionGeneradaExitosa() ? 'Liquidación Oficial Emitida' : 'Resumen de Liquidación Previa (Simulación)' }}
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+          </svg>
+          {{ wizardService.liquidacionGeneradaExitosa() ? 'Liquidación Oficial Emitida' : 'Resumen de Liquidación Previa (Simulación Detallada)' }}
         </h3>
-        <p class="text-xs text-slate-500">
-          {{ wizardService.liquidacionGeneradaExitosa() ? 'Documento tributario vigente generado oficialmente.' : 'Revise los valores antes de emitir la liquidación oficial definitiva.' }}
+        <p class="text-xs text-slate-500 mt-0.5">
+          {{ wizardService.liquidacionGeneradaExitosa() ? 'Documento tributario vigente generado oficialmente.' : 'Revise el desglose por actos, intervinientes, beneficios tributarios y determinación del impuesto.' }}
         </p>
       </div>
       @if (wizardService.liquidacionSimulada(); as resumen) {
-        <div class="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold font-mono border border-blue-200 shadow-sm">
+        <div class="px-3.5 py-1.5 bg-blue-100 text-blue-900 rounded-lg text-xs font-bold font-mono border border-blue-200 shadow-sm self-start sm:self-auto">
           {{ wizardService.liquidacionGeneradaExitosa() ? 'Liq. Oficial #' + (wizardService.idLiquidacionFinal() || resumen.numeroLiquidacion) : 'Simulación #' + resumen.numeroLiquidacion }}
         </div>
       }
     </div>
     
-    <div class="p-8">
+    <div class="p-6 md:p-8">
       @if (wizardService.liquidacionGeneradaExitosa()) {
         <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-3">
           <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
@@ -27,80 +32,290 @@
           <div>
             <h4 class="text-sm font-bold text-emerald-900">Liquidación Oficial Generada Exitosamente</h4>
             <p class="text-xs text-emerald-700 mt-0.5">
-              Este trámite ya tiene una liquidación oficial vigente emitida. El documento se encuentra sellado y no admite más modificaciones.
+              Este trámite ya cuenta con una liquidación oficial vigente. El documento ha sido generado en el sistema y puede ser descargado en formato PDF oficial.
             </p>
           </div>
         </div>
       }
 
       @if (isSimulating()) {
-        <div class="flex flex-col items-center justify-center py-12 gap-3 text-slate-500">
-          <svg class="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <div class="flex flex-col items-center justify-center py-16 gap-3 text-slate-500">
+          <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <span class="text-sm font-medium">Calculando liquidación en el servidor...</span>
+          <span class="text-sm font-semibold text-slate-700">Calculando motor tributario de liquidación...</span>
+          <span class="text-xs text-slate-400">Evaluando reglas de negocio, bases gravables y exenciones...</span>
         </div>
       } @else if (wizardService.liquidacionSimulada(); as resumen) {
-        <div class="max-w-3xl mx-auto space-y-6">
+        <div class="space-y-8">
           
-          <!-- Tabla de Desglose por Acto -->
-          <div class="bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
-            <table class="w-full text-left text-sm">
-              <thead class="bg-slate-100/50 border-b border-slate-200">
-                <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                  <th class="px-4 py-3">Acto</th>
-                  <th class="px-4 py-3 text-right">Base</th>
-                  <th class="px-4 py-3 text-right">Tarifa</th>
-                  <th class="px-4 py-3 text-right text-emerald-600">Exención</th>
-                  <th class="px-4 py-3 text-right text-blue-700">A Pagar</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                @for (acto of resumen.actos; track acto.tipoActoRegistroId) {
+          <!-- 1. ACTOS REGISTRADOS -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <div class="bg-slate-100/70 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-black">1</span>
+                Actos Registrados
+              </h4>
+              <span class="text-xs text-slate-500 font-medium">{{ resumen.actos.length }} acto(s) procesado(s)</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
                   <tr>
-                    <td class="px-4 py-3">
-                      <div class="font-medium text-slate-800">{{ acto.nombreTipoActo }}</div>
-                      <div class="text-[10px] text-slate-400 font-mono">{{ acto.codigoTipoActo }}</div>
-                    </td>
-                    <td class="px-4 py-3 text-right text-slate-600">{{ acto.baseCalculo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
-                    <td class="px-4 py-3 text-right text-slate-600">{{ acto.tarifaAplicada }}%</td>
-                    <td class="px-4 py-3 text-right font-medium text-emerald-600">
-                      {{ acto.valorDescontado > 0 ? '-' : '' }}{{ acto.valorDescontado | currency:'COP':'symbol-narrow':'1.0-0' }}
-                    </td>
-                    <td class="px-4 py-3 text-right font-bold text-blue-700">{{ acto.valorPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                    <th class="p-3">Acto</th>
+                    <th class="p-3">Código</th>
+                    <th class="p-3">Naturaleza</th>
+                    <th class="p-3 text-right">Valor del Acto</th>
+                    <th class="p-3 text-right">Base Declarada</th>
                   </tr>
-                }
-                @if (resumen.actos.length === 0) {
-                  <tr>
-                    <td colspan="5" class="px-4 py-6 text-center text-slate-400 italic">No hay actos registrados para liquidar.</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (acto of resumen.actos; track acto.tipoActoRegistroId) {
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                      <td class="p-3 font-semibold text-slate-800">
+                        {{ acto.nombreTipoActo }}
+                      </td>
+                      <td class="p-3 font-mono text-slate-600 font-medium">{{ acto.codigoTipoActo }}</td>
+                      <td class="p-3 text-slate-600">Con cuantía</td>
+                      <td class="p-3 text-right font-medium text-slate-700">
+                        {{ acto.valorActo ? (acto.valorActo | currency:'COP':'symbol-narrow':'1.0-0') : '$ 0' }}
+                      </td>
+                      <td class="p-3 text-right font-bold text-blue-900">
+                        {{ acto.baseDeclarada ? (acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0') : '$ 0' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <!-- Total Global -->
-          <div class="flex justify-between items-center py-4 px-6 bg-blue-50/50 rounded-xl border border-blue-100 mt-4 shadow-sm">
-            <span class="text-base font-bold text-blue-900 uppercase">Gran Total A Pagar</span>
-            <span class="text-4xl font-black text-blue-700">{{ resumen.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+          <!-- 2. INTERVINIENTES -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <div class="bg-slate-100/70 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-black">2</span>
+                Intervinientes y Participación
+              </h4>
+              <span class="text-xs text-slate-500 font-medium">{{ intervinientesTotales().length }} interviniente(s)</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+                  <tr>
+                    <th class="p-3">Identificación</th>
+                    <th class="p-3">Nombre / Razón Social</th>
+                    <th class="p-3">Rol</th>
+                    <th class="p-3">Acto Asociado</th>
+                    <th class="p-3 text-right">Participación</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (inv of intervinientesTotales(); track $index) {
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                      <td class="p-3 font-mono font-medium text-slate-700">{{ inv.documento }}</td>
+                      <td class="p-3 font-semibold text-slate-800">{{ inv.nombre }}</td>
+                      <td class="p-3">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                          {{ inv.rolNombre }}
+                        </span>
+                      </td>
+                      <td class="p-3 text-slate-600">{{ inv.actoNombre }}</td>
+                      <td class="p-3 text-right font-bold text-slate-800">{{ inv.porcentaje }} %</td>
+                    </tr>
+                  }
+                  @if (intervinientesTotales().length === 0) {
+                    <tr>
+                      <td colspan="5" class="p-4 text-center text-slate-400 italic">
+                        No se han vinculado intervinientes específicos en este expediente.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          <!-- 3. EXENCIONES Y BENEFICIOS TRIBUTARIOS EVALUADOS -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <div class="bg-slate-100/70 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-black">3</span>
+                Exenciones y Beneficios Tributarios Evaluados
+              </h4>
+              <span class="text-xs text-slate-500 font-medium">Motor de Exenciones</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
+                  <tr>
+                    <th class="p-3">Acto Asociado</th>
+                    <th class="p-3">Código</th>
+                    <th class="p-3">Exención / Beneficio</th>
+                    <th class="p-3 text-center">Beneficio Aplicable</th>
+                    <th class="p-3 text-center">Alcance</th>
+                    <th class="p-3 text-right">Valor Descontado</th>
+                    <th class="p-3 text-center">Estado</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (ex of exencionesEvaluadasConsolidadas(); track $index) {
+                    <tr class="hover:bg-slate-50/60 transition-colors">
+                      <td class="p-3 font-semibold text-slate-800">{{ ex.actoNombre }}</td>
+                      <td class="p-3 font-mono text-slate-600 font-medium">{{ ex.codigo }}</td>
+                      <td class="p-3 text-slate-700">{{ ex.nombre }}</td>
+                      <td class="p-3 font-medium text-slate-700 text-center">{{ ex.beneficio }}</td>
+                      <td class="p-3 text-slate-600 text-center">{{ ex.alcance }}</td>
+                      <td class="p-3 text-right font-medium text-emerald-700">
+                        {{ ex.valorDescontado ? (ex.valorDescontado | currency:'COP':'symbol-narrow':'1.0-0') : '$ 0' }}
+                      </td>
+                      <td class="p-3 text-center">
+                        @if (ex.fueAplicada || ex.estado === 'APLICADA') {
+                          <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                            ✓ APLICADA
+                          </span>
+                        } @else {
+                          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                            NO APLICADA
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                  @if (exencionesEvaluadasConsolidadas().length === 0) {
+                    <tr>
+                      <td colspan="7" class="p-4 text-center text-slate-400 italic">
+                        No se evaluaron exenciones tributarias para los actos del trámite (Tarifa Plena).
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 4. DETERMINACIÓN DEL IMPUESTO -->
+          <div class="border border-blue-200 rounded-xl overflow-hidden shadow-sm bg-white">
+            <div class="bg-blue-900 px-4 py-3 border-b border-blue-950 flex items-center justify-between text-white">
+              <h4 class="text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-blue-700 text-white flex items-center justify-center text-[10px] font-black">4</span>
+                Determinación del Impuesto de Registro
+              </h4>
+              <span class="text-xs text-blue-200 font-mono font-medium">Liquidación Detallada</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead class="bg-blue-50/60 border-b border-blue-100 text-[11px] uppercase tracking-wider text-blue-900 font-bold">
+                  <tr>
+                    <th class="p-3.5">Concepto / Acto</th>
+                    <th class="p-3.5 text-right">Cálculo Detallado</th>
+                    <th class="p-3.5">Exención / Beneficio Aplicado</th>
+                    <th class="p-3.5 text-right text-blue-900 font-extrabold">Valor Liquidado</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-slate-800">
+                  @for (acto of resumen.actos; track acto.tipoActoRegistroId) {
+                    <tr class="hover:bg-blue-50/30 transition-colors">
+                      <td class="p-3.5 font-bold text-slate-800">
+                        {{ acto.nombreTipoActo }}
+                        <div class="text-[10px] text-slate-400 font-mono font-normal">{{ acto.codigoTipoActo }}</div>
+                      </td>
+                      <td class="p-3.5">
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                          <div class="text-slate-500">Valor Base Declarada:</div>
+                          <div class="font-medium text-right text-slate-800">{{ acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                          
+                          <div class="text-slate-500">Base de Cálculo:</div>
+                          <div class="font-medium text-right text-slate-800">{{ acto.baseCalculo | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                          
+                          <div class="text-slate-500">Tarifa Aplicada:</div>
+                          <div class="font-medium text-right text-slate-800">{{ acto.tarifaAplicada }} %</div>
+                          
+                          <div class="text-slate-500">Valor Bruto:</div>
+                          <div class="font-medium text-right text-slate-800">{{ acto.valorBruto | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+
+                          @if (acto.valorDescontado > 0) {
+                            <div class="text-emerald-600 font-medium">Valor Descontado:</div>
+                            <div class="font-bold text-right text-emerald-700">- {{ acto.valorDescontado | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                          }
+                        </div>
+                      </td>
+                      <td class="p-3.5 text-slate-700">
+                        @if (acto.exencionAplicada) {
+                          <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-bold text-emerald-800">{{ acto.exencionAplicada.codigo }}</span>
+                            <span class="text-[11px] text-slate-600">- {{ acto.exencionAplicada.nombre }}</span>
+                            <span class="px-1.5 py-0.2 bg-emerald-100 text-emerald-900 font-bold rounded text-[10px]">
+                              {{ acto.exencionAplicada.beneficio }}
+                            </span>
+                          </div>
+                        } @else if (acto.valorDescontado > 0) {
+                          <span class="text-emerald-700 font-medium">Exención legal aplicada</span>
+                        } @else {
+                          <span class="text-slate-400 italic text-[11px]">Ninguna (Tarifa Plena)</span>
+                        }
+                      </td>
+                      <td class="p-3.5 text-right font-bold text-emerald-600">
+                        {{ acto.valorDescontado > 0 ? ('-$ ' + (acto.valorDescontado | number:'1.0-0')) : '$ 0' }}
+                      </td>
+                      <td class="p-3.5 text-right font-black text-blue-900 text-sm">
+                        {{ acto.valorPagar | currency:'COP':'symbol-narrow':'1.0-0' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Resumen Financiero Consolidado -->
+            <div class="bg-slate-50 border-t border-slate-200 p-6 flex flex-col items-end">
+              <div class="w-full max-w-sm space-y-2 text-xs">
+                
+                <div class="flex justify-between items-center text-slate-600">
+                  <span class="font-semibold">Subtotal Impuesto de Registro:</span>
+                  <span class="font-bold font-mono text-slate-800 text-sm">
+                    {{ subtotalCalculado() | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </span>
+                </div>
+
+                <div class="flex justify-between items-center text-emerald-700">
+                  <span class="font-semibold">Total Descuentos / Exenciones:</span>
+                  <span class="font-bold font-mono text-sm">
+                    {{ totalDescuentosCalculado() > 0 ? ('-$ ' + (totalDescuentosCalculado() | number:'1.0-0')) : '$ 0' }}
+                  </span>
+                </div>
+
+                <div class="pt-3 border-t border-slate-300 flex justify-between items-center">
+                  <span class="text-sm font-extrabold text-blue-950 uppercase tracking-wide">Valor Total a Pagar:</span>
+                  <span class="text-2xl font-black text-blue-800 font-mono">
+                    {{ resumen.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </span>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
         </div>
       }
     </div>
     
+    <!-- Barra Inferior de Acciones -->
     <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center">
       @if (!wizardService.liquidacionGeneradaExitosa()) {
         <button (click)="retroceder()" [disabled]="isGenerating()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors disabled:opacity-50">
           ← Volver a Intervinientes
         </button>
-        <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating()" class="px-8 py-3 bg-blue-600 text-white font-bold text-sm rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-500/30 flex items-center gap-3 disabled:opacity-70">
+        <button (click)="generarLiquidacionOficial()" [disabled]="isGenerating()" class="px-8 py-3 bg-blue-700 text-white font-bold text-sm rounded-xl hover:bg-blue-800 transition-all shadow-lg shadow-blue-700/30 flex items-center gap-3 disabled:opacity-70">
           @if (isGenerating()) {
             <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Generando...
+            Generando Liquidación...
           } @else {
             Generar Liquidación Oficial
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,7 +327,7 @@
         <button (click)="irABandeja()" class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors">
           Ir a mis Liquidaciones
         </button>
-        <button (click)="descargarLiquidacion()" [disabled]="isGenerating()" class="px-8 py-3 bg-green-600 text-white font-bold text-sm rounded-xl hover:bg-green-700 transition-all shadow-lg shadow-green-500/30 flex items-center gap-3 disabled:opacity-70">
+        <button (click)="descargarLiquidacion()" [disabled]="isGenerating()" class="px-8 py-3 bg-emerald-600 text-white font-bold text-sm rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-600/30 flex items-center gap-3 disabled:opacity-70">
           @if (isGenerating()) {
             <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
