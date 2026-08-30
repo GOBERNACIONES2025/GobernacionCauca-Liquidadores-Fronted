@@ -185,6 +185,7 @@ export class StepRadicacionComponent implements OnInit {
           next: () => {
             this.wizardService.currentStep.set(2);
             this.wizardService.etapaGuardada.set(Math.max(this.wizardService.etapaGuardada(), 1));
+            this.wizardService.vigenciaFiscal.set(formValue.vigenciaFiscal);
             this.toastService.success('Datos actualizados correctamente');
           },
           error: (err) => {
@@ -217,6 +218,7 @@ export class StepRadicacionComponent implements OnInit {
           if (res.success) {
             this.wizardService.currentStep.set(2);
             this.wizardService.etapaGuardada.set(1);
+            this.wizardService.vigenciaFiscal.set(formValue.vigenciaFiscal);
             this.toastService.success('Radicación y contribuyente guardados');
           }
         }

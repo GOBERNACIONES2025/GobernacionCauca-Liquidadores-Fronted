@@ -48,6 +48,9 @@ export class LiquidacionWizardService {
   fechaRadicado = signal<string>(new Date().toISOString().split('T')[0]);
   vigenciaFiscal = signal<number | null>(null);
 
+  // Estado global transversal
+  tipoTramite = signal<'Liquidacion' | 'Reliquidacion' | 'Anulacion'>('Liquidacion');
+
   // Estados de Solicitud (1: RADICADA, 2: EN_REVISION, 3: PENDIENTE, 4: LIQUIDADA, 5: DEVUELTA, 6: ANULADA, 7: CERRADA)
   estadoSolicitudId = signal<number>(1);
   estadoSolicitudNombre = signal<string>('Radicada');
@@ -81,8 +84,10 @@ export class LiquidacionWizardService {
   paso2Form: FormGroup = this.fb.group({
     numeroDocumento: ['', Validators.required],
     fechaDocumento: [new Date().toISOString().split('T')[0], Validators.required],
-    entidadRegistroId: [null as number | null, Validators.required],
-    municipioJurisdiccionId: [null as number | null, Validators.required],
+    tipoEntidadRegistroId: [null as number | null, Validators.required],
+    categoriaActoId: [{value: null as number | null, disabled: true}, Validators.required],
+    municipioJurisdiccionId: [{value: null as number | null, disabled: true}, Validators.required],
+    entidadRegistroId: [{value: null as number | null, disabled: true}, Validators.required],
     descripcionDocumento: ['']
   });
   
@@ -162,8 +167,11 @@ export class LiquidacionWizardService {
     this.paso2Form.reset({
       numeroDocumento: '',
       fechaDocumento: new Date().toISOString().split('T')[0],
+      tipoEntidadRegistroId: null,
+      categoriaActoId: null,
       entidadRegistroId: null,
       municipioJurisdiccionId: null,
+      tipoActoRegistroId: null,
       descripcionDocumento: ''
     });
     
@@ -240,8 +248,11 @@ export class LiquidacionWizardService {
       this.paso2Form.patchValue({
         numeroDocumento: doc.numeroDocumento,
         fechaDocumento: doc.fechaDocumento ? doc.fechaDocumento.substring(0, 10) : '',
+        tipoEntidadRegistroId: null, // FIXME si no viene en el backend
+        categoriaActoId: null, // FIXME si no viene en el backend
         entidadRegistroId: doc.entidadRegistroId,
         municipioJurisdiccionId: doc.municipioJurisdiccionId,
+        tipoActoRegistroId: null, // FIXME
         descripcionDocumento: doc.descripcion
       });
 

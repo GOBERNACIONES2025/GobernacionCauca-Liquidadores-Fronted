@@ -68,8 +68,10 @@ export class TiposActoRegistroApiService {
    * @param {number} entidadRegistroId - Identificador de la entidad de registro.
    * @returns {Observable<ApiResponse<TipoActoRegistro[]>>} Lista de tipos de acto permitidos.
    */
-  obtenerPorEntidad(entidadRegistroId: number): Observable<ApiResponse<TipoActoRegistro[]>> {
-    return this.api.get<ApiResponse<TipoActoRegistro[]>>(`${this.baseUrl}/por-entidad/${entidadRegistroId}`, {}, 'REGISTROS');
+  obtenerPorEntidad(entidadRegistroId: number, vigenciaId?: number): Observable<ApiResponse<TipoActoRegistro[]>> {
+    let params: any = {};
+    if (vigenciaId) params.vigenciaId = vigenciaId;
+    return this.api.get<ApiResponse<TipoActoRegistro[]>>(`${this.baseUrl}/por-entidad/${entidadRegistroId}`, { params }, 'REGISTROS');
   }
 
   /**

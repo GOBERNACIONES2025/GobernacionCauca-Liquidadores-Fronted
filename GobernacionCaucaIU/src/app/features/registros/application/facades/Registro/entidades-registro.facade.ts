@@ -39,12 +39,13 @@ export class EntidadesRegistroFacade {
     pageSize: number = 10, 
     tipoEntidadRegistroId?: number, 
     departamentoId?: number, 
-    municipioId?: number
+    municipioId?: number,
+    tipoActoRegistroId?: number
   ): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos({ pageNumber, pageSize, tipoEntidadRegistroId, departamentoId, municipioId }).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, tipoEntidadRegistroId, departamentoId, municipioId, tipoActoRegistroId }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.entidadesRegistro.set(response.data.items || []);

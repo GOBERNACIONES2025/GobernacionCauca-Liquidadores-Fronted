@@ -38,12 +38,13 @@ export class ExencionesFacade {
     pageNumber: number = 1, 
     pageSize: number = 10, 
     departamentoId?: number, 
-    terminoBusqueda?: string
+    terminoBusqueda?: string,
+    tipoActoRegistroId?: number
   ): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos({ pageNumber, pageSize, departamentoId, searchTerm: terminoBusqueda }).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, departamentoId, searchTerm: terminoBusqueda, tipoActoRegistroId }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.exenciones.set(response.data.items || []);

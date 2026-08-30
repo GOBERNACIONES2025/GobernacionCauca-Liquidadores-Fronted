@@ -63,4 +63,5 @@ export interface InmuebleQueryParams {
   busqueda?: string;
   search?: string;
   searchTerm?: string;
+  vigenciaId?: number;
 }

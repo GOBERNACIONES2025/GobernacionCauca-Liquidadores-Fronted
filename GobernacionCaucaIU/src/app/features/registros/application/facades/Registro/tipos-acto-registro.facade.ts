@@ -58,11 +58,11 @@ export class TiposActoRegistroFacade {
   /**
    * Carga los tipos de acto permitidos y activos para una entidad de registro.
    */
-  cargarTiposActoPorEntidad(entidadRegistroId: number): void {
+  cargarTiposActoPorEntidad(entidadRegistroId: number, vigenciaId?: number): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerPorEntidad(entidadRegistroId).subscribe({
+    this.apiService.obtenerPorEntidad(entidadRegistroId, vigenciaId).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.tiposActoRegistro.set(response.data || []);

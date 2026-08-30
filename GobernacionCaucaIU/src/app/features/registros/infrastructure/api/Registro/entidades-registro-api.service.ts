@@ -53,6 +53,7 @@ export class EntidadesRegistroApiService {
       if (paramsOrPage.tipoEntidadRegistroId) params.TipoEntidadRegistroId = paramsOrPage.tipoEntidadRegistroId;
       if (paramsOrPage.departamentoId) params.DepartamentoId = paramsOrPage.departamentoId;
       if (paramsOrPage.municipioId) params.MunicipioId = paramsOrPage.municipioId;
+      if (paramsOrPage.tipoActoRegistroId) params.TipoActoRegistroId = paramsOrPage.tipoActoRegistroId;
       if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
     } else {
       params.PageNumber = paramsOrPage ?? 1;

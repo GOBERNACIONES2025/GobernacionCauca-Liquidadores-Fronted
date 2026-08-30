@@ -65,9 +65,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
     );
   });
 
-  exencionesSeleccionadasIds = computed<number[]>(() => {
-    return this.wizardService.actoForm.get('exencionesIds')?.value || [];
-  });
+  exencionesSeleccionadasIds = signal<number[]>([]);
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -144,10 +142,18 @@ export class StepActosComponent implements OnInit, OnDestroy {
     avaluoCatastral: [0, [Validators.required, Validators.min(0)]]
   });
 
+  // Helper local para filtrar los actos obtenidos por categoria (del paso 2)
+  tiposActoFiltrados = computed(() => {
+    const categoriaId = this.wizardService.paso2Form.get('categoriaActoId')?.value;
+    const actos = this.tiposActoFacade.tiposActoRegistro();
+    if (!categoriaId) return actos; // o return [] si es obligatorio
+    return actos.filter(a => a.categoriaActo?.id === Number(categoriaId));
+  });
+
   get selectedTipoActoDetalle(): TipoActoRegistro | null {
     const id = this.wizardService.actoForm.get('tipoActoRegistroId')?.value;
     if (!id) return null;
-    return (this.tiposActoFacade.tiposActoRegistro() as TipoActoRegistro[]).find(t => t.id === Number(id)) || null;
+    return (this.tiposActoFiltrados() as TipoActoRegistro[]).find(t => t.id === Number(id)) || null;
   }
 
   get esSinCuantia(): boolean {
@@ -185,7 +191,6 @@ export class StepActosComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.cargarCatalogoActosSegunEntidad();
-    this.exencionesFacade.cargarExenciones(1, 100);
     this.municipiosFacade.cargarMunicipios(1, 100);
     this.configurarSuscripcionesReactividad();
   }
@@ -197,8 +202,9 @@ export class StepActosComponent implements OnInit, OnDestroy {
 
   private cargarCatalogoActosSegunEntidad(): void {
     const entidadId = this.wizardService.paso2Form.get('entidadRegistroId')?.value;
+    const vigenciaId = this.wizardService.vigenciaFiscal() || undefined;
     if (entidadId) {
-      this.tiposActoFacade.cargarTiposActoPorEntidad(Number(entidadId));
+      this.tiposActoFacade.cargarTiposActoPorEntidad(Number(entidadId), vigenciaId);
     } else {
       this.tiposActoFacade.cargarTiposActoRegistro(1, 100);
     }
@@ -229,10 +235,25 @@ export class StepActosComponent implements OnInit, OnDestroy {
           this.actualizarBaseDeclaradaSugerida();
         }
       });
+
+    // 4. Reaccionar a la selección de Exenciones
+    this.wizardService.actoForm.get('exencionesIds')?.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(val => {
+        this.exencionesSeleccionadasIds.set(val || []);
+      });
   }
 
   private aplicarReglasSegunTipoActo(): void {
     const form = this.wizardService.actoForm;
+
+    // Cargar exenciones por tipo de acto
+    const tipoActoId = form.get('tipoActoRegistroId')?.value;
+    if (tipoActoId) {
+      this.exencionesFacade.cargarExenciones(1, 100, undefined, undefined, Number(tipoActoId));
+    } else {
+      this.exencionesFacade.exenciones.set([]);
+    }
 
     if (this.esSinCuantia) {
       // Actos sin cuantía: forzar valores en 0
@@ -305,7 +326,9 @@ export class StepActosComponent implements OnInit, OnDestroy {
     this.inmuebleEncontrado.set(null);
     this.mostrarFormNuevoInmueble.set(false);
 
-    this.inmueblesApi.obtenerTodos({ matriculaInmobiliaria: matricula, pageSize: 1 }).pipe(
+    const vigenciaActual = this.wizardService.paso1Form.get('vigenciaFiscal')?.value || undefined;
+
+    this.inmueblesApi.obtenerTodos({ matriculaInmobiliaria: matricula, pageSize: 1, vigenciaId: vigenciaActual }).pipe(
       finalize(() => this.buscandoInmueble.set(false))
     ).subscribe({
       next: (res: any) => {

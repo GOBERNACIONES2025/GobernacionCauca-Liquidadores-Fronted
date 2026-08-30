@@ -49,6 +49,9 @@ export class InmueblesApiService {
       if (paramsOrPage.municipioId) {
         queryParams.MunicipioId = paramsOrPage.municipioId;
       }
+      if (paramsOrPage.vigenciaId) {
+        queryParams.VigenciaId = paramsOrPage.vigenciaId;
+      }
     } else {
       queryParams.PageNumber = paramsOrPage ?? 1;
       queryParams.PageSize = pageSize ?? 10;
