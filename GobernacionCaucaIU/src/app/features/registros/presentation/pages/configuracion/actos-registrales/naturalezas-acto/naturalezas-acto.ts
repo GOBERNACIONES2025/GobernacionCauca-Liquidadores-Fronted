@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { NaturalezasActoFacade } from '../../../../../application/facades/Registro/naturalezas-acto.facade';
 import { NaturalezaActo } from '../../../../../domain/models/Registro/naturaleza-acto.model';
+import { NaturalezasActoApiService } from '../../../../../infrastructure/api/Registro/naturalezas-acto-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class NaturalezasActo implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(NaturalezasActoFacade);
+  public apiService = inject(NaturalezasActoApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Actos Registrales', 'Naturaleza de Acto'];
@@ -27,6 +29,7 @@ export class NaturalezasActo implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -108,15 +111,27 @@ export class NaturalezasActo implements OnInit {
   }
 
   edit(item: NaturalezaActo) {
-    this.selectedId = item.id;
-    this.naturalezaForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      descripcion: item.descripcion || '',
-      esSinCuantia: item.esSinCuantia ?? false,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.naturalezaForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          descripcion: data.descripcion || '',
+          esSinCuantia: data.esSinCuantia ?? false,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la naturaleza de acto');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: NaturalezaActo) {

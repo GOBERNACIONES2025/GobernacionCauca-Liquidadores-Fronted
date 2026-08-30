@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { CategoriasActoFacade } from '../../../../../application/facades/Registro/categorias-acto.facade';
 import { CategoriaActo } from '../../../../../domain/models/Registro/categoria-acto.model';
+import { CategoriasActoApiService } from '../../../../../infrastructure/api/Registro/categorias-acto-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class CategoriasActo implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(CategoriasActoFacade);
+  public apiService = inject(CategoriasActoApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Actos Registrales', 'Categoría de Acto'];
@@ -27,6 +29,7 @@ export class CategoriasActo implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -107,14 +110,26 @@ export class CategoriasActo implements OnInit {
   }
 
   edit(item: CategoriaActo) {
-    this.selectedId = item.id;
-    this.categoriaForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      descripcion: item.descripcion || '',
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.categoriaForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          descripcion: data.descripcion || '',
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la categoría');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: CategoriaActo) {

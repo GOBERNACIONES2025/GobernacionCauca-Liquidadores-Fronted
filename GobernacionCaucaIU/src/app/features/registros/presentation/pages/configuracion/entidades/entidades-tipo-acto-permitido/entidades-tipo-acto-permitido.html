@@ -149,11 +149,16 @@
               <div class="flex items-center justify-end gap-1.5">
                 <button 
                   (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
                   title="Editar asignación"
-                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors">
-                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
                 </button>
                 
                 <button 
@@ -203,15 +208,14 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Entidad de Registro</span>
       </label>
-      <select 
-        formControlName="entidadRegistroId" 
-        class="select select-sm select-bordered w-full text-slate-800"
-        [class.select-error]="relacionForm.get('entidadRegistroId')?.invalid && relacionForm.get('entidadRegistroId')?.touched">
-        <option [ngValue]="null" disabled>Selecciona una entidad</option>
-        @for (entidad of entidadesFacade.entidadesRegistro(); track entidad.id) {
-          <option [ngValue]="entidad.id">{{ entidad.nombre }}</option>
-        }
-      </select>
+      <app-searchable-select
+        formControlName="entidadRegistroId"
+        [searchFn]="searchEntidadesFn"
+        [resolveIdFn]="resolveEntidadFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar entidad..."
+      ></app-searchable-select>
       @if (relacionForm.get('entidadRegistroId')?.hasError('required') && relacionForm.get('entidadRegistroId')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
       }
@@ -222,15 +226,14 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Acto Registral</span>
       </label>
-      <select 
-        formControlName="tipoActoRegistroId" 
-        class="select select-sm select-bordered w-full text-slate-800"
-        [class.select-error]="relacionForm.get('tipoActoRegistroId')?.invalid && relacionForm.get('tipoActoRegistroId')?.touched">
-        <option [ngValue]="null" disabled>Selecciona tipo de acto</option>
-        @for (acto of tiposActoFacade.tiposActoRegistro(); track acto.id) {
-          <option [ngValue]="acto.id">{{ acto.codigo }} - {{ acto.nombre }}</option>
-        }
-      </select>
+      <app-searchable-select
+        formControlName="tipoActoRegistroId"
+        [searchFn]="searchTiposActoFn"
+        [resolveIdFn]="resolveTipoActoFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar tipo de acto..."
+      ></app-searchable-select>
       @if (relacionForm.get('tipoActoRegistroId')?.hasError('required') && relacionForm.get('tipoActoRegistroId')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
       }

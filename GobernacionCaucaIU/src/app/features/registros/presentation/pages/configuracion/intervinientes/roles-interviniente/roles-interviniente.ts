@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { RolesIntervinienteFacade } from '../../../../../application/facades/Intervinientes/roles-interviniente.facade';
 import { RolInterviniente } from '../../../../../domain/models/Intervinientes/rol-interviniente.model';
+import { RolesIntervinienteApiService } from '../../../../../infrastructure/api/Intervinientes/roles-interviniente-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class RolesInterviniente implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(RolesIntervinienteFacade);
+  public apiService = inject(RolesIntervinienteApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Intervinientes', 'Rol de Interviniente'];
@@ -27,6 +29,7 @@ export class RolesInterviniente implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -106,13 +109,25 @@ export class RolesInterviniente implements OnInit {
   }
 
   edit(item: RolInterviniente) {
-    this.selectedId = item.id;
-    this.rolIntervinienteForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.rolIntervinienteForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del rol de interviniente');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: RolInterviniente) {

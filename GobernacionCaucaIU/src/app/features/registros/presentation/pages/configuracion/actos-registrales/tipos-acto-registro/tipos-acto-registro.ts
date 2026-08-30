@@ -10,20 +10,29 @@ import { TiposActoRegistroFacade } from '../../../../../application/facades/Regi
 import { CategoriasActoFacade } from '../../../../../application/facades/Registro/categorias-acto.facade';
 import { NaturalezasActoFacade } from '../../../../../application/facades/Registro/naturalezas-acto.facade';
 import { TipoActoRegistro } from '../../../../../domain/models/Registro/tipo-acto-registro.model';
+import { TiposActoRegistroApiService } from '../../../../../infrastructure/api/Registro/tipos-acto-registro-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { CategoriasActoApiService } from '../../../../../infrastructure/api/Registro/categorias-acto-api.service';
+import { NaturalezasActoApiService } from '../../../../../infrastructure/api/Registro/naturalezas-acto-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-tipos-acto-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './tipos-acto-registro.html',
   styleUrl: './tipos-acto-registro.css'
 })
 export class TiposActoRegistro implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(TiposActoRegistroFacade);
+  public apiService = inject(TiposActoRegistroApiService);
   public categoriasFacade = inject(CategoriasActoFacade);
   public naturalezasFacade = inject(NaturalezasActoFacade);
+  
+  private categoriasApi = inject(CategoriasActoApiService);
+  private naturalezasApi = inject(NaturalezasActoApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Actos Registrales', 'Tipo de Acto de Registro'];
@@ -31,6 +40,7 @@ export class TiposActoRegistro implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -59,6 +69,12 @@ export class TiposActoRegistro implements OnInit {
     requiereAvaluo: [false],
     activo: [true]
   });
+
+  searchCategoriasFn = (term: string) => this.categoriasApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveCategoriaFn = (id: number) => this.categoriasApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchNaturalezasFn = (term: string) => this.naturalezasApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveNaturalezaFn = (id: number) => this.naturalezasApi.obtenerPorId(id).pipe(map(res => res.data));
 
   // Filtered list for table
   tiposActoFiltrados = computed(() => this.facade.tiposActoRegistro());
@@ -123,16 +139,28 @@ export class TiposActoRegistro implements OnInit {
   }
 
   edit(item: TipoActoRegistro) {
-    this.selectedId = item.id;
-    this.tipoActoForm.patchValue({
-      categoriaActoId: item.categoriaActo?.id || null,
-      naturalezaActoId: item.naturalezaActo?.id || null,
-      codigo: item.codigo,
-      nombre: item.nombre,
-      requiereAvaluo: item.requiereAvaluo ?? false,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.tipoActoForm.patchValue({
+          categoriaActoId: data.categoriaActo?.id ?? (data as any).categoriaActoId ?? null,
+          naturalezaActoId: data.naturalezaActo?.id ?? (data as any).naturalezaActoId ?? null,
+          codigo: data.codigo,
+          nombre: data.nombre,
+          requiereAvaluo: data.requiereAvaluo ?? false,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del tipo de acto');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: TipoActoRegistro) {

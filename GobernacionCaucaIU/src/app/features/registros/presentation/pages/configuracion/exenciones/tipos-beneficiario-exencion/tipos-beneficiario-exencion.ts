@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { TiposBeneficiarioExencionFacade } from '../../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
 import { TipoBeneficiarioExencion } from '../../../../../domain/models/Exenciones/tipo-beneficiario-exencion.model';
+import { TiposBeneficiarioExencionApiService } from '../../../../../infrastructure/api/Exenciones/tipos-beneficiario-exencion-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class TiposBeneficiarioExencionComponent implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(TiposBeneficiarioExencionFacade);
+  public apiService = inject(TiposBeneficiarioExencionApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Exenciones', 'Tipo de Beneficiario de Exención'];
@@ -27,6 +29,7 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -106,13 +109,25 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
   }
 
   edit(item: TipoBeneficiarioExencion) {
-    this.selectedId = item.id;
-    this.tipoBeneficiarioForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.tipoBeneficiarioForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del tipo de beneficiario');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: TipoBeneficiarioExencion) {

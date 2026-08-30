@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { RolesFacade } from '../../../../../application/facades/Seguridad/roles.facade';
 import { Rol } from '../../../../../domain/models/Seguridad/rol.model';
+import { RolesApiService } from '../../../../../infrastructure/api/Seguridad/roles-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class RolesComponent implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(RolesFacade);
+  public apiService = inject(RolesApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Seguridad', 'Roles'];
@@ -27,6 +29,7 @@ export class RolesComponent implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -106,13 +109,25 @@ export class RolesComponent implements OnInit {
   }
 
   edit(item: Rol) {
-    this.selectedId = item.id;
-    this.rolForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.rolForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del rol');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: Rol) {

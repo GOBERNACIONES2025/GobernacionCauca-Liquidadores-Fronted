@@ -10,20 +10,29 @@ import { InmueblesFacade } from '../../../../../application/facades/Inmuebles/in
 import { MunicipiosFacade } from '../../../../../application/facades/Territorios/municipios.facade';
 import { VigenciasFacade } from '../../../../../application/facades/Normatividad/vigencias.facade';
 import { Inmueble, AvaluoCatastralCommandDto } from '../../../../../domain/models/Inmuebles/inmueble.model';
+import { InmueblesApiService } from '../../../../../infrastructure/api/Inmuebles/inmuebles-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { MunicipiosApiService } from '../../../../../infrastructure/api/Territorios/municipios-api.service';
+import { VigenciasApiService } from '../../../../../infrastructure/api/Normatividad/vigencias-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-inmuebles',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './inmuebles.html',
   styleUrl: './inmuebles.css'
 })
 export class InmueblesComponent implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(InmueblesFacade);
+  public apiService = inject(InmueblesApiService);
   public municipiosFacade = inject(MunicipiosFacade);
   public vigenciasFacade = inject(VigenciasFacade);
+  
+  private municipiosApi = inject(MunicipiosApiService);
+  private vigenciasApi = inject(VigenciasApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Inmuebles', 'Inmuebles y Avalúos'];
@@ -33,6 +42,7 @@ export class InmueblesComponent implements OnInit {
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   selectedMunicipioFilter = signal<number | 'todos'>('todos');
 
@@ -53,6 +63,12 @@ export class InmueblesComponent implements OnInit {
   get avaluosFormArray(): FormArray {
     return this.inmuebleForm.get('avaluos') as FormArray;
   }
+
+  searchMunicipiosFn = (term: string) => this.municipiosApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveMunicipioFn = (id: number) => this.municipiosApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchVigenciasFn = (term: string) => this.vigenciasApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveVigenciaFn = (id: number) => this.vigenciasApi.obtenerPorId(id).pipe(map(res => res.data));
 
   // Filtered list (client side fallback if needed, but mostly from backend)
   inmueblesFiltrados = computed(() => {
@@ -151,26 +167,38 @@ export class InmueblesComponent implements OnInit {
   }
 
   edit(item: Inmueble) {
-    this.selectedId = item.id;
-    this.inmuebleForm.patchValue({
-      municipioId: item.municipioId,
-      matriculaInmobiliaria: item.matriculaInmobiliaria,
-      direccion: item.direccion || ''
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.inmuebleForm.patchValue({
+          municipioId: data.municipioId ?? (data as any).municipio?.id ?? null,
+          matriculaInmobiliaria: data.matriculaInmobiliaria,
+          direccion: data.direccion || ''
+        });
+
+        this.avaluosFormArray.clear();
+        if (data.avaluos && data.avaluos.length > 0) {
+          data.avaluos.forEach(a => {
+            this.avaluosFormArray.push(this.createAvaluoGroup({
+              id: a.id,
+              vigenciaId: a.vigenciaId ?? (a as any).vigencia?.id,
+              valor: a.valor,
+              fuente: a.fuente
+            }));
+          });
+        }
+
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del inmueble');
+        console.error(err);
+      }
     });
-
-    this.avaluosFormArray.clear();
-    if (item.avaluos && item.avaluos.length > 0) {
-      item.avaluos.forEach(a => {
-        this.avaluosFormArray.push(this.createAvaluoGroup({
-          id: a.id,
-          vigenciaId: a.vigenciaId,
-          valor: a.valor,
-          fuente: a.fuente
-        }));
-      });
-    }
-
-    this.isSlideOverOpen = true;
   }
 
   closeSlideOver() {

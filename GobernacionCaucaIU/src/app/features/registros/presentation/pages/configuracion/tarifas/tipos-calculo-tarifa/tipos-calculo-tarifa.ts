@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { TiposCalculoTarifaFacade } from '../../../../../application/facades/Tarifas/tipos-calculo-tarifa.facade';
 import { TipoCalculoTarifa } from '../../../../../domain/models/Tarifas/tipo-calculo-tarifa.model';
+import { TiposCalculoTarifaApiService } from '../../../../../infrastructure/api/Tarifas/tipos-calculo-tarifa-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class TiposCalculoTarifa implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(TiposCalculoTarifaFacade);
+  public apiService = inject(TiposCalculoTarifaApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Tarifas', 'Tipo de Cálculo de Tarifa'];
@@ -27,6 +29,7 @@ export class TiposCalculoTarifa implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -106,13 +109,25 @@ export class TiposCalculoTarifa implements OnInit {
   }
 
   edit(item: TipoCalculoTarifa) {
-    this.selectedId = item.id;
-    this.tipoCalculoForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.tipoCalculoForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del tipo de cálculo');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: TipoCalculoTarifa) {

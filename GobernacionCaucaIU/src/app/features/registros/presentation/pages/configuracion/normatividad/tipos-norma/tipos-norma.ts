@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { TiposNormaFacade } from '../../../../../application/facades/Normatividad/tipos-norma.facade';
 import { TipoNorma } from '../../../../../domain/models/Normatividad/tipo-norma.model';
+import { TiposNormaApiService } from '../../../../../infrastructure/api/Normatividad/tipos-norma-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class TiposNorma implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(TiposNormaFacade);
+  public apiService = inject(TiposNormaApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Normatividad', 'Tipo de Norma'];
@@ -27,6 +29,7 @@ export class TiposNorma implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -106,13 +109,25 @@ export class TiposNorma implements OnInit {
   }
 
   edit(item: TipoNorma) {
-    this.selectedId = item.id;
-    this.tipoNormaForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.tipoNormaForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del tipo de norma');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: TipoNorma) {

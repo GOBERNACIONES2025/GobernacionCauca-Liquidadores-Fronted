@@ -135,11 +135,16 @@
             <td class="py-3.5 px-4 text-right">
               <button 
                 (click)="edit(item)" 
+                [disabled]="loadingEditId() !== null"
                 title="Editar inmueble y avalúos"
-                class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors">
-                <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                </svg>
+                class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                @if (loadingEditId() === item.id) {
+                  <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                } @else {
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  </svg>
+                }
               </button>
             </td>
           </tr>
@@ -172,15 +177,14 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Municipio</span>
       </label>
-      <select 
-        formControlName="municipioId" 
-        class="select select-sm select-bordered w-full text-slate-800"
-        [class.select-error]="inmuebleForm.get('municipioId')?.invalid && inmuebleForm.get('municipioId')?.touched">
-        <option [ngValue]="null" disabled>Selecciona un municipio</option>
-        @for (m of municipiosFacade.municipios(); track m.id) {
-          <option [ngValue]="m.id">{{ m.nombre }}</option>
-        }
-      </select>
+      <app-searchable-select
+        formControlName="municipioId"
+        [searchFn]="searchMunicipiosFn"
+        [resolveIdFn]="resolveMunicipioFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar municipio..."
+      ></app-searchable-select>
       @if (inmuebleForm.get('municipioId')?.hasError('required') && inmuebleForm.get('municipioId')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
       }
@@ -245,13 +249,14 @@
                 <label class="label p-0 pb-1">
                   <span class="label-text text-[11px] font-semibold text-slate-600">Vigencia</span>
                 </label>
-                <select 
-                  formControlName="vigenciaId" 
-                  class="select select-xs select-bordered w-full text-slate-800">
-                  @for (v of vigenciasFacade.vigencias(); track v.id) {
-                    <option [ngValue]="v.id">{{ v.anio }}</option>
-                  }
-                </select>
+                <app-searchable-select
+                  formControlName="vigenciaId"
+                  [searchFn]="searchVigenciasFn"
+                  [resolveIdFn]="resolveVigenciaFn"
+                  labelKey="anio"
+                  valueKey="id"
+                  placeholder="Buscar vigencia..."
+                ></app-searchable-select>
               </div>
 
               <!-- Valor Avalúo -->

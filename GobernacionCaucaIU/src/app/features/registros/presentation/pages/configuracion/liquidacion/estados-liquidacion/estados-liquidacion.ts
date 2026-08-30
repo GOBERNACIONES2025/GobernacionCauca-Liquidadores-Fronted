@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { EstadosLiquidacionFacade } from '../../../../../application/facades/Liquidacion/estados-liquidacion.facade';
 import { EstadoLiquidacion } from '../../../../../domain/models/Liquidacion/estado-liquidacion.model';
+import { EstadosLiquidacionApiService } from '../../../../../infrastructure/api/Liquidacion/estados-liquidacion-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class EstadosLiquidacion implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(EstadosLiquidacionFacade);
+  public apiService = inject(EstadosLiquidacionApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Liquidación', 'Estados de Liquidación'];
@@ -27,6 +29,7 @@ export class EstadosLiquidacion implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -106,13 +109,25 @@ export class EstadosLiquidacion implements OnInit {
   }
 
   edit(item: EstadoLiquidacion) {
-    this.selectedId = item.id;
-    this.estadoLiquidacionForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.estadoLiquidacionForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del estado de liquidación');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: EstadoLiquidacion) {

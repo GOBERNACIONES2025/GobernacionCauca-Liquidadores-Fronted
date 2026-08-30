@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, Validators, FormBuilder, FormsModule } from '@angular/forms';
 import { Subject, throwError, of } from 'rxjs';
@@ -33,6 +33,7 @@ export class StepActosComponent implements OnInit, OnDestroy {
   inmueblesApi = inject(InmueblesApiService);
   toastService = inject(ToastService);
   fb = inject(FormBuilder);
+  private elementRef = inject(ElementRef);
 
   private destroy$ = new Subject<void>();
 
@@ -44,6 +45,98 @@ export class StepActosComponent implements OnInit, OnDestroy {
   guardandoNuevoInmueble = signal<boolean>(false);
   actoEditandoId = signal<string | null>(null);
   editandoInmuebleId = signal<number | null>(null);
+
+  // Estado para el selector profesional de Exenciones
+  dropdownExencionesAbierto = signal<boolean>(false);
+  busquedaExencion = signal<string>('');
+
+  exencionesList = computed(() => (this.exencionesFacade.exenciones() as any[]) || []);
+
+  exencionesFiltradas = computed(() => {
+    const q = this.busquedaExencion().trim().toLowerCase();
+    const list = this.exencionesList();
+    if (!q) return list;
+    return list.filter(e =>
+      (e.nombre && e.nombre.toLowerCase().includes(q)) ||
+      (e.codigo && e.codigo.toLowerCase().includes(q)) ||
+      (e.norma?.numero && String(e.norma.numero).toLowerCase().includes(q)) ||
+      (e.rolInterviniente?.nombre && e.rolInterviniente.nombre.toLowerCase().includes(q)) ||
+      (e.descripcion && e.descripcion.toLowerCase().includes(q))
+    );
+  });
+
+  exencionesSeleccionadasIds = computed<number[]>(() => {
+    return this.wizardService.actoForm.get('exencionesIds')?.value || [];
+  });
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    const clickedInside = this.elementRef.nativeElement.querySelector('.exenciones-dropdown-container')?.contains(target);
+    if (!clickedInside && this.dropdownExencionesAbierto()) {
+      this.dropdownExencionesAbierto.set(false);
+    }
+  }
+
+  toggleDropdownExenciones(event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    this.dropdownExencionesAbierto.update(v => !v);
+  }
+
+  isExencionSeleccionada(id: number): boolean {
+    return this.exencionesSeleccionadasIds().includes(id);
+  }
+
+  toggleExencion(id: number, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    const current = [...this.exencionesSeleccionadasIds()];
+    const index = current.indexOf(id);
+    if (index > -1) {
+      current.splice(index, 1);
+    } else {
+      current.push(id);
+    }
+    this.wizardService.actoForm.patchValue({ exencionesIds: current });
+    this.wizardService.actoForm.get('exencionesIds')?.markAsDirty();
+  }
+
+  removerExencion(id: number, event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    const current = this.exencionesSeleccionadasIds().filter(x => x !== id);
+    this.wizardService.actoForm.patchValue({ exencionesIds: current });
+    this.wizardService.actoForm.get('exencionesIds')?.markAsDirty();
+  }
+
+  limpiarExenciones(event?: MouseEvent): void {
+    if (event) event.stopPropagation();
+    this.wizardService.actoForm.patchValue({ exencionesIds: [] });
+    this.wizardService.actoForm.get('exencionesIds')?.markAsDirty();
+  }
+
+  obtenerExencionPorId(id: number): any {
+    return this.exencionesList().find(e => e.id === id);
+  }
+
+  formatearBeneficioExencion(ex: any): string {
+    if (!ex) return '';
+    if (ex.porcentaje !== undefined && ex.porcentaje !== null && ex.porcentaje > 0) {
+      return `${ex.porcentaje}%`;
+    }
+    if (ex.porcentajeDescuento !== undefined && ex.porcentajeDescuento !== null && ex.porcentajeDescuento > 0) {
+      return `${ex.porcentajeDescuento}%`;
+    }
+    if (ex.valorFijo !== undefined && ex.valorFijo !== null && ex.valorFijo > 0) {
+      return `$ ${Number(ex.valorFijo).toLocaleString('es-CO')}`;
+    }
+    if (ex.valor !== undefined && ex.valor !== null && ex.valor > 0) {
+      return `$ ${Number(ex.valor).toLocaleString('es-CO')}`;
+    }
+    const match = (ex.nombre || '').match(/(\d+(\.\d+)?)\s*%/);
+    if (match) {
+      return `${match[1]}%`;
+    }
+    return 'N/A';
+  }
 
   nuevoInmuebleForm = this.fb.nonNullable.group({
     municipioId: [0, [Validators.required, Validators.min(1)]],
@@ -397,7 +490,9 @@ export class StepActosComponent implements OnInit, OnDestroy {
       const exencionesList = (this.exencionesFacade.exenciones() as any[]) || [];
       const exencionesNombresFinales = exIds.map((id: number) => {
         const ex = exencionesList.find((e: any) => e.id === id);
-        return ex ? ex.nombre : `Exención #${id}`;
+        if (!ex) return `Exención #${id}`;
+        const beneficio = this.formatearBeneficioExencion(ex);
+        return `${ex.nombre} [${beneficio}]`;
       });
 
       const valorActoNum = this.esSinCuantia ? 0 : Number(val.valorActo || 0);

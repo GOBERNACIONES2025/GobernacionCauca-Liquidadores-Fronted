@@ -11,23 +11,34 @@ import { DepartamentosFacade } from '../../../../../application/facades/Territor
 import { TiposNormaFacade } from '../../../../../application/facades/Normatividad/tipos-norma.facade';
 import { EstadosNormaFacade } from '../../../../../application/facades/Normatividad/estados-norma.facade';
 import { NormaListado } from '../../../../../domain/models/Normatividad/norma.model';
+import { NormasApiService } from '../../../../../infrastructure/api/Normatividad/normas-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { DepartamentosApiService } from '../../../../../infrastructure/api/Territorios/departamentos-api.service';
+import { TiposNormaApiService } from '../../../../../infrastructure/api/Normatividad/tipos-norma-api.service';
+import { EstadosNormaApiService } from '../../../../../infrastructure/api/Normatividad/estados-norma-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 import { DocumentViewerComponent } from '../../../../../../../shared/components/document-viewer/document-viewer';
 import { DocumentItem } from '../../../../../../../shared/components/document-viewer/document-viewer.model';
 
 @Component({
   selector: 'app-normas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './normas.html',
   styleUrl: './normas.css'
 })
 export class Normas implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(NormasFacade);
+  public apiService = inject(NormasApiService);
   public departamentosFacade = inject(DepartamentosFacade);
   public tiposNormaFacade = inject(TiposNormaFacade);
   public estadosNormaFacade = inject(EstadosNormaFacade);
+  
+  private departamentosApi = inject(DepartamentosApiService);
+  private tiposNormaApi = inject(TiposNormaApiService);
+  private estadosNormaApi = inject(EstadosNormaApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Normatividad', 'Normas'];
@@ -35,6 +46,7 @@ export class Normas implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -68,6 +80,15 @@ export class Normas implements OnInit {
     fechaExpedicion: [new Date().toISOString().split('T')[0], Validators.required],
     descripcion: ['']
   });
+
+  searchDepartamentosFn = (term: string) => this.departamentosApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveDepartamentoFn = (id: number) => this.departamentosApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchTiposNormaFn = (term: string) => this.tiposNormaApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveTipoNormaFn = (id: number) => this.tiposNormaApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchEstadosNormaFn = (term: string) => this.estadosNormaApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveEstadoNormaFn = (id: number) => this.estadosNormaApi.obtenerPorId(id).pipe(map(res => res.data));
 
   // Filtered list
   normasFiltradas = computed(() => this.facade.normas());
@@ -136,20 +157,32 @@ export class Normas implements OnInit {
   }
 
   edit(item: NormaListado) {
-    this.selectedId = item.id;
-    const fExp = item.fechaExpedicion ? item.fechaExpedicion.split('T')[0] : '';
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data: any = res?.data || item;
+        this.selectedId = data.id;
+        const fExp = data.fechaExpedicion ? data.fechaExpedicion.split('T')[0] : '';
 
-    this.normaForm.patchValue({
-      departamentoId: item.departamento?.id || null,
-      tipoNormaId: item.tipoNorma?.id || null,
-      estadoNormaId: item.estadoNorma?.id || null,
-      numero: item.numero,
-      anio: item.anio,
-      fechaExpedicion: fExp,
-      descripcion: ''
+        this.normaForm.patchValue({
+          departamentoId: data.departamento?.id ?? data.departamentoId ?? null,
+          tipoNormaId: data.tipoNorma?.id ?? data.tipoNormaId ?? null,
+          estadoNormaId: data.estadoNorma?.id ?? data.estadoNormaId ?? null,
+          numero: data.numero,
+          anio: data.anio,
+          fechaExpedicion: fExp,
+          descripcion: data.descripcion || ''
+        });
+        this.selectedFile = null;
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la norma');
+        console.error(err);
+      }
     });
-    this.selectedFile = null;
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: NormaListado) {

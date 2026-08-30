@@ -10,20 +10,29 @@ import { ContribuyentesFacade } from '../../../../../application/facades/Contrib
 import { TiposPersonaFacade } from '../../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
 import { Contribuyente } from '../../../../../domain/models/Contribuyentes/contribuyente.model';
+import { ContribuyentesApiService } from '../../../../../infrastructure/api/Contribuyentes/contribuyentes-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { TiposPersonaApiService } from '../../../../../infrastructure/api/Contribuyentes/tipos-persona-api.service';
+import { TiposIdentificacionApiService } from '../../../../../infrastructure/api/Contribuyentes/tipos-identificacion-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contribuyentes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './contribuyentes.html',
   styleUrl: './contribuyentes.css'
 })
 export class Contribuyentes implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(ContribuyentesFacade);
+  public apiService = inject(ContribuyentesApiService);
   public tiposPersonaFacade = inject(TiposPersonaFacade);
   public tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
+  
+  private tiposPersonaApi = inject(TiposPersonaApiService);
+  private tiposIdentificacionApi = inject(TiposIdentificacionApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Contribuyentes', 'Directorio de Contribuyentes'];
@@ -33,6 +42,7 @@ export class Contribuyentes implements OnInit {
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
   
   selectedTipoPersonaFilter = signal<number | 'todos'>('todos');
 
@@ -52,6 +62,12 @@ export class Contribuyentes implements OnInit {
     telefono: [''],
     email: ['', [Validators.email]]
   });
+
+  searchTiposPersonaFn = (term: string) => this.tiposPersonaApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveTipoPersonaFn = (id: number) => this.tiposPersonaApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchTiposIdentificacionFn = (term: string) => this.tiposIdentificacionApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveTipoIdentificacionFn = (id: number) => this.tiposIdentificacionApi.obtenerPorId(id).pipe(map(res => res.data));
 
   // Filtered list (client side for tipoPersona si no es backend filter, backend for search)
   contribuyentesFiltrados = computed(() => this.facade.contribuyentes());
@@ -121,17 +137,29 @@ export class Contribuyentes implements OnInit {
   }
 
   edit(item: Contribuyente) {
-    this.selectedId = item.id;
-    this.contribuyenteForm.patchValue({
-      tipoPersonaId: item.tipoPersona?.id ?? null,
-      tipoIdentificacionId: item.tipoIdentificacion?.id ?? null,
-      numeroIdentificacion: item.numeroIdentificacion,
-      nombre: item.nombre,
-      direccion: item.direccion || '',
-      telefono: item.telefono || '',
-      email: item.email || ''
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.contribuyenteForm.patchValue({
+          tipoPersonaId: data.tipoPersona?.id ?? (data as any).tipoPersonaId ?? null,
+          tipoIdentificacionId: data.tipoIdentificacion?.id ?? (data as any).tipoIdentificacionId ?? null,
+          numeroIdentificacion: data.numeroIdentificacion,
+          nombre: data.nombre,
+          direccion: data.direccion || '',
+          telefono: data.telefono || '',
+          email: data.email || ''
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del contribuyente');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   closeSlideOver() {

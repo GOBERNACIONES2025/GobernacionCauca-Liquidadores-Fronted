@@ -157,14 +157,189 @@
                 }
               </div>
               
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Aplicar Beneficios / Exenciones</label>
-                <select multiple formControlName="exencionesIds" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all h-24">
-                  @for (ex of exencionesFacade.exenciones(); track ex.id) {
-                    <option [ngValue]="ex.id">{{ ex.nombre }}</option>
+              <!-- SELECTOR PROFESIONAL MULTI-SELECT DE EXENCIONES -->
+              <div class="relative exenciones-dropdown-container">
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-semibold text-slate-700">
+                    Beneficios Tributarios / Exenciones Aplicables
+                  </label>
+                  @if (exencionesSeleccionadasIds().length > 0) {
+                    <button type="button" (click)="limpiarExenciones($event)" class="text-[11px] text-red-600 hover:text-red-800 font-medium transition-colors">
+                      Limpiar selección
+                    </button>
                   }
-                </select>
-                <p class="text-[11px] text-slate-400 mt-1.5">Puede seleccionar múltiples opciones con Ctrl/Cmd + click.</p>
+                </div>
+
+                <!-- Botón Gatillador / Input Custom -->
+                <div (click)="toggleDropdownExenciones($event)"
+                     [class.ring-2]="dropdownExencionesAbierto()"
+                     [class.ring-blue-500/20]="dropdownExencionesAbierto()"
+                     [class.border-blue-500]="dropdownExencionesAbierto()"
+                     class="min-h-[46px] w-full text-sm p-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-lg cursor-pointer transition-all flex items-center justify-between gap-2 shadow-sm">
+                  
+                  <div class="flex items-center gap-2 flex-1 overflow-hidden">
+                    <div class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+
+                    @if (exencionesSeleccionadasIds().length === 0) {
+                      <span class="text-slate-400 text-xs truncate">
+                        Ninguna (Tarifa Plena) &bull; Clic para explorar exenciones...
+                      </span>
+                    } @else {
+                      <div class="flex items-center gap-1.5 truncate">
+                        <span class="px-2 py-0.5 bg-emerald-600 text-white rounded-full text-xs font-bold shadow-sm">
+                          {{ exencionesSeleccionadasIds().length }}
+                        </span>
+                        <span class="text-xs font-semibold text-slate-800 truncate">
+                          {{ exencionesSeleccionadasIds().length === 1 ? '1 exención seleccionada' : exencionesSeleccionadasIds().length + ' exenciones seleccionadas' }}
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="flex items-center gap-1 text-slate-400">
+                    <svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="dropdownExencionesAbierto()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Chips de elementos seleccionados (Debajo del trigger) -->
+                @if (exencionesSeleccionadasIds().length > 0) {
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    @for (exId of exencionesSeleccionadasIds(); track exId) {
+                      @let ex = obtenerExencionPorId(exId);
+                      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-xs font-medium shadow-xs">
+                        <span class="px-1.5 py-0.2 bg-emerald-200/80 text-emerald-900 font-bold rounded text-[11px]">
+                          {{ formatearBeneficioExencion(ex) }}
+                        </span>
+                        <span class="truncate max-w-[200px]">{{ ex?.nombre || ('Exención #' + exId) }}</span>
+                        @if (ex?.rolInterviniente) {
+                          <span class="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-1 rounded">
+                            {{ ex.rolInterviniente.nombre }}
+                          </span>
+                        }
+                        <button type="button" (click)="removerExencion(exId, $event)" class="text-emerald-700 hover:text-red-700 hover:bg-emerald-100 rounded-full p-0.5 transition-colors">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Menú Desplegable Flotante -->
+                @if (dropdownExencionesAbierto()) {
+                  <div class="absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    
+                    <!-- Buscador integrado -->
+                    <div class="p-2.5 bg-slate-50 border-b border-slate-200">
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        <input type="text"
+                               [ngModel]="busquedaExencion()"
+                               (ngModelChange)="busquedaExencion.set($event)"
+                               [ngModelOptions]="{standalone: true}"
+                               placeholder="Filtrar por nombre, código o norma..."
+                               class="w-full text-xs pl-8 pr-7 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                        @if (busquedaExencion()) {
+                          <button type="button" (click)="busquedaExencion.set('')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        }
+                      </div>
+                      <div class="flex items-center justify-between mt-2 px-1 text-[11px] text-slate-500">
+                        <span>{{ exencionesFiltradas().length }} disponibles</span>
+                        <span class="text-blue-600 font-medium">Haga clic sobre cada ítem para agregar/quitar</span>
+                      </div>
+                    </div>
+
+                    <!-- Lista de Opciones -->
+                    <div class="max-h-60 overflow-y-auto divide-y divide-slate-100 p-1">
+                      @for (ex of exencionesFiltradas(); track ex.id) {
+                        <div (click)="toggleExencion(ex.id, $event)"
+                             [class.bg-emerald-50/60]="isExencionSeleccionada(ex.id)"
+                             class="p-2.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors flex items-start gap-3 select-none">
+                          
+                          <!-- Checkbox Custom -->
+                          <div class="mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all"
+                               [class.bg-emerald-600]="isExencionSeleccionada(ex.id)"
+                               [class.border-emerald-600]="isExencionSeleccionada(ex.id)"
+                               [class.border-slate-300]="!isExencionSeleccionada(ex.id)"
+                               [class.bg-white]="!isExencionSeleccionada(ex.id)">
+                            @if (isExencionSeleccionada(ex.id)) {
+                              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                              </svg>
+                            }
+                          </div>
+
+                          <!-- Contenido de la Exención -->
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2">
+                              <span class="text-xs font-bold text-slate-800 leading-tight">
+                                {{ ex.nombre }}
+                              </span>
+                              <!-- Badge Porcentaje / Valor Fijo -->
+                              <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs shrink-0">
+                                {{ formatearBeneficioExencion(ex) }}
+                              </span>
+                            </div>
+                            
+                            <!-- Badges informativos (Objetiva vs Subjetiva con Rol) -->
+                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                              @if (ex.rolInterviniente) {
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                  👤 Aplica a Rol: {{ ex.rolInterviniente.nombre }}
+                                </span>
+                              } @else {
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-50 text-teal-700 border border-teal-100">
+                                  ⚖️ Exención al Acto (Objetiva)
+                                </span>
+                              }
+
+                              @if (ex.norma?.numero) {
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                                  Norma: {{ ex.norma.numero }} {{ ex.norma.anio ? ('/' + ex.norma.anio) : '' }}
+                                </span>
+                              }
+                            </div>
+
+                            @if (ex.descripcion) {
+                              <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                {{ ex.descripcion }}
+                              </p>
+                            }
+                          </div>
+                        </div>
+                      } @empty {
+                        <div class="p-6 text-center text-xs text-slate-400">
+                          No se encontraron exenciones que coincidan con la búsqueda.
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Footer del Dropdown -->
+                    <div class="p-2 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
+                      <span class="text-slate-500">
+                        {{ exencionesSeleccionadasIds().length }} seleccionada(s)
+                      </span>
+                      <button type="button" (click)="dropdownExencionesAbierto.set(false)" class="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-md font-semibold text-xs transition-colors shadow-sm">
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
             </div>
           </div>

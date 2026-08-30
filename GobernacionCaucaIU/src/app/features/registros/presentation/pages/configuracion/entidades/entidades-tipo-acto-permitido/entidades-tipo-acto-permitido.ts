@@ -10,20 +10,29 @@ import { EntidadesTipoActoPermitidoFacade } from '../../../../../application/fac
 import { EntidadesRegistroFacade } from '../../../../../application/facades/Registro/entidades-registro.facade';
 import { TiposActoRegistroFacade } from '../../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { EntidadTipoActoPermitido } from '../../../../../domain/models/Registro/entidad-tipo-acto-permitido.model';
+import { EntidadesTipoActoPermitidoApiService } from '../../../../../infrastructure/api/Registro/entidades-tipo-acto-permitido-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { EntidadesRegistroApiService } from '../../../../../infrastructure/api/Registro/entidades-registro-api.service';
+import { TiposActoRegistroApiService } from '../../../../../infrastructure/api/Registro/tipos-acto-registro-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-entidades-tipo-acto-permitido',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './entidades-tipo-acto-permitido.html',
   styleUrl: './entidades-tipo-acto-permitido.css'
 })
 export class EntidadesTipoActoPermitidoComponent implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(EntidadesTipoActoPermitidoFacade);
+  public apiService = inject(EntidadesTipoActoPermitidoApiService);
   public entidadesFacade = inject(EntidadesRegistroFacade);
   public tiposActoFacade = inject(TiposActoRegistroFacade);
+  
+  private entidadesApi = inject(EntidadesRegistroApiService);
+  private tiposActoApi = inject(TiposActoRegistroApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Entidades', 'Actos Permitidos por Entidad'];
@@ -31,6 +40,7 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -57,6 +67,12 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
     tipoActoRegistroId: [null as number | null, Validators.required],
     activo: [true]
   });
+
+  searchEntidadesFn = (term: string) => this.entidadesApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveEntidadFn = (id: number) => this.entidadesApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchTiposActoFn = (term: string) => this.tiposActoApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveTipoActoFn = (id: number) => this.tiposActoApi.obtenerPorId(id).pipe(map(res => res.data));
 
   // Filtered list
   relacionesFiltradas = computed(() => this.facade.entidadesTipoActoPermitido());
@@ -121,13 +137,25 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
   }
 
   edit(item: EntidadTipoActoPermitido) {
-    this.selectedId = item.id;
-    this.relacionForm.patchValue({
-      entidadRegistroId: item.entidadRegistro?.id ?? null,
-      tipoActoRegistroId: item.tipoActoRegistro?.id ?? null,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.relacionForm.patchValue({
+          entidadRegistroId: data.entidadRegistro?.id ?? (data as any).entidadRegistroId ?? null,
+          tipoActoRegistroId: data.tipoActoRegistro?.id ?? (data as any).tipoActoRegistroId ?? null,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la asignación');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: EntidadTipoActoPermitido) {

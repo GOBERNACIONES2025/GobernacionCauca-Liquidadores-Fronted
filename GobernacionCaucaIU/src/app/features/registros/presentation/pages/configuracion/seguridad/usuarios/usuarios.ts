@@ -9,6 +9,7 @@ import { SlideOverComponent } from '../../../../shared/components/slide-over/sli
 import { UsuariosFacade } from '../../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesFacade } from '../../../../../application/facades/Seguridad/roles.facade';
 import { Usuario } from '../../../../../domain/models/Seguridad/usuario.model';
+import { UsuariosApiService } from '../../../../../infrastructure/api/Seguridad/usuarios-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -21,6 +22,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class UsuariosComponent implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(UsuariosFacade);
+  public apiService = inject(UsuariosApiService);
   public rolesFacade = inject(RolesFacade);
   private toast = inject(ToastService);
 
@@ -29,6 +31,7 @@ export class UsuariosComponent implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -118,18 +121,30 @@ export class UsuariosComponent implements OnInit {
   }
 
   edit(item: Usuario) {
-    this.selectedId = item.id;
-    const roleIds = item.roles ? item.roles.map(r => r.id) : [];
-    this.usuarioForm.patchValue({
-      nombre: item.nombre,
-      email: item.email,
-      password: '',
-      rolesIds: roleIds,
-      activo: item.activo ?? true
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        const roleIds = data.roles ? data.roles.map(r => r.id) : [];
+        this.usuarioForm.patchValue({
+          nombre: data.nombre,
+          email: data.email,
+          password: '',
+          rolesIds: roleIds,
+          activo: data.activo ?? true
+        });
+        this.usuarioForm.get('password')?.clearValidators();
+        this.usuarioForm.get('password')?.updateValueAndValidity();
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del usuario');
+        console.error(err);
+      }
     });
-    this.usuarioForm.get('password')?.clearValidators();
-    this.usuarioForm.get('password')?.updateValueAndValidity();
-    this.isSlideOverOpen = true;
   }
 
   isRoleSelected(roleId: number): boolean {

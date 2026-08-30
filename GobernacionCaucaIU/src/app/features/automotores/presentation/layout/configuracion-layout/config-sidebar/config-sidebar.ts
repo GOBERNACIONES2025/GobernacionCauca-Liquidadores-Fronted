@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 import { CatalogoVehicularFacade } from '../../../../application/facades/catalogo-vehicular.facade';
 
 export interface CatalogItem {
@@ -14,6 +15,7 @@ export interface CatalogItem {
 
 export interface CatalogGroup {
   name: string;
+  icon?: string;
   items: CatalogItem[];
 }
 
@@ -26,14 +28,45 @@ export interface CatalogGroup {
 })
 export class AutomotoresConfigSidebar {
   public facade = inject(CatalogoVehicularFacade);
+  private router = inject(Router);
 
   readonly closeSidebar = output<void>();
 
   searchTerm = signal('');
+  expandedGroups = signal<Set<string>>(new Set<string>());
+
+  constructor() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.autoExpandActiveGroup(event.urlAfterRedirects || event.url);
+    });
+
+    setTimeout(() => {
+      this.autoExpandActiveGroup(this.router.url);
+    }, 100);
+  }
+
+  autoExpandActiveGroup(url: string) {
+    if (!url) return;
+    const groups = this.catalogGroups();
+    for (const group of groups) {
+      const hasActiveChild = group.items.some(item => item.route && url.includes(item.route));
+      if (hasActiveChild) {
+        this.expandedGroups.update(set => {
+          const next = new Set(set);
+          next.add(group.name);
+          return next;
+        });
+        break;
+      }
+    }
+  }
 
   catalogGroups = computed<CatalogGroup[]>(() => [
     {
       name: 'Territorio & Geografía',
+      icon: 'map',
       items: [
         {
           name: 'Departamentos',
@@ -50,6 +83,7 @@ export class AutomotoresConfigSidebar {
     },
     {
       name: 'Especificaciones Vehiculares',
+      icon: 'car',
       items: [
         {
           name: 'Clases de Vehículo',
@@ -86,6 +120,7 @@ export class AutomotoresConfigSidebar {
     },
     {
       name: 'Tránsito & Matrícula',
+      icon: 'clipboard-document-check',
       items: [
         {
           name: 'Estados de Matrícula',
@@ -106,6 +141,7 @@ export class AutomotoresConfigSidebar {
     },
     {
       name: 'Contribuyentes & Personas',
+      icon: 'user-group',
       items: [
         {
           name: 'Tipos de Documento',
@@ -126,6 +162,7 @@ export class AutomotoresConfigSidebar {
     },
     {
       name: 'Control & Auditoría',
+      icon: 'shield-check',
       items: [
         {
           name: 'Pendientes por Aprobación',
@@ -154,6 +191,50 @@ export class AutomotoresConfigSidebar {
       }))
       .filter(group => group.items.length > 0);
   });
+
+  isGroupExpanded(groupName: string): boolean {
+    if (this.searchTerm().trim().length > 0) {
+      return true;
+    }
+    return this.expandedGroups().has(groupName);
+  }
+
+  hasActiveChild(group: CatalogGroup): boolean {
+    const currentUrl = this.router.url;
+    return group.items.some(item => item.route && currentUrl.includes(item.route));
+  }
+
+  toggleGroup(groupName: string) {
+    this.expandedGroups.update(set => {
+      const next = new Set<string>();
+      if (!set.has(groupName)) {
+        next.add(groupName);
+      }
+      return next;
+    });
+  }
+
+  expandAll() {
+    const all = new Set(this.catalogGroups().map(g => g.name));
+    this.expandedGroups.set(all);
+  }
+
+  collapseAll() {
+    this.expandedGroups.set(new Set());
+  }
+
+  areAllExpanded(): boolean {
+    const totalGroups = this.catalogGroups().length;
+    return totalGroups > 0 && this.expandedGroups().size === totalGroups;
+  }
+
+  toggleAll() {
+    if (this.areAllExpanded()) {
+      this.collapseAll();
+    } else {
+      this.expandAll();
+    }
+  }
 
   onItemClick() {
     this.closeSidebar.emit();

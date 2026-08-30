@@ -164,11 +164,16 @@
               <div class="flex items-center justify-end gap-1.5">
                 <button 
                   (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
                   title="Editar entidad"
-                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors">
-                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
                 </button>
                 
                 <button 
@@ -219,16 +224,14 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Entidad</span>
       </label>
-      <select 
-        formControlName="tipoEntidadRegistroId" 
-        class="select select-sm select-bordered w-full text-slate-800"
-        [class.select-error]="entidadForm.get('tipoEntidadRegistroId')?.invalid && entidadForm.get('tipoEntidadRegistroId')?.touched"
-      >
-        <option [ngValue]="null" disabled>Seleccione un tipo</option>
-        @for (tipo of tiposEntidadFacade.tiposEntidadRegistro(); track tipo.id) {
-          <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-        }
-      </select>
+      <app-searchable-select
+        formControlName="tipoEntidadRegistroId"
+        [searchFn]="searchTiposEntidadFn"
+        [resolveIdFn]="resolveTipoEntidadFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar tipo de entidad..."
+      ></app-searchable-select>
       @if (entidadForm.get('tipoEntidadRegistroId')?.hasError('required') && entidadForm.get('tipoEntidadRegistroId')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un tipo de entidad</span></label>
       }
@@ -293,16 +296,14 @@
         <label class="label pt-0 pb-1">
           <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento</span>
         </label>
-        <select 
-          formControlName="departamentoId" 
-          class="select select-sm select-bordered w-full text-slate-800"
-          [class.select-error]="entidadForm.get('departamentoId')?.invalid && entidadForm.get('departamentoId')?.touched"
-        >
-          <option [ngValue]="null" disabled>Seleccione</option>
-          @for (dep of departamentosFacade.departamentos(); track dep.id) {
-            <option [ngValue]="dep.id">{{ dep.nombre }}</option>
-          }
-        </select>
+        <app-searchable-select
+          formControlName="departamentoId"
+          [searchFn]="searchDepartamentosFn"
+          [resolveIdFn]="resolveDepartamentoFn"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Buscar departamento..."
+        ></app-searchable-select>
       </div>
 
       <!-- Municipio Select -->
@@ -310,16 +311,15 @@
         <label class="label pt-0 pb-1">
           <span class="label-text font-bold text-xs uppercase text-slate-600">Municipio</span>
         </label>
-        <select 
-          formControlName="municipioId" 
-          class="select select-sm select-bordered w-full text-slate-800"
-          [class.select-error]="entidadForm.get('municipioId')?.invalid && entidadForm.get('municipioId')?.touched"
-        >
-          <option [ngValue]="null" disabled>Seleccione</option>
-          @for (mun of municipiosFiltradosForm(); track mun.id) {
-            <option [ngValue]="mun.id">{{ mun.nombre }}</option>
-          }
-        </select>
+        <app-searchable-select
+          formControlName="municipioId"
+          [searchFn]="searchMunicipiosFn"
+          [resolveIdFn]="resolveMunicipioFn"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Buscar municipio..."
+          [disabled]="!entidadForm.get('departamentoId')?.value"
+        ></app-searchable-select>
       </div>
     </div>
 

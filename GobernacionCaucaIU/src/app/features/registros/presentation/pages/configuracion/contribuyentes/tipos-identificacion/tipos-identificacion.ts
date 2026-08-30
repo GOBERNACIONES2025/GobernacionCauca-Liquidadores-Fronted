@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { TiposIdentificacionFacade } from '../../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
 import { TipoIdentificacion } from '../../../../../domain/models/Contribuyentes/tipo-identificacion.model';
+import { TiposIdentificacionApiService } from '../../../../../infrastructure/api/Contribuyentes/tipos-identificacion-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class TiposIdentificacion implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(TiposIdentificacionFacade);
+  public apiService = inject(TiposIdentificacionApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Contribuyentes', 'Tipo de Documento'];
@@ -27,6 +29,7 @@ export class TiposIdentificacion implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -106,13 +109,25 @@ export class TiposIdentificacion implements OnInit {
   }
 
   edit(item: TipoIdentificacion) {
-    this.selectedId = item.id;
-    this.tipoIdentificacionForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.tipoIdentificacionForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del tipo de documento');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: TipoIdentificacion) {

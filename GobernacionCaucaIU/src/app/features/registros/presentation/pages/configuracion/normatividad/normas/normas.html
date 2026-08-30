@@ -180,11 +180,16 @@
               <div class="flex items-center justify-end gap-1.5">
                 <button 
                   (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
                   title="Editar norma"
-                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors">
-                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
                 </button>
                 
                 <button 
@@ -251,16 +256,14 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento</span>
       </label>
-      <select 
-        formControlName="departamentoId" 
-        class="select select-sm select-bordered w-full text-slate-800"
-        [class.select-error]="normaForm.get('departamentoId')?.invalid && normaForm.get('departamentoId')?.touched"
-      >
-        <option [ngValue]="null" disabled>Seleccione un departamento</option>
-        @for (dep of departamentosFacade.departamentos(); track dep.id) {
-          <option [ngValue]="dep.id">{{ dep.nombre }}</option>
-        }
-      </select>
+      <app-searchable-select
+        formControlName="departamentoId"
+        [searchFn]="searchDepartamentosFn"
+        [resolveIdFn]="resolveDepartamentoFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar departamento..."
+      ></app-searchable-select>
       @if (normaForm.get('departamentoId')?.hasError('required') && normaForm.get('departamentoId')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un departamento</span></label>
       }
@@ -271,16 +274,14 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Norma</span>
       </label>
-      <select 
-        formControlName="tipoNormaId" 
-        class="select select-sm select-bordered w-full text-slate-800"
-        [class.select-error]="normaForm.get('tipoNormaId')?.invalid && normaForm.get('tipoNormaId')?.touched"
-      >
-        <option [ngValue]="null" disabled>Seleccione un tipo de norma</option>
-        @for (tipo of tiposNormaFacade.tiposNorma(); track tipo.id) {
-          <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-        }
-      </select>
+      <app-searchable-select
+        formControlName="tipoNormaId"
+        [searchFn]="searchTiposNormaFn"
+        [resolveIdFn]="resolveTipoNormaFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar tipo de norma..."
+      ></app-searchable-select>
       @if (normaForm.get('tipoNormaId')?.hasError('required') && normaForm.get('tipoNormaId')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un tipo de norma</span></label>
       }
@@ -291,16 +292,14 @@
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Estado de Norma</span>
       </label>
-      <select 
-        formControlName="estadoNormaId" 
-        class="select select-sm select-bordered w-full text-slate-800"
-        [class.select-error]="normaForm.get('estadoNormaId')?.invalid && normaForm.get('estadoNormaId')?.touched"
-      >
-        <option [ngValue]="null" disabled>Seleccione un estado</option>
-        @for (est of estadosNormaFacade.estadosNorma(); track est.id) {
-          <option [ngValue]="est.id">{{ est.nombre }}</option>
-        }
-      </select>
+      <app-searchable-select
+        formControlName="estadoNormaId"
+        [searchFn]="searchEstadosNormaFn"
+        [resolveIdFn]="resolveEstadoNormaFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar estado..."
+      ></app-searchable-select>
       @if (normaForm.get('estadoNormaId')?.hasError('required') && normaForm.get('estadoNormaId')?.touched) {
         <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un estado</span></label>
       }

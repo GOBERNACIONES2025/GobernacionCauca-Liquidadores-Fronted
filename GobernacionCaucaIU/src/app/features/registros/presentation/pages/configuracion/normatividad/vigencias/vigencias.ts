@@ -8,6 +8,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { VigenciasFacade } from '../../../../../application/facades/Normatividad/vigencias.facade';
 import { Vigencia } from '../../../../../domain/models/Normatividad/vigencia.model';
+import { VigenciasApiService } from '../../../../../infrastructure/api/Normatividad/vigencias-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class Vigencias implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(VigenciasFacade);
+  public apiService = inject(VigenciasApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Normatividad', 'Vigencia'];
@@ -27,6 +29,7 @@ export class Vigencias implements OnInit {
   searchText = signal<string>('');
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
 
   constructor() {
     this.searchSubject.pipe(
@@ -113,17 +116,29 @@ export class Vigencias implements OnInit {
   }
 
   edit(item: Vigencia) {
-    this.selectedId = item.id;
-    const fInicio = item.fechaInicio ? item.fechaInicio.split('T')[0] : '';
-    const fFin = item.fechaFin ? item.fechaFin.split('T')[0] : '';
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        const fInicio = data.fechaInicio ? data.fechaInicio.split('T')[0] : '';
+        const fFin = data.fechaFin ? data.fechaFin.split('T')[0] : '';
 
-    this.vigenciaForm.patchValue({
-      anio: item.anio,
-      fechaInicio: fInicio,
-      fechaFin: fFin,
-      activo: item.activo
+        this.vigenciaForm.patchValue({
+          anio: data.anio,
+          fechaInicio: fInicio,
+          fechaFin: fFin,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la vigencia');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: Vigencia) {

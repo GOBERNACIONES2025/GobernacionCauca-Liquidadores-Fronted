@@ -28,6 +28,9 @@ export interface Exencion {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
+  porcentaje?: number | null;
+  valorFijo?: number | null;
+  porcentajeDescuento?: number | null;
   activo: boolean;
 }
 
@@ -42,6 +45,8 @@ export interface CrearExencionRequest {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
+  porcentaje?: number | null;
+  valorFijo?: number | null;
 }
 
 /**
@@ -56,6 +61,8 @@ export interface ActualizarExencionRequest {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
+  porcentaje?: number | null;
+  valorFijo?: number | null;
   activo: boolean;
 }
 

@@ -9,19 +9,25 @@ import { PaginationComponent } from '../../../../../../shared/components/paginat
 import { MunicipiosFacade } from '../../../../../application/facades/Territorios/municipios.facade';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
 import { Municipio } from '../../../../../domain/models/Territorios/municipio.model';
+import { MunicipiosApiService } from '../../../../../infrastructure/api/Territorios/municipios-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { DepartamentosApiService } from '../../../../../infrastructure/api/Territorios/departamentos-api.service';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-municipios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './municipios.html',
   styleUrl: './municipios.css'
 })
 export class Municipios implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(MunicipiosFacade);
+  public apiService = inject(MunicipiosApiService);
   public departamentosFacade = inject(DepartamentosFacade);
+  private departamentosApi = inject(DepartamentosApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Territorio', 'Municipio'];
@@ -31,6 +37,7 @@ export class Municipios implements OnInit {
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
   
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
   isSlideOverOpen = false;
@@ -46,6 +53,14 @@ export class Municipios implements OnInit {
     departamentoId: [null as number | null, Validators.required],
     activo: [true]
   });
+
+  searchDepartamentosFn = (term: string) => this.departamentosApi.obtenerTodos(1, 50, term).pipe(
+    map(res => res.data.items)
+  );
+
+  resolveDepartamentoFn = (id: number) => this.departamentosApi.obtenerPorId(id).pipe(
+    map(res => res.data)
+  );
 
   // Client side active/inactive filter only (if backend doesn't support state filter).
   // Otherwise, we just return all from facade.
@@ -148,16 +163,28 @@ export class Municipios implements OnInit {
   }
 
   edit(item: Municipio) {
-    this.selectedId = item.id;
-    const depId = this.resolveDepartamentoId(item);
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        const depId = this.resolveDepartamentoId(data);
 
-    this.municipioForm.patchValue({
-      codigoDane: item.codigoDane,
-      nombre: item.nombre,
-      departamentoId: depId,
-      activo: item.activo
+        this.municipioForm.patchValue({
+          codigoDane: data.codigoDane,
+          nombre: data.nombre,
+          departamentoId: depId,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del municipio');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: Municipio) {
