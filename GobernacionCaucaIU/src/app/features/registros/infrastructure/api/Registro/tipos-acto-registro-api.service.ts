@@ -31,10 +31,32 @@ export class TiposActoRegistroApiService {
    * @param {number} [pageSize=10] - Cantidad de registros por página.
    * @returns {Observable<ApiResponse<PagedResult<TipoActoRegistro>>>} Respuesta paginada.
    */
-  obtenerTodos(pageNumber: number = 1, pageSize: number = 10): Observable<ApiResponse<PagedResult<TipoActoRegistro>>> {
+  obtenerTodos(
+    paramsOrPage: number | any = 1, 
+    pageSize: number = 10, 
+    searchTerm?: string,
+    activo?: boolean,
+    filtrosEspecificos?: any
+  ): Observable<ApiResponse<PagedResult<TipoActoRegistro>>> {
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.categoriaActoId) params.CategoriaActoId = paramsOrPage.categoriaActoId;
+      if (paramsOrPage.naturalezaActoId) params.NaturalezaActoId = paramsOrPage.naturalezaActoId;
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') params.SearchTerm = searchTerm.trim();
+      if (activo !== undefined && activo !== null) params.Activo = activo;
+      if (filtrosEspecificos) Object.assign(params, filtrosEspecificos);
+    }
     return this.api.get<ApiResponse<PagedResult<TipoActoRegistro>>>(
       this.baseUrl,
-      { params: { pageNumber, pageSize } },
+      { params },
       'REGISTROS'
     );
   }
@@ -46,8 +68,10 @@ export class TiposActoRegistroApiService {
    * @param {number} entidadRegistroId - Identificador de la entidad de registro.
    * @returns {Observable<ApiResponse<TipoActoRegistro[]>>} Lista de tipos de acto permitidos.
    */
-  obtenerPorEntidad(entidadRegistroId: number): Observable<ApiResponse<TipoActoRegistro[]>> {
-    return this.api.get<ApiResponse<TipoActoRegistro[]>>(`${this.baseUrl}/por-entidad/${entidadRegistroId}`, {}, 'REGISTROS');
+  obtenerPorEntidad(entidadRegistroId: number, vigenciaId?: number): Observable<ApiResponse<TipoActoRegistro[]>> {
+    let params: any = {};
+    if (vigenciaId) params.vigenciaId = vigenciaId;
+    return this.api.get<ApiResponse<TipoActoRegistro[]>>(`${this.baseUrl}/por-entidad/${entidadRegistroId}`, { params }, 'REGISTROS');
   }
 
   /**

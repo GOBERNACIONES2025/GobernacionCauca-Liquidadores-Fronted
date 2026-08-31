@@ -74,4 +74,16 @@ export class GeneracionLiquidacionApiService {
   anularLiquidacion(id: number, motivo: string): Observable<ApiResponse<boolean>> {
     return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${id}/anular`, { motivoAnulacion: motivo }, {}, 'REGISTROS');
   }
+
+  /**
+   * @description
+   * Anula la liquidación actual y reapertura la solicitud asociada para reliquidar.
+   * 
+   * @param {number} id - Identificador de la liquidación.
+   * @param {string} motivo - Motivo de la reliquidación.
+   * @returns {Observable<ApiResponse<number>>} ID de la Solicitud habilitada para edición.
+   */
+  reliquidarLiquidacion(id: number, motivo: string): Observable<ApiResponse<number>> {
+    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/${id}/reliquidar`, { motivoReliquidacion: motivo }, {}, 'REGISTROS');
+  }
 }

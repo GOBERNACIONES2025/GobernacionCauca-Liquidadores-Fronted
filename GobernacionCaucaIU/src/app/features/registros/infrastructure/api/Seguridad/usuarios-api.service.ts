@@ -31,13 +31,40 @@ export class UsuariosApiService {
    * @param {UsuarioQueryParams} [params] - Parámetros de paginación y búsqueda.
    * @returns {Observable<ApiResponse<PagedResult<Usuario>>>} Respuesta paginada.
    */
-  obtenerTodos(params?: UsuarioQueryParams): Observable<ApiResponse<PagedResult<Usuario>>> {
-    const queryParams: any = {
-      pageNumber: params?.pageNumber ?? 1,
-      pageSize: params?.pageSize ?? 10,
-    };
-    if (params?.search) queryParams.search = params.search;
-    if (params?.sort) queryParams.sort = params.sort;
+  obtenerTodos(
+    paramsOrPage: number | UsuarioQueryParams = 1,
+    pageSize: number = 10,
+    searchTerm?: string,
+    activo?: boolean,
+    filtrosEspecificos?: any
+  ): Observable<ApiResponse<PagedResult<Usuario>>> {
+    const queryParams: any = {};
+    if (typeof paramsOrPage === 'object') {
+      queryParams.PageNumber = paramsOrPage.pageNumber ?? 1;
+      queryParams.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') {
+        queryParams.SearchTerm = term.trim();
+      }
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) {
+        queryParams.Activo = paramsOrPage.activo;
+      }
+      if (paramsOrPage.rolId) {
+        queryParams.RolId = paramsOrPage.rolId;
+      }
+    } else {
+      queryParams.PageNumber = paramsOrPage ?? 1;
+      queryParams.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') {
+        queryParams.SearchTerm = searchTerm.trim();
+      }
+      if (activo !== undefined && activo !== null) {
+        queryParams.Activo = activo;
+      }
+      if (filtrosEspecificos) {
+        Object.assign(queryParams, filtrosEspecificos);
+      }
+    }
 
     return this.api.get<ApiResponse<PagedResult<Usuario>>>(
       this.baseUrl,

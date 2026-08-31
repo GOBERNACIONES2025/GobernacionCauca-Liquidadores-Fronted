@@ -1,5 +1,8 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
@@ -9,27 +12,54 @@ import { NormasFacade } from '../../../../../application/facades/Normatividad/no
 import { TiposBeneficiarioExencionFacade } from '../../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
 import { RolesIntervinienteFacade } from '../../../../../application/facades/Intervinientes/roles-interviniente.facade';
 import { Exencion } from '../../../../../domain/models/Exenciones/exencion.model';
+import { ExencionesApiService } from '../../../../../infrastructure/api/Exenciones/exenciones-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { DepartamentosApiService } from '../../../../../infrastructure/api/Territorios/departamentos-api.service';
+import { NormasApiService } from '../../../../../infrastructure/api/Normatividad/normas-api.service';
+import { TiposBeneficiarioExencionApiService } from '../../../../../infrastructure/api/Exenciones/tipos-beneficiario-exencion-api.service';
+import { RolesIntervinienteApiService } from '../../../../../infrastructure/api/Intervinientes/roles-interviniente-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-exenciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './exenciones.html',
   styleUrl: './exenciones.css'
 })
 export class Exenciones implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(ExencionesFacade);
+  public apiService = inject(ExencionesApiService);
   public departamentosFacade = inject(DepartamentosFacade);
   public normasFacade = inject(NormasFacade);
   public tiposBeneficiarioFacade = inject(TiposBeneficiarioExencionFacade);
   public rolesFacade = inject(RolesIntervinienteFacade);
+  
+  private departamentosApi = inject(DepartamentosApiService);
+  private normasApi = inject(NormasApiService);
+  private tiposBeneficiarioApi = inject(TiposBeneficiarioExencionApiService);
+  private rolesApi = inject(RolesIntervinienteApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Exenciones', 'Exención'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -47,55 +77,68 @@ export class Exenciones implements OnInit {
     codigo: ['', [Validators.required, Validators.maxLength(20)]],
     nombre: ['', Validators.required],
     descripcion: [''],
+    porcentaje: [null as number | null, [Validators.min(0), Validators.max(100)]],
+    valorFijo: [null as number | null, [Validators.min(0)]],
     activo: [true]
   });
 
+  searchDepartamentosFn = (term: string) => this.departamentosApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveDepartamentoFn = (id: number) => this.departamentosApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchNormasFn = (term: string) => this.normasApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveNormaFn = (id: number) => this.normasApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchTiposBeneficiarioFn = (term: string) => this.tiposBeneficiarioApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveTipoBeneficiarioFn = (id: number) => this.tiposBeneficiarioApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchRolesFn = (term: string) => this.rolesApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveRolFn = (id: number) => this.rolesApi.obtenerPorId(id).pipe(map(res => res.data));
+
   // Filtered list for table
-  exencionesFiltradas = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.exenciones();
-
-    if (filter === 'activos') {
-      items = items.filter(e => e.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(e => !e.activo);
-    }
-
-    if (query) {
-      items = items.filter(e => 
-        e.codigo.toLowerCase().includes(query) ||
-        e.nombre.toLowerCase().includes(query) ||
-        (e.descripcion && e.descripcion.toLowerCase().includes(query)) ||
-        (e.tipoBeneficiario?.nombre && e.tipoBeneficiario.nombre.toLowerCase().includes(query)) ||
-        (e.norma?.numero && e.norma.numero.toLowerCase().includes(query))
-      );
-    }
-
-    return items;
-  });
+  exencionesFiltradas = computed(() => this.facade.exenciones());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.exenciones();
     return {
-      total: all.length,
-      active: all.filter(e => e.activo).length,
-      inactive: all.filter(e => !e.activo).length
+      total: this.facade.totalExenciones()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarExenciones(1, 100);
-    this.departamentosFacade.cargarDepartamentos(1, 100);
-    this.normasFacade.cargarNormas();
-    this.tiposBeneficiarioFacade.cargarTiposBeneficiario(1, 100);
-    this.rolesFacade.cargarRolesInterviniente(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarExenciones(this.pageNumber(), this.pageSize());
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -110,24 +153,40 @@ export class Exenciones implements OnInit {
       codigo: '',
       nombre: '',
       descripcion: '',
+      porcentaje: null,
+      valorFijo: null,
       activo: true
     });
     this.isSlideOverOpen = true;
   }
 
   edit(item: Exencion) {
-    this.selectedId = item.id;
-    this.exencionForm.patchValue({
-      departamentoId: item.departamento?.id || null,
-      normaId: item.norma?.id || null,
-      tipoBeneficiarioId: item.tipoBeneficiario?.id || null,
-      rolIntervinienteId: item.rolInterviniente?.id || null,
-      codigo: item.codigo,
-      nombre: item.nombre,
-      descripcion: item.descripcion || '',
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.exencionForm.patchValue({
+          departamentoId: data.departamento?.id ?? (data as any).departamentoId ?? null,
+          normaId: data.norma?.id ?? (data as any).normaId ?? null,
+          tipoBeneficiarioId: data.tipoBeneficiario?.id ?? (data as any).tipoBeneficiarioId ?? null,
+          rolIntervinienteId: data.rolInterviniente?.id ?? (data as any).rolIntervinienteId ?? null,
+          codigo: data.codigo,
+          nombre: data.nombre,
+          descripcion: data.descripcion || '',
+          porcentaje: data.porcentaje !== undefined ? data.porcentaje : null,
+          valorFijo: data.valorFijo !== undefined ? data.valorFijo : null,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la exención');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: Exencion) {
@@ -143,11 +202,13 @@ export class Exenciones implements OnInit {
       codigo: item.codigo,
       nombre: item.nombre,
       descripcion: item.descripcion || '',
+      porcentaje: item.porcentaje,
+      valorFijo: item.valorFijo,
       activo: nuevoEstado
     }).subscribe({
       next: () => {
         this.toast.success(`Exención ${actionName} exitosamente`);
-        this.facade.cargarExenciones(1, 100);
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar la exención`);
@@ -173,7 +234,9 @@ export class Exenciones implements OnInit {
         rolIntervinienteId: val.rolIntervinienteId ? Number(val.rolIntervinienteId) : null,
         codigo: val.codigo!,
         nombre: val.nombre!,
-        descripcion: val.descripcion || ''
+        descripcion: val.descripcion || '',
+        porcentaje: val.porcentaje,
+        valorFijo: val.valorFijo
       };
 
       if (this.isEditMode) {
@@ -185,7 +248,7 @@ export class Exenciones implements OnInit {
           next: () => {
             this.toast.success(`Exención ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarExenciones(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar la exención`);
@@ -197,7 +260,7 @@ export class Exenciones implements OnInit {
           next: () => {
             this.toast.success(`Exención ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarExenciones(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear la exención`);

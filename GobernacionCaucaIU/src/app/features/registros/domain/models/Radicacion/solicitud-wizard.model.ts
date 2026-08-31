@@ -2,6 +2,16 @@ export interface CrearSolicitudDto {
   numeroRadicado: string;
   vigenciaId: number;
   departamentoId: number;
+  fechaRadicacion: string;
+  observacion?: string;
+}
+
+export interface ActualizarRadicadoDto {
+  numeroRadicado: string;
+  vigenciaId: number;
+  departamentoId: number;
+  fechaRadicacion: string;
+  observacion?: string;
 }
 
 export interface RegistrarContribuyenteDto {
@@ -64,21 +74,42 @@ export interface SolicitudContribuyenteDto {
 
 export interface SolicitudIntervinienteActoDto {
   id: number;
-  rolIntervinienteId: number;
+  rolIntervinienteId?: number;
+  rolId?: number;
   rolIntervinienteNombre?: string;
-  porcentajeParticipacion: number;
-  contribuyente: SolicitudContribuyenteDto;
+  rolNombre?: string;
+  porcentajeParticipacion?: number;
+  porcentaje?: number;
+  contribuyente?: SolicitudContribuyenteDto;
+  contribuyenteId?: number;
+  contribuyenteNombre?: string;
+  numeroIdentificacion?: string;
 }
 
 export interface SolicitudActoRegistradoDto {
   id: number;
   tipoActoRegistroId: number;
   tipoActoRegistroNombre?: string;
+  tipoActoCodigo?: string;
+  tipoActoNombre?: string;
+  categoriaNombre?: string;
+  naturalezaNombre?: string;
   inmuebleId?: number | null;
+  inmuebleMatricula?: string | null;
+  matriculaInmobiliaria?: string | null;
+  inmuebleAvaluo?: number | null;
+  avaluoCatastral?: number | null;
   valorActo: number;
   baseDeclarada: number;
   observacion?: string | null;
+  exencionId?: number | null;
+  exencionNombre?: string | null;
+  exencionesIds?: number[];
+  exenciones?: any[];
+  actosExenciones?: any[];
   intervinientes: SolicitudIntervinienteActoDto[];
+  intervinientesActo?: any[];
+  actoIntervinientes?: any[];
 }
 
 export interface SolicitudDocumentoRegistroDto {

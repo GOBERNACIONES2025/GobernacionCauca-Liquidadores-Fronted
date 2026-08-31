@@ -23,7 +23,7 @@
       
       <!-- Pestañas de estado -->
       <div class="inline-flex bg-slate-100 p-1 rounded-lg">
-        @for (status of ['Todas', 'LIQUIDADA', 'DEVUELTA', 'ANULADA']; track status) {
+        @for (status of ['Todas', 'GENERADA', 'DEVUELTA', 'ANULADA']; track status) {
           <button 
             (click)="setFilter(status)"
             [class.bg-white]="filterStatus() === status"
@@ -80,7 +80,14 @@
                 <div class="font-medium text-slate-800 text-sm font-mono text-right">{{ liquidacion.totales.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
               </td>
               <td class="p-4 text-center">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200" [ngClass]="{'bg-green-100 text-green-700 border-green-200': liquidacion.estado.codigo === 'LIQUIDADA', 'bg-red-100 text-red-700 border-red-200': liquidacion.estado.codigo === 'ANULADA', 'bg-orange-100 text-orange-700 border-orange-200': liquidacion.estado.codigo === 'DEVUELTA'}">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border" 
+                  [ngClass]="{
+                    'bg-blue-100 text-blue-700 border-blue-200': liquidacion.estado.badgeClase === 'info',
+                    'bg-green-100 text-green-700 border-green-200': liquidacion.estado.badgeClase === 'success' || liquidacion.estado.badgeClase === 'primary',
+                    'bg-red-100 text-red-700 border-red-200': liquidacion.estado.badgeClase === 'danger',
+                    'bg-orange-100 text-orange-700 border-orange-200': liquidacion.estado.badgeClase === 'warning',
+                    'bg-slate-100 text-slate-600 border-slate-200': !liquidacion.estado.badgeClase || !['info', 'success', 'primary', 'danger', 'warning'].includes(liquidacion.estado.badgeClase)
+                  }">
                   {{ liquidacion.estado.nombre }}
                 </span>
               </td>
@@ -90,8 +97,13 @@
                     PDF
                   </button>
                 }
+                @if (liquidacion.estado.codigo === 'GENERADA') {
+                  <button (click)="abrirModalPago(liquidacion)" class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors" title="Registrar Pago">
+                    Pagar
+                  </button>
+                }
                 @if (liquidacion.accionesPermitidas.permiteContinuar) {
-                  <button (click)="reliquidar(liquidacion.radicacion.solicitudId)" class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" title="Reliquidar">
+                  <button (click)="reliquidar(liquidacion.id)" class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" title="Reliquidar">
                     Reliquidar
                   </button>
                 }
@@ -129,3 +141,133 @@
     </app-pagination>
   </div>
 </div>
+
+<!-- Modal para Registrar Pago -->
+@if (showPagoModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Registrar Pago - Radicado: {{ pagoLiquidacionSeleccionada()?.radicacion?.numeroRadicado }}
+        </h3>
+        <button (click)="cerrarModalPago()" class="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-200">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-5">
+        <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex justify-between items-center">
+          <span class="text-sm font-bold text-emerald-900">Valor a registrar:</span>
+          <span class="text-xl font-black text-emerald-700">{{ pagoLiquidacionSeleccionada()?.totales?.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Fecha de pago *</label>
+            <input type="date" [(ngModel)]="fechaPago" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">Medio de pago *</label>
+            <select [(ngModel)]="medioPago" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
+              <option [value]="1">Transferencia PSE</option>
+              <option [value]="2">Consignación Bancaria</option>
+              <option [value]="3">Efectivo en Caja</option>
+            </select>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">Referencia / comprobante (recomendado)</label>
+          <input type="text" [(ngModel)]="referenciaPago" placeholder="Ej: PSE-20258804-887712" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <button 
+          (click)="cerrarModalPago()" 
+          class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+          Cancelar
+        </button>
+        <button 
+          (click)="confirmarPago()" 
+          class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20 flex items-center gap-2">
+          Confirmar pago
+        </button>
+      </div>
+      
+    </div>
+  </div>
+}
+
+<!-- Modal Elegante para Reliquidar -->
+@if (showReliquidarModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+      
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Reliquidar Liquidación
+        </h3>
+        <button (click)="cerrarModalReliquidar()" class="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-200">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6 space-y-4">
+        <p class="text-sm text-slate-600">
+          Por favor, ingrese el motivo por el cual desea anular la liquidación actual y reabrir la solicitud para generar una nueva.
+        </p>
+        
+        <div>
+          <label for="motivo" class="block text-sm font-medium text-slate-700 mb-1">Motivo de Reliquidación</label>
+          <textarea 
+            id="motivo"
+            rows="3"
+            [(ngModel)]="motivoReliquidacion"
+            class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all resize-none shadow-sm placeholder:text-slate-400"
+            placeholder="Ej. Modificación en los actos informados..."></textarea>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <button 
+          (click)="cerrarModalReliquidar()" 
+          class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+          Cancelar
+        </button>
+        <button 
+          (click)="confirmarReliquidar()" 
+          [disabled]="isLoading()"
+          class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+          @if (isLoading()) {
+            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Procesando...
+          } @else {
+            Confirmar Reliquidación
+          }
+        </button>
+      </div>
+      
+    </div>
+  </div>
+}

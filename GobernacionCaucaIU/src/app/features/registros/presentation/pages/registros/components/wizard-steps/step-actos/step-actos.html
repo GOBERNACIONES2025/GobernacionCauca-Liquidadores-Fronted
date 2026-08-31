@@ -8,17 +8,21 @@
           <h3 class="text-lg font-bold text-slate-800">Actos del Expediente</h3>
           <p class="text-sm text-slate-500">Estos actos se incluirán en la liquidación actual.</p>
         </div>
-        <button (click)="abrirFormularioNuevoActo()" class="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg hover:bg-blue-100 transition-colors">
-          + Añadir otro acto
-        </button>
+        @if (!wizardService.esSoloLectura()) {
+          <button (click)="abrirFormularioNuevoActo()" class="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg hover:bg-blue-100 transition-colors">
+            + Añadir otro acto
+          </button>
+        }
       </div>
       <div class="p-0">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-slate-50/50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
               <th class="p-4">Acto / Naturaleza</th>
+              <th class="p-4 text-right">Valor Acto</th>
+              <th class="p-4 text-right">Avalúo</th>
+              <th class="p-4 text-right">Base Declarada</th>
               <th class="p-4">Exención</th>
-              <th class="p-4 text-right">Cuantía (Base)</th>
               <th class="p-4 text-center">Acciones</th>
             </tr>
           </thead>
@@ -27,26 +31,52 @@
               <tr class="hover:bg-slate-50 transition-colors">
                 <td class="p-4">
                   <div class="font-semibold text-slate-800 text-sm">{{ acto.tipoActoCodigo }} - {{ acto.tipoActoNombre }}</div>
-                  <div class="text-xs text-slate-500 mt-0.5">{{ acto.categoriaNombre }} &bull; {{ acto.naturalezaNombre }}</div>
+                  <div class="text-xs text-slate-500 mt-0.5">
+                    {{ acto.categoriaNombre }} &bull; {{ acto.naturalezaNombre }}
+                    @if (acto.matriculaInmobiliaria) {
+                      <span class="ml-1 text-emerald-700 font-medium">(Predio: {{ acto.matriculaInmobiliaria }})</span>
+                    }
+                  </div>
                 </td>
-                <td class="p-4 text-sm text-slate-600">
-                  @if (acto.exencionNombre) {
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                      {{ acto.exencionNombre }}
-                    </span>
-                  } @else {
-                    <span class="text-slate-400 italic">Ninguna</span>
-                  }
+                <td class="p-4 text-right text-xs text-slate-600 font-medium">
+                  {{ acto.valorActo ? (acto.valorActo | currency:'COP':'symbol-narrow':'1.0-0') : '$ 0' }}
+                </td>
+                <td class="p-4 text-right text-xs text-slate-600 font-medium">
+                  {{ acto.avaluoCatastral ? (acto.avaluoCatastral | currency:'COP':'symbol-narrow':'1.0-0') : '$ 0' }}
                 </td>
                 <td class="p-4 text-right">
-                  <div class="font-bold text-slate-700">{{ acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                  <div class="font-bold text-blue-900 text-sm">{{ acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                </td>
+                <td class="p-4 text-sm text-slate-600">
+                  @if (acto.exencionesNombres && acto.exencionesNombres.length > 0) {
+                    <div class="flex flex-wrap gap-1">
+                      @for (exName of acto.exencionesNombres; track exName) {
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                          {{ exName }}
+                        </span>
+                      }
+                    </div>
+                  } @else {
+                    <span class="text-slate-400 italic text-xs">Ninguna</span>
+                  }
                 </td>
                 <td class="p-4 text-center">
-                  <button (click)="eliminarActoDelExpediente(acto.idTemp)" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar acto">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  @if (!wizardService.esSoloLectura()) {
+                    <div class="flex items-center justify-center gap-2">
+                      <button (click)="editarActo(acto)" class="text-slate-400 hover:text-blue-600 transition-colors" title="Modificar acto">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      <button (click)="eliminarActoDelExpediente(acto.idTemp)" class="text-slate-400 hover:text-red-600 transition-colors" title="Eliminar acto">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  } @else {
+                    <span class="text-xs text-slate-400 font-medium">Solo lectura</span>
+                  }
                 </td>
               </tr>
             }
@@ -60,7 +90,7 @@
         Volver al Paso 2
       </button>
       <button (click)="continuar()" class="px-6 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/30 flex items-center gap-2">
-        Siguiente: Añadir Intervinientes
+        {{ wizardService.esSoloLectura() ? 'Continuar' : 'Siguiente: Añadir Intervinientes' }}
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
@@ -79,12 +109,12 @@
             </svg>
           </div>
           <div>
-            <h3 class="text-sm font-bold text-slate-800">Agregar Acto Registral</h3>
-            <p class="text-xs text-slate-500">Configure los valores y determine las partes involucradas.</p>
+            <h3 class="text-sm font-bold text-slate-800">{{ actoEditandoId() ? 'Modificar Acto Registral' : 'Agregar Acto Registral' }}</h3>
+            <p class="text-xs text-slate-500">{{ actoEditandoId() ? 'Actualice los valores y condiciones del acto seleccionado.' : 'Configure los valores y determine las partes involucradas.' }}</p>
           </div>
         </div>
         @if (wizardService.actosExpediente().length > 0) {
-          <button (click)="wizardService.isAddingActo.set(false)" class="text-sm text-slate-500 hover:text-slate-800 font-medium">Cancelar</button>
+          <button (click)="wizardService.isAddingActo.set(false); actoEditandoId.set(null)" class="text-sm text-slate-500 hover:text-slate-800 font-medium">Cancelar</button>
         }
       </div>
 
@@ -98,7 +128,7 @@
                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">Acto / Negocio Jurídico *</label>
                 <select formControlName="tipoActoRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
                   <option [ngValue]="null">Seleccione un acto...</option>
-                  @for (ta of tiposActoFacade.tiposActoRegistro(); track ta.id) {
+                  @for (ta of tiposActoFiltrados(); track ta.id) {
                     <option [value]="ta.id">{{ ta.codigo }} - {{ ta.nombre }}</option>
                   }
                 </select>
@@ -127,15 +157,189 @@
                 }
               </div>
               
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Aplicar Beneficio / Exención</label>
-                <select formControlName="exencionId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
-                  <option [ngValue]="null">Ninguna (Tarifa Plena)</option>
-                  @for (ex of exencionesFacade.exenciones(); track ex.id) {
-                    <option [value]="ex.id">{{ ex.nombre }}</option>
+              <!-- SELECTOR PROFESIONAL MULTI-SELECT DE EXENCIONES -->
+              <div class="relative exenciones-dropdown-container">
+                <div class="flex items-center justify-between mb-1.5">
+                  <label class="block text-xs font-semibold text-slate-700">
+                    Beneficios Tributarios / Exenciones Aplicables
+                  </label>
+                  @if (exencionesSeleccionadasIds().length > 0) {
+                    <button type="button" (click)="limpiarExenciones($event)" class="text-[11px] text-red-600 hover:text-red-800 font-medium transition-colors">
+                      Limpiar selección
+                    </button>
                   }
-                </select>
-                <p class="text-[11px] text-slate-400 mt-1.5">Seleccione si el acto aplica a exenciones normativas especiales.</p>
+                </div>
+
+                <!-- Botón Gatillador / Input Custom -->
+                <div (click)="toggleDropdownExenciones($event)"
+                     [class.ring-2]="dropdownExencionesAbierto()"
+                     [class.ring-blue-500/20]="dropdownExencionesAbierto()"
+                     [class.border-blue-500]="dropdownExencionesAbierto()"
+                     class="min-h-[46px] w-full text-sm p-2.5 bg-slate-50 hover:bg-white border border-slate-200 rounded-lg cursor-pointer transition-all flex items-center justify-between gap-2 shadow-sm">
+                  
+                  <div class="flex items-center gap-2 flex-1 overflow-hidden">
+                    <div class="w-6 h-6 rounded-md bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                    </div>
+
+                    @if (exencionesSeleccionadasIds().length === 0) {
+                      <span class="text-slate-400 text-xs truncate">
+                        Ninguna (Tarifa Plena) &bull; Clic para explorar exenciones...
+                      </span>
+                    } @else {
+                      <div class="flex items-center gap-1.5 truncate">
+                        <span class="px-2 py-0.5 bg-emerald-600 text-white rounded-full text-xs font-bold shadow-sm">
+                          {{ exencionesSeleccionadasIds().length }}
+                        </span>
+                        <span class="text-xs font-semibold text-slate-800 truncate">
+                          {{ exencionesSeleccionadasIds().length === 1 ? '1 exención seleccionada' : exencionesSeleccionadasIds().length + ' exenciones seleccionadas' }}
+                        </span>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="flex items-center gap-1 text-slate-400">
+                    <svg class="w-4 h-4 transition-transform duration-200" [class.rotate-180]="dropdownExencionesAbierto()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Chips de elementos seleccionados (Debajo del trigger) -->
+                @if (exencionesSeleccionadasIds().length > 0) {
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    @for (exId of exencionesSeleccionadasIds(); track exId) {
+                      @let ex = obtenerExencionPorId(exId);
+                      <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 text-emerald-900 rounded-lg text-xs font-medium shadow-xs">
+                        <span class="px-1.5 py-0.2 bg-emerald-200/80 text-emerald-900 font-bold rounded text-[11px]">
+                          {{ formatearBeneficioExencion(ex) }}
+                        </span>
+                        <span class="truncate max-w-[200px]">{{ ex?.nombre || ('Exención #' + exId) }}</span>
+                        @if (ex?.rolInterviniente) {
+                          <span class="text-[10px] bg-indigo-100 text-indigo-800 font-semibold px-1 rounded">
+                            {{ ex.rolInterviniente.nombre }}
+                          </span>
+                        }
+                        <button type="button" (click)="removerExencion(exId, $event)" class="text-emerald-700 hover:text-red-700 hover:bg-emerald-100 rounded-full p-0.5 transition-colors">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Menú Desplegable Flotante -->
+                @if (dropdownExencionesAbierto()) {
+                  <div class="absolute z-30 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                    
+                    <!-- Buscador integrado -->
+                    <div class="p-2.5 bg-slate-50 border-b border-slate-200">
+                      <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        <input type="text"
+                               [ngModel]="busquedaExencion()"
+                               (ngModelChange)="busquedaExencion.set($event)"
+                               [ngModelOptions]="{standalone: true}"
+                               placeholder="Filtrar por nombre, código o norma..."
+                               class="w-full text-xs pl-8 pr-7 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                        @if (busquedaExencion()) {
+                          <button type="button" (click)="busquedaExencion.set('')" class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        }
+                      </div>
+                      <div class="flex items-center justify-between mt-2 px-1 text-[11px] text-slate-500">
+                        <span>{{ exencionesFiltradas().length }} disponibles</span>
+                        <span class="text-blue-600 font-medium">Haga clic sobre cada ítem para agregar/quitar</span>
+                      </div>
+                    </div>
+
+                    <!-- Lista de Opciones -->
+                    <div class="max-h-60 overflow-y-auto divide-y divide-slate-100 p-1">
+                      @for (ex of exencionesFiltradas(); track ex.id) {
+                        <div (click)="toggleExencion(ex.id, $event)"
+                             [class.bg-emerald-50/60]="isExencionSeleccionada(ex.id)"
+                             class="p-2.5 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors flex items-start gap-3 select-none">
+                          
+                          <!-- Checkbox Custom -->
+                          <div class="mt-0.5 w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-all"
+                               [class.bg-emerald-600]="isExencionSeleccionada(ex.id)"
+                               [class.border-emerald-600]="isExencionSeleccionada(ex.id)"
+                               [class.border-slate-300]="!isExencionSeleccionada(ex.id)"
+                               [class.bg-white]="!isExencionSeleccionada(ex.id)">
+                            @if (isExencionSeleccionada(ex.id)) {
+                              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+                              </svg>
+                            }
+                          </div>
+
+                          <!-- Contenido de la Exención -->
+                          <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between gap-2">
+                              <span class="text-xs font-bold text-slate-800 leading-tight">
+                                {{ ex.nombre }}
+                              </span>
+                              <!-- Badge Porcentaje / Valor Fijo -->
+                              <span class="px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs shrink-0">
+                                {{ formatearBeneficioExencion(ex) }}
+                              </span>
+                            </div>
+                            
+                            <!-- Badges informativos (Objetiva vs Subjetiva con Rol) -->
+                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                              @if (ex.rolInterviniente || ex.tipoBeneficiario) {
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                  👤 Aplica a {{ ex.rolInterviniente ? 'Rol: ' + ex.rolInterviniente.nombre : 'Beneficiario' }} (Subjetiva)
+                                </span>
+                              } @else {
+                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-50 text-teal-700 border border-teal-100">
+                                  📄 Exención al Acto (Objetiva)
+                                </span>
+                              }
+
+                              @if (ex.norma?.numero) {
+                                <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                                  Norma: {{ ex.norma.numero }} {{ ex.norma.anio ? ('/' + ex.norma.anio) : '' }}
+                                </span>
+                              }
+                            </div>
+
+                            @if (ex.descripcion) {
+                              <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                                {{ ex.descripcion }}
+                              </p>
+                            }
+                          </div>
+                        </div>
+                      } @empty {
+                        <div class="p-6 text-center text-xs text-slate-400">
+                          No se encontraron exenciones que coincidan con la búsqueda.
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Footer del Dropdown -->
+                    <div class="p-2 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs">
+                      <span class="text-slate-500">
+                        {{ exencionesSeleccionadasIds().length }} seleccionada(s)
+                      </span>
+                      <button type="button" (click)="dropdownExencionesAbierto.set(false)" class="px-3 py-1 bg-slate-800 hover:bg-slate-900 text-white rounded-md font-semibold text-xs transition-colors shadow-sm">
+                        Cerrar
+                      </button>
+                    </div>
+                  </div>
+                }
               </div>
             </div>
           </div>
@@ -178,25 +382,52 @@
                     </div>
 
                     <!-- Resultado Búsqueda Exitosa -->
-                    @if (inmuebleEncontrado()) {
-                      <div class="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-3">
-                        <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-700">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    @if (inmuebleEncontrado() && !mostrarFormNuevoInmueble()) {
+                      <div class="mt-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start justify-between gap-3 shadow-sm animate-in fade-in duration-200">
+                        <div class="flex items-start gap-3">
+                          <div class="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-700 flex-shrink-0 mt-0.5">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                          </div>
+                          <div>
+                            <p class="text-xs font-bold text-emerald-900 uppercase tracking-wide">Inmueble Vinculado</p>
+                            <div class="text-xs text-emerald-800 mt-1 space-y-0.5">
+                              <p><span class="font-semibold text-emerald-900">Matrícula:</span> {{ inmuebleEncontrado()!.matriculaInmobiliaria }}</p>
+                              <p><span class="font-semibold text-emerald-900">Municipio:</span> {{ inmuebleEncontrado()!.municipioNombre }}</p>
+                              @if (inmuebleEncontrado()!.direccion) {
+                                <p><span class="font-semibold text-emerald-900">Dirección:</span> {{ inmuebleEncontrado()!.direccion }}</p>
+                              }
+                              @if (inmuebleEncontrado()!.avaluos && inmuebleEncontrado()!.avaluos.length > 0) {
+                                <p><span class="font-semibold text-emerald-900">Avalúo Registrado:</span> {{ inmuebleEncontrado()!.avaluos[0].valor | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
+                              }
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <p class="text-xs font-bold text-emerald-900">Inmueble Vinculado</p>
-                          <p class="text-xs text-emerald-700">Mun: {{ inmuebleEncontrado()!.municipioNombre }} | Mat: {{ inmuebleEncontrado()!.matriculaInmobiliaria }}</p>
+                        <div class="flex items-center gap-2">
+                          <button type="button" (click)="abrirEdicionInmueble()" class="text-xs text-blue-700 hover:text-blue-900 font-medium px-2.5 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-blue-200 transition-colors flex items-center gap-1 shadow-sm">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                            Editar datos del predio
+                          </button>
+                          <button type="button" (click)="desvincularInmueble()" class="text-xs text-slate-600 hover:text-red-600 font-medium px-2.5 py-1.5 rounded-lg bg-white hover:bg-red-50 border border-slate-200 transition-colors shadow-sm">
+                            Buscar otro predio
+                          </button>
                         </div>
                       </div>
                     }
 
-                    <!-- Formulario Nuevo Inmueble (si no se encontró) -->
+                    <!-- Formulario Crear/Editar Inmueble -->
                     @if (mostrarFormNuevoInmueble()) {
-                      <div class="mt-4 p-4 bg-white border border-blue-200 rounded-xl shadow-sm">
-                        <h4 class="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                          Registrar Nuevo Inmueble
-                        </h4>
+                      <div class="mt-4 p-4 bg-white border border-blue-200 rounded-xl shadow-sm animate-in fade-in duration-200">
+                        <div class="flex justify-between items-center mb-3">
+                          <h4 class="text-sm font-bold text-blue-900 flex items-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            {{ editandoInmuebleId() ? 'Editar Datos del Inmueble' : 'Registrar Nuevo Inmueble' }}
+                          </h4>
+                          @if (inmuebleEncontrado()) {
+                            <button type="button" (click)="cancelarEdicionInmueble()" class="text-xs text-slate-500 hover:text-slate-800 font-medium">
+                              Cancelar
+                            </button>
+                          }
+                        </div>
                         <form [formGroup]="nuevoInmuebleForm" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <label class="block text-xs font-medium text-slate-700 mb-1">Municipio *</label>
@@ -215,9 +446,12 @@
                             <label class="block text-xs font-medium text-slate-700 mb-1">Avalúo Vigente *</label>
                             <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2 bg-slate-50 border border-slate-200 rounded-lg text-right" />
                           </div>
-                          <div class="md:col-span-3 flex justify-end">
-                            <button type="button" (click)="crearNuevoInmueble()" [disabled]="guardandoNuevoInmueble()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">
-                              @if (guardandoNuevoInmueble()) { Guardando... } @else { Guardar Inmueble }
+                          <div class="md:col-span-3 flex justify-end gap-2">
+                            <button type="button" (click)="cancelarEdicionInmueble()" class="px-4 py-2 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-100">
+                              Cancelar
+                            </button>
+                            <button type="button" (click)="guardarInmueble()" [disabled]="guardandoNuevoInmueble()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50">
+                              @if (guardandoNuevoInmueble()) { Guardando... } @else { {{ editandoInmuebleId() ? 'Guardar Cambios del Predio' : 'Guardar Inmueble' }} }
                             </button>
                           </div>
                         </form>
@@ -228,8 +462,8 @@
                     @if (inmuebleEncontrado()) {
                       <div class="mt-4 pt-4 border-t border-slate-100">
                         <label class="block text-xs font-semibold text-slate-700 mb-1.5">Avalúo Catastral Vigente a liquidar *</label>
-                        <input formControlName="avaluoCatastral" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-right font-medium" />
-                        <p class="text-[11px] text-slate-400 mt-1">Este valor se auto-asigna del predio, pero puede ajustarlo si la normativa lo requiere.</p>
+                        <input formControlName="avaluoCatastral" type="number" [readonly]="true" class="w-full text-sm p-2.5 bg-slate-100 border border-slate-200 rounded-lg outline-none transition-all text-right font-medium text-slate-600 cursor-not-allowed" />
+                        <p class="text-[11px] text-slate-400 mt-1">Este valor se asigna automáticamente del predio vinculado y no puede ser modificado.</p>
                       </div>
                     }
                   </div>
@@ -306,8 +540,8 @@
         } @else {
           <div></div>
         }
-        <button (click)="guardarActoAlExpediente()" class="px-6 py-2.5 bg-slate-800 text-white font-medium text-sm rounded-lg hover:bg-slate-900 transition-colors shadow-md flex items-center gap-2">
-          Guardar Acto en el Expediente
+        <button (click)="guardarActoAlExpediente()" [disabled]="wizardService.actoForm.invalid" class="px-6 py-2.5 bg-slate-800 text-white font-medium text-sm rounded-lg hover:bg-slate-900 transition-colors shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+          {{ actoEditandoId() ? 'Guardar Cambios del Acto' : 'Guardar Acto en el Expediente' }}
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>

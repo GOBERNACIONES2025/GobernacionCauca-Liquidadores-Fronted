@@ -1,5 +1,8 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
@@ -10,28 +13,57 @@ import { VigenciasFacade } from '../../../../../application/facades/Normatividad
 import { NormasFacade } from '../../../../../application/facades/Normatividad/normas.facade';
 import { TiposCalculoTarifaFacade } from '../../../../../application/facades/Tarifas/tipos-calculo-tarifa.facade';
 import { Tarifa } from '../../../../../domain/models/Tarifas/tarifa.model';
+import { TarifasApiService } from '../../../../../infrastructure/api/Tarifas/tarifas-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { DepartamentosApiService } from '../../../../../infrastructure/api/Territorios/departamentos-api.service';
+import { TiposActoRegistroApiService } from '../../../../../infrastructure/api/Registro/tipos-acto-registro-api.service';
+import { VigenciasApiService } from '../../../../../infrastructure/api/Normatividad/vigencias-api.service';
+import { NormasApiService } from '../../../../../infrastructure/api/Normatividad/normas-api.service';
+import { TiposCalculoTarifaApiService } from '../../../../../infrastructure/api/Tarifas/tipos-calculo-tarifa-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-tarifas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './tarifas.html',
   styleUrl: './tarifas.css'
 })
 export class Tarifas implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(TarifasFacade);
+  public apiService = inject(TarifasApiService);
   public departamentosFacade = inject(DepartamentosFacade);
   public tiposActoFacade = inject(TiposActoRegistroFacade);
   public vigenciasFacade = inject(VigenciasFacade);
   public normasFacade = inject(NormasFacade);
   public tiposCalculoFacade = inject(TiposCalculoTarifaFacade);
+  
+  private departamentosApi = inject(DepartamentosApiService);
+  private tiposActoApi = inject(TiposActoRegistroApiService);
+  private vigenciasApi = inject(VigenciasApiService);
+  private normasApi = inject(NormasApiService);
+  private tiposCalculoApi = inject(TiposCalculoTarifaApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Tarifas', 'Tarifa'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -56,53 +88,66 @@ export class Tarifas implements OnInit {
     activo: [true]
   });
 
+  searchDepartamentosFn = (term: string) => this.departamentosApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveDepartamentoFn = (id: number) => this.departamentosApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchTiposActoFn = (term: string) => this.tiposActoApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveTipoActoFn = (id: number) => this.tiposActoApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchVigenciasFn = (term: string) => this.vigenciasApi.obtenerTodos({ pageNumber: 1, pageSize: 50, search: term }).pipe(map(res => res.data.items));
+  resolveVigenciaFn = (id: number) => this.vigenciasApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchNormasFn = (term: string) => this.normasApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveNormaFn = (id: number) => this.normasApi.obtenerPorId(id).pipe(map(res => res.data));
+
+  searchTiposCalculoFn = (term: string) => this.tiposCalculoApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveTipoCalculoFn = (id: number) => this.tiposCalculoApi.obtenerPorId(id).pipe(map(res => res.data));
+
   // Filtered list for table
-  tarifasFiltradas = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.tarifas();
-
-    if (filter === 'activos') {
-      items = items.filter(t => t.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(t => !t.activo);
-    }
-
-    if (query) {
-      items = items.filter(t => 
-        (t.tipoActoRegistro?.nombre && t.tipoActoRegistro.nombre.toLowerCase().includes(query)) ||
-        (t.departamento?.nombre && t.departamento.nombre.toLowerCase().includes(query)) ||
-        (t.norma?.numero && t.norma.numero.toLowerCase().includes(query)) ||
-        (t.tipoCalculoTarifa?.nombre && t.tipoCalculoTarifa.nombre.toLowerCase().includes(query)) ||
-        (t.vigencia?.anio && t.vigencia.anio.toString().includes(query))
-      );
-    }
-
-    return items;
-  });
+  tarifasFiltradas = computed(() => this.facade.tarifas());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.tarifas();
     return {
-      total: all.length,
-      active: all.filter(t => t.activo).length,
-      inactive: all.filter(t => !t.activo).length
+      total: this.facade.totalTarifas()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarTarifas();
-    this.departamentosFacade.cargarDepartamentos(1, 100);
-    this.tiposActoFacade.cargarTiposActoRegistro(1, 100);
-    this.vigenciasFacade.cargarVigencias(1, 100);
-    this.normasFacade.cargarNormas();
-    this.tiposCalculoFacade.cargarTiposCalculoTarifa(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarTarifas({ pageNumber: this.pageNumber(), pageSize: this.pageSize(), search: this.searchText(), activo });;
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -130,22 +175,34 @@ export class Tarifas implements OnInit {
   }
 
   edit(item: Tarifa) {
-    this.selectedId = item.id;
-    this.tarifaForm.patchValue({
-      departamentoId: item.departamento?.id || null,
-      tipoActoRegistroId: item.tipoActoRegistro?.id || null,
-      vigenciaId: item.vigencia?.id || null,
-      normaId: item.norma?.id || null,
-      tipoCalculoTarifaId: item.tipoCalculoTarifa?.id || null,
-      porcentaje: item.porcentaje,
-      valorFijo: item.valorFijo,
-      baseMinima: item.baseMinima,
-      baseMaxima: item.baseMaxima,
-      valorMinimo: item.valorMinimo,
-      valorMaximo: item.valorMaximo,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.tarifaForm.patchValue({
+          departamentoId: data.departamento?.id ?? (data as any).departamentoId ?? null,
+          tipoActoRegistroId: data.tipoActoRegistro?.id ?? (data as any).tipoActoRegistroId ?? null,
+          vigenciaId: data.vigencia?.id ?? (data as any).vigenciaId ?? null,
+          normaId: data.norma?.id ?? (data as any).normaId ?? null,
+          tipoCalculoTarifaId: data.tipoCalculoTarifa?.id ?? (data as any).tipoCalculoTarifaId ?? null,
+          porcentaje: data.porcentaje,
+          valorFijo: data.valorFijo,
+          baseMinima: data.baseMinima,
+          baseMaxima: data.baseMaxima,
+          valorMinimo: data.valorMinimo,
+          valorMaximo: data.valorMaximo,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la tarifa');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: Tarifa) {
@@ -169,7 +226,7 @@ export class Tarifas implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Tarifa ${actionName} exitosamente`);
-        this.facade.cargarTarifas();
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar la tarifa`);
@@ -211,7 +268,7 @@ export class Tarifas implements OnInit {
           next: () => {
             this.toast.success(`Tarifa ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarTarifas();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar la tarifa`);
@@ -223,7 +280,7 @@ export class Tarifas implements OnInit {
           next: () => {
             this.toast.success(`Tarifa ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarTarifas();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear la tarifa`);

@@ -14,20 +14,25 @@
     <div class="p-5" [formGroup]="wizardService.paso1Form">
       
       <!-- Fila de búsqueda -->
-      <div class="flex items-end gap-4 mb-4">
+      <div class="flex items-end gap-3 mb-4">
         <div class="w-1/3">
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Número de documento *</label>
           <input formControlName="numeroIdentificacion" type="text" placeholder="Ej: 1061..." 
-                 (blur)="buscarContribuyente()" (keyup.enter)="buscarContribuyente()" 
+                 (keyup.enter)="buscarContribuyente()" 
+                 (input)="onNumeroIdentificacionChange()"
                  [class.border-red-500]="wizardService.paso1Form.get('numeroIdentificacion')?.invalid && wizardService.paso1Form.get('numeroIdentificacion')?.touched"
                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
         </div>
-        <button type="button" (click)="buscarContribuyente()" class="px-4 py-2.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg border border-slate-200 hover:bg-slate-200 transition-colors">
-          Buscar
-        </button>
-        @if (!modoCreacion) {
-          <button type="button" (click)="habilitarCreacionManual()" class="px-4 py-2.5 bg-blue-50 text-blue-700 text-sm font-medium rounded-lg border border-blue-100 hover:bg-blue-100 transition-colors">
-            Crear nuevo
+        
+        @if (!busquedaRealizada || modoCreacion) {
+          <button type="button" (click)="buscarContribuyente()" [disabled]="buscandoContribuyente" class="px-5 py-2.5 bg-slate-800 text-white text-sm font-medium rounded-lg hover:bg-slate-900 transition-colors shadow-sm disabled:opacity-50">
+            @if (buscandoContribuyente) { Buscando... } @else { Buscar por documento }
+          </button>
+        }
+
+        @if (busquedaRealizada) {
+          <button type="button" (click)="limpiarBusquedaContribuyente()" class="px-4 py-2.5 bg-white text-slate-700 text-sm font-medium rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors shadow-sm">
+            Cambiar / Nueva búsqueda
           </button>
         }
       </div>
@@ -46,67 +51,39 @@
       <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Persona</div>
-          @if (!modoCreacion) {
-            <select formControlName="tipoPersonaId" class="w-full bg-transparent text-sm font-medium text-slate-900 border-none outline-none appearance-none cursor-default" style="pointer-events: none;">
-              @for (t of tiposPersonaFacade.tiposPersona(); track t.id) {
-                <option [value]="t.id">{{ t.nombre }}</option>
-              }
-            </select>
-          } @else {
-            <select formControlName="tipoPersonaId" 
-                    [class.border-red-500]="wizardService.paso1Form.get('tipoPersonaId')?.invalid && wizardService.paso1Form.get('tipoPersonaId')?.touched"
-                    class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none">
-              <option [ngValue]="null">Seleccione...</option>
-              @for (t of tiposPersonaFacade.tiposPersona(); track t.id) {
-                <option [value]="t.id">{{ t.nombre }}</option>
-              }
-            </select>
-          }
+          <select formControlName="tipoPersonaId" 
+                  [class.border-red-500]="wizardService.paso1Form.get('tipoPersonaId')?.invalid && wizardService.paso1Form.get('tipoPersonaId')?.touched"
+                  class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
+            <option [ngValue]="null">Seleccione...</option>
+            @for (t of tiposPersonaFacade.tiposPersona(); track t.id) {
+              <option [value]="t.id">{{ t.nombre }}</option>
+            }
+          </select>
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Documento</div>
-          @if (!modoCreacion) {
-            <select formControlName="tipoIdentificacionId" class="w-full bg-transparent text-sm font-medium text-slate-900 border-none outline-none appearance-none cursor-default" style="pointer-events: none;">
-              @for (t of tiposIdentificacionFacade.tiposIdentificacion(); track t.id) {
-                <option [value]="t.id">{{ t.codigo }}</option>
-              }
-            </select>
-          } @else {
-            <select formControlName="tipoIdentificacionId" 
-                    [class.border-red-500]="wizardService.paso1Form.get('tipoIdentificacionId')?.invalid && wizardService.paso1Form.get('tipoIdentificacionId')?.touched"
-                    class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none">
-              <option [ngValue]="null">Seleccione...</option>
-              @for (t of tiposIdentificacionFacade.tiposIdentificacion(); track t.id) {
-                <option [value]="t.id">{{ t.codigo }}</option>
-              }
-            </select>
-          }
+          <select formControlName="tipoIdentificacionId" 
+                  [class.border-red-500]="wizardService.paso1Form.get('tipoIdentificacionId')?.invalid && wizardService.paso1Form.get('tipoIdentificacionId')?.touched"
+                  class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
+            <option [ngValue]="null">Seleccione...</option>
+            @for (t of tiposIdentificacionFacade.tiposIdentificacion(); track t.id) {
+              <option [value]="t.id">{{ t.codigo }}</option>
+            }
+          </select>
         </div>
         <div class="col-span-2 md:col-span-2">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nombre / Razón Social</div>
-          @if (!modoCreacion) {
-            <div class="text-sm font-medium text-slate-900">{{ wizardService.paso1Form.get('nombre')?.value || '—' }}</div>
-          } @else {
-            <input formControlName="nombre" type="text" 
-                   [class.border-red-500]="wizardService.paso1Form.get('nombre')?.invalid && wizardService.paso1Form.get('nombre')?.touched"
-                   class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-          }
+          <input formControlName="nombre" type="text" 
+                 [class.border-red-500]="wizardService.paso1Form.get('nombre')?.invalid && wizardService.paso1Form.get('nombre')?.touched"
+                 class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</div>
-          @if (!modoCreacion) {
-            <div class="text-sm font-medium text-slate-900">{{ wizardService.paso1Form.get('email')?.value || '—' }}</div>
-          } @else {
-            <input formControlName="email" type="email" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-          }
+          <input formControlName="email" type="email" class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Teléfono</div>
-          @if (!modoCreacion) {
-            <div class="text-sm font-medium text-slate-900">{{ wizardService.paso1Form.get('telefono')?.value || '—' }}</div>
-          } @else {
-            <input formControlName="telefono" type="text" class="w-full text-sm p-2 bg-white border border-slate-300 rounded focus:ring-1 focus:ring-blue-500 outline-none" />
-          }
+          <input formControlName="telefono" type="text" class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
         </div>
       </div>
     </div>
@@ -179,7 +156,7 @@
   <!-- Controles -->
   <div class="flex justify-end pt-4">
     <button type="button" (click)="continuar()" class="px-6 py-2.5 bg-blue-900 text-white font-medium text-sm rounded-lg hover:bg-blue-800 transition-colors shadow-md shadow-blue-900/20 flex items-center gap-2">
-      Guardar y continuar
+      {{ wizardService.esSoloLectura() ? 'Continuar' : 'Guardar y continuar' }}
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
       </svg>

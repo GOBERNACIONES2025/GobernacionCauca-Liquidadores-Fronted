@@ -1,27 +1,46 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { NaturalezasActoFacade } from '../../../../../application/facades/Registro/naturalezas-acto.facade';
 import { NaturalezaActo } from '../../../../../domain/models/Registro/naturaleza-acto.model';
+import { NaturalezasActoApiService } from '../../../../../infrastructure/api/Registro/naturalezas-acto-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-naturalezas-acto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './naturalezas-acto.html',
   styleUrl: './naturalezas-acto.css'
 })
 export class NaturalezasActo implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(NaturalezasActoFacade);
+  public apiService = inject(NaturalezasActoApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Actos Registrales', 'Naturaleza de Acto'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -35,65 +54,84 @@ export class NaturalezasActo implements OnInit {
     codigo: ['', [Validators.required, Validators.maxLength(10)]],
     nombre: ['', Validators.required],
     descripcion: [''],
+    esSinCuantia: [false],
     activo: [true]
   });
 
   // Filtered list
-  naturalezasFiltradas = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.naturalezasActo();
-
-    if (filter === 'activos') {
-      items = items.filter(n => n.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(n => !n.activo);
-    }
-
-    if (query) {
-      items = items.filter(n => 
-        n.codigo.toLowerCase().includes(query) || 
-        n.nombre.toLowerCase().includes(query) ||
-        (n.descripcion && n.descripcion.toLowerCase().includes(query))
-      );
-    }
-
-    return items;
-  });
+  naturalezasFiltradas = computed(() => this.facade.naturalezasActo());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.naturalezasActo();
     return {
-      total: all.length,
-      active: all.filter(n => n.activo).length,
-      inactive: all.filter(n => !n.activo).length
+      total: this.facade.totalNaturalezasActo()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarNaturalezasActo(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarNaturalezasActo(this.pageNumber(), this.pageSize(), this.searchText(), activo);
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
-    this.naturalezaForm.reset({ codigo: '', nombre: '', descripcion: '', activo: true });
+    this.naturalezaForm.reset({ codigo: '', nombre: '', descripcion: '', esSinCuantia: false, activo: true });
     this.isSlideOverOpen = true;
   }
 
   edit(item: NaturalezaActo) {
-    this.selectedId = item.id;
-    this.naturalezaForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      descripcion: item.descripcion || '',
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.naturalezaForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          descripcion: data.descripcion || '',
+          esSinCuantia: data.esSinCuantia ?? false,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la naturaleza de acto');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: NaturalezaActo) {
@@ -105,11 +143,12 @@ export class NaturalezasActo implements OnInit {
       codigo: item.codigo,
       nombre: item.nombre,
       descripcion: item.descripcion || '',
+      esSinCuantia: item.esSinCuantia ?? false,
       activo: nuevoEstado
     }).subscribe({
       next: () => {
         this.toast.success(`Naturaleza de acto ${actionName} exitosamente`);
-        this.facade.cargarNaturalezasActo(1, 100);
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar la naturaleza de acto`);
@@ -134,12 +173,13 @@ export class NaturalezasActo implements OnInit {
           codigo: val.codigo!,
           nombre: val.nombre!,
           descripcion: val.descripcion || '',
+          esSinCuantia: val.esSinCuantia ?? false,
           activo: val.activo ?? true
         }).subscribe({
           next: () => {
             this.toast.success(`Naturaleza de acto ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarNaturalezasActo(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar la naturaleza de acto`);
@@ -150,12 +190,13 @@ export class NaturalezasActo implements OnInit {
         this.facade.crear({
           codigo: val.codigo!,
           nombre: val.nombre!,
-          descripcion: val.descripcion || ''
+          descripcion: val.descripcion || '',
+          esSinCuantia: val.esSinCuantia ?? false
         }).subscribe({
           next: () => {
             this.toast.success(`Naturaleza de acto ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarNaturalezasActo(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear la naturaleza de acto`);

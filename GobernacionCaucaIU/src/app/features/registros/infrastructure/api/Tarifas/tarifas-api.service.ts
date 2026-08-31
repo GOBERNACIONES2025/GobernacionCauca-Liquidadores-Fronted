@@ -31,16 +31,42 @@ export class TarifasApiService {
    * @param {TarifaQueryParams} [params] - Parámetros de filtrado y paginación.
    * @returns {Observable<ApiResponse<PagedResult<Tarifa>>>} Respuesta paginada.
    */
-  obtenerTodos(params?: TarifaQueryParams): Observable<ApiResponse<PagedResult<Tarifa>>> {
-    const queryParams: any = {
-      pageNumber: params?.pageNumber ?? 1,
-      pageSize: params?.pageSize ?? 10,
-    };
-    if (params?.departamentoId) queryParams.departamentoId = params.departamentoId;
-    if (params?.tipoActoRegistroId) queryParams.tipoActoRegistroId = params.tipoActoRegistroId;
-    if (params?.vigenciaId) queryParams.vigenciaId = params.vigenciaId;
-    if (params?.normaId) queryParams.normaId = params.normaId;
-    if (params?.tipoCalculoTarifaId) queryParams.tipoCalculoTarifaId = params.tipoCalculoTarifaId;
+  obtenerTodos(
+    paramsOrPage: number | TarifaQueryParams = 1,
+    pageSize: number = 10,
+    searchTerm?: string,
+    activo?: boolean,
+    filtrosEspecificos?: any
+  ): Observable<ApiResponse<PagedResult<Tarifa>>> {
+    const queryParams: any = {};
+    if (typeof paramsOrPage === 'object') {
+      queryParams.PageNumber = paramsOrPage.pageNumber ?? 1;
+      queryParams.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') {
+        queryParams.SearchTerm = term.trim();
+      }
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) {
+        queryParams.Activo = paramsOrPage.activo;
+      }
+      if (paramsOrPage.departamentoId) queryParams.DepartamentoId = paramsOrPage.departamentoId;
+      if (paramsOrPage.tipoActoRegistroId) queryParams.TipoActoRegistroId = paramsOrPage.tipoActoRegistroId;
+      if (paramsOrPage.vigenciaId) queryParams.VigenciaId = paramsOrPage.vigenciaId;
+      if (paramsOrPage.normaId) queryParams.NormaId = paramsOrPage.normaId;
+      if (paramsOrPage.tipoCalculoTarifaId) queryParams.TipoCalculoTarifaId = paramsOrPage.tipoCalculoTarifaId;
+    } else {
+      queryParams.PageNumber = paramsOrPage ?? 1;
+      queryParams.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') {
+        queryParams.SearchTerm = searchTerm.trim();
+      }
+      if (activo !== undefined && activo !== null) {
+        queryParams.Activo = activo;
+      }
+      if (filtrosEspecificos) {
+        Object.assign(queryParams, filtrosEspecificos);
+      }
+    }
 
     return this.api.get<ApiResponse<PagedResult<Tarifa>>>(
       this.baseUrl,

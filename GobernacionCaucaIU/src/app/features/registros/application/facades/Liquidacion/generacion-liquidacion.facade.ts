@@ -65,4 +65,14 @@ export class GeneracionLiquidacionFacade {
       finalize(() => this.actionLoading.set(false))
     );
   }
+
+  /**
+   * Reliquida una liquidación oficial, anulando la actual y reaperturando la solicitud.
+   */
+  reliquidarLiquidacion(id: number, motivo: string): Observable<ApiResponse<number>> {
+    this.actionLoading.set(true);
+    return this.apiService.reliquidarLiquidacion(id, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
 }

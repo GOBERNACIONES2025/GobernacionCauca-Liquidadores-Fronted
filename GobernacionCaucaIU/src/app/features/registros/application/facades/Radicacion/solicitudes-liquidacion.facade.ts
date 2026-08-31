@@ -4,6 +4,7 @@ import { finalize } from 'rxjs/operators';
 import { SolicitudLiquidacionApiService } from '../../../infrastructure/api/Radicacion/solicitud-liquidacion-api.service';
 import { 
   CrearSolicitudDto, 
+  ActualizarRadicadoDto,
   RegistrarContribuyenteDto, 
   RegistrarDocumentoDto, 
   RegistrarActosDto, 
@@ -32,6 +33,13 @@ export class SolicitudesLiquidacionFacade {
   crearSolicitud(command: CrearSolicitudDto): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.crearSolicitud(command).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  actualizarRadicado(id: number, command: ActualizarRadicadoDto): Observable<ApiResponse<boolean>> {
+    this.actionLoading.set(true);
+    return this.apiService.actualizarRadicado(id, command).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }

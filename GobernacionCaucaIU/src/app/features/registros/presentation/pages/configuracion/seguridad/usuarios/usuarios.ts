@@ -1,29 +1,48 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { UsuariosFacade } from '../../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesFacade } from '../../../../../application/facades/Seguridad/roles.facade';
 import { Usuario } from '../../../../../domain/models/Seguridad/usuario.model';
+import { UsuariosApiService } from '../../../../../infrastructure/api/Seguridad/usuarios-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'
 })
 export class UsuariosComponent implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(UsuariosFacade);
+  public apiService = inject(UsuariosApiService);
   public rolesFacade = inject(RolesFacade);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Seguridad', 'Usuarios'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -42,46 +61,50 @@ export class UsuariosComponent implements OnInit {
   });
 
   // Filtered list
-  usuariosFiltrados = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.usuarios();
-
-    if (filter === 'activos') {
-      items = items.filter(u => u.activo !== false);
-    } else if (filter === 'inactivos') {
-      items = items.filter(u => u.activo === false);
-    }
-
-    if (query) {
-      items = items.filter(u => 
-        u.nombre.toLowerCase().includes(query) || 
-        u.email.toLowerCase().includes(query) ||
-        u.roles.some(r => r.nombre.toLowerCase().includes(query))
-      );
-    }
-
-    return items;
-  });
+  usuariosFiltrados = computed(() => this.facade.usuarios());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.usuarios();
     return {
-      total: all.length,
-      active: all.filter(u => u.activo !== false).length,
-      inactive: all.filter(u => u.activo === false).length
+      total: this.facade.totalUsuarios()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarUsuarios();
-    this.rolesFacade.cargarRoles(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarUsuarios({ pageNumber: this.pageNumber(), pageSize: this.pageSize(), search: this.searchText(), activo });;
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -98,18 +121,30 @@ export class UsuariosComponent implements OnInit {
   }
 
   edit(item: Usuario) {
-    this.selectedId = item.id;
-    const roleIds = item.roles ? item.roles.map(r => r.id) : [];
-    this.usuarioForm.patchValue({
-      nombre: item.nombre,
-      email: item.email,
-      password: '',
-      rolesIds: roleIds,
-      activo: item.activo ?? true
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        const roleIds = data.roles ? data.roles.map(r => r.id) : [];
+        this.usuarioForm.patchValue({
+          nombre: data.nombre,
+          email: data.email,
+          password: '',
+          rolesIds: roleIds,
+          activo: data.activo ?? true
+        });
+        this.usuarioForm.get('password')?.clearValidators();
+        this.usuarioForm.get('password')?.updateValueAndValidity();
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del usuario');
+        console.error(err);
+      }
     });
-    this.usuarioForm.get('password')?.clearValidators();
-    this.usuarioForm.get('password')?.updateValueAndValidity();
-    this.isSlideOverOpen = true;
   }
 
   isRoleSelected(roleId: number): boolean {
@@ -145,7 +180,7 @@ export class UsuariosComponent implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Usuario ${actionName} exitosamente`);
-        this.facade.cargarUsuarios();
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar el usuario`);
@@ -176,7 +211,7 @@ export class UsuariosComponent implements OnInit {
           next: () => {
             this.toast.success(`Usuario ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarUsuarios();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar el usuario`);
@@ -193,7 +228,7 @@ export class UsuariosComponent implements OnInit {
           next: () => {
             this.toast.success(`Usuario ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarUsuarios();
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear el usuario`);

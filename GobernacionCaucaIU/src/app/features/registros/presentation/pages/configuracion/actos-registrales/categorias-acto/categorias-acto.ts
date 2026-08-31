@@ -1,27 +1,46 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { CategoriasActoFacade } from '../../../../../application/facades/Registro/categorias-acto.facade';
 import { CategoriaActo } from '../../../../../domain/models/Registro/categoria-acto.model';
+import { CategoriasActoApiService } from '../../../../../infrastructure/api/Registro/categorias-acto-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-categorias-acto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './categorias-acto.html',
   styleUrl: './categorias-acto.css'
 })
 export class CategoriasActo implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(CategoriasActoFacade);
+  public apiService = inject(CategoriasActoApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Actos Registrales', 'Categoría de Acto'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -39,45 +58,50 @@ export class CategoriasActo implements OnInit {
   });
 
   // Filtered list
-  categoriasFiltradas = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.categoriasActo();
-
-    if (filter === 'activos') {
-      items = items.filter(c => c.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(c => !c.activo);
-    }
-
-    if (query) {
-      items = items.filter(c => 
-        c.codigo.toLowerCase().includes(query) || 
-        c.nombre.toLowerCase().includes(query) ||
-        (c.descripcion && c.descripcion.toLowerCase().includes(query))
-      );
-    }
-
-    return items;
-  });
+  categoriasFiltradas = computed(() => this.facade.categoriasActo());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.categoriasActo();
     return {
-      total: all.length,
-      active: all.filter(c => c.activo).length,
-      inactive: all.filter(c => !c.activo).length
+      total: this.facade.totalCategoriasActo()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarCategoriasActo(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarCategoriasActo(this.pageNumber(), this.pageSize(), this.searchText(), activo);
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -86,14 +110,26 @@ export class CategoriasActo implements OnInit {
   }
 
   edit(item: CategoriaActo) {
-    this.selectedId = item.id;
-    this.categoriaForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      descripcion: item.descripcion || '',
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.categoriaForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          descripcion: data.descripcion || '',
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información de la categoría');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: CategoriaActo) {
@@ -109,7 +145,7 @@ export class CategoriasActo implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Categoría de acto ${actionName} exitosamente`);
-        this.facade.cargarCategoriasActo(1, 100);
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar la categoría de acto`);
@@ -139,7 +175,7 @@ export class CategoriasActo implements OnInit {
           next: () => {
             this.toast.success(`Categoría de acto ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarCategoriasActo(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar la categoría de acto`);
@@ -155,7 +191,7 @@ export class CategoriasActo implements OnInit {
           next: () => {
             this.toast.success(`Categoría de acto ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarCategoriasActo(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear la categoría de acto`);

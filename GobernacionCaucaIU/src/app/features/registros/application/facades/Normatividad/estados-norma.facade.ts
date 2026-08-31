@@ -30,11 +30,11 @@ export class EstadosNormaFacade {
   /**
    * Carga la lista paginada de estados de norma.
    */
-  cargarEstadosNorma(pageNumber: number = 1, pageSize: number = 10): void {
+  cargarEstadosNorma(pageNumber: number = 1, pageSize: number = 10, search?: string, activo?: boolean): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search, activo).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.estadosNorma.set(response.data.items || []);

@@ -6,6 +6,7 @@ export interface NaturalezaActo {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
+  esSinCuantia: boolean;
   activo: boolean;
 }
 
@@ -16,6 +17,7 @@ export interface CrearNaturalezaActoRequest {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
+  esSinCuantia?: boolean;
 }
 
 /**
@@ -26,5 +28,6 @@ export interface ActualizarNaturalezaActoRequest {
   codigo: string;
   nombre: string;
   descripcion?: string | null;
+  esSinCuantia?: boolean;
   activo: boolean;
 }

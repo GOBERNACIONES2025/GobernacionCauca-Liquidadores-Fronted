@@ -1,7 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import type { EChartsOption } from 'echarts';
 import { BaseApiService } from '../../../core/services/base-api.service';
 import { TAX_MODULES_CONFIG } from '../constants/tax-config.constant';
 import {
@@ -10,6 +9,7 @@ import {
   DashboardKpi,
   DashboardChartsData,
   RecentActivityItem,
+  EChartsOption,
 } from '../models/dashboard.model';
 
 @Injectable({
