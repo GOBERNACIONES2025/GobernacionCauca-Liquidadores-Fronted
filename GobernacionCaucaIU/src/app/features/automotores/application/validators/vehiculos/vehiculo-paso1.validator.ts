@@ -10,7 +10,7 @@ import {
   minValue,
   maxValue,
   ValidationResult
-} from './validation-result';
+} from '../validation-result';
 
 /**
  * @file vehiculo-paso1.validator.ts

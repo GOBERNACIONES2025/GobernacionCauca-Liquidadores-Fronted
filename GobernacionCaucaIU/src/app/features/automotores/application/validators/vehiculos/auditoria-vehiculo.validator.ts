@@ -1,4 +1,4 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import {
   buildResult,
@@ -9,7 +9,7 @@ import {
   minLength,
   minValue,
   ValidationResult
-} from './validation-result';
+} from '../validation-result';
 
 /**
  * @file auditoria-vehiculo.validator.ts

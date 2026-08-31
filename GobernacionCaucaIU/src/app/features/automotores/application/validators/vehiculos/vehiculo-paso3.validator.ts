@@ -1,11 +1,11 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import {
   buildResult,
   FieldError,
   maxLength,
   ValidationResult
-} from './validation-result';
+} from '../validation-result';
 
 /**
  * @file vehiculo-paso3.validator.ts
