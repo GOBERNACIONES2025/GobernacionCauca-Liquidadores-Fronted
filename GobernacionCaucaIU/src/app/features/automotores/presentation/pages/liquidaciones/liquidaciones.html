@@ -274,13 +274,11 @@
                     <div class="flex flex-wrap items-center gap-1.5">
                       @if (item.vigenciasPendientes && item.vigenciasPendientes.length > 0) {
                         @for (vAnio of item.vigenciasPendientes; track vAnio) {
-                          <span [class]="'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ' + (vAnio <= 2021 ? 'bg-purple-50 text-purple-800 border-purple-200' : ((vAnio === 2023 || vAnio === 2022) ? 'bg-amber-50 text-amber-900 border-amber-300' : 'bg-emerald-50 text-emerald-900 border-emerald-200'))" [title]="(vAnio === 2023 || vAnio === 2022) ? 'Faltan parámetros estatales o avalúos en BD para esta vigencia' : ''">
-                            <i [class]="'fa-solid text-[9px] ' + (vAnio <= 2021 ? 'fa-clock-rotate-left text-purple-600' : ((vAnio === 2023 || vAnio === 2022) ? 'fa-triangle-exclamation text-amber-600' : 'fa-calendar-check text-emerald-600'))"></i>
+                          <span [class]="'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ' + (vAnio <= 2021 ? 'bg-purple-50 text-purple-800 border-purple-200' : (vAnio < 2026 ? 'bg-amber-50 text-amber-900 border-amber-300' : 'bg-emerald-50 text-emerald-900 border-emerald-200'))" [title]="vAnio < 2026 ? 'Requiere validación de vigencia activa y parámetros tributarios' : 'Vigencia actual habilitada'">
+                            <i [class]="'fa-solid text-[9px] ' + (vAnio <= 2021 ? 'fa-clock-rotate-left text-purple-600' : (vAnio < 2026 ? 'fa-triangle-exclamation text-amber-600' : 'fa-calendar-check text-emerald-600'))"></i>
                             {{ vAnio }}
                             @if (vAnio <= 2021) {
                               <span class="text-[9px] uppercase font-extrabold text-purple-700 ml-0.5">(Prescrita)</span>
-                            } @else if (vAnio === 2023 || vAnio === 2022) {
-                              <span class="text-[9px] uppercase font-extrabold text-amber-800 ml-0.5">(Sin datos BD)</span>
                             }
                           </span>
                         }
@@ -577,23 +575,23 @@
                     <td class="py-3 px-3 font-bold text-slate-900">
                       <div>{{ v.anio }}</div>
                       @if (v.parametrosFaltantesEnDb) {
-                        <div class="text-[9.5px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1" title="Faltan los parámetros tributarios estatales en BD para esta vigencia">
-                          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                          Sin datos en BD
+                        <div [class]="'text-[9.5px] font-bold px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1 border ' + (v.estado.includes('PARAMETRIZACIÓN') || v.estado === 'SIN VALORES ESTATALES' ? 'text-amber-800 bg-amber-50 border-amber-300' : 'text-slate-700 bg-slate-100 border-slate-300')" [title]="v.advertencia || 'No liquidable'">
+                          <i [class]="'fa-solid text-[9px] ' + (v.estado.includes('ACTIVACIÓN') ? 'fa-lock text-slate-500' : 'fa-triangle-exclamation text-amber-600')"></i>
+                          {{ v.estado.includes('ACTIVACIÓN Y PARAMETRIZACIÓN') ? 'Pendiente Activación y Parametrización' : (v.estado.includes('ACTIVACIÓN') ? 'Pendiente de Activación' : (v.estado.includes('PARAMETRIZACIÓN') ? 'Pendiente de Parametrización' : v.estado)) }}
                         </div>
                       }
                     </td>
                     <td class="py-3 px-3 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
                     <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
-                    <td class="py-3 px-3 text-right text-emerald-700 font-medium">${{ v.descuentoProntoPago | number:'1.0-0' }}</td>
+                    <td class="py-3 px-3 text-right text-emerald-700 font-medium">${{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}</td>
                     <td class="py-3 px-3 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
                     <td class="py-3 px-3 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
                     <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
                     <td class="py-3 px-3 text-center">
                       @if (v.parametrosFaltantesEnDb) {
-                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                          <i class="fa-solid fa-ban text-amber-700"></i>
-                          NO LIQUIDABLE (SIN DATOS BD)
+                        <span [class]="'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ' + (v.estado.includes('PARAMETRIZACIÓN') ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-slate-100 text-slate-800 border-slate-300')" [title]="v.advertencia">
+                          <i [class]="'fa-solid text-[9px] ' + (v.estado.includes('ACTIVACIÓN') ? 'fa-lock text-slate-600' : 'fa-triangle-exclamation text-amber-700')"></i>
+                          {{ v.estado }}
                         </span>
                       } @else if (v.estado.includes('PRESCRITA')) {
                         <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
@@ -704,186 +702,286 @@
             </button>
           </div>
         } @else {
-          <!-- PRE-REVISIÓN Y ALCANCE DEL LOTE MASIVO -->
-          <div class="bg-blue-50/80 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-            <i class="fa-solid fa-clipboard-check text-blue-700 text-xl mt-0.5"></i>
-            <div class="text-xs text-blue-950 flex-1">
-              <div class="flex items-center justify-between mb-1">
-                <p class="font-extrabold text-blue-900 m-0 text-xs">📋 Resumen de Pre-Revisión del Lote Masivo:</p>
-                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 uppercase">
-                  En Revisión
-                </span>
-              </div>
-              @if (facade.selectedPlacas().length > 0) {
-                <p class="m-0 text-slate-700">Se expedirá la liquidación oficial únicamente para los <strong>{{ facade.selectedPlacas().length }} vehículos seleccionados</strong>:</p>
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                  @for (p of facade.selectedPlacas(); track p) {
-                    <span class="co-plate !text-[11px] !py-0.5 !px-2">{{ p }}</span>
-                  }
+          <!-- MODO 1: RESUMEN CONSOLIDADO DEL LOTE MASIVO -->
+          @if (facade.modoRevisionMasivo() === 'resumen') {
+            <!-- BANNER DE ALCANCE Y RESUMEN DEL LOTE -->
+            <div class="bg-blue-50/80 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+              <i class="fa-solid fa-clipboard-check text-blue-700 text-xl mt-0.5"></i>
+              <div class="text-xs text-blue-950 flex-1">
+                <div class="flex items-center justify-between mb-1">
+                  <p class="font-extrabold text-blue-900 m-0 text-xs">📋 Resumen de Pre-Revisión del Lote Masivo:</p>
+                  <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 uppercase">
+                    Lote En Revisión
+                  </span>
                 </div>
-              } @else {
-                <p class="m-0 text-slate-700">Se procesará la determinación masiva oficial de <strong>toda la cartera de vehículos pendientes</strong> en el parque automotor.</p>
+                @if (facade.selectedPlacas().length > 0) {
+                  <p class="m-0 text-slate-700">Se expedirá la liquidación oficial para los <strong>{{ facade.selectedPlacas().length }} vehículos seleccionados</strong>:</p>
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    @for (p of facade.selectedPlacas(); track p) {
+                      <span class="co-plate !text-[11px] !py-0.5 !px-2">{{ p }}</span>
+                    }
+                  </div>
+                } @else {
+                  <p class="m-0 text-slate-700">Se procesará la determinación masiva oficial de <strong>toda la cartera de vehículos pendientes</strong> en el parque automotor.</p>
+                }
+              </div>
+            </div>
+
+            <!-- CONTROLES MAESTROS Y ACCIÓN DE REVISIÓN 1 A 1 -->
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+              <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-3">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-sliders text-blue-900 text-sm"></i>
+                  <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide m-0">
+                    Parámetros Generales del Lote
+                  </h4>
+                </div>
+
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[11px] font-bold text-slate-600 uppercase">Vigencia a Liquidar:</span>
+                    <select 
+                      [ngModel]="facade.vigenciaFiltroMasivo()" 
+                      (ngModelChange)="facade.setVigenciaFiltroMasivo($event)"
+                      class="h-8 px-3 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-md shadow-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer">
+                      <option [value]="0">Todas las Vigencias Habilitadas</option>
+                      <option [value]="2026">Solo Vigencia 2026</option>
+                      <option [value]="2025">Solo Vigencia 2025</option>
+                      <option [value]="2024">Solo Vigencia 2024</option>
+                    </select>
+                  </div>
+
+                  <div class="text-right pl-4 border-l border-slate-300">
+                    <span class="text-[10px] font-extrabold text-slate-500 block uppercase">TOTAL LOTE PROYECTADO</span>
+                    <span class="text-lg font-black text-emerald-700">
+                      ${{ facade.totalLoteMasivoProyectado() | number:'1.0-0' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- BOTÓN DE INGRESO A REVISIÓN INDIVIDUAL 1 A 1 -->
+              @if (facade.loadingPreSimulacionMasiva()) {
+                <div class="py-8 text-center text-slate-500">
+                  <i class="fa-solid fa-spinner fa-spin text-2xl text-blue-900 mb-2"></i>
+                  <p class="text-xs font-bold m-0">Consultando motor tributario y calculando valores del lote...</p>
+                </div>
+              } @else if (facade.preSimulacionesMasivo().length > 0) {
+                <div class="bg-white border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-900 flex items-center justify-center font-bold text-lg">
+                      🔎
+                    </div>
+                    <div>
+                      <h5 class="text-xs font-extrabold text-slate-900 m-0">Revisión Detallada Vehículo por Vehículo</h5>
+                      <p class="text-[11px] text-slate-500 m-0">Inspeccione uno a uno los {{ facade.preSimulacionesMasivo().length }} vehículos del lote antes de liquidar.</p>
+                    </div>
+                  </div>
+
+                  <button 
+                    (click)="facade.irAModoRevisionMasivo(0)"
+                    type="button" 
+                    class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-extrabold bg-[#1e3a7b] hover:bg-[#152a5a] text-white border-none shadow-md cursor-pointer whitespace-nowrap transition-all">
+                    <i class="fa-solid fa-list-check"></i>
+                    Revisar Vehículos (1 a 1)
+                  </button>
+                </div>
               }
             </div>
-          </div>
 
-          <!-- DESGLOSE INTERACTIVO DE VALORES LIQUIDABLES DEL LOTE -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-            <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 mb-3 gap-3">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-list-check text-blue-900 text-sm"></i>
-                <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide m-0">
-                  Pre-Revisión Desglosada de Cartera
-                </h4>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between text-xs">
+              <span class="text-slate-600 font-medium">Modo de Proceso: <strong class="text-emerald-700 uppercase font-extrabold">Determinación Tributaria Oficial</strong></span>
+              <span class="text-slate-600 font-medium">Garantía: <strong class="text-slate-800 font-bold">Validación Estricta de Reglas de Negocio en BD</strong></span>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+              <button 
+                (click)="facade.cerrarModalMasivo()" 
+                [disabled]="facade.ejecutandoMasivo()"
+                type="button" 
+                class="px-4 py-2.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer">
+                Cancelar
+              </button>
+              <button 
+                (click)="facade.ejecutarLiquidacionMasiva()" 
+                [disabled]="facade.ejecutandoMasivo() || facade.preSimulacionesMasivo().length === 0"
+                type="button" 
+                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-[#70b238] hover:bg-[#5f972f] text-white border-none cursor-pointer shadow-sm disabled:opacity-50">
+                @if (facade.ejecutandoMasivo()) {
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                  Procesando Determinación Masiva...
+                } @else {
+                  ⚡ Confirmar y Liquidar Masivamente
+                }
+              </button>
+            </div>
+          }
+
+          <!-- MODO 2: VISOR DE INSPECCIÓN INDIVIDUALIZADA (1 A 1) -->
+          @if (facade.modoRevisionMasivo() === 'revision-individual') {
+            @if (facade.vehiculoActualMasivo(); as sim) {
+              <!-- BARRA DE NAVEGACIÓN ENTRE VEHÍCULOS (STEPPER 1 A 1) -->
+              <div class="bg-slate-900 text-white rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+                <button 
+                  (click)="facade.irAModoResumenMasivo()"
+                  type="button" 
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border-none cursor-pointer">
+                  <i class="fa-solid fa-arrow-left"></i>
+                  Volver al Resumen
+                </button>
+
+                <div class="flex items-center gap-2 text-xs font-bold">
+                  <span class="text-slate-400">Inspeccionando:</span>
+                  <span class="co-plate !text-[11px] !py-0.5 !px-2.5">{{ sim.placa }}</span>
+                  <span class="text-emerald-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+                    Vehículo {{ facade.indexVehiculoMasivo() + 1 }} de {{ facade.preSimulacionesMasivo().length }}
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button 
+                    (click)="facade.anteriorVehiculoMasivo()" 
+                    [disabled]="facade.indexVehiculoMasivo() === 0"
+                    type="button" 
+                    class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+                  </button>
+                  <button 
+                    (click)="facade.siguienteVehiculoMasivo()" 
+                    [disabled]="facade.indexVehiculoMasivo() === facade.preSimulacionesMasivo().length - 1"
+                    type="button" 
+                    class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                    Siguiente <i class="fa-solid fa-chevron-right ml-1"></i>
+                  </button>
+                </div>
               </div>
 
-              <!-- CONTROLES MAESTROS: FILTRO POR VIGENCIA Y TOTAL LOTE -->
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-1.5">
-                  <span class="text-[11px] font-bold text-slate-600 uppercase">Vigencia a Liquidar:</span>
-                  <select 
-                    [ngModel]="facade.vigenciaFiltroMasivo()" 
-                    (ngModelChange)="facade.setVigenciaFiltroMasivo($event)"
-                    class="h-7 px-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-md shadow-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer">
-                    <option [value]="0">Todas las Vigencias Habilitadas</option>
-                    <option [value]="2026">Solo Vigencia 2026</option>
-                    <option [value]="2025">Solo Vigencia 2025</option>
-                    <option [value]="2024">Solo Vigencia 2024</option>
-                  </select>
+              <!-- FICHA TÉCNICA DEL VEHÍCULO ACTUAL -->
+              <div class="bg-white border border-slate-200 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 shadow-xs">
+                <div>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">Vehículo</span>
+                  <div class="text-sm font-bold text-slate-900 mt-1">{{ sim.marca }} {{ sim.linea }}</div>
+                  <div class="text-[11.5px] text-slate-500 mt-0.5">Modelo {{ sim.modelo }} · {{ sim.cilindraje | number }} cc</div>
+                </div>
+
+                <div>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">Contribuyente</span>
+                  <div class="text-sm font-bold text-slate-900 mt-1 truncate">{{ sim.propietarioNombre }}</div>
+                  <div class="text-[11.5px] text-slate-500 mt-0.5">{{ sim.propietarioDocumento }}</div>
                 </div>
 
                 <div class="text-right">
-                  <span class="text-[10px] font-extrabold text-slate-500 block uppercase">TOTAL LOTE PROYECTADO</span>
-                  <span class="text-base font-black text-emerald-700">
-                    ${{ facade.totalLoteMasivoProyectado() | number:'1.0-0' }}
-                  </span>
+                  <span class="text-[10px] font-bold text-slate-400 uppercase">Subtotal Vehículo</span>
+                  <div class="text-xl font-black text-slate-900 mt-1">
+                    ${{ facade.calcularSubtotalSimulacion(sim) | number:'1.0-0' }}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            @if (facade.loadingPreSimulacionMasiva()) {
-              <div class="py-8 text-center text-slate-500">
-                <i class="fa-solid fa-spinner fa-spin text-2xl text-blue-900 mb-2"></i>
-                <p class="text-xs font-bold m-0">Consultando motor tributario y calculando valores desglosados del lote...</p>
-              </div>
-            } @else if (facade.preSimulacionesMasivo().length > 0) {
-              <div class="space-y-2 max-h-[340px] overflow-y-auto pr-1">
-                @for (sim of facade.preSimulacionesMasivo(); track sim.placa) {
-                  <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-xs">
-                    <div class="flex items-center justify-between gap-2">
-                      <div class="flex items-center gap-2.5">
-                        <span class="co-plate !text-[11px] !py-0.5 !px-2">{{ sim.placa }}</span>
-                        <div>
-                          <span class="text-xs font-bold text-slate-900 block">{{ sim.marca }} {{ sim.linea }}</span>
-                          <span class="text-[10.5px] text-slate-500">Mod. {{ sim.modelo }} · {{ sim.propietarioNombre }}</span>
-                        </div>
-                      </div>
+              <!-- TABLA COMPLETA DE DESGLOSE POR VIGENCIAS PARA ESTE VEHÍCULO -->
+              <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+                <div class="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 font-bold text-xs text-slate-800">
+                  Vigencias Tributarias Pendientes de la Placa {{ sim.placa }}
+                </div>
 
-                      <div class="flex items-center gap-3">
-                        <div class="text-right">
-                          <span class="text-[9.5px] text-slate-400 font-bold block uppercase">Subtotal Vehículo</span>
-                          <span class="text-xs font-black text-slate-900">
-                            ${{ facade.calcularSubtotalSimulacion(sim) | number:'1.0-0' }}
-                          </span>
-                        </div>
-                        <button 
-                          (click)="facade.toggleExpandirVehiculoMasivo(sim.placa)"
-                          type="button" 
-                          class="px-2.5 py-1 rounded text-[10.5px] font-bold bg-blue-50 text-blue-900 hover:bg-blue-100 border border-blue-200 cursor-pointer flex items-center gap-1">
-                          <i class="fa-solid" [class.fa-chevron-down]="facade.vehiculoExpandidoMasivo() !== sim.placa" [class.fa-chevron-up]="facade.vehiculoExpandidoMasivo() === sim.placa"></i>
-                          {{ facade.vehiculoExpandidoMasivo() === sim.placa ? 'Ocultar' : 'Inspeccionar' }}
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- DETALLE COMPLETO DESGLOSADO POR VIGENCIAS DE ESTE VEHÍCULO -->
-                    @if (facade.vehiculoExpandidoMasivo() === sim.placa) {
-                      <div class="mt-2.5 pt-2.5 border-t border-slate-100 overflow-x-auto">
-                        <table class="w-full text-left text-[11px] border-collapse">
-                          <thead>
-                            <tr class="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px]">
-                              <th class="py-2 px-2.5 text-center w-8">
-                                <i class="fa-solid fa-check text-slate-500"></i>
-                              </th>
-                              <th class="py-2 px-2.5">Vigencia</th>
-                              <th class="py-2 px-2.5 text-right">Base Gravable</th>
-                              <th class="py-2 px-2.5 text-right">Impuesto</th>
-                              <th class="py-2 px-2.5 text-right">Descuento</th>
-                              <th class="py-2 px-2.5 text-right">Sanción Mora</th>
-                              <th class="py-2 px-2.5 text-right">Intereses</th>
-                              <th class="py-2 px-2.5 text-right">Total Vigencia</th>
-                              <th class="py-2 px-2.5 text-center">Estado</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            @for (v of sim.vigencias; track v.anio) {
-                              <tr [class]="'border-b border-slate-100 transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40 text-amber-900 opacity-75' : (((facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio)) ? 'bg-emerald-50/30 hover:bg-emerald-50/60' : 'hover:bg-slate-50 opacity-60'))">
-                                <td class="py-2 px-2.5 text-center">
-                                  <input 
-                                    type="checkbox" 
-                                    [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
-                                    [checked]="(facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio) && !v.parametrosFaltantesEnDb"
-                                    (change)="facade.toggleVigenciaMasivaVehiculo(sim.placa, v.anio)"
-                                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
-                                  />
-                                </td>
-                                <td class="py-2 px-2.5 font-bold text-slate-900">{{ v.anio }}</td>
-                                @if (!v.parametrosFaltantesEnDb && v.totalVigencia > 0) {
-                                  <td class="py-2 px-2.5 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
-                                  <td class="py-2 px-2.5 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
-                                  <td class="py-2 px-2.5 text-right text-emerald-700 font-medium">{{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}</td>
-                                  <td class="py-2 px-2.5 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
-                                  <td class="py-2 px-2.5 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
-                                  <td class="py-2 px-2.5 text-right font-extrabold text-slate-900 text-xs">${{ v.totalVigencia | number:'1.0-0' }}</td>
-                                  <td class="py-2 px-2.5 text-center">
-                                    <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-red-100 text-red-800">EN MORA</span>
-                                  </td>
-                                } @else {
-                                  <td colspan="6" class="py-2 px-2.5 text-center text-amber-800 font-bold italic text-[10.5px]">
-                                    🚫 NO LIQUIDABLE (Faltan Parámetros/Avalúos en BD)
-                                  </td>
-                                  <td class="py-2 px-2.5 text-center">
-                                    <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-amber-100 text-amber-900 border border-amber-300">SIN DATOS BD</span>
-                                  </td>
-                                }
-                              </tr>
-                            }
-                          </tbody>
-                        </table>
-                      </div>
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase text-[10.5px]">
+                      <th class="py-2.5 px-3 text-center w-10">
+                        <i class="fa-solid fa-check text-slate-500"></i>
+                      </th>
+                      <th class="py-2.5 px-3">Vigencia</th>
+                      <th class="py-2.5 px-3 text-right">Base Gravable</th>
+                      <th class="py-2.5 px-3 text-right">Impuesto</th>
+                      <th class="py-2.5 px-3 text-right">Descuento</th>
+                      <th class="py-2.5 px-3 text-right">Sanción Mora</th>
+                      <th class="py-2.5 px-3 text-right">Intereses</th>
+                      <th class="py-2.5 px-3 text-right">Total Vigencia</th>
+                      <th class="py-2.5 px-3 text-center">Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    @for (v of sim.vigencias; track v.anio) {
+                      <tr [class]="'transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40' : (((facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio)) ? 'bg-emerald-50/30 hover:bg-emerald-50/60' : 'hover:bg-slate-50 opacity-60'))">
+                        <td class="py-3 px-3 text-center">
+                          <input 
+                            type="checkbox" 
+                            [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
+                            [checked]="(facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio) && !v.parametrosFaltantesEnDb"
+                            (change)="facade.toggleVigenciaMasivaVehiculo(sim.placa, v.anio)"
+                            class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                          />
+                        </td>
+                        <td class="py-3 px-3 font-bold text-slate-900">
+                          <div>{{ v.anio }}</div>
+                          @if (v.parametrosFaltantesEnDb) {
+                            <div [class]="'text-[9.5px] font-bold px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1 border ' + (v.estado.includes('PARAMETRIZACIÓN') || v.estado === 'SIN VALORES ESTATALES' ? 'text-amber-800 bg-amber-50 border-amber-300' : 'text-slate-700 bg-slate-100 border-slate-300')" [title]="v.advertencia || 'No liquidable'">
+                              <i [class]="'fa-solid text-[9px] ' + (v.estado.includes('ACTIVACIÓN') ? 'fa-lock text-slate-500' : 'fa-triangle-exclamation text-amber-600')"></i>
+                              {{ v.estado.includes('ACTIVACIÓN Y PARAMETRIZACIÓN') ? 'Pendiente Activación y Parametrización' : (v.estado.includes('ACTIVACIÓN') ? 'Pendiente de Activación' : (v.estado.includes('PARAMETRIZACIÓN') ? 'Pendiente de Parametrización' : v.estado)) }}
+                            </div>
+                          }
+                        </td>
+                        <td class="py-3 px-3 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right text-emerald-700 font-medium">${{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}</td>
+                        <td class="py-3 px-3 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
+                        <td class="py-3 px-3 text-center">
+                          @if (v.parametrosFaltantesEnDb) {
+                            <span [class]="'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ' + (v.estado.includes('PARAMETRIZACIÓN') ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-slate-100 text-slate-800 border-slate-300')" [title]="v.advertencia">
+                              <i [class]="'fa-solid text-[9px] ' + (v.estado.includes('ACTIVACIÓN') ? 'fa-lock text-slate-600' : 'fa-triangle-exclamation text-amber-700')"></i>
+                              {{ v.estado }}
+                            </span>
+                          } @else if (v.estado.includes('PRESCRITA')) {
+                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
+                              <i class="fa-solid fa-clock-rotate-left"></i>
+                              PRESCRITA (>5 AÑOS)
+                            </span>
+                          } @else if (v.estado.includes('PRONTO') || v.estado.includes('AL DIA')) {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              {{ v.estado }}
+                            </span>
+                          } @else {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
+                              {{ v.estado }}
+                            </span>
+                          }
+                        </td>
+                      </tr>
                     }
-                  </div>
-                }
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- CONTROLES INFERIORES DE INSPECCIÓN -->
+              <div class="flex items-center justify-between pt-3 border-t border-slate-200">
+                <button 
+                  (click)="facade.irAModoResumenMasivo()" 
+                  type="button" 
+                  class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer">
+                  ↩ Volver al Resumen del Lote
+                </button>
+
+                <div class="flex gap-2">
+                  <button 
+                    (click)="facade.anteriorVehiculoMasivo()" 
+                    [disabled]="facade.indexVehiculoMasivo() === 0"
+                    type="button" 
+                    class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+                  </button>
+                  <button 
+                    (click)="facade.siguienteVehiculoMasivo()" 
+                    [disabled]="facade.indexVehiculoMasivo() === facade.preSimulacionesMasivo().length - 1"
+                    type="button" 
+                    class="px-4 py-2 rounded-lg text-xs font-bold bg-[#1e3a7b] hover:bg-[#152a5a] text-white border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-xs">
+                    Siguiente Vehículo <i class="fa-solid fa-chevron-right ml-1"></i>
+                  </button>
+                </div>
               </div>
             }
-          </div>
-
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between text-xs">
-            <span class="text-slate-600 font-medium">Modo de Proceso: <strong class="text-emerald-700 uppercase font-extrabold">Determinación Tributaria Oficial</strong></span>
-            <span class="text-slate-600 font-medium">Garantía: <strong class="text-slate-800 font-bold">Cero Datos Ficticios · Validación Estricta de BD</strong></span>
-          </div>
-
-          <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
-            <button 
-              (click)="facade.cerrarModalMasivo()" 
-              [disabled]="facade.ejecutandoMasivo()"
-              type="button" 
-              class="px-4 py-2.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer">
-              Cancelar
-            </button>
-            <button 
-              (click)="facade.ejecutarLiquidacionMasiva()" 
-              [disabled]="facade.ejecutandoMasivo()"
-              type="button" 
-              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-[#70b238] hover:bg-[#5f972f] text-white border-none cursor-pointer shadow-sm disabled:opacity-50">
-              @if (facade.ejecutandoMasivo()) {
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                Procesando Determinación Masiva...
-              } @else {
-                ⚡ Confirmar y Liquidar Masivamente
-              }
-            </button>
-          </div>
+          }
         }
       </div>
     </div>

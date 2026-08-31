@@ -138,6 +138,15 @@ export class LiquidacionesFacade {
   readonly loadingPreSimulacionMasiva = signal<boolean>(false);
   readonly vehiculoExpandidoMasivo = signal<string | null>(null);
 
+  /** Modo de revisión en liquidación masiva: 'resumen' o 'revision-individual' (1 a 1) */
+  readonly modoRevisionMasivo = signal<'resumen' | 'revision-individual'>('resumen');
+  readonly indexVehiculoMasivo = signal<number>(0);
+  readonly vehiculoActualMasivo = computed<SimulacionLiquidacion | null>(() => {
+    const sims = this.preSimulacionesMasivo();
+    const idx = this.indexVehiculoMasivo();
+    return (sims && sims.length > idx && idx >= 0) ? sims[idx] : null;
+  });
+
   /** Agrupación y acordeón para pestaña de Emitidas */
   readonly placasExpandidasEmitidas = signal<string[]>([]);
   readonly reciboModalData = signal<ReciboModel | null>(null);
@@ -570,6 +579,8 @@ export class LiquidacionesFacade {
     this.vehiculoExpandidoMasivo.set(null);
     this.selectedVigenciasMasivasMap.set({});
     this.vigenciaFiltroMasivo.set(0);
+    this.modoRevisionMasivo.set('resumen');
+    this.indexVehiculoMasivo.set(0);
 
     const placasDestino = this.selectedPlacas().length > 0 
       ? this.selectedPlacas() 
@@ -602,12 +613,29 @@ export class LiquidacionesFacade {
     });
   }
 
-  /** Expande o colapsa el detalle desglosado de un vehículo en la pre-revisión masiva */
-  toggleExpandirVehiculoMasivo(placa: string): void {
-    if (this.vehiculoExpandidoMasivo() === placa) {
-      this.vehiculoExpandidoMasivo.set(null);
-    } else {
-      this.vehiculoExpandidoMasivo.set(placa);
+  /** Inicia el modo de revisión 1 a 1 de vehículos en el lote masivo */
+  irAModoRevisionMasivo(index: number = 0): void {
+    this.indexVehiculoMasivo.set(index);
+    this.modoRevisionMasivo.set('revision-individual');
+  }
+
+  /** Regresa a la vista de resumen consolidado del lote masivo */
+  irAModoResumenMasivo(): void {
+    this.modoRevisionMasivo.set('resumen');
+  }
+
+  /** Avanza al siguiente vehículo en la inspección 1 a 1 del lote masivo */
+  siguienteVehiculoMasivo(): void {
+    const total = this.preSimulacionesMasivo().length;
+    if (this.indexVehiculoMasivo() < total - 1) {
+      this.indexVehiculoMasivo.update(i => i + 1);
+    }
+  }
+
+  /** Regresa al vehículo anterior en la inspección 1 a 1 del lote masivo */
+  anteriorVehiculoMasivo(): void {
+    if (this.indexVehiculoMasivo() > 0) {
+      this.indexVehiculoMasivo.update(i => i - 1);
     }
   }
 
@@ -619,6 +647,8 @@ export class LiquidacionesFacade {
     this.preSimulacionesMasivo.set([]);
     this.vehiculoExpandidoMasivo.set(null);
     this.selectedVigenciasMasivasMap.set({});
+    this.modoRevisionMasivo.set('resumen');
+    this.indexVehiculoMasivo.set(0);
   }
 
   /**
