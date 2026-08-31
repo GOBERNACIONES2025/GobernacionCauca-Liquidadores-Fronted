@@ -20,7 +20,7 @@
               Valores Estatales & Parámetros Tributarios
             </h1>
             <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-              RentasDb.general.ParametrosTributarios
+              Parámetros Oficiales
             </span>
           </div>
           <p class="text-xs text-slate-500 mt-1">
@@ -338,159 +338,180 @@
 </div>
 
 <!-- ========================================================================= -->
-<!-- MODAL: CREAR / EDITAR PARAMETRO TRIBUTARIO -->
+<!-- MODAL / SIDEBAR: CREAR / EDITAR PARAMETRO TRIBUTARIO -->
 <!-- ========================================================================= -->
 @if (facade.modalMode() === 'CREATE' || facade.modalMode() === 'EDIT') {
-  <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+  <div class="fixed inset-0 z-50 flex justify-end">
+    <!-- Backdrop Overlay -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarModal()"></div>
+    
+    <!-- Sidebar Panel Drawer -->
+    <div (click)="$event.stopPropagation()" data-theme="light" class="relative z-10 w-full max-w-lg sm:max-w-xl h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900 animate-in slide-in-from-right duration-200">
       
-      <!-- CABECERA MODAL -->
-      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+      <!-- CABECERA SIDEBAR -->
+      <div class="px-6 py-4 bg-[#1e3a7b] text-white flex items-center justify-between border-b border-[#1e3a7b] shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-sm font-bold">
-            <i class="fa-solid" [ngClass]="facade.modalMode() === 'CREATE' ? 'fa-plus' : 'fa-pen'"></i>
+          <div class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              @if (facade.modalMode() === 'CREATE') {
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+              } @else {
+                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
+              }
+            </svg>
           </div>
           <div>
-            <h3 class="font-bold text-sm">
+            <h3 class="text-base font-bold text-white m-0">
               {{ facade.modalMode() === 'CREATE' ? 'Nuevo Parámetro Tributario' : 'Editar Parámetro Tributario' }}
             </h3>
-            <p class="text-[11px] text-slate-400">Configuración de valor estatal en RentasDb.general.ParametrosTributarios</p>
+            <p class="text-[11.5px] text-white/80 m-0 mt-0.5">Configuración de valores oficiales para cálculos tributarios</p>
           </div>
         </div>
-        <button (click)="facade.cerrarModal()" class="text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
+        <button (click)="facade.cerrarModal()" type="button" class="w-8 h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
         </button>
       </div>
 
-      <!-- CUERPO FORMULARIO MODAL -->
-      <form [formGroup]="parametroForm" (ngSubmit)="guardarParametro()" class="p-6 overflow-y-auto space-y-4 flex-1">
+      <!-- CUERPO FORMULARIO SIDEBAR -->
+      <form [formGroup]="parametroForm" (ngSubmit)="guardarParametro()" class="flex-1 overflow-y-auto p-6 bg-white text-slate-800 flex flex-col justify-between">
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Código -->
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Código -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Código Único del Parámetro <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                formControlName="codigo"
+                placeholder="Ej: UVT_2026, SMLMV_2026"
+                class="w-full text-xs font-mono font-bold text-slate-900 px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none uppercase placeholder:text-slate-400 placeholder:font-normal"
+                [class.border-red-400]="parametroForm.get('codigo')?.invalid && parametroForm.get('codigo')?.touched"
+              />
+              <p class="text-[10.5px] text-slate-500 mt-1">Identificador técnico utilizado en fórmulas de liquidación</p>
+            </div>
+
+            <!-- Vigencia Fiscal -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Vigencia Fiscal <span class="text-red-500">*</span>
+              </label>
+              <div class="relative">
+                <select 
+                  formControlName="vigenciaFiscalId"
+                  class="w-full text-xs font-bold text-slate-900 px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none appearance-none cursor-pointer">
+                  @for (v of vigenciasDisponibles; track v) {
+                    <option [value]="v" class="bg-white text-slate-900">Vigencia {{ v }}</option>
+                  }
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nombre -->
           <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Código Único del Parámetro <span class="text-rose-500">*</span>
+            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Nombre Descriptivo <span class="text-red-500">*</span>
             </label>
             <input 
               type="text" 
-              formControlName="codigo"
-              placeholder="EJ: UVT_2026, SMLMV_2026"
-              class="w-full text-xs font-mono font-bold px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none uppercase"
-              [class.border-rose-400]="parametroForm.get('codigo')?.invalid && parametroForm.get('codigo')?.touched"
+              formControlName="nombre"
+              placeholder="Ej: Unidad de Valor Tributario (UVT) 2026"
+              class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none placeholder:text-slate-400"
+              [class.border-red-400]="parametroForm.get('nombre')?.invalid && parametroForm.get('nombre')?.touched"
             />
-            <p class="text-[10px] text-slate-400 mt-1">Identificador técnico utilizado en fórmulas de liquidación</p>
+            <p class="text-[10.5px] text-slate-500 mt-1">Ajustes descriptivos u ortográficos que no alteren el sentido sustancial</p>
           </div>
 
-          <!-- Vigencia Fiscal -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Vigencia Fiscal <span class="text-rose-500">*</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Valor Decimal -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Valor Decimal / Cuantía (COP)
+              </label>
+              <input 
+                type="number" 
+                step="0.01"
+                formControlName="valorDecimal"
+                placeholder="Ej: 49799.00"
+                class="w-full text-xs font-mono font-bold text-slate-900 px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none placeholder:text-slate-400 placeholder:font-normal"
+              />
+            </div>
+
+            <!-- Valor Texto -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Valor en Texto / Leyenda
+              </label>
+              <input 
+                type="text" 
+                formControlName="valorTexto"
+                placeholder="Ej: $49.799 COP o 2.15% E.A."
+                class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <!-- Fecha Inicio Vigencia -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Fecha Inicio Vigencia <span class="text-red-500">*</span>
+              </label>
+              <input 
+                type="date" 
+                formControlName="fechaInicioVigencia"
+                class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none"
+              />
+            </div>
+
+            <!-- Fecha Fin Vigencia -->
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Fecha Fin Vigencia (Cierre)
+              </label>
+              <input 
+                type="date" 
+                formControlName="fechaFinVigencia"
+                class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none"
+              />
+              <p class="text-[10.5px] text-slate-500 mt-1">Dejar vacío si aplica de forma indefinida</p>
+            </div>
+          </div>
+
+          <!-- Checkbox Activo -->
+          <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
+            <div>
+              <span class="text-xs font-bold text-slate-900">Estado Administrativo (Activo)</span>
+              <p class="text-[11px] text-slate-500">Permite habilitar o inhabilitar sin romper la integridad referencial histórica</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" formControlName="activo" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#70b238]"></div>
             </label>
-            <select 
-              formControlName="vigenciaFiscalId"
-              class="w-full text-xs font-bold px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-              @for (v of vigenciasDisponibles; track v) {
-                <option [value]="v">Vigencia {{ v }}</option>
-              }
-            </select>
           </div>
         </div>
 
-        <!-- Nombre -->
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Nombre Descriptivo <span class="text-rose-500">*</span>
-          </label>
-          <input 
-            type="text" 
-            formControlName="nombre"
-            placeholder="Ej: Unidad de Valor Tributario (UVT) 2026"
-            class="w-full text-xs px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            [class.border-rose-400]="parametroForm.get('nombre')?.invalid && parametroForm.get('nombre')?.touched"
-          />
-          <p class="text-[10px] text-slate-400 mt-1">Ajustes descriptivos u ortográficos que no alteren el sentido sustancial</p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Valor Decimal -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Valor Decimal / Cuantía (COP)
-            </label>
-            <input 
-              type="number" 
-              step="0.01"
-              formControlName="valorDecimal"
-              placeholder="Ej: 49799.00"
-              class="w-full text-xs font-mono font-bold px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          <!-- Valor Texto -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Valor en Texto / Leyenda
-            </label>
-            <input 
-              type="text" 
-              formControlName="valorTexto"
-              placeholder="Ej: $49.799 COP o 2.15% E.A."
-              class="w-full text-xs px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <!-- Fecha Inicio Vigencia -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Fecha Inicio Vigencia <span class="text-rose-500">*</span>
-            </label>
-            <input 
-              type="date" 
-              formControlName="fechaInicioVigencia"
-              class="w-full text-xs px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-          </div>
-
-          <!-- Fecha Fin Vigencia -->
-          <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              Fecha Fin Vigencia (Cierre)
-            </label>
-            <input 
-              type="date" 
-              formControlName="fechaFinVigencia"
-              class="w-full text-xs px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-            <p class="text-[10px] text-slate-400 mt-1">Dejar vacío si aplica de forma indefinida</p>
-          </div>
-        </div>
-
-        <!-- Checkbox Activo -->
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
-          <div>
-            <span class="text-xs font-bold text-slate-800">Estado Administrativo (Activo)</span>
-            <p class="text-[11px] text-slate-400">Permite habilitar o inhabilitar sin romper la integridad referencial histórica</p>
-          </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" formControlName="activo" class="sr-only peer" />
-            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
-          </label>
-        </div>
-
-        <!-- PIE DE MODAL -->
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+        <!-- PIE DE SIDEBAR -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5 mt-auto shrink-0">
           <button 
             type="button" 
             (click)="facade.cerrarModal()"
-            class="btn btn-sm bg-white hover:bg-slate-100 text-slate-700 border-slate-300 font-semibold normal-case">
+            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
             Cancelar
           </button>
           <button 
             type="submit" 
-            class="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white font-bold normal-case border-none">
-            <i class="fa-solid fa-floppy-disk text-xs mr-1"></i>
+            class="px-4 py-2 text-xs font-bold text-white bg-[#70b238] hover:bg-[#5f972f] rounded-lg transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
             Guardar Parámetro
           </button>
         </div>
@@ -501,87 +522,104 @@
 }
 
 <!-- ========================================================================= -->
-<!-- MODAL: CERRAR VIGENCIA DE PARAMETRO -->
+<!-- MODAL / SIDEBAR: CERRAR VIGENCIA DE PARAMETRO -->
 <!-- ========================================================================= -->
 @if (facade.modalMode() === 'CERRAR') {
-  <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg overflow-hidden">
+  <div class="fixed inset-0 z-50 flex justify-end">
+    <!-- Backdrop Overlay -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarModal()"></div>
+    
+    <!-- Sidebar Panel Drawer -->
+    <div (click)="$event.stopPropagation()" data-theme="light" class="relative z-10 w-full max-w-lg h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900 animate-in slide-in-from-right duration-200">
       
-      <div class="px-6 py-4 bg-amber-900 text-white flex items-center justify-between">
+      <div class="px-6 py-4 bg-amber-900 text-white flex items-center justify-between border-b border-amber-900 shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center text-white text-sm font-bold">
-            <i class="fa-solid fa-clock-rotate-left"></i>
+          <div class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+            </svg>
           </div>
           <div>
-            <h3 class="font-bold text-sm">Cerrar Vigencia del Parámetro</h3>
-            <p class="text-[11px] text-amber-200">{{ facade.selectedParametro()?.codigo }}</p>
+            <h3 class="text-base font-bold text-white m-0">Cerrar Vigencia del Parámetro</h3>
+            <p class="text-[11.5px] text-amber-200 m-0 mt-0.5">{{ facade.selectedParametro()?.codigo }}</p>
           </div>
         </div>
-        <button (click)="facade.cerrarModal()" class="text-amber-200 hover:text-white transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
+        <button (click)="facade.cerrarModal()" type="button" class="w-8 h-8 rounded-lg text-amber-200 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
         </button>
       </div>
 
-      <form [formGroup]="cerrarForm" (ngSubmit)="confirmarCierreVigencia()" class="p-6 space-y-4">
+      <form [formGroup]="cerrarForm" (ngSubmit)="confirmarCierreVigencia()" class="flex-1 overflow-y-auto p-6 bg-white text-slate-800 flex flex-col justify-between">
         
-        <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
-          <p class="font-bold mb-1">💡 Regla Tributaria de Cierre:</p>
-          <p>Establecer <span class="font-mono font-bold">[FechaFinVigencia]</span> permite "cerrar" un parámetro cuando cambia la norma o finaliza un período fiscal sin sobreescribir los valores pasados.</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-            Fecha Fin de Vigencia <span class="text-rose-500">*</span>
-          </label>
-          <input 
-            type="date" 
-            formControlName="fechaFinVigencia"
-            class="w-full text-xs px-3 py-2 bg-slate-50 border rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
-          />
-        </div>
-
-        <div class="pt-2 border-t border-slate-100">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" formControlName="crearNuevoPeriodo" class="checkbox checkbox-xs checkbox-warning" />
-            <span class="text-xs font-bold text-slate-800">
-              Registrar automáticamente nuevo parámetro para el siguiente período fiscal
-            </span>
-          </label>
-        </div>
-
-        @if (cerrarForm.get('crearNuevoPeriodo')?.value) {
-          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-            <h4 class="text-xs font-extrabold text-slate-800">Datos para la Nueva Vigencia:</h4>
-            
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase">Nueva Vigencia Fiscal</label>
-                <input type="number" formControlName="nuevaVigenciaFiscalId" class="w-full text-xs px-2.5 py-1.5 bg-white border rounded" />
-              </div>
-              <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase">Nueva Fecha Inicio</label>
-                <input type="date" formControlName="nuevaFechaInicioVigencia" class="w-full text-xs px-2.5 py-1.5 bg-white border rounded" />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">Nuevo Valor Decimal (COP)</label>
-              <input type="number" step="0.01" formControlName="nuevoValorDecimal" placeholder="Ej: 52300" class="w-full text-xs font-mono font-bold px-2.5 py-1.5 bg-white border rounded" />
+        <div class="space-y-4">
+          <div class="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
+            <svg class="w-4 h-4 text-amber-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z"/>
+            </svg>
+            <div class="leading-relaxed">
+              <span class="font-bold block mb-0.5">Regla Tributaria de Cierre:</span>
+              Establecer <span class="font-mono font-bold text-amber-900">[FechaFinVigencia]</span> permite "cerrar" un parámetro cuando cambia la norma o finaliza un período fiscal sin sobreescribir los valores pasados.
             </div>
           </div>
-        }
 
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Fecha Fin de Vigencia <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="date" 
+              formControlName="fechaFinVigencia"
+              class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 focus:outline-none"
+            />
+          </div>
+
+          <div class="pt-2 border-t border-slate-200">
+            <label class="flex items-center gap-2.5 cursor-pointer">
+              <input type="checkbox" formControlName="crearNuevoPeriodo" class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer" />
+              <span class="text-xs font-bold text-slate-800">
+                Registrar automáticamente nuevo parámetro para el siguiente período fiscal
+              </span>
+            </label>
+          </div>
+
+          @if (cerrarForm.get('crearNuevoPeriodo')?.value) {
+            <div class="p-4 bg-slate-50/80 rounded-xl border border-slate-200 space-y-3">
+              <h4 class="text-xs font-extrabold text-slate-800 m-0">Datos para la Nueva Vigencia:</h4>
+              
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nueva Vigencia Fiscal</label>
+                  <input type="number" formControlName="nuevaVigenciaFiscalId" class="w-full text-xs text-slate-900 font-bold px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nueva Fecha Inicio</label>
+                  <input type="date" formControlName="nuevaFechaInicioVigencia" class="w-full text-xs text-slate-900 font-medium px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nuevo Valor Decimal (COP)</label>
+                <input type="number" step="0.01" formControlName="nuevoValorDecimal" placeholder="Ej: 52300" class="w-full text-xs font-mono font-bold text-slate-900 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500 placeholder:font-normal placeholder:text-slate-400" />
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5 mt-auto shrink-0">
           <button 
             type="button" 
             (click)="facade.cerrarModal()"
-            class="btn btn-sm bg-white hover:bg-slate-100 text-slate-700 border-slate-300 font-semibold normal-case">
+            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
             Cancelar
           </button>
           <button 
             type="submit" 
-            class="btn btn-sm bg-amber-600 hover:bg-amber-700 text-white font-bold normal-case border-none">
-            <i class="fa-solid fa-check text-xs mr-1"></i>
+            class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
             Confirmar Cierre de Vigencia
           </button>
         </div>
@@ -592,56 +630,66 @@
 }
 
 <!-- ========================================================================= -->
-<!-- MODAL: AUDITORIA Y CONCURRENCIA -->
+<!-- MODAL / SIDEBAR: AUDITORIA Y CONCURRENCIA -->
 <!-- ========================================================================= -->
 @if (facade.modalMode() === 'AUDIT') {
-  <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden">
+  <div class="fixed inset-0 z-50 flex justify-end">
+    <!-- Backdrop Overlay -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarModal()"></div>
+    
+    <!-- Sidebar Panel Drawer -->
+    <div (click)="$event.stopPropagation()" data-theme="light" class="relative z-10 w-full max-w-md h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900 animate-in slide-in-from-right duration-200">
       
-      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between">
+      <div class="px-6 py-4 bg-[#1e3a7b] text-white flex items-center justify-between border-b border-[#1e3a7b] shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
-            <i class="fa-solid fa-shield-halved"></i>
+          <div class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z"/>
+            </svg>
           </div>
           <div>
-            <h3 class="font-bold text-sm">Detalles de Auditoría & Concurrencia</h3>
-            <p class="text-[11px] text-slate-400">{{ facade.selectedParametro()?.codigo }}</p>
+            <h3 class="text-base font-bold text-white m-0">Detalles de Auditoría & Concurrencia</h3>
+            <p class="text-[11.5px] text-white/80 m-0 mt-0.5">{{ facade.selectedParametro()?.codigo }}</p>
           </div>
         </div>
-        <button (click)="facade.cerrarModal()" class="text-slate-400 hover:text-white transition">
-          <i class="fa-solid fa-xmark text-lg"></i>
+        <button (click)="facade.cerrarModal()" type="button" class="w-8 h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
         </button>
       </div>
 
-      <div class="p-6 space-y-3 text-xs">
-        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">ID Registro:</span>
-          <span class="font-mono font-bold text-slate-900 text-sm">{{ facade.selectedParametro()?.id }}</span>
+      <div class="p-6 space-y-3 text-xs bg-white text-slate-800 flex-1 overflow-y-auto flex flex-col justify-between">
+        <div class="space-y-3">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">ID Registro:</span>
+            <span class="font-mono font-bold text-slate-900 text-sm">{{ facade.selectedParametro()?.id }}</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Fecha de Creación (CreatedAt):</span>
+            <span class="font-mono font-bold text-slate-800">{{ facade.selectedParametro()?.createdAt || 'N/A' }}</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Última Actualización (UpdatedAt):</span>
+            <span class="font-mono font-bold text-slate-800">{{ facade.selectedParametro()?.updatedAt || 'N/A' }}</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Token de Concurrencia (RowVersion):</span>
+            <span class="font-mono text-emerald-700 font-bold block truncate" [title]="facade.selectedParametro()?.rowVersion">
+              {{ facade.selectedParametro()?.rowVersion || 'Automático por DB Trigger' }}
+            </span>
+          </div>
+
+          <p class="text-[11px] text-slate-500 italic m-0 pt-1">
+            * UpdatedAt y RowVersion son actualizados de forma automática por el motor de base de datos o triggers de auditoría para control de concurrencia optimista.
+          </p>
         </div>
 
-        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Fecha de Creación (CreatedAt):</span>
-          <span class="font-mono font-bold text-slate-800">{{ facade.selectedParametro()?.createdAt || 'N/A' }}</span>
-        </div>
-
-        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Última Actualización (UpdatedAt):</span>
-          <span class="font-mono font-bold text-slate-800">{{ facade.selectedParametro()?.updatedAt || 'N/A' }}</span>
-        </div>
-
-        <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Token de Concurrencia (RowVersion):</span>
-          <span class="font-mono text-emerald-700 font-bold block truncate" [title]="facade.selectedParametro()?.rowVersion">
-            {{ facade.selectedParametro()?.rowVersion || 'Automático por DB Trigger' }}
-          </span>
-        </div>
-
-        <p class="text-[11px] text-slate-400 italic">
-          * UpdatedAt y RowVersion son actualizados de forma automática por el motor de base de datos o triggers de auditoría para control de concurrencia optimista.
-        </p>
-
-        <div class="pt-3 border-t border-slate-200 text-right">
-          <button (click)="facade.cerrarModal()" class="btn btn-xs bg-slate-800 text-white font-bold px-4">
+        <div class="pt-4 border-t border-slate-200 text-right mt-auto shrink-0">
+          <button (click)="facade.cerrarModal()" type="button" class="px-4 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer border-none">
             Cerrar
           </button>
         </div>
