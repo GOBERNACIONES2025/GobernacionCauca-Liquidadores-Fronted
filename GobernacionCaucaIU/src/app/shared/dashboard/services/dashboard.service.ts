@@ -93,7 +93,7 @@ export class DashboardService {
         },
       });
     } else if (key === 'automotores') {
-      this.api.get<any>('/vehiculos/kpis', { params: { vigencia } }, 'AUTOMOTORES').subscribe({
+      this.api.get<any>('Dashboard', { params: { vigencia } }, 'AUTOMOTORES').subscribe({
         next: (res) => {
           const apiData = res?.data || {};
           this.buildDashboardForTax(meta, vigencia, apiData);
@@ -119,23 +119,50 @@ export class DashboardService {
     const kpiData = apiData?.kpi || {};
 
     const recaudoTotal = Number(kpiData.recaudoTotalVigencia ?? apiData.recaudoTotal ?? 0);
-    const varInteranual = Number(kpiData.variacionInteranual ?? 0);
+    const varInteranual = Number(kpiData.variacionRecaudoInteranual ?? kpiData.variacionInteranual ?? 0);
     const recaudoTrend: 'up' | 'down' | 'neutral' = varInteranual >= 0 ? 'up' : 'down';
     const recaudoTrendVal = `${varInteranual >= 0 ? '+' : ''}${varInteranual}%`;
 
-    const totalTramites = Number(kpiData.totalActosRegistrales ?? apiData.totalVehiculos ?? apiData.totalTramites ?? 0);
-    const porcRegistrados = Number(kpiData.porcentajeRegistradosEnSistema ?? apiData.porcentajeActivos ?? 0);
-    const varActos = Number(kpiData.variacionActos ?? 0);
+    const totalTramites = Number(
+      kpiData.totalVehiculos ??
+      kpiData.totalActosRegistrales ??
+      apiData.totalVehiculos ??
+      apiData.totalTramites ??
+      0
+    );
+    const porcRegistrados = Number(
+      kpiData.porcentajeVehiculosLiquidados ??
+      kpiData.porcentajeRegistradosEnSistema ??
+      apiData.porcentajeActivos ??
+      0
+    );
+    const varActos = Number(kpiData.variacionVehiculos ?? kpiData.variacionActos ?? 0);
     const totalTramitesTrend: 'up' | 'down' | 'neutral' = varActos >= 0 ? 'up' : 'down';
     const totalTramitesTrendVal = `${varActos >= 0 ? '+' : ''}${varActos}%`;
 
-    const pendientes = Number(kpiData.tramitesPendientes ?? apiData.totalPendientesAprobacion ?? apiData.tramitesPendientes ?? 0);
+    const pendientes = Number(
+      kpiData.tramitesPendientes ??
+      apiData.totalPendientesAprobacion ??
+      apiData.tramitesPendientes ??
+      0
+    );
     const varPendientes = Number(kpiData.variacionTramitesPendientes ?? 0);
     const pendientesTrend: 'up' | 'down' | 'neutral' = varPendientes <= 0 ? 'down' : 'up';
     const pendientesTrendVal = `${varPendientes >= 0 ? '+' : ''}${varPendientes}%`;
 
-    const totalExtemp = Number(kpiData.totalExtemporaneidad ?? apiData?.extemporaneidad?.totalFueraDePlazo ?? apiData.procesosConSanciones ?? 0);
-    const porcExtemp = Number(kpiData.porcentajeExtemporaneidad ?? apiData?.extemporaneidad?.tasaExtemporaneidad ?? apiData.tasaExtemporaneidad ?? 0);
+    const totalExtemp = Number(
+      kpiData.totalExtemporaneas ??
+      kpiData.totalExtemporaneidad ??
+      apiData?.extemporaneidad?.totalFueraDePlazo ??
+      apiData.procesosConSanciones ??
+      0
+    );
+    const porcExtemp = Number(
+      kpiData.porcentajeExtemporaneidad ??
+      apiData?.extemporaneidad?.tasaExtemporaneidad ??
+      apiData.tasaExtemporaneidad ??
+      0
+    );
     const varExtemp = Number(kpiData.variacionExtemporaneidad ?? 0);
     const extempTrend: 'up' | 'down' | 'neutral' = varExtemp <= 0 ? 'down' : 'up';
     const extempTrendVal = `${varExtemp >= 0 ? '+' : ''}${varExtemp}%`;
@@ -157,7 +184,9 @@ export class DashboardService {
         id: 'total_tramites',
         title: `Total ${meta.entityName}`,
         value: totalTramites.toLocaleString('es-CO'),
-        subtext: `${porcRegistrados}% Registrados en sistema`,
+        subtext: meta.key === 'automotores'
+          ? `${porcRegistrados}% Con Liquidación Oficial`
+          : `${porcRegistrados}% Registrados en sistema`,
         trend: totalTramitesTrend,
         trendValue: totalTramitesTrendVal,
         icon: meta.icon,
@@ -355,11 +384,15 @@ export class DashboardService {
 
     if (Array.isArray(rawMunicipios) && rawMunicipios.length > 0) {
       municipios = rawMunicipios.map((m: any) => m.municipio || m.municipioNombre || 'Municipio');
-      valores = rawMunicipios.map((m: any) => Number(m.totalTramites ?? m.cantidadTramites ?? m.recaudo ?? 0));
+      valores = rawMunicipios.map((m: any) =>
+        Number(m.totalVehiculos ?? m.totalTramites ?? m.cantidadTramites ?? m.recaudo ?? 0)
+      );
     } else {
       municipios = ['Sin registros'];
       valores = [0];
     }
+
+    const unit = meta.key === 'automotores' ? 'vehículos' : 'trámites';
 
     return {
       tooltip: {
@@ -370,7 +403,7 @@ export class DashboardService {
         formatter: (params: any) => {
           const item = params[0];
           return `<div class="font-bold">${item.name}</div>
-                  <div class="text-xs">Trámites: <span class="font-semibold text-emerald-400">${item.value.toLocaleString()} unidades</span></div>`;
+                  <div class="text-xs">Total: <span class="font-semibold text-emerald-400">${Number(item.value).toLocaleString('es-CO')} ${unit}</span></div>`;
         },
       },
       grid: {
@@ -508,16 +541,24 @@ export class DashboardService {
           }
         }
 
+        const codigo = op.numeroLiquidacion || op.codigoTramite || op.id || `OP-${idx + 1}`;
+        const propietario = op.propietario || op.entidadSujeto || op.entidad || (op.placa ? `Placa: ${op.placa}` : 'N/A');
+        const estadoCod = op.estadoCodigo || op.estado || 'BORRADOR';
+        const estadoLbl = op.estado || op.estadoCodigo || 'Borrador';
+
         return {
-          id: op.id || op.codigoTramite || `OP-${idx + 1}`,
-          code: op.codigoTramite || `OP-${idx + 1}`,
-          description: op.descripcion || 'Operación registrada',
-          entity: op.entidadSujeto || op.entidad || 'N/A',
+          id: op.id || codigo,
+          code: codigo,
+          description: op.descripcion || (op.placa ? `Impuesto Vehicular ${op.placa}` : 'Operación registrada'),
+          entity: propietario,
           amount: Number(op.monto ?? 0),
-          user: op.operador || op.usuario || 'Sistema',
+          user: op.placa ? `Placa: ${op.placa}` : (op.operador || op.usuario || 'Sistema'),
           date: fecha,
           time: hora,
-          status: (op.estado?.toUpperCase() || 'BORRADOR') as any,
+          status: estadoCod.toUpperCase(),
+          statusLabel: estadoLbl,
+          badgeClass: op.estadoBadgeClase || 'primary',
+          placa: op.placa || undefined,
         };
       });
     }

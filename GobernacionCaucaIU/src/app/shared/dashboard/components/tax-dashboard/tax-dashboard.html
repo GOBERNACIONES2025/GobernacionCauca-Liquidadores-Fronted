@@ -63,6 +63,23 @@
     </div>
   </header>
 
+  <!-- ERROR ALERT BANNER -->
+  @if (dashboardService.error()) {
+    <div class="mb-6 alert alert-error bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center justify-between shadow-sm p-3">
+      <div class="flex items-center gap-2.5">
+        <i class="fa-solid fa-circle-exclamation text-rose-600 text-base"></i>
+        <span class="font-medium">{{ dashboardService.error() }}</span>
+      </div>
+      <button 
+        (click)="onRefresh()" 
+        type="button" 
+        class="btn btn-xs bg-rose-600 hover:bg-rose-700 text-white border-none font-bold normal-case">
+        <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+        Reintentar
+      </button>
+    </div>
+  }
+
   <!-- TARJETAS DE KPIS PRINCIPALES -->
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     @for (kpi of dashboardService.kpis(); track kpi.id) {
@@ -199,9 +216,9 @@
           <tr class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
             <th class="py-2.5">Código / Trámite</th>
             <th>Descripción</th>
-            <th>Entidad / Sujeto</th>
+            <th>Entidad / Contribuyente</th>
             <th>Monto</th>
-            <th>Operador</th>
+            <th>Detalle / Placa</th>
             <th>Fecha / Hora</th>
             <th class="text-right">Estado</th>
           </tr>
@@ -209,9 +226,18 @@
         <tbody class="divide-y divide-slate-100 text-xs">
           @for (item of dashboardService.actividadesRecientes(); track item.id) {
             <tr class="hover:bg-slate-50/70 transition-colors">
-              <td class="font-bold text-slate-800 py-3">{{ item.code }}</td>
+              <td class="font-bold text-slate-800 py-3">
+                <div class="flex items-center gap-2">
+                  @if (item.placa) {
+                    <span class="px-1.5 py-0.5 rounded bg-amber-300 text-slate-950 font-mono font-black text-[10px] border border-amber-400 shadow-2xs tracking-wider">
+                      {{ item.placa }}
+                    </span>
+                  }
+                  <span class="font-mono text-slate-800 text-xs">{{ item.code }}</span>
+                </div>
+              </td>
               <td class="font-medium text-slate-700">{{ item.description }}</td>
-              <td class="text-slate-500">{{ item.entity }}</td>
+              <td class="text-slate-600 font-medium">{{ item.entity }}</td>
               <td class="font-semibold text-slate-900">
                 @if (item.amount > 0) {
                   ${{ item.amount | number:'1.0-0' }} COP
@@ -222,16 +248,16 @@
               <td class="text-slate-500">
                 <span class="badge badge-ghost badge-xs text-[10px] font-mono">{{ item.user }}</span>
               </td>
-              <td class="text-slate-400 text-[11px]">{{ item.date }} · {{ item.time }}</td>
+              <td class="text-slate-400 text-[11px] whitespace-nowrap">{{ item.date }} · {{ item.time }}</td>
               <td class="text-right">
                 <span class="badge badge-sm font-bold text-[10px]"
                   [ngClass]="{
-                    'bg-emerald-50 text-emerald-700 border-emerald-200': item.status === 'APROBADO' || item.status === 'PAGADO',
+                    'bg-emerald-50 text-emerald-700 border-emerald-200': item.status === 'APROBADO' || item.status === 'PAGADO' || item.status === 'OFICIAL' || item.status === 'LIQUIDACIÓN OFICIAL EXPEDIDA' || item.status === 'LIQUIDACION OFICIAL EXPEDIDA',
                     'bg-amber-50 text-amber-800 border-amber-200': item.status === 'PENDIENTE' || item.status === 'BORRADOR',
                     'bg-blue-50 text-blue-700 border-blue-200': item.status === 'LIQUIDADO',
-                    'bg-rose-50 text-rose-700 border-rose-200': item.status === 'RECHAZADO'
+                    'bg-rose-50 text-rose-700 border-rose-200': item.status === 'RECHAZADO' || item.status === 'ANULADO'
                   }">
-                  {{ item.status }}
+                  {{ item.statusLabel || item.status }}
                 </span>
               </td>
             </tr>
