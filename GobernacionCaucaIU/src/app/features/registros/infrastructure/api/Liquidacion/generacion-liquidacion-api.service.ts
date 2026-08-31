@@ -33,13 +33,13 @@ export class GeneracionLiquidacionApiService {
 
   /**
    * @description
-   * Simula el cálculo de la liquidación sin persistir en base de datos.
+   * Simula el cálculo de la liquidación en base al ID de la solicitud sin persistir en base de datos.
    * 
-   * @param {SimularLiquidacionDto} command - Datos de la solicitud.
+   * @param {number} solicitudId - Identificador de la solicitud.
    * @returns {Observable<ApiResponse<LiquidacionSimuladaResponse>>} DTO con totales y actos calculados.
    */
-  simularLiquidacion(command: SimularLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
-    return this.api.post<ApiResponse<LiquidacionSimuladaResponse>>(`${this.baseUrl}/simular`, command, {}, 'REGISTROS');
+  simularLiquidacion(solicitudId: number): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
+    return this.api.post<ApiResponse<LiquidacionSimuladaResponse>>(`${this.baseUrl}/${solicitudId}/simular`, {}, {}, 'REGISTROS');
   }
 
   /**

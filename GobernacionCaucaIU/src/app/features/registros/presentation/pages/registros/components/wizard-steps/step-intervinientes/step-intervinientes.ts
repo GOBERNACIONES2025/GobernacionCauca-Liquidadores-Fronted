@@ -13,7 +13,6 @@ import { GeneracionLiquidacionFacade } from '../../../../../../application/facad
 import { ContribuyentesApiService } from '../../../../../../infrastructure/api/Contribuyentes/contribuyentes-api.service';
 import { ToastService } from '../../../../../../../../core/services/toast.service';
 import { IntervinienteActoDto } from '../../../../../../domain/models/Radicacion/solicitud-wizard.model';
-import { SimularLiquidacionDto } from '../../../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 
 @Component({
   selector: 'app-step-intervinientes',
@@ -242,29 +241,7 @@ export class StepIntervinientesComponent implements OnInit {
       }),
       // 3. Simular Liquidación
       concatMap(resComp => {
-        const form1 = this.wizardService.paso1Form.value;
-        const payloadSimulacion: SimularLiquidacionDto = {
-          radicacion: {
-            numeroRadicado: form1.numeroRadicado,
-            fechaRadicacion: form1.fechaRadicado,
-            vigenciaId: form1.vigenciaFiscal,
-            departamentoId: form1.departamentoId,
-            observacion: form1.observacionRadicacion
-          },
-          actos: this.wizardService.actosExpediente().map(a => ({
-            tipoActoRegistroId: a.tipoActoId,
-            valorActo: a.valorActo,
-            baseDeclarada: a.baseDeclarada,
-            inmuebleId: a.inmuebleId || null,
-            exencionesIds: a.exencionesIds || [],
-            intervinientes: (a.intervinientes || []).map(inv => ({
-              contribuyenteId: inv.contribuyenteId,
-              rolIntervinienteId: inv.rolId,
-              porcentajeParticipacion: inv.porcentaje
-            }))
-          }))
-        };
-        return this.generacionFacade.simularLiquidacion(payloadSimulacion);
+        return this.generacionFacade.simularLiquidacion(solicitudId);
       }),
       finalize(() => this.isSimulating.set(false))
     ).subscribe({

@@ -24,6 +24,40 @@ export class StepLiquidacionComponent implements OnInit {
   isSimulating = signal<boolean>(false);
   isCompleting = signal<boolean>(false);
 
+  todayDateFormatted = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  fechaVencimientoFormatted = computed(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  });
+
+  // Hash de seguridad institucional
+  codigoSeguridadHex = computed(() => {
+    const rad = this.wizardService.radicadoGenerado() || 'RAD-0000';
+    const id = this.wizardService.solicitudId() || 101;
+    return `CAUCA-${id.toString(16).toUpperCase()}-99B2-C10E-${rad.replace(/\D/g, '') || '2026'}`;
+  });
+
+  // Código de barras estructurado GS1-128
+  codigoBarrasTexto = computed(() => {
+    const rad = (this.datosRadicacion().numeroRadicado || '00000000').replace(/\D/g, '').padStart(10, '0');
+    const valor = Math.round(this.wizardService.liquidacionSimulada()?.granTotalPagar || 0).toString().padStart(8, '0');
+    const fecha = new Date().toISOString().slice(0,10).replace(/-/g, '');
+    return `(415)7709998000018(8020)${rad}(3900)${valor}(96)${fecha}`;
+  });
+
+  datosContribuyente = computed(() => this.wizardService.paso1Form.value);
+  datosDocumento = computed(() => this.wizardService.paso2Form.value);
+  datosRadicacion = computed(() => {
+    const p1 = this.wizardService.paso1Form.value;
+    return {
+      numeroRadicado: this.wizardService.radicadoGenerado() || p1.numeroRadicado || 'RAD-000000',
+      fechaRadicacion: p1.fechaRadicado || this.wizardService.fechaRadicado() || new Date().toISOString().split('T')[0],
+      vigenciaFiscal: p1.vigenciaFiscal || 2026,
+      departamento: 'Cauca (Popayán)'
+    };
+  });
+
   ngOnInit() {
     // Siempre refrescamos la simulación al entrar al Paso 5 a menos que la liquidación oficial ya haya sido generada
     if (!this.wizardService.liquidacionGeneradaExitosa()) {
@@ -36,30 +70,7 @@ export class StepLiquidacionComponent implements OnInit {
     if (!solicitudId) return;
 
     this.isSimulating.set(true);
-    const form1 = this.wizardService.paso1Form.value;
-    const payloadSimulacion = {
-      radicacion: {
-        numeroRadicado: form1.numeroRadicado,
-        fechaRadicacion: form1.fechaRadicado,
-        vigenciaId: form1.vigenciaFiscal,
-        departamentoId: form1.departamentoId,
-        observacion: form1.observacionRadicacion
-      },
-      actos: this.wizardService.actosExpediente().map(a => ({
-        tipoActoRegistroId: a.tipoActoId,
-        valorActo: a.valorActo,
-        baseDeclarada: a.baseDeclarada,
-        inmuebleId: a.inmuebleId || null,
-        exencionesIds: a.exencionesIds || [],
-        intervinientes: (a.intervinientes || []).map(inv => ({
-          contribuyenteId: inv.contribuyenteId,
-          rolIntervinienteId: inv.rolId,
-          porcentajeParticipacion: inv.porcentaje
-        }))
-      }))
-    };
-
-    this.generacionFacade.simularLiquidacion(payloadSimulacion).pipe(
+    this.generacionFacade.simularLiquidacion(solicitudId).pipe(
       finalize(() => this.isSimulating.set(false))
     ).subscribe({
       next: (res: any) => {
@@ -69,8 +80,9 @@ export class StepLiquidacionComponent implements OnInit {
           this.toast.error(res.message || 'Error al simular la liquidación');
         }
       },
-      error: () => {
-        this.toast.error('Error de servidor al simular liquidación');
+      error: (err: any) => {
+        const msg = err?.error?.message || err?.error?.detail || 'Error de servidor al simular liquidación';
+        this.toast.error(msg);
       }
     });
   }
@@ -261,6 +273,71 @@ export class StepLiquidacionComponent implements OnInit {
         this.isGenerating.set(false);
       }
     });
+  }
+
+  totalEnLetras = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    const valor = sim ? Math.round(sim.granTotalPagar) : 0;
+    return this.convertirNumeroALetras(valor);
+  });
+
+  imprimirDocumento() {
+    window.print();
+  }
+
+  private convertirNumeroALetras(numero: number): string {
+    if (numero === 0) return 'CERO PESOS M/CTE';
+    
+    const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+    const decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+    const diezY = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+    const veinteY = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
+    const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+
+    const leerGrupo = (n: number): string => {
+      let c = Math.floor(n / 100);
+      let d = Math.floor((n % 100) / 10);
+      let u = n % 10;
+      let resultado = '';
+
+      if (n === 100) return 'CIEN';
+      if (c > 0) resultado += centenas[c] + ' ';
+
+      if (d === 1) {
+        resultado += diezY[u] + ' ';
+      } else if (d === 2) {
+        resultado += veinteY[u] + ' ';
+      } else if (d > 2) {
+        resultado += decenas[d];
+        if (u > 0) resultado += ' Y ' + unidades[u];
+        resultado += ' ';
+      } else if (u > 0) {
+        resultado += unidades[u] + ' ';
+      }
+
+      return resultado.trim();
+    };
+
+    let millones = Math.floor(numero / 1000000);
+    let miles = Math.floor((numero % 1000000) / 1000);
+    let unidadesCientos = numero % 1000;
+    let texto = '';
+
+    if (millones > 0) {
+      if (millones === 1) texto += 'UN MILLÓN ';
+      else texto += leerGrupo(millones) + ' MILLONES ';
+    }
+
+    if (miles > 0) {
+      if (miles === 1) texto += 'MIL ';
+      else texto += leerGrupo(miles) + ' MIL ';
+    }
+
+    if (unidadesCientos > 0) {
+      texto += leerGrupo(unidadesCientos) + ' ';
+    }
+
+    return ('SON: ' + texto.trim() + ' PESOS M/CTE').toUpperCase();
   }
 
   irABandeja() {
