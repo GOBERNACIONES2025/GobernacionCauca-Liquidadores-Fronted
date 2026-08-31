@@ -2,11 +2,12 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
+import { DocumentViewerComponent } from '../../../../../shared/components/document-viewer/document-viewer';
 
 @Component({
   selector: 'app-liquidaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DocumentViewerComponent],
   templateUrl: './liquidaciones.html'
 })
 export class LiquidacionesPage implements OnInit {

@@ -10,11 +10,10 @@ export class AuthStateService {
   readonly currentModulo = signal<TaxModuleType | null>(this.loadStoredModulo());
 
   // Mapa de URLs base por cada módulo de impuesto
-  // Se configura la API en HTTPS (puerto 7250) y HTTP (puerto 5023)
   readonly moduleApiUrls = signal<Record<string, string>>({
-    LOGIN: 'https://localhost:7250/api',
-    AUTOMOTORES: 'http://localhost:5023/api',
-    REGISTROS: 'http://localhost:5098/api/v1',
+    LOGIN: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
+    AUTOMOTORES: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
+    REGISTROS: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5098/api/v1`,
   });
 
   // Signal computado para verificar si hay sesión activa
