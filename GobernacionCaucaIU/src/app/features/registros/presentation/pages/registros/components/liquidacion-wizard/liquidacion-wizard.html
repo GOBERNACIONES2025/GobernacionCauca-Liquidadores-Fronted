@@ -98,6 +98,9 @@
       <button 
         (click)="setStep(step.id)"
         class="flex items-center gap-2.5 py-4 border-b-2 transition-all relative"
+        [disabled]="wizardService.esSoloLectura() && wizardService.tipoTramite() === 'Liquidacion' && step.id !== 5"
+        [class.opacity-50]="wizardService.esSoloLectura() && wizardService.tipoTramite() === 'Liquidacion' && step.id !== 5"
+        [class.cursor-not-allowed]="wizardService.esSoloLectura() && wizardService.tipoTramite() === 'Liquidacion' && step.id !== 5"
         [class.border-blue-900]="wizardService.currentStep() === step.id"
         [class.border-transparent]="wizardService.currentStep() !== step.id">
         

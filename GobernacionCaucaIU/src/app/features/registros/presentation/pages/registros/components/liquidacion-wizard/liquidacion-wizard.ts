@@ -111,6 +111,12 @@ export class LiquidacionWizardComponent implements OnInit {
   }
 
   setStep(stepId: number) {
+    const isLectura = this.wizardService.esSoloLectura();
+    const isTramiteNormal = this.wizardService.tipoTramite() === 'Liquidacion';
+    if (isLectura && isTramiteNormal && stepId !== 5) {
+      return;
+    }
+
     // Solo permitir navegar a pasos ya completados o al inmediatamente siguiente
     if (stepId <= this.wizardService.etapaGuardada() + 1) {
       this.wizardService.currentStep.set(stepId);

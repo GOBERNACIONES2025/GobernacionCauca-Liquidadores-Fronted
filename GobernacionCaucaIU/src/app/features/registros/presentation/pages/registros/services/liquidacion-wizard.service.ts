@@ -202,6 +202,11 @@ export class LiquidacionWizardService {
     this.intervinienteAsignarForm.reset({ rolId: null, porcentaje: 100 });
   }
   cargarDatosDesdeSolicitud(solicitud: any) {
+    // Limpiar estados previos de otras solicitudes
+    this.liquidacionGeneradaExitosa.set(false);
+    this.idLiquidacionFinal.set(null);
+    this.liquidacionSimulada.set(null);
+
     this.solicitudId.set(solicitud.solicitudId);
     this.etapaGuardada.set(solicitud.etapaActual);
     this.radicadoGenerado.set(solicitud.numeroRadicado);
@@ -211,6 +216,7 @@ export class LiquidacionWizardService {
     if (solicitud.estadoSolicitudId === 4) {
       this.liquidacionGeneradaExitosa.set(true);
     }
+
     
     // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
     // Si etapa es 1 (Radicación completada), saltamos al paso 2
