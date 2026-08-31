@@ -29,9 +29,9 @@ export class GeneracionLiquidacionFacade {
   /**
    * Ejecuta la simulación de liquidación y retorna el observable para manejarlo en el componente.
    */
-  simularLiquidacion(command: SimularLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
+  simularLiquidacion(solicitudId: number): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
     this.actionLoading.set(true);
-    return this.apiService.simularLiquidacion(command).pipe(
+    return this.apiService.simularLiquidacion(solicitudId).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }
