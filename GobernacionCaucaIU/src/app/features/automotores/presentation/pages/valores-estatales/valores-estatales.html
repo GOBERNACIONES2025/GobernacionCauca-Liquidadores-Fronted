@@ -174,8 +174,8 @@
             (ngModelChange)="facade.vigenciaFiltro.set($event)"
             class="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer">
             <option value="TODOS">Todas las vigencias</option>
-            @for (v of vigenciasDisponibles; track v) {
-              <option [value]="v">Vigencia {{ v }}</option>
+            @for (v of facade.vigencias(); track v.id) {
+              <option [value]="v.id">Vigencia {{ v.anio }} {{ v.activa ? '(Activa)' : '' }}</option>
             }
           </select>
         </div>
@@ -235,9 +235,14 @@
 
               <!-- VIGENCIA FISCAL -->
               <td>
-                <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-blue-50 text-blue-800 border border-blue-200">
-                  {{ item.vigenciaFiscalId }}
-                </span>
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded font-bold text-[10.5px] bg-blue-50 text-blue-800 border border-blue-200">
+                    Vigencia {{ facade.getAnioPorVigenciaId(item.vigenciaFiscalId) }}
+                  </span>
+                  <span class="text-[9.5px] text-slate-400 font-mono" title="ID de Vigencia en Base de Datos">
+                    (ID: {{ item.vigenciaFiscalId }})
+                  </span>
+                </div>
               </td>
 
               <!-- VALOR DECIMAL / TEXTO -->
@@ -324,9 +329,18 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="7" class="py-12 text-center text-slate-400 text-xs">
-                <i class="fa-solid fa-inbox text-3xl mb-2 text-slate-300 block"></i>
-                No se encontraron parámetros tributarios con los criterios de búsqueda seleccionados.
+              <td colspan="7" class="py-14 text-center">
+                <div class="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
+                  <div class="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-1 shadow-xs">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                  </div>
+                  <span class="text-xs font-bold text-slate-700">Sin parámetros tributarios encontrados</span>
+                  <p class="text-[11.5px] text-slate-400 m-0 leading-relaxed">
+                    No se encontraron parámetros tributarios con los criterios de búsqueda o filtros seleccionados.
+                  </p>
+                </div>
               </td>
             </tr>
           }
@@ -403,8 +417,10 @@
                 <select 
                   formControlName="vigenciaFiscalId"
                   class="w-full text-xs font-bold text-slate-900 px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none appearance-none cursor-pointer">
-                  @for (v of vigenciasDisponibles; track v) {
-                    <option [value]="v" class="bg-white text-slate-900">Vigencia {{ v }}</option>
+                  @for (v of facade.vigencias(); track v.id) {
+                    <option [value]="v.id" class="bg-white text-slate-900">
+                      Vigencia {{ v.anio }} {{ v.activa ? '(Activa - ID: ' + v.id + ')' : '(ID: ' + v.id + ')' }}
+                    </option>
                   }
                 </select>
                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
@@ -591,7 +607,11 @@
               <div class="grid grid-cols-2 gap-3">
                 <div>
                   <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nueva Vigencia Fiscal</label>
-                  <input type="number" formControlName="nuevaVigenciaFiscalId" class="w-full text-xs text-slate-900 font-bold px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500" />
+                  <select formControlName="nuevaVigenciaFiscalId" class="w-full text-xs text-slate-900 font-bold px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500 cursor-pointer">
+                    @for (v of facade.vigencias(); track v.id) {
+                      <option [value]="v.id">Vigencia {{ v.anio }} (ID: {{ v.id }})</option>
+                    }
+                  </select>
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nueva Fecha Inicio</label>

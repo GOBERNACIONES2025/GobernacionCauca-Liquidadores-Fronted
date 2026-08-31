@@ -21,18 +21,17 @@ export class ValoresEstatalesPage implements OnInit {
   // Feedback Toast
   readonly toastMessage = signal<{ title: string; desc: string; type: 'success' | 'error' | 'info' } | null>(null);
 
-  readonly vigenciasDisponibles = [2026, 2025, 2024, 2023];
-
   ngOnInit(): void {
     this.initForms();
   }
 
   private initForms(): void {
     const today = new Date().toISOString().split('T')[0];
+    const defaultVigenciaId = this.facade.vigenciaActiva()?.id || 1;
 
     this.parametroForm = this.fb.group({
       id: [0],
-      vigenciaFiscalId: [2026, [Validators.required]],
+      vigenciaFiscalId: [defaultVigenciaId, [Validators.required]],
       normaTributariaId: [1],
       codigo: ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
       nombre: ['', [Validators.required, Validators.minLength(5)]],
@@ -46,7 +45,7 @@ export class ValoresEstatalesPage implements OnInit {
     this.cerrarForm = this.fb.group({
       fechaFinVigencia: [today, [Validators.required]],
       crearNuevoPeriodo: [true],
-      nuevaVigenciaFiscalId: [2027, [Validators.required]],
+      nuevaVigenciaFiscalId: [defaultVigenciaId, [Validators.required]],
       nuevoValorDecimal: [null],
       nuevoValorTexto: [''],
       nuevaFechaInicioVigencia: ['2027-01-01', [Validators.required]],
@@ -56,9 +55,11 @@ export class ValoresEstatalesPage implements OnInit {
   // Acciones de Modal
   abrirCrearModal(): void {
     const today = new Date().toISOString().split('T')[0];
+    const defaultVigenciaId = this.facade.vigenciaActiva()?.id || 1;
+
     this.parametroForm.reset({
       id: 0,
-      vigenciaFiscalId: 2026,
+      vigenciaFiscalId: defaultVigenciaId,
       normaTributariaId: 1,
       codigo: '',
       nombre: '',
@@ -89,13 +90,14 @@ export class ValoresEstatalesPage implements OnInit {
 
   abrirCerrarModal(item: ParametroTributario): void {
     const today = new Date().toISOString().split('T')[0];
-    const siguienteVigencia = item.vigenciaFiscalId + 1;
-    const siguienteFechaInicio = `${siguienteVigencia}-01-01`;
+    const anioActual = Number(this.facade.getAnioPorVigenciaId(item.vigenciaFiscalId));
+    const siguienteAnio = anioActual + 1;
+    const siguienteFechaInicio = `${siguienteAnio}-01-01`;
 
     this.cerrarForm.patchValue({
       fechaFinVigencia: item.fechaFinVigencia || today,
       crearNuevoPeriodo: true,
-      nuevaVigenciaFiscalId: siguienteVigencia,
+      nuevaVigenciaFiscalId: item.vigenciaFiscalId,
       nuevoValorDecimal: item.valorDecimal,
       nuevoValorTexto: item.valorTexto || '',
       nuevaFechaInicioVigencia: siguienteFechaInicio,

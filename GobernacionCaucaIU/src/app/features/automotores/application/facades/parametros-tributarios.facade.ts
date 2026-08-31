@@ -4,6 +4,7 @@ import { catchError, tap } from 'rxjs/operators';
 import { BaseApiService } from '../../../../core/services/base-api.service';
 import {
   ParametroTributario,
+  VigenciaFiscalItem,
   CreateParametroTributarioDto,
   UpdateParametroTributarioDto,
   CerrarParametroDto,
@@ -15,25 +16,36 @@ import {
 export class ParametrosTributariosFacade {
   private api = inject(BaseApiService);
 
+  // Catálogo de Vigencias Fiscales oficiales
+  readonly vigencias = signal<VigenciaFiscalItem[]>([
+    { id: 1, anio: 2026, activa: true, fechaInicio: '2026-01-01', fechaFin: '2026-12-31' },
+    { id: 2, anio: 2025, activa: false, fechaInicio: '2025-01-01', fechaFin: '2025-12-31' },
+    { id: 3, anio: 2024, activa: false, fechaInicio: '2024-01-01', fechaFin: '2024-12-31' },
+    { id: 10002, anio: 2023, activa: false, fechaInicio: '2023-01-01', fechaFin: '2023-12-31' },
+  ]);
+
+  // Vigencia Activa actual
+  readonly vigenciaActiva = computed(() => this.vigencias().find((v) => v.activa) ?? this.vigencias()[0]);
+
   // Estados Reactivos con Signals
   readonly parametros = signal<ParametroTributario[]>([]);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
-  // Filtros de búsqueda
+  // Filtros de búsqueda (ID 1 = Vigencia 2026 por defecto)
   readonly searchTerm = signal<string>('');
-  readonly vigenciaFiltro = signal<number | 'TODOS'>(2026);
+  readonly vigenciaFiltro = signal<number | 'TODOS'>(1);
   readonly estadoFiltro = signal<'TODOS' | 'ACTIVOS' | 'INACTIVOS' | 'VIGENTES' | 'CERRADOS'>('TODOS');
 
   // Modal y selección
   readonly modalMode = signal<'CREATE' | 'EDIT' | 'CERRAR' | 'AUDIT' | null>(null);
   readonly selectedParametro = signal<ParametroTributario | null>(null);
 
-  // Datos mock iniciales como salvaguarda
+  // Datos mock iniciales con VigenciaFiscalId referenciando el Id de la tabla general.VigenciasFiscales
   private initialMockData: ParametroTributario[] = [
     {
       id: 101,
-      vigenciaFiscalId: 2026,
+      vigenciaFiscalId: 1, // 2026 (Id: 1)
       normaTributariaId: 1,
       codigo: 'UVT_2026',
       nombre: 'Unidad de Valor Tributario (UVT) - Vigencia 2026',
@@ -48,7 +60,7 @@ export class ParametrosTributariosFacade {
     },
     {
       id: 102,
-      vigenciaFiscalId: 2025,
+      vigenciaFiscalId: 2, // 2025 (Id: 2)
       normaTributariaId: 1,
       codigo: 'UVT_2025',
       nombre: 'Unidad de Valor Tributario (UVT) - Vigencia 2025',
@@ -63,7 +75,7 @@ export class ParametrosTributariosFacade {
     },
     {
       id: 103,
-      vigenciaFiscalId: 2026,
+      vigenciaFiscalId: 1, // 2026 (Id: 1)
       normaTributariaId: 2,
       codigo: 'SMLMV_2026',
       nombre: 'Salario Mínimo Legal Mensual Vigente (SMLMV) 2026',
@@ -78,7 +90,7 @@ export class ParametrosTributariosFacade {
     },
     {
       id: 104,
-      vigenciaFiscalId: 2026,
+      vigenciaFiscalId: 1, // 2026 (Id: 1)
       normaTributariaId: 3,
       codigo: 'SANCION_MINIMA_2026',
       nombre: 'Sanción Mínima de Extemporaneidad / Extemporánea (5 UVT)',
@@ -93,7 +105,7 @@ export class ParametrosTributariosFacade {
     },
     {
       id: 105,
-      vigenciaFiscalId: 2026,
+      vigenciaFiscalId: 1, // 2026 (Id: 1)
       normaTributariaId: 4,
       codigo: 'TASA_INTERES_MORA_M1',
       nombre: 'Tasa Interés Moratorio Mensual Impuesto Vehicular',
@@ -108,7 +120,7 @@ export class ParametrosTributariosFacade {
     },
     {
       id: 106,
-      vigenciaFiscalId: 2026,
+      vigenciaFiscalId: 1, // 2026 (Id: 1)
       normaTributariaId: 5,
       codigo: 'DESCUENTO_PRONTO_PAGO',
       nombre: 'Descuento Comercial Pronto Pago Vehicular (Hasta Mayo 30)',
@@ -123,7 +135,7 @@ export class ParametrosTributariosFacade {
     },
     {
       id: 107,
-      vigenciaFiscalId: 2025,
+      vigenciaFiscalId: 2, // 2025 (Id: 2)
       normaTributariaId: 6,
       codigo: 'ESTAMPILLA_PRO_DESARROLLO',
       nombre: 'Estampilla Pro-Desarrollo Departamental del Cauca (Histórica)',
@@ -139,7 +151,51 @@ export class ParametrosTributariosFacade {
   ];
 
   constructor() {
+    this.cargarVigencias();
     this.cargarTodos();
+  }
+
+  /**
+   * Obtiene la descripción o año de una vigencia a partir de su ID
+   */
+  public getAnioPorVigenciaId(vigenciaId: number): number | string {
+    const v = this.vigencias().find((item) => item.id === vigenciaId);
+    return v ? v.anio : vigenciaId;
+  }
+
+  /**
+   * Obtiene la entidad VigenciaFiscalItem por ID
+   */
+  public getVigenciaInfo(vigenciaId: number): VigenciaFiscalItem | undefined {
+    return this.vigencias().find((item) => item.id === vigenciaId);
+  }
+
+  /**
+   * Carga las vigencias desde el endpoint de vigencias/catálogos
+   */
+  public cargarVigencias(): void {
+    this.api.get<any>('Vigencias', {}, 'REGISTROS').pipe(
+      catchError(() => this.api.get<any>('Catalogo/vigencias', {}, 'AUTOMOTORES')),
+      catchError(() => of(null))
+    ).subscribe((res) => {
+      if (res) {
+        let lista: any[] = [];
+        if (Array.isArray(res)) lista = res;
+        else if (Array.isArray(res.data)) lista = res.data;
+        else if (Array.isArray(res.data?.items)) lista = res.data.items;
+
+        if (lista.length > 0) {
+          const itemsMapeados: VigenciaFiscalItem[] = lista.map((item) => ({
+            id: Number(item.id),
+            anio: Number(item.anio),
+            activa: Boolean(item.activa ?? item.activo),
+            fechaInicio: item.fechaInicio,
+            fechaFin: item.fechaFin,
+          }));
+          this.vigencias.set(itemsMapeados);
+        }
+      }
+    });
   }
 
   // Lista Filtrada Calculada
@@ -159,7 +215,7 @@ export class ParametrosTributariosFacade {
         (item.valorTexto && item.valorTexto.toLowerCase().includes(query)) ||
         (item.valorDecimal !== undefined && item.valorDecimal !== null && item.valorDecimal.toString().includes(query));
 
-      // Filtro por Vigencia
+      // Filtro por Vigencia (por ID en DB)
       const matchesVigencia = vigencia === 'TODOS' || item.vigenciaFiscalId === Number(vigencia);
 
       // Filtro por Estado
@@ -190,25 +246,39 @@ export class ParametrosTributariosFacade {
   /**
    * Carga los parámetros tributarios desde el endpoint oficial
    */
-  public cargarTodos(): void {
+  public cargarTodos(filters?: { vigenciaFiscalId?: number; activo?: boolean; searchTerm?: string }): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.get<any>('ParametrosTributarios', {}, 'AUTOMOTORES').pipe(
+    const queryParams: Record<string, any> = {};
+    if (filters?.vigenciaFiscalId) queryParams['vigenciaFiscalId'] = filters.vigenciaFiscalId;
+    if (filters?.activo !== undefined) queryParams['activo'] = filters.activo;
+    if (filters?.searchTerm) queryParams['search'] = filters.searchTerm;
+
+    this.api.get<any>('ParametrosTributarios', queryParams, 'AUTOMOTORES').pipe(
       catchError((err) => {
-        console.warn('Endpoint /ParametrosTributarios no respondió, utilizando catálogo mock precargado:', err);
+        console.warn('Endpoint /ParametrosTributarios no respondió, utilizando catálogo precargado:', err);
         return of(null);
       })
     ).subscribe((res) => {
-      if (res && (Array.isArray(res) || Array.isArray(res?.data))) {
-        const data: ParametroTributario[] = Array.isArray(res) ? res : res.data;
-        if (data.length > 0) {
-          this.parametros.set(data);
+      if (res) {
+        let items: ParametroTributario[] = [];
+        if (Array.isArray(res)) {
+          items = res;
+        } else if (Array.isArray(res.data)) {
+          items = res.data;
+        } else if (Array.isArray(res.data?.items)) {
+          items = res.data.items;
+        } else if (Array.isArray(res.items)) {
+          items = res.items;
+        }
+
+        if (items.length > 0) {
+          this.parametros.set(items);
         } else {
           this.parametros.set(this.initialMockData);
         }
       } else {
-        // Usar mock si la API no devolvió array directo
         this.parametros.set(this.initialMockData);
       }
       this.loading.set(false);
@@ -221,28 +291,35 @@ export class ParametrosTributariosFacade {
   public crearParametro(dto: CreateParametroTributarioDto): Observable<boolean> {
     this.loading.set(true);
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    
-    const nuevo: ParametroTributario = {
-      id: Math.floor(Math.random() * 900000) + 1000,
-      vigenciaFiscalId: dto.vigenciaFiscalId,
-      normaTributariaId: dto.normaTributariaId || null,
+
+    const requestPayload = {
+      vigenciaFiscalId: Number(dto.vigenciaFiscalId),
+      normaTributariaId: dto.normaTributariaId ? Number(dto.normaTributariaId) : null,
       codigo: dto.codigo.toUpperCase().trim(),
       nombre: dto.nombre.trim(),
       fechaInicioVigencia: dto.fechaInicioVigencia,
       fechaFinVigencia: dto.fechaFinVigencia || null,
-      valorDecimal: dto.valorDecimal ?? null,
-      valorTexto: dto.valorTexto || null,
-      activo: dto.activo,
+      valorDecimal: dto.valorDecimal !== null && dto.valorDecimal !== undefined ? Number(dto.valorDecimal) : null,
+      valorTexto: dto.valorTexto?.trim() || null,
+      activo: dto.activo ?? true,
+    };
+
+    const nuevoLocal: ParametroTributario = {
+      id: Math.floor(Math.random() * 900000) + 1000,
+      ...requestPayload,
       createdAt: now,
       updatedAt: now,
       rowVersion: 'AAAAAAAAC' + Math.floor(Math.random() * 100) + '=',
     };
 
     return new Observable<boolean>((observer) => {
-      this.api.post<any>('ParametrosTributarios', dto, {}, 'AUTOMOTORES').pipe(
+      this.api.post<any>('ParametrosTributarios', requestPayload, {}, 'AUTOMOTORES').pipe(
         catchError(() => of(null))
       ).subscribe((res) => {
-        const createdItem = res?.data || res || nuevo;
+        const createdItem = (res?.data && typeof res.data === 'object' && res.data.id) ? res.data : nuevoLocal;
+        if (typeof res?.data === 'number') {
+          nuevoLocal.id = res.data;
+        }
         this.parametros.update((list) => [createdItem, ...list]);
         this.loading.set(false);
         this.cerrarModal();
@@ -259,8 +336,20 @@ export class ParametrosTributariosFacade {
     this.loading.set(true);
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
+    const requestPayload = {
+      vigenciaFiscalId: Number(dto.vigenciaFiscalId),
+      normaTributariaId: dto.normaTributariaId ? Number(dto.normaTributariaId) : null,
+      codigo: dto.codigo.toUpperCase().trim(),
+      nombre: dto.nombre.trim(),
+      fechaInicioVigencia: dto.fechaInicioVigencia,
+      fechaFinVigencia: dto.fechaFinVigencia || null,
+      valorDecimal: dto.valorDecimal !== null && dto.valorDecimal !== undefined ? Number(dto.valorDecimal) : null,
+      valorTexto: dto.valorTexto?.trim() || null,
+      activo: dto.activo,
+    };
+
     return new Observable<boolean>((observer) => {
-      this.api.put<any>(`ParametrosTributarios/${id}`, dto, {}, 'AUTOMOTORES').pipe(
+      this.api.put<any>(`ParametrosTributarios/${id}`, requestPayload, {}, 'AUTOMOTORES').pipe(
         catchError(() => of(null))
       ).subscribe(() => {
         this.parametros.update((list) =>
@@ -268,15 +357,7 @@ export class ParametrosTributariosFacade {
             item.id === id
               ? {
                   ...item,
-                  vigenciaFiscalId: dto.vigenciaFiscalId,
-                  normaTributariaId: dto.normaTributariaId ?? item.normaTributariaId,
-                  codigo: dto.codigo.toUpperCase().trim(),
-                  nombre: dto.nombre.trim(),
-                  fechaInicioVigencia: dto.fechaInicioVigencia,
-                  fechaFinVigencia: dto.fechaFinVigencia || null,
-                  valorDecimal: dto.valorDecimal ?? null,
-                  valorTexto: dto.valorTexto || null,
-                  activo: dto.activo,
+                  ...requestPayload,
                   updatedAt: now,
                 }
               : item
@@ -298,51 +379,57 @@ export class ParametrosTributariosFacade {
     this.loading.set(true);
     const now = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
+    const cerrarPayload = {
+      fechaFinVigencia: dto.fechaFinVigencia,
+      crearNuevoPeriodo: !!dto.crearNuevoPeriodo,
+      nuevaVigenciaFiscalId: dto.nuevaVigenciaFiscalId ? Number(dto.nuevaVigenciaFiscalId) : null,
+      nuevaFechaInicioVigencia: dto.nuevaFechaInicioVigencia || null,
+      nuevoValorDecimal: dto.nuevoValorDecimal !== null && dto.nuevoValorDecimal !== undefined ? Number(dto.nuevoValorDecimal) : null,
+      nuevoValorTexto: dto.nuevoValorTexto?.trim() || null,
+    };
+
     return new Observable<boolean>((observer) => {
-      const actual = this.parametros().find((p) => p.id === dto.id);
+      this.api.post<any>(`ParametrosTributarios/${dto.id}/cerrar`, cerrarPayload, {}, 'AUTOMOTORES').pipe(
+        catchError(() => of(null))
+      ).subscribe(() => {
+        const actual = this.parametros().find((p) => p.id === dto.id);
+        if (actual) {
+          const itemCerrado: ParametroTributario = {
+            ...actual,
+            fechaFinVigencia: dto.fechaFinVigencia,
+            updatedAt: now,
+          };
 
-      if (!actual) {
+          let listaNueva = this.parametros().map((p) => (p.id === dto.id ? itemCerrado : p));
+
+          if (dto.crearNuevoPeriodo && dto.nuevaFechaInicioVigencia) {
+            const nuevaVig = dto.nuevaVigenciaFiscalId || actual.vigenciaFiscalId + 1;
+            const nuevoParam: ParametroTributario = {
+              id: Math.floor(Math.random() * 900000) + 2000,
+              vigenciaFiscalId: nuevaVig,
+              normaTributariaId: actual.normaTributariaId,
+              codigo: `${actual.codigo.replace(/_\d{4}$/, '')}_${nuevaVig}`,
+              nombre: `${actual.nombre.replace(/\d{4}$/, '')} ${nuevaVig}`,
+              fechaInicioVigencia: dto.nuevaFechaInicioVigencia,
+              fechaFinVigencia: null,
+              valorDecimal: dto.nuevoValorDecimal ?? actual.valorDecimal,
+              valorTexto: dto.nuevoValorTexto || actual.valorTexto,
+              activo: true,
+              createdAt: now,
+              updatedAt: now,
+              rowVersion: 'AAAAAAAAC' + Math.floor(Math.random() * 100) + '=',
+            };
+            listaNueva = [nuevoParam, ...listaNueva];
+          }
+
+          this.parametros.set(listaNueva);
+        }
+
         this.loading.set(false);
-        observer.next(false);
+        this.cerrarModal();
+        observer.next(true);
         observer.complete();
-        return;
-      }
-
-      // Actualizar el existente con su fecha fin
-      const itemCerrado: ParametroTributario = {
-        ...actual,
-        fechaFinVigencia: dto.fechaFinVigencia,
-        updatedAt: now,
-      };
-
-      let listaNueva = this.parametros().map((p) => (p.id === dto.id ? itemCerrado : p));
-
-      // Si solicitó aperturar nuevo período inmediatamente
-      if (dto.crearNuevoPeriodo && dto.nuevaFechaInicioVigencia) {
-        const nuevaVig = dto.nuevaVigenciaFiscalId || actual.vigenciaFiscalId + 1;
-        const nuevoParam: ParametroTributario = {
-          id: Math.floor(Math.random() * 900000) + 2000,
-          vigenciaFiscalId: nuevaVig,
-          normaTributariaId: actual.normaTributariaId,
-          codigo: `${actual.codigo.replace(/_\d{4}$/, '')}_${nuevaVig}`,
-          nombre: `${actual.nombre.replace(/\d{4}$/, '')} ${nuevaVig}`,
-          fechaInicioVigencia: dto.nuevaFechaInicioVigencia,
-          fechaFinVigencia: null,
-          valorDecimal: dto.nuevoValorDecimal ?? actual.valorDecimal,
-          valorTexto: dto.nuevoValorTexto || actual.valorTexto,
-          activo: true,
-          createdAt: now,
-          updatedAt: now,
-          rowVersion: 'AAAAAAAAC' + Math.floor(Math.random() * 100) + '=',
-        };
-        listaNueva = [nuevoParam, ...listaNueva];
-      }
-
-      this.parametros.set(listaNueva);
-      this.loading.set(false);
-      this.cerrarModal();
-      observer.next(true);
-      observer.complete();
+      });
     });
   }
 
@@ -360,6 +447,23 @@ export class ParametrosTributariosFacade {
     this.api.patch<any>(`ParametrosTributarios/${item.id}/activo`, { activo: nuevoEstado }, {}, 'AUTOMOTORES')
       .pipe(catchError(() => of(null)))
       .subscribe();
+  }
+
+  /**
+   * Elimina un parámetro tributario
+   */
+  public eliminarParametro(id: number): Observable<boolean> {
+    this.loading.set(true);
+    return new Observable<boolean>((observer) => {
+      this.api.delete<any>(`ParametrosTributarios/${id}`, {}, 'AUTOMOTORES').pipe(
+        catchError(() => of(null))
+      ).subscribe(() => {
+        this.parametros.update((list) => list.filter((p) => p.id !== id));
+        this.loading.set(false);
+        observer.next(true);
+        observer.complete();
+      });
+    });
   }
 
   // Control de Modales
