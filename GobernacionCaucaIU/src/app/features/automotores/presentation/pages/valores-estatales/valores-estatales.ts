@@ -1,0 +1,200 @@
+import { Component, inject, signal, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ParametrosTributariosFacade } from '../../../application/facades/parametros-tributarios.facade';
+import { ParametroTributario } from '../../../domain/models/parametro-tributario.model';
+
+@Component({
+  selector: 'app-valores-estatales',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  templateUrl: './valores-estatales.html',
+})
+export class ValoresEstatalesPage implements OnInit {
+  public facade = inject(ParametrosTributariosFacade);
+  private fb = inject(FormBuilder);
+
+  // Formulario Reactivo
+  parametroForm!: FormGroup;
+  cerrarForm!: FormGroup;
+
+  // Feedback Toast
+  readonly toastMessage = signal<{ title: string; desc: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  readonly vigenciasDisponibles = [2026, 2025, 2024, 2023];
+
+  ngOnInit(): void {
+    this.initForms();
+  }
+
+  private initForms(): void {
+    const today = new Date().toISOString().split('T')[0];
+
+    this.parametroForm = this.fb.group({
+      id: [0],
+      vigenciaFiscalId: [2026, [Validators.required]],
+      normaTributariaId: [1],
+      codigo: ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
+      nombre: ['', [Validators.required, Validators.minLength(5)]],
+      fechaInicioVigencia: [today, [Validators.required]],
+      fechaFinVigencia: [''],
+      valorDecimal: [null],
+      valorTexto: [''],
+      activo: [true],
+    });
+
+    this.cerrarForm = this.fb.group({
+      fechaFinVigencia: [today, [Validators.required]],
+      crearNuevoPeriodo: [true],
+      nuevaVigenciaFiscalId: [2027, [Validators.required]],
+      nuevoValorDecimal: [null],
+      nuevoValorTexto: [''],
+      nuevaFechaInicioVigencia: ['2027-01-01', [Validators.required]],
+    });
+  }
+
+  // Acciones de Modal
+  abrirCrearModal(): void {
+    const today = new Date().toISOString().split('T')[0];
+    this.parametroForm.reset({
+      id: 0,
+      vigenciaFiscalId: 2026,
+      normaTributariaId: 1,
+      codigo: '',
+      nombre: '',
+      fechaInicioVigencia: today,
+      fechaFinVigencia: '',
+      valorDecimal: null,
+      valorTexto: '',
+      activo: true,
+    });
+    this.facade.abrirCrear();
+  }
+
+  abrirEditarModal(item: ParametroTributario): void {
+    this.parametroForm.patchValue({
+      id: item.id,
+      vigenciaFiscalId: item.vigenciaFiscalId,
+      normaTributariaId: item.normaTributariaId || 1,
+      codigo: item.codigo,
+      nombre: item.nombre,
+      fechaInicioVigencia: item.fechaInicioVigencia,
+      fechaFinVigencia: item.fechaFinVigencia || '',
+      valorDecimal: item.valorDecimal,
+      valorTexto: item.valorTexto || '',
+      activo: item.activo,
+    });
+    this.facade.abrirEditar(item);
+  }
+
+  abrirCerrarModal(item: ParametroTributario): void {
+    const today = new Date().toISOString().split('T')[0];
+    const siguienteVigencia = item.vigenciaFiscalId + 1;
+    const siguienteFechaInicio = `${siguienteVigencia}-01-01`;
+
+    this.cerrarForm.patchValue({
+      fechaFinVigencia: item.fechaFinVigencia || today,
+      crearNuevoPeriodo: true,
+      nuevaVigenciaFiscalId: siguienteVigencia,
+      nuevoValorDecimal: item.valorDecimal,
+      nuevoValorTexto: item.valorTexto || '',
+      nuevaFechaInicioVigencia: siguienteFechaInicio,
+    });
+    this.facade.abrirCerrar(item);
+  }
+
+  abrirAuditoriaModal(item: ParametroTributario): void {
+    this.facade.abrirAuditoria(item);
+  }
+
+  guardarParametro(): void {
+    if (this.parametroForm.invalid) {
+      this.parametroForm.markAllAsTouched();
+      this.toastMessage.set({
+        title: 'Formulario Incompleto',
+        desc: 'Por favor complete todos los campos obligatorios correctamente.',
+        type: 'error',
+      });
+      return;
+    }
+
+    const val = this.parametroForm.value;
+    const isEdit = this.facade.modalMode() === 'EDIT';
+
+    if (isEdit) {
+      this.facade.actualizarParametro(val.id, val).subscribe({
+        next: () => {
+          this.toastMessage.set({
+            title: 'Parámetro Actualizado',
+            desc: `El parámetro ${val.codigo} ha sido modificado exitosamente.`,
+            type: 'success',
+          });
+        },
+      });
+    } else {
+      this.facade.crearParametro(val).subscribe({
+        next: () => {
+          this.toastMessage.set({
+            title: 'Parámetro Registrado',
+            desc: `El parámetro ${val.codigo} ha sido creado exitosamente.`,
+            type: 'success',
+          });
+        },
+      });
+    }
+  }
+
+  confirmarCierreVigencia(): void {
+    if (this.cerrarForm.invalid) {
+      this.cerrarForm.markAllAsTouched();
+      return;
+    }
+
+    const item = this.facade.selectedParametro();
+    if (!item) return;
+
+    const val = this.cerrarForm.value;
+
+    this.facade
+      .cerrarParametroVigencia({
+        id: item.id,
+        fechaFinVigencia: val.fechaFinVigencia,
+        crearNuevoPeriodo: val.crearNuevoPeriodo,
+        nuevaVigenciaFiscalId: Number(val.nuevaVigenciaFiscalId),
+        nuevoValorDecimal: val.nuevoValorDecimal !== null ? Number(val.nuevoValorDecimal) : null,
+        nuevoValorTexto: val.nuevoValorTexto,
+        nuevaFechaInicioVigencia: val.nuevaFechaInicioVigencia,
+      })
+      .subscribe({
+        next: () => {
+          this.toastMessage.set({
+            title: 'Parámetro Cerrado',
+            desc: `Se ha establecido la fecha de fin de vigencia (${val.fechaFinVigencia}) para ${item.codigo}.` +
+              (val.crearNuevoPeriodo ? ' Se aperturó la nueva vigencia fiscal.' : ''),
+            type: 'success',
+          });
+        },
+      });
+  }
+
+  toggleEstadoActivo(item: ParametroTributario, event: Event): void {
+    event.stopPropagation();
+    this.facade.toggleActivo(item);
+    this.toastMessage.set({
+      title: item.activo ? 'Parámetro Inhabilitado' : 'Parámetro Habilitado',
+      desc: `El estado del parámetro ${item.codigo} cambió a ${!item.activo ? 'ACTIVO' : 'INACTIVO'}.`,
+      type: 'info',
+    });
+  }
+
+  cerrarToast(): void {
+    this.toastMessage.set(null);
+  }
+
+  isVigente(item: ParametroTributario): boolean {
+    if (!item.activo) return false;
+    const today = new Date().toISOString().split('T')[0];
+    if (!item.fechaFinVigencia) return true;
+    return item.fechaFinVigencia >= today;
+  }
+}

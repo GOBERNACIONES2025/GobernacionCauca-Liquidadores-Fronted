@@ -3,6 +3,7 @@ import { AutomotoresLayout } from './presentation/layout/automotores-layout';
 import { Vehiculos } from './presentation/pages/vehiculos/vehiculos';
 import { ContribuyentesIndex } from './presentation/pages/contribuyentes-index/contribuyentes-index';
 import { LiquidacionesPage } from './presentation/pages/liquidaciones/liquidaciones';
+import { ValoresEstatalesPage } from './presentation/pages/valores-estatales/valores-estatales';
 import { AutomotoresConfiguracionLayout } from './presentation/layout/configuracion-layout/configuracion-layout';
 
 // Catálogos & Configuración
@@ -51,6 +52,10 @@ export const automotoresRoutes: Routes = [
         path: 'facturacion',
         redirectTo: 'liquidaciones',
         pathMatch: 'full'
+      },
+      {
+        path: 'valores-estatales',
+        component: ValoresEstatalesPage
       },
       {
         path: 'configuracion',
