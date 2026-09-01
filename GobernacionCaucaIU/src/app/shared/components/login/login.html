@@ -1,19 +1,19 @@
 <div class="relative w-full min-h-screen bg-white flex items-center justify-center lg:justify-start p-4 md:p-8 lg:pl-20 overflow-hidden font-sans select-none">
  
   <!-- BLOQUE 4: diagonal superior izquierda             -->
-  <div class="absolute -top-55 right-90 rotate-[-30deg] w-[365px] h-[210px] bg-[#16599d] shadow-2xl z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
+  <div class="absolute -top-55 right-90 rotate-[-30deg] w-[365px] h-[210px] bg-[#16599d] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
 
   <!-- BLOQUE 5: diagonal inferior izquierda             -->
-  <div class="absolute bottom-1 w-[900px] h-[230px] bg-[#0f4984] rotate-[-30deg] shadow-2xl z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
+  <div class="absolute bottom-1 w-[900px] h-[230px] bg-[#0f4984] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
 
   <!-- BLOQUE 1: diagonal inferior (Azul Claro / Base)   -->
-  <div class="absolute -right-50 bottom-40 w-[900px] h-[200px] bg-[#16599d] rotate-[-30deg] shadow-2xl z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
+  <div class="absolute -right-50 bottom-40 w-[900px] h-[200px] bg-[#16599d] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
 
   <!-- BLOQUE 2: diagonal inferior (Azul Oscuro / Front) -->
-  <div class="absolute -right-50 -bottom-1 w-[600px] h-[230px] bg-[#2978c8] rotate-[-30deg] shadow-2xl z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
+  <div class="absolute -right-50 -bottom-1 w-[600px] h-[230px] bg-[#2978c8] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
 
   <!-- BLOQUE 3: tarjeta blanca rotada con Branding       -->
-  <div class="absolute -right-35 rounded-3xl -top-60 w-[680px] h-[520px] bg-white rotate-[-30deg] shadow-2xl z-0 pointer-events-none origin-bottom-right hidden lg:flex items-center justify-center">
+  <div class="absolute -right-35 rounded-3xl -top-60 w-[680px] h-[520px] bg-white rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden lg:flex items-center justify-center">
     <!-- Contenedor interno centrado y contrarrotado (30deg) para mantenerse derecho -->
     <div class="rotate-[30deg] flex flex-col items-center justify-center text-center space-y-4 -translate-x-14">
       <!-- Título y Líneas -->
@@ -49,12 +49,12 @@
     <img 
       src="/logo_101_software_white.png" 
       alt="101 Software" 
-      class="h-6 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+      class="h-6 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity drop-shadow-md" 
     />
   </div>
 
   <!-- FORMULARIO DE LOGIN (Lado Izquierdo)                     -->
-  <div class="relative z-10 w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300">
+  <div class="relative z-10 w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4),0_0_30px_rgba(15,73,132,0.15)] overflow-hidden transition-all duration-300">
     <!-- Header del Formulario -->
     <div class="bg-[#0f4984] text-white py-4 px-6 text-center shadow-md flex items-center justify-center gap-2">
       <i class="fa-solid fa-user-lock text-lg"></i>
@@ -67,7 +67,7 @@
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8 space-y-5">
       <!-- Mensaje de Error si ocurre -->
       @if (errorMessage()) {
-        <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg text-xs text-red-700 flex items-start gap-2 animate-fadeIn">
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg text-xs text-red-700 flex items-start gap-2 animate-fadeIn shadow-sm">
           <i class="fa-solid fa-circle-exclamation mt-0.5 text-red-500"></i>
           <span>{{ errorMessage() }}</span>
         </div>
@@ -126,7 +126,7 @@
       </div>
 
       <!-- Acceso Rápido de Prueba -->
-      <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5 flex items-center justify-between text-xs">
+      <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5 flex items-center justify-between text-xs shadow-xs">
         <span class="text-slate-600 font-medium text-[11px]">
           <i class="fa-solid fa-key text-blue-600 mr-1"></i>
           Demo: <strong>admin</strong> / <strong>admin123</strong>
@@ -145,7 +145,7 @@
         <button
           type="submit"
           [disabled]="isLoading()"
-          class="w-full bg-[#568224] hover:bg-[#466a1d] text-white font-bold py-3.5 px-6 rounded-lg text-sm sm:text-base shadow-lg shadow-emerald-900/20 hover:shadow-xl transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          class="w-full bg-[#568224] hover:bg-[#466a1d] text-white font-bold py-3.5 px-6 rounded-lg text-sm sm:text-base shadow-[0_10px_25px_rgba(86,130,36,0.45)] hover:shadow-[0_15px_30px_rgba(86,130,36,0.6)] transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           @if (isLoading()) {
             <i class="fa-solid fa-spinner fa-spin"></i>
