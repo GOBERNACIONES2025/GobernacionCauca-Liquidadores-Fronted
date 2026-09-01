@@ -32,9 +32,9 @@ export class ValoresEstatalesPage implements OnInit {
     this.parametroForm = this.fb.group({
       id: [0],
       vigenciaFiscalId: [defaultVigenciaId, [Validators.required]],
-      normaTributariaId: [1],
-      codigo: ['', [Validators.required, Validators.pattern(/^[A-Z0-9_]+$/)]],
-      nombre: ['', [Validators.required, Validators.minLength(5)]],
+      normaTributariaId: [null],
+      codigo: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_-]+$/)]],
+      nombre: ['', [Validators.required, Validators.minLength(2)]],
       fechaInicioVigencia: [today, [Validators.required]],
       fechaFinVigencia: [''],
       valorDecimal: [null],
@@ -60,7 +60,7 @@ export class ValoresEstatalesPage implements OnInit {
     this.parametroForm.reset({
       id: 0,
       vigenciaFiscalId: defaultVigenciaId,
-      normaTributariaId: 1,
+      normaTributariaId: null,
       codigo: '',
       nombre: '',
       fechaInicioVigencia: today,
@@ -76,7 +76,7 @@ export class ValoresEstatalesPage implements OnInit {
     this.parametroForm.patchValue({
       id: item.id,
       vigenciaFiscalId: item.vigenciaFiscalId,
-      normaTributariaId: item.normaTributariaId || 1,
+      normaTributariaId: item.normaTributariaId ?? null,
       codigo: item.codigo,
       nombre: item.nombre,
       fechaInicioVigencia: item.fechaInicioVigencia,
@@ -112,15 +112,24 @@ export class ValoresEstatalesPage implements OnInit {
   guardarParametro(): void {
     if (this.parametroForm.invalid) {
       this.parametroForm.markAllAsTouched();
+      const camposInvalidos: string[] = [];
+      Object.keys(this.parametroForm.controls).forEach((key) => {
+        if (this.parametroForm.get(key)?.invalid) {
+          camposInvalidos.push(key);
+        }
+      });
       this.toastMessage.set({
         title: 'Formulario Incompleto',
-        desc: 'Por favor complete todos los campos obligatorios correctamente.',
+        desc: `Revise los campos obligatorios (${camposInvalidos.join(', ')}).`,
         type: 'error',
       });
       return;
     }
 
-    const val = this.parametroForm.value;
+    const val = { ...this.parametroForm.value };
+    if (val.codigo) {
+      val.codigo = val.codigo.toUpperCase().trim();
+    }
     const isEdit = this.facade.modalMode() === 'EDIT';
 
     if (isEdit) {

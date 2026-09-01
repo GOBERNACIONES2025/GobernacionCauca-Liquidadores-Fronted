@@ -32,14 +32,14 @@
 
     <!-- ACCIONES DE CABECERA: VIGENCIA Y REFRESCAR -->
     <div class="flex items-center gap-2.5 shrink-0">
-      <div class="flex items-center bg-white border border-slate-200 rounded-lg p-1 shadow-sm">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2">Vigencia:</span>
+      <div data-theme="light" class="flex items-center bg-white border border-slate-200 rounded-lg px-3 py-1 shadow-sm h-[34px] gap-2">
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">Vigencia:</span>
         <select 
           [ngModel]="dashboardService.vigencia()" 
           (ngModelChange)="onVigenciaChange($event)"
-          class="select select-xs select-ghost font-bold text-slate-800 focus:outline-none cursor-pointer">
+          class="bg-slate-50 hover:bg-slate-100 font-bold text-slate-900 text-xs border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-slate-300 cursor-pointer px-2.5 py-1 transition-colors">
           @for (v of vigenciasDisponibles; track v) {
-            <option [value]="v">{{ v }}</option>
+            <option [value]="v" class="bg-white text-slate-900 font-bold py-1.5 px-2">{{ v }}</option>
           }
         </select>
       </div>
