@@ -26,6 +26,7 @@ export class LiquidacionesPage implements OnInit {
 
   onSimularDirecto(): void {
     if (!this.placaBuscarModal.trim()) return;
+    
     this.facade.abrirSimulacion(this.placaBuscarModal.trim());
   }
 }

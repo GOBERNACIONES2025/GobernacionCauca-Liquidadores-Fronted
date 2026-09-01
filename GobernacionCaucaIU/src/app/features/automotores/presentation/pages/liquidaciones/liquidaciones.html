@@ -8,7 +8,7 @@
         <span class="font-bold text-slate-800">Liquidaciones & Facturación</span>
       </div>
       <h1 class="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5 m-0">
-        <span>💰 Módulo de Liquidaciones Tributarias</span>
+        <span> Módulo de Liquidaciones Tributarias</span>
       </h1>
       <p class="text-xs text-slate-500 mt-1 m-0">
         Gestión centralizada de estados de cuenta, cartera por vehículos, extemporaneidad e intereses de mora.
@@ -37,73 +37,85 @@
     </div>
   </div>
 
-  <!-- TARJETAS DE INDICADORES KPI -->
+  <!-- TARJETAS DE INDICADORES KPI ESTRATÉGICOS -->
   @if (facade.kpis(); as k) {
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-5 gap-4 w-full">
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 leading-tight">Total Flota / Cartera</div>
-            <div class="text-xl sm:text-2xl font-black text-slate-900 mt-1.5 tracking-tight">{{ k.totalLiquidaciones | number }}</div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+      
+      <!-- CARD 1: ESTADO DEL PARQUE VEHICULAR (PENDIENTES VS EMITIDAS) -->
+      <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Parque Vehicular Tributario</span>
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-600 text-xs">
+              <i class="fa-solid fa-car-side"></i>
+            </span>
           </div>
-          <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-800 flex items-center justify-center text-lg font-bold shrink-0">
-            📋
+          <div class="text-2xl font-black text-slate-900 mt-2 tracking-tight">
+            {{ k.totalVehiculosActivos | number }} <span class="text-xs font-semibold text-slate-400 font-normal">Vehículos Activos</span>
           </div>
         </div>
-        <div class="text-xs text-slate-500 font-medium mt-2 pt-2 border-t border-slate-100">{{ k.totalAlDia }} al día · {{ k.totalEnMora }} pendientes</div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span class="text-slate-600 font-medium">Pendientes:</span>
+            <strong class="text-slate-900 font-bold">{{ k.vehiculosPendientesLiquidar }}</strong>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+            <span class="text-slate-600 font-medium">Emitidas:</span>
+            <strong class="text-slate-900 font-bold">{{ k.vehiculosConLiquidacionesEmitidas }}</strong>
+            <span class="text-[10px] text-slate-400">({{ k.totalLiquidacionesEmitidas }} vig.)</span>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 leading-tight">Recaudo Proyectado</div>
-            <div class="text-xl sm:text-2xl font-black text-emerald-700 mt-1.5 tracking-tight">${{ k.totalRecaudoProyectado | number:'1.0-0' }}</div>
+      <!-- CARD 2: RECAUDO TOTAL REMITIDO E INTERESES MORATORIOS -->
+      <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Recaudo Liquidaciones Remitidas</span>
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-600 text-xs">
+              <i class="fa-solid fa-receipt"></i>
+            </span>
           </div>
-          <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center text-lg font-bold shrink-0">
-            💵
+          <div class="text-2xl font-black text-slate-900 mt-2 tracking-tight">
+            ${{ k.totalRecaudoEmitido | number:'1.0-0' }}
           </div>
         </div>
-        <div class="text-xs text-emerald-600 font-semibold mt-2 pt-2 border-t border-slate-100">Vigencias activas y mora</div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <div>
+            <span class="text-slate-500 block text-[10.5px]">Intereses en Emitidas:</span>
+            <strong class="text-slate-800 font-bold text-[11.5px]">${{ k.interesesMoratoriosLiquidados | number:'1.0-0' }}</strong>
+          </div>
+          <div class="text-right">
+            <span class="text-slate-500 block text-[10.5px]">Intereses Cartera Pendiente:</span>
+            <strong class="text-slate-800 font-bold text-[11.5px]">${{ k.interesesMoratoriosPendientes | number:'1.0-0' }}</strong>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 leading-tight">Impuesto Vehicular</div>
-            <div class="text-xl sm:text-2xl font-black text-slate-900 mt-1.5 tracking-tight">${{ k.totalImpuestoVehicular | number:'1.0-0' }}</div>
+      <!-- CARD 3: SANCIONES POR EXTEMPORANEIDAD -->
+      <div class="bg-white border border-slate-200/90 rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Sanciones por Extemporaneidad</span>
+            <span class="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-slate-100 text-slate-600 text-xs">
+              <i class="fa-solid fa-scale-balanced"></i>
+            </span>
           </div>
-          <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold shrink-0">
-            🏛️
+          <div class="text-2xl font-black text-slate-900 mt-2 tracking-tight">
+            ${{ k.totalSancionesExtemporaneidad | number:'1.0-0' }}
           </div>
         </div>
-        <div class="text-xs text-slate-500 font-medium mt-2 pt-2 border-t border-slate-100">Base gravable por tarifa</div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+          <span class="text-slate-500 text-[11px]">Impuesto Base Neto Emitido:</span>
+          <strong class="text-slate-900 font-bold text-[11.5px]">${{ k.totalImpuestoBaseEmitido | number:'1.0-0' }}</strong>
+        </div>
       </div>
 
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 leading-tight">Sanciones Extemporáneas</div>
-            <div class="text-xl sm:text-2xl font-black text-amber-700 mt-1.5 tracking-tight">${{ k.totalSancionesMora | number:'1.0-0' }}</div>
-          </div>
-          <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center text-lg font-bold shrink-0">
-            ⚠️
-          </div>
-        </div>
-        <div class="text-xs text-amber-600 font-medium mt-2 pt-2 border-t border-slate-100">Mínimo 10 UVTs ($497.990)</div>
-      </div>
-
-      <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="text-xs font-bold uppercase tracking-wider text-slate-400 leading-tight">Intereses Moratorios</div>
-            <div class="text-xl sm:text-2xl font-black text-red-700 mt-1.5 tracking-tight">${{ k.totalInteresesMora | number:'1.0-0' }}</div>
-          </div>
-          <div class="w-10 h-10 rounded-lg bg-red-50 text-red-800 flex items-center justify-center text-lg font-bold shrink-0">
-            📈
-          </div>
-        </div>
-        <div class="text-xs text-red-600 font-medium mt-2 pt-2 border-t border-slate-100">Tasa Usura - 2 ptos (32% EA)</div>
-      </div>
     </div>
   }
 
@@ -263,31 +275,28 @@
                     }
                   </td>
 
-                  <!-- Contribuyente -->
+                  <!-- Contribuyente / Propietarios -->
                   <td class="py-3 px-4">
-                    <div class="font-medium text-slate-800 truncate max-w-[180px]">{{ item.contribuyenteNombre }}</div>
-                    <div class="text-[10.5px] text-slate-400 mt-0.5">{{ item.contribuyenteDocumento }}</div>
+                    @if (item.propietario && item.propietario.length > 0) {
+                      @for (p of item.propietario; track p.identification) {
+                        <div class="font-medium text-slate-800 truncate max-w-[180px]">{{ p.completeName }}</div>
+                        <div class="text-[10.5px] text-slate-400 mt-0.5">{{ p.typeIdentification }} {{ p.identification }}</div>
+                      }
+                    } @else {
+                      <div class="text-slate-400 italic text-[11px]">Sin propietario asignado</div>
+                    }
                   </td>
 
                   <!-- Vigencias Pendientes -->
                   <td class="py-3 px-4">
                     <div class="flex flex-wrap items-center gap-1.5">
-                      @if (item.vigenciasPendientes && item.vigenciasPendientes.length > 0) {
-                        @for (vAnio of item.vigenciasPendientes; track vAnio) {
-                          <span [class]="'inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ' + (vAnio <= 2021 ? 'bg-purple-50 text-purple-800 border-purple-200' : ((vAnio === 2023 || vAnio === 2022) ? 'bg-amber-50 text-amber-900 border-amber-300' : 'bg-emerald-50 text-emerald-900 border-emerald-200'))" [title]="(vAnio === 2023 || vAnio === 2022) ? 'Faltan parámetros estatales o avalúos en BD para esta vigencia' : ''">
-                            <i [class]="'fa-solid text-[9px] ' + (vAnio <= 2021 ? 'fa-clock-rotate-left text-purple-600' : ((vAnio === 2023 || vAnio === 2022) ? 'fa-triangle-exclamation text-amber-600' : 'fa-calendar-check text-emerald-600'))"></i>
-                            {{ vAnio }}
-                            @if (vAnio <= 2021) {
-                              <span class="text-[9px] uppercase font-extrabold text-purple-700 ml-0.5">(Prescrita)</span>
-                            } @else if (vAnio === 2023 || vAnio === 2022) {
-                              <span class="text-[9px] uppercase font-extrabold text-amber-800 ml-0.5">(Sin datos BD)</span>
-                            }
-                          </span>
-                        }
-                      } @else {
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                          Al día (2026)
-                        </span>
+                      @for (vAnio of item.vigenciasPendientes; track vAnio) {
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border bg-emerald-50 text-emerald-900 border-emerald-200"
+                        [title]="'Vigencia pendiente'">
+                        <i class="fa-solid fa-calendar-check text-[9px] text-emerald-600"></i>
+                        {{ vAnio }}
+                      </span>
                       }
                     </div>
                   </td>
@@ -305,8 +314,8 @@
                       (click)="facade.abrirSimulacion(item.placa)" 
                       type="button" 
                       title="Liquidar e Imprimir Factura"
-                      class="inline-flex items-center justify-center gap-1 h-7 px-3 rounded-md text-[11.5px] font-bold bg-[#70b238] hover:bg-[#5f972f] text-white border-none transition-colors shadow-sm cursor-pointer">
-                      ⚡ Liquidar Placa
+                      class="inline-flex items-center justify-center gap-1 h-7 px-3 rounded-md text-[11.5px] font-bold bg-vehiculos-action-success hover:bg-[#5f972f] text-white border-none transition-colors shadow-sm cursor-pointer">
+                       Liquidar Placa
                     </button>
                   </td>
                 </tr>
@@ -341,8 +350,14 @@
                   </td>
 
                   <td class="py-3.5 px-4">
-                    <div class="font-medium text-slate-800">{{ grupo.contribuyenteNombre }}</div>
-                    <div class="text-[10.5px] text-slate-400 mt-0.5">{{ grupo.contribuyenteDocumento }}</div>
+                    @if (grupo.propietario && grupo.propietario.length > 0) {
+                      @for (p of grupo.propietario; track p.identification) {
+                        <div class="font-medium text-slate-800">{{ p.completeName }}</div>
+                        <div class="text-[10.5px] text-slate-400 mt-0.5">{{ p.typeIdentification }} {{ p.identification }}</div>
+                      }
+                    } @else {
+                      <div class="text-slate-400 italic text-[11px]">Sin propietario asignado</div>
+                    }
                   </td>
 
                   <td colspan="4" class="py-3.5 px-4">
@@ -469,6 +484,51 @@
           }
         </tbody>
       </table>
+
+      <!-- BARRA DE PAGINACIÓN SERVER-SIDE -->
+      <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div class="flex items-center gap-2 text-slate-500 font-medium">
+          <span>Mostrando <strong class="text-slate-900 font-bold">{{ facade.rangoInicio() }}</strong> a <strong class="text-slate-900 font-bold">{{ facade.rangoFin() }}</strong> de <strong class="text-slate-900 font-bold">{{ facade.totalCount() }}</strong> vehículos</span>
+          
+          <span class="text-slate-300">|</span>
+          
+          <label class="flex items-center gap-1.5 text-slate-500">
+            <span>Por pág:</span>
+            <select 
+              [value]="facade.pageSize()" 
+              (change)="facade.setPageSize(+$any($event.target).value)"
+              class="h-7 px-2 bg-white border border-slate-300 rounded text-slate-800 font-bold focus:ring-1 focus:ring-blue-500 cursor-pointer">
+              <option [value]="7">7</option>
+              <option [value]="10">10</option>
+              <option [value]="15">15</option>
+              <option [value]="25">25</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Botones de Navegación de Página -->
+        <div class="flex items-center gap-1">
+          <button 
+            (click)="facade.setPage(facade.page() - 1)" 
+            [disabled]="facade.page() <= 1"
+            type="button"
+            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-300 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs">
+            <i class="fa-solid fa-chevron-left text-[10px]"></i> Anterior
+          </button>
+
+          <span class="px-3 py-1 text-slate-600 font-semibold">
+            Pág. <strong class="text-slate-900">{{ facade.page() }}</strong> de <strong class="text-slate-900">{{ facade.totalPaginas() }}</strong>
+          </span>
+
+          <button 
+            (click)="facade.setPage(facade.page() + 1)" 
+            [disabled]="facade.page() >= facade.totalPaginas()"
+            type="button"
+            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-300 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs">
+            Siguiente <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -563,54 +623,64 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100">
-                @for (v of sim.vigencias; track v.anio) {
-                  <tr [class]="'transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40' : (facade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-slate-50 opacity-60'))">
-                    <td class="py-3 px-3 text-center">
-                      <input 
-                        type="checkbox" 
-                        [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
-                        [checked]="facade.selectedVigenciaAnios().includes(v.anio) && !v.parametrosFaltantesEnDb"
-                        (change)="facade.toggleVigencia(v.anio)"
-                        class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
-                      />
-                    </td>
-                    <td class="py-3 px-3 font-bold text-slate-900">
-                      <div>{{ v.anio }}</div>
-                      @if (v.parametrosFaltantesEnDb) {
-                        <div class="text-[9.5px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1" title="Faltan los parámetros tributarios estatales en BD para esta vigencia">
-                          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                          Sin datos en BD
-                        </div>
-                      }
-                    </td>
-                    <td class="py-3 px-3 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
-                    <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
-                    <td class="py-3 px-3 text-right text-emerald-700 font-medium">${{ v.descuentoProntoPago | number:'1.0-0' }}</td>
-                    <td class="py-3 px-3 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
-                    <td class="py-3 px-3 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
-                    <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
-                    <td class="py-3 px-3 text-center">
-                      @if (v.parametrosFaltantesEnDb) {
-                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                          <i class="fa-solid fa-ban text-amber-700"></i>
-                          NO LIQUIDABLE (SIN DATOS BD)
-                        </span>
-                      } @else if (v.estado.includes('PRESCRITA')) {
-                        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
-                          <i class="fa-solid fa-clock-rotate-left"></i>
-                          PRESCRITA (>5 AÑOS)
-                        </span>
-                      } @else if (v.estado.includes('PRONTO') || v.estado.includes('AL DIA')) {
-                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          {{ v.estado }}
-                        </span>
-                      } @else {
-                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
-                          {{ v.estado }}
-                        </span>
-                      }
+                @if (sim.vigencias.length === 0) {
+                  <tr>
+                    <td colspan="9" class="py-10 text-center text-slate-500">
+                      <i class="fa-solid fa-circle-check text-3xl text-emerald-500 mb-2 block"></i>
+                      <div class="text-xs font-bold text-slate-800">El vehículo se encuentra AL DÍA</div>
+                      <div class="text-[11px] text-slate-400 mt-0.5">No registra vigencias tributarias pendientes de liquidación en el sistema.</div>
                     </td>
                   </tr>
+                } @else {
+                  @for (v of sim.vigencias; track v.anio) {
+                    <tr [class]="'transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40' : (facade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-slate-50 opacity-60'))">
+                      <td class="py-3 px-3 text-center">
+                        <input 
+                          type="checkbox" 
+                          [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
+                          [checked]="facade.selectedVigenciaAnios().includes(v.anio) && !v.parametrosFaltantesEnDb"
+                          (change)="facade.toggleVigencia(v.anio)"
+                          class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                        />
+                      </td>
+                      <td class="py-3 px-3 font-bold text-slate-900">
+                        <div>{{ v.anio }}</div>
+                        @if (v.parametrosFaltantesEnDb) {
+                          <div class="text-[9.5px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1" title="Faltan los parámetros tributarios estatales en BD para esta vigencia">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                            Sin datos en BD
+                          </div>
+                        }
+                      </td>
+                      <td class="py-3 px-3 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
+                      <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
+                      <td class="py-3 px-3 text-right text-emerald-700 font-medium">${{ v.descuentoProntoPago | number:'1.0-0' }}</td>
+                      <td class="py-3 px-3 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
+                      <td class="py-3 px-3 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
+                      <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
+                      <td class="py-3 px-3 text-center">
+                        @if (v.parametrosFaltantesEnDb) {
+                          <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                            <i class="fa-solid fa-ban text-amber-700"></i>
+                            NO LIQUIDABLE (SIN DATOS BD)
+                          </span>
+                        } @else if (v.estado.includes('PRESCRITA')) {
+                          <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            PRESCRITA (>5 AÑOS)
+                          </span>
+                        } @else if (v.estado.includes('PRONTO') || v.estado.includes('AL DIA')) {
+                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            {{ v.estado }}
+                          </span>
+                        } @else {
+                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
+                            {{ v.estado }}
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  }
                 }
               </tbody>
             </table>
@@ -931,8 +1001,14 @@
         <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 grid grid-cols-2 gap-3 text-xs">
           <div>
             <span class="text-[10px] font-bold text-slate-400 uppercase block">Contribuyente / Sujeto Pasivo</span>
-            <span class="font-extrabold text-slate-900 block">{{ facade.reciboModalData()?.contribuyenteNombre }}</span>
-            <span class="text-[11px] text-slate-600">{{ facade.reciboModalData()?.contribuyenteDocumento }}</span>
+            @if (facade.reciboModalData()?.propietario && (facade.reciboModalData()?.propietario)!.length > 0) {
+              @for (p of facade.reciboModalData()?.propietario; track p.identification) {
+                <span class="font-extrabold text-slate-900 block">{{ p.completeName }}</span>
+                <span class="text-[11px] text-slate-600 block">{{ p.typeIdentification }} {{ p.identification }}</span>
+              }
+            } @else {
+              <span class="text-slate-400 italic text-[11px]">Sin propietario asignado</span>
+            }
           </div>
           <div>
             <span class="text-[10px] font-bold text-slate-400 uppercase block">Vehículo Automotor</span>
@@ -951,6 +1027,7 @@
                 <th class="py-2 px-3 text-right">Impuesto</th>
                 <th class="py-2 px-3 text-right">Sanción</th>
                 <th class="py-2 px-3 text-right">Intereses</th>
+                <th class="py-2 px-3 text-right">Sistematiz.</th>
                 <th class="py-2 px-3 text-right">Total Vigencia</th>
               </tr>
             </thead>
@@ -962,6 +1039,7 @@
                   <td class="py-2 px-3 text-right font-semibold text-slate-900">${{ item.impuestoBase | number:'1.0-0' }}</td>
                   <td class="py-2 px-3 text-right text-amber-700 font-semibold">${{ item.sancionExtemporaneidad | number:'1.0-0' }}</td>
                   <td class="py-2 px-3 text-right text-red-700 font-semibold">${{ item.interesesMora | number:'1.0-0' }}</td>
+                  <td class="py-2 px-3 text-right text-slate-700 font-medium">${{ (item.sistematizacionEstampillas || 14000) | number:'1.0-0' }}</td>
                   <td class="py-2 px-3 text-right font-extrabold text-slate-900">${{ item.totalPagar | number:'1.0-0' }}</td>
                 </tr>
               }

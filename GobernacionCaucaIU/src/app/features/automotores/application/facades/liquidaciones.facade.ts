@@ -12,6 +12,12 @@ import { generatePdfBlobFromHtml, downloadPdfFromHtml } from '../../../../shared
 import { catchError, map } from 'rxjs/operators';
 import { of, forkJoin } from 'rxjs';
 
+export interface PropietarioItem {
+  completeName: string;
+  identification: string;
+  typeIdentification: string;
+}
+
 /**
  * Representa un ítem individual de la lista de liquidaciones o parque pendiente.
  */
@@ -21,8 +27,7 @@ export interface LiquidacionItem {
   placa: string;
   marcaLinea: string;
   modelo?: number;
-  contribuyenteNombre: string;
-  contribuyenteDocumento: string;
+  propietario: PropietarioItem[];
   vigenciaAnio: number;
   baseGravableAvaluo: number;
   impuestoBase: number;
@@ -41,8 +46,7 @@ export interface GrupoLiquidacionEmitida {
   placa: string;
   marcaLinea: string;
   modelo?: number;
-  contribuyenteNombre: string;
-  contribuyenteDocumento: string;
+  propietario: PropietarioItem[];
   totalVehiculo: number;
   impuestoTotal: number;
   sancionTotal: number;
@@ -55,8 +59,7 @@ export interface ReciboModel {
   placa: string;
   marcaLinea: string;
   modelo?: number;
-  contribuyenteNombre: string;
-  contribuyenteDocumento: string;
+  propietario: PropietarioItem[];
   fechaEmision: Date;
   fechaLimiteTexto: string;
   esFechaInmediata: boolean;
@@ -68,6 +71,7 @@ export interface ReciboModel {
     descuentos: number;
     sancionExtemporaneidad: number;
     interesesMora: number;
+    sistematizacionEstampillas: number;
     totalPagar: number;
   }[];
 }
@@ -76,13 +80,15 @@ export interface ReciboModel {
  * Resumen de indicadores métricos KPI del módulo tributario.
  */
 export interface LiquidacionKpis {
-  totalLiquidaciones: number;
-  totalRecaudoProyectado: number;
-  totalImpuestoVehicular: number;
-  totalSancionesMora: number;
-  totalInteresesMora: number;
-  totalEnMora: number;
-  totalAlDia: number;
+  totalVehiculosActivos: number;
+  vehiculosPendientesLiquidar: number;
+  vehiculosConLiquidacionesEmitidas: number;
+  totalLiquidacionesEmitidas: number;
+  totalRecaudoEmitido: number;
+  totalImpuestoBaseEmitido: number;
+  totalSancionesExtemporaneidad: number;
+  interesesMoratoriosLiquidados: number;
+  interesesMoratoriosPendientes: number;
 }
 
 /**
@@ -112,7 +118,7 @@ export class LiquidacionesFacade {
   readonly kpis = signal<LiquidacionKpis | null>(null);
   readonly loadingTabla = signal<boolean>(false);
   readonly page = signal<number>(1);
-  readonly pageSize = signal<number>(10);
+  readonly pageSize = signal<number>(7);
   readonly totalCount = signal<number>(0);
   readonly buscar = signal<string>('');
   readonly vigenciaFiltro = signal<number>(0);
@@ -232,8 +238,7 @@ export class LiquidacionesFacade {
           placa: item.placa,
           marcaLinea: item.marcaLinea,
           modelo: item.modelo,
-          contribuyenteNombre: item.contribuyenteNombre,
-          contribuyenteDocumento: item.contribuyenteDocumento,
+          propietario: item.propietario || [],
           totalVehiculo: 0,
           impuestoTotal: 0,
           sancionTotal: 0,
@@ -272,8 +277,7 @@ export class LiquidacionesFacade {
       placa: item.placa,
       marcaLinea: item.marcaLinea,
       modelo: item.modelo,
-      contribuyenteNombre: item.contribuyenteNombre,
-      contribuyenteDocumento: item.contribuyenteDocumento,
+      propietario: item.propietario || [],
       fechaEmision: new Date(),
       fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
       esFechaInmediata: tieneMora,
@@ -285,6 +289,7 @@ export class LiquidacionesFacade {
         descuentos: item.descuentos,
         sancionExtemporaneidad: item.sancionExtemporaneidad,
         interesesMora: item.interesesMora,
+        sistematizacionEstampillas: item.sistematizacionEstampillas || 14000,
         totalPagar: item.totalPagar
       }]
     });
@@ -298,8 +303,7 @@ export class LiquidacionesFacade {
       placa: grupo.placa,
       marcaLinea: grupo.marcaLinea,
       modelo: grupo.modelo,
-      contribuyenteNombre: grupo.contribuyenteNombre,
-      contribuyenteDocumento: grupo.contribuyenteDocumento,
+      propietario: grupo.propietario || [],
       fechaEmision: new Date(),
       fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
       esFechaInmediata: tieneMora,
@@ -311,6 +315,7 @@ export class LiquidacionesFacade {
         descuentos: v.descuentos,
         sancionExtemporaneidad: v.sancionExtemporaneidad,
         interesesMora: v.interesesMora,
+        sistematizacionEstampillas: v.sistematizacionEstampillas || 14000,
         totalPagar: v.totalPagar
       }))
     });
@@ -452,9 +457,21 @@ export class LiquidacionesFacade {
 
   /** Cambia la página actual */
   setPage(nuevaPagina: number): void {
+    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
     this.page.set(nuevaPagina);
     this.cargarLiquidaciones();
   }
+
+  /** Cambia el tamaño de página y recarga */
+  setPageSize(nuevoTamano: number): void {
+    this.pageSize.set(nuevoTamano);
+    this.page.set(1);
+    this.cargarLiquidaciones();
+  }
+
+  readonly totalPaginas = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
+  readonly rangoInicio = computed(() => this.totalCount() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1);
+  readonly rangoFin = computed(() => Math.min(this.page() * this.pageSize(), this.totalCount()));
 
   /** Total acumulado dinámico de las vigencias seleccionadas por el usuario */
   totalPagarSeleccionado = computed(() => {
@@ -488,9 +505,10 @@ export class LiquidacionesFacade {
     ).subscribe(res => {
       this.loading.set(false);
       if (res && res.data) {
+        console.log("Liquidacion" , res.data);
         this.simulacion.set(res.data);
-        const validas = res.data.vigencias
-          .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0)
+        const validas = (res.data.vigencias || [])
+          .filter(v => !v.parametrosFaltantesEnDb)
           .map(v => v.anio);
         this.selectedVigenciaAnios.set(validas);
       }
