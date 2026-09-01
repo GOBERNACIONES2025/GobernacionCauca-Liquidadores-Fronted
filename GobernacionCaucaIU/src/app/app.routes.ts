@@ -1,17 +1,17 @@
 import { Routes } from '@angular/router';
 import { Home } from './features/home/presentation/pages/home/home';
 import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
-import { PasaportesLayout } from './features/pasaportes/presentation/layout/pasaportes-layout';
-import { InicioPasaportes } from './features/pasaportes/presentation/pages/inicio/inicio-pasaportes';
-import { PasaportesAdminLogin } from './features/pasaportes/presentation/admin/pages/login/pasaportes-admin-login';
-import { PasaportesAdminDashboard } from './features/pasaportes/presentation/admin/pages/dashboard/pasaportes-admin-dashboard';
-import { pasaportesAdminGuard } from './features/pasaportes/application/auth/pasaportes-admin.guard';
+import { LoginComponent } from './shared/components/login/login';
 
 export const routes: Routes = [
   {
     path: '',
     component: Home,
     pathMatch: 'full',
+  },
+  {
+    path: 'login',
+    component: LoginComponent,
   },
   {
     path: 'portal-ciudadano',
@@ -24,5 +24,13 @@ export const routes: Routes = [
   {
     path: 'registros',
     loadChildren: () => import('./features/registros/registros.routes').then(m => m.registrosRoutes)
+  },
+  {
+    path: 'pasaportes',
+    loadChildren: () => import('./features/pasaportes/pasaportes.routes').then(m => m.pasaportesRoutes)
+  },
+  {
+    path: '**',
+    redirectTo: '',
   }
 ];
