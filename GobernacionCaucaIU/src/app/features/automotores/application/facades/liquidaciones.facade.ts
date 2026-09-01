@@ -145,84 +145,8 @@ export class LiquidacionesFacade {
   readonly vehiculoExpandidoMasivo = signal<string | null>(null);
 
   /** Agrupación y acordeón para pestaña de Emitidas */
+  /** Agrupación y acordeón para pestaña de Emitidas */
   readonly placasExpandidasEmitidas = signal<string[]>([]);
-  readonly reciboModalData = signal<ReciboModel | null>(null);
-
-  /** Visor de PDF DocumentViewer */
-  readonly isPdfViewerOpen = signal<boolean>(false);
-  readonly pdfDocumentos = signal<any[]>([]);
-
-  /** Abre la vista previa del documento oficial en el visor modal interactivo */
-  abrirPdfPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const params: any = { placa, esUnificado, descargar: false };
-    if (vigencia) params.vigencia = vigencia;
-
-    this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
-      next: async (blob) => {
-        const text = await blob.text();
-        const isHtml = text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('<div') || text.includes('<table');
-        const nombreDoc = esUnificado 
-          ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
-          : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
-
-        const blobUrl = URL.createObjectURL(new Blob([blob], { type: isHtml ? 'text/html' : 'application/pdf' }));
-        
-        this.pdfDocumentos.set([{
-          id: placa,
-          nombreArchivo: nombreDoc,
-          rutaArchivo: blobUrl,
-          tipoArchivo: isHtml ? 'text/html' : 'application/pdf',
-          contenidoHtml: isHtml ? text : undefined
-        }]);
-        this.isPdfViewerOpen.set(true);
-      },
-      error: (err) => {
-        console.error('Error al solicitar la vista previa del PDF:', err);
-      }
-    });
-  }
-
-  /** Cierra el visor de PDF y libera memoria del Blob URL */
-  cerrarPdfViewer(): void {
-    const docs = this.pdfDocumentos();
-    if (docs && docs.length > 0 && docs[0].rutaArchivo?.startsWith('blob:')) {
-      URL.revokeObjectURL(docs[0].rutaArchivo);
-    }
-    this.isPdfViewerOpen.set(false);
-    this.pdfDocumentos.set([]);
-  }
-
-  /** Descarga directamente el archivo PDF binario oficial (.pdf 100% válido) */
-  descargarPdfDirecto(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const params: any = { placa, esUnificado, descargar: true };
-    if (vigencia) params.vigencia = vigencia;
-
-    this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
-      next: async (blob) => {
-        const text = await blob.text();
-        const isHtml = text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('<div') || text.includes('<table');
-        const nombreDoc = esUnificado 
-          ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
-          : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
-
-        if (isHtml) {
-          await downloadPdfFromHtml(text, nombreDoc);
-        } else {
-          const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = nombreDoc;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        }
-      },
-      error: (err) => {
-        console.error('Error al descargar el archivo PDF:', err);
-      }
-    });
-  }
 
   /** Agrupa las liquidaciones emitidas por placa vehicular para la vista de acordeón */
   readonly liquidacionesEmitidasAgrupadas = computed(() => {
@@ -267,63 +191,6 @@ export class LiquidacionesFacade {
       curr.push(placa);
     }
     this.placasExpandidasEmitidas.set(curr);
-  }
-
-  /** Abre el recibo oficial individual para 1 vigencia específica */
-  abrirReciboIndividual(item: LiquidacionItem): void {
-    const tieneMora = item.sancionExtemporaneidad > 0 || item.interesesMora > 0 || item.vigenciaAnio < 2026;
-    this.reciboModalData.set({
-      esUnificado: false,
-      placa: item.placa,
-      marcaLinea: item.marcaLinea,
-      modelo: item.modelo,
-      propietario: item.propietario || [],
-      fechaEmision: new Date(),
-      fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
-      esFechaInmediata: tieneMora,
-      totalPagar: item.totalPagar,
-      items: [{
-        numeroLiquidacion: item.numeroLiquidacion,
-        vigenciaAnio: item.vigenciaAnio,
-        impuestoBase: item.impuestoBase,
-        descuentos: item.descuentos,
-        sancionExtemporaneidad: item.sancionExtemporaneidad,
-        interesesMora: item.interesesMora,
-        sistematizacionEstampillas: item.sistematizacionEstampillas || 14000,
-        totalPagar: item.totalPagar
-      }]
-    });
-  }
-
-  /** Abre el recibo oficial unificado / completo para todas las vigencias emitidas de una placa */
-  abrirReciboUnificado(grupo: GrupoLiquidacionEmitida): void {
-    const tieneMora = grupo.vigencias.some(v => v.sancionExtemporaneidad > 0 || v.interesesMora > 0 || v.vigenciaAnio < 2026);
-    this.reciboModalData.set({
-      esUnificado: true,
-      placa: grupo.placa,
-      marcaLinea: grupo.marcaLinea,
-      modelo: grupo.modelo,
-      propietario: grupo.propietario || [],
-      fechaEmision: new Date(),
-      fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
-      esFechaInmediata: tieneMora,
-      totalPagar: grupo.totalVehiculo,
-      items: grupo.vigencias.map(v => ({
-        numeroLiquidacion: v.numeroLiquidacion,
-        vigenciaAnio: v.vigenciaAnio,
-        impuestoBase: v.impuestoBase,
-        descuentos: v.descuentos,
-        sancionExtemporaneidad: v.sancionExtemporaneidad,
-        interesesMora: v.interesesMora,
-        sistematizacionEstampillas: v.sistematizacionEstampillas || 14000,
-        totalPagar: v.totalPagar
-      }))
-    });
-  }
-
-  /** Cierra el modal de impresión de recibo */
-  cerrarReciboModal(): void {
-    this.reciboModalData.set(null);
   }
 
   /** Selección individual de vigencias por vehículo en el proceso masivo */

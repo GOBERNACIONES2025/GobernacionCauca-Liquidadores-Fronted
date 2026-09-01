@@ -188,7 +188,7 @@
       } @else {
         <span>🧾 Registro de recibos y liquidaciones oficiales expedidas.</span>
       }
-      <span>Mostrando <strong class="text-slate-800">{{ facade.liquidaciones().length }}</strong> de <strong class="text-slate-800">{{ facade.totalCount() }}</strong> registros</span>
+      <span>Página <strong class="text-slate-800">{{ facade.page() }}</strong> de <strong class="text-slate-800">{{ facade.totalPaginas() }}</strong> (Total <strong class="text-slate-800">{{ facade.totalCount() }}</strong> vehículos)</span>
     </div>
 
     <!-- TABLA DE CONTENIDO -->
@@ -360,9 +360,9 @@
                     }
                   </td>
 
-                  <td colspan="4" class="py-3.5 px-4">
-                    <div class="flex items-center gap-2">
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-blue-100 text-blue-900 border border-blue-300">
+                  <td colspan="5" class="py-3.5 px-4">
+                    <div class="flex flex-wrap items-center gap-1.5 max-w-xl">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-blue-100 text-blue-900 border border-blue-300 shrink-0">
                         <i class="fa-solid fa-receipt text-blue-700"></i>
                         {{ grupo.vigencias.length }} Vigencia(s) Emitida(s):
                       </span>
@@ -386,29 +386,13 @@
                   </td>
 
                   <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                    <div class="flex items-center justify-center gap-1.5">
-                      <!-- RECIBO UNIFICADO COMPLETO DEL VEHÍCULO -->
-                      <button 
-                        (click)="facade.abrirReciboUnificado(grupo)"
-                        type="button" 
-                        title="Imprimir Recibo Unificado Completo (Todas las Vigencias de la Placa)"
-                        class="inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-extrabold bg-[#1e3a7b] hover:bg-[#152a5a] text-white border-none shadow-xs cursor-pointer">
-                        <i class="fa-solid fa-file-invoice"></i> Recibo Unificado
-                      </button>
-                      <button 
-                        (click)="facade.abrirPdfPreview(grupo.placa, undefined, true)"
-                        type="button" 
-                        title="Ver Preview PDF del Recibo Unificado"
-                        class="inline-flex items-center justify-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white border-none shadow-xs cursor-pointer">
-                        <i class="fa-solid fa-file-pdf"></i> Preview PDF
-                      </button>
-                      <button 
-                        (click)="facade.toggleExpandirPlacaEmitida(grupo.placa)"
-                        type="button" 
-                        class="inline-flex items-center justify-center h-7 px-2 rounded-md text-[11px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 border-none cursor-pointer">
-                        {{ facade.placasExpandidasEmitidas().includes(grupo.placa) ? 'Ocultar' : 'Ver Vigencias' }}
-                      </button>
-                    </div>
+                    <button 
+                      (click)="facade.toggleExpandirPlacaEmitida(grupo.placa)"
+                      type="button" 
+                      class="inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-bold bg-slate-800 hover:bg-slate-900 text-white border-none cursor-pointer shadow-xs">
+                      <i class="fa-solid text-xs" [class.fa-chevron-down]="!facade.placasExpandidasEmitidas().includes(grupo.placa)" [class.fa-chevron-up]="facade.placasExpandidasEmitidas().includes(grupo.placa)"></i>
+                      {{ facade.placasExpandidasEmitidas().includes(grupo.placa) ? 'Ocultar Vigencias' : 'Ver Vigencias' }}
+                    </button>
                   </td>
                 </tr>
 
@@ -457,24 +441,8 @@
                         </span>
                       </td>
 
-                      <td class="py-2.5 px-4 text-center whitespace-nowrap">
-                        <div class="flex items-center justify-center gap-1">
-                          <!-- RECIBO INDIVIDUAL PARA 1 VIGENCIA -->
-                          <button 
-                            (click)="facade.abrirReciboIndividual(v)"
-                            type="button" 
-                            title="Imprimir Recibo Individual únicamente para la Vigencia {{ v.vigenciaAnio }}"
-                            class="inline-flex items-center justify-center gap-1 h-6 px-2.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-950 text-white border-none cursor-pointer">
-                            <i class="fa-solid fa-receipt"></i> Recibo {{ v.vigenciaAnio }}
-                          </button>
-                          <button 
-                            (click)="facade.abrirPdfPreview(v.placa, v.vigenciaAnio, false)"
-                            type="button" 
-                            title="Ver Preview PDF para la Vigencia {{ v.vigenciaAnio }}"
-                            class="inline-flex items-center justify-center gap-1 h-6 px-2 rounded text-[10.5px] font-bold bg-amber-700 hover:bg-amber-800 text-white border-none cursor-pointer">
-                            <i class="fa-solid fa-file-pdf"></i> PDF
-                          </button>
-                        </div>
+                      <td class="py-2.5 px-4 text-center whitespace-nowrap text-slate-400 text-xs">
+                        —
                       </td>
                     </tr>
                   }
@@ -960,160 +928,4 @@
   </div>
 }
 
-<!-- MODAL COMPROBANTE DE RECIBO TRIBUTARIO OFICIAL (INDIVIDUAL O UNIFICADO) -->
-@if (facade.reciboModalData()) {
-  <div class="fade-in fixed inset-0 bg-slate-900/60 z-[400] flex items-center justify-center backdrop-blur-xs p-4 sm:p-6 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden my-auto">
-      <!-- HEADER RECIBO OFICIAL -->
-      <div class="bg-[#1e3a7b] text-white p-5 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400 font-bold text-xl">
-            📜
-          </div>
-          <div>
-            <h3 class="text-base font-extrabold m-0">
-              {{ facade.reciboModalData()?.esUnificado ? 'Recibo Oficial Unificado de Liquidación' : 'Recibo Oficial de Liquidación Individual' }}
-            </h3>
-            <p class="text-xs text-blue-200 m-0 mt-0.5">Gobernación del Cauca · Secretaría de Hacienda Departamental</p>
-          </div>
-        </div>
-        <button (click)="facade.cerrarReciboModal()" type="button" class="text-slate-300 hover:text-white bg-transparent border-none text-xl cursor-pointer">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
 
-      <!-- VISTA PREVIA DEL DOCUMENTO OFICIAL DE RECIBO -->
-      <div class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-        <!-- CABECERA INSTITUCIONAL -->
-        <div class="border-b-2 border-slate-900 pb-3 flex items-center justify-between">
-          <div>
-            <span class="text-xs font-black text-slate-900 uppercase tracking-wider block">REPÚBLICA DE COLOMBIA</span>
-            <span class="text-sm font-extrabold text-[#1e3a7b] block">GOBERNACIÓN DEL CAUCA</span>
-            <span class="text-[10.5px] font-semibold text-slate-600 block">Dirección General de Impuestos y Rentas Departamentales</span>
-          </div>
-          <div class="text-right">
-            <span class="co-plate !text-sm">{{ facade.reciboModalData()?.placa }}</span>
-            <span class="text-[10px] font-mono text-slate-500 block mt-1">EMISIÓN: {{ facade.reciboModalData()?.fechaEmision | date:'dd/MM/yyyy HH:mm' }}</span>
-          </div>
-        </div>
-
-        <!-- DATOS DEL VEHÍCULO Y CONTRIBUYENTE -->
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 grid grid-cols-2 gap-3 text-xs">
-          <div>
-            <span class="text-[10px] font-bold text-slate-400 uppercase block">Contribuyente / Sujeto Pasivo</span>
-            @if (facade.reciboModalData()?.propietario && (facade.reciboModalData()?.propietario)!.length > 0) {
-              @for (p of facade.reciboModalData()?.propietario; track p.identification) {
-                <span class="font-extrabold text-slate-900 block">{{ p.completeName }}</span>
-                <span class="text-[11px] text-slate-600 block">{{ p.typeIdentification }} {{ p.identification }}</span>
-              }
-            } @else {
-              <span class="text-slate-400 italic text-[11px]">Sin propietario asignado</span>
-            }
-          </div>
-          <div>
-            <span class="text-[10px] font-bold text-slate-400 uppercase block">Vehículo Automotor</span>
-            <span class="font-extrabold text-slate-900 block">{{ facade.reciboModalData()?.marcaLinea }}</span>
-            <span class="text-[11px] text-slate-600">Modelo {{ facade.reciboModalData()?.modelo }}</span>
-          </div>
-        </div>
-
-        <!-- TABLA DE RENGLONES DEL RECIBO -->
-        <div class="border border-slate-200 rounded-xl overflow-hidden">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-100 font-bold text-slate-700 border-b border-slate-200 text-[11px]">
-                <th class="py-2 px-3">No. Liquidación</th>
-                <th class="py-2 px-3">Vigencia</th>
-                <th class="py-2 px-3 text-right">Impuesto</th>
-                <th class="py-2 px-3 text-right">Sanción</th>
-                <th class="py-2 px-3 text-right">Intereses</th>
-                <th class="py-2 px-3 text-right">Sistematiz.</th>
-                <th class="py-2 px-3 text-right">Total Vigencia</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of facade.reciboModalData()?.items; track item.numeroLiquidacion) {
-                <tr class="border-b border-slate-100 hover:bg-slate-50 text-[11px]">
-                  <td class="py-2 px-3 font-mono font-bold text-blue-900">{{ item.numeroLiquidacion }}</td>
-                  <td class="py-2 px-3 font-bold text-slate-800">Año {{ item.vigenciaAnio }}</td>
-                  <td class="py-2 px-3 text-right font-semibold text-slate-900">${{ item.impuestoBase | number:'1.0-0' }}</td>
-                  <td class="py-2 px-3 text-right text-amber-700 font-semibold">${{ item.sancionExtemporaneidad | number:'1.0-0' }}</td>
-                  <td class="py-2 px-3 text-right text-red-700 font-semibold">${{ item.interesesMora | number:'1.0-0' }}</td>
-                  <td class="py-2 px-3 text-right text-slate-700 font-medium">${{ (item.sistematizacionEstampillas || 14000) | number:'1.0-0' }}</td>
-                  <td class="py-2 px-3 text-right font-extrabold text-slate-900">${{ item.totalPagar | number:'1.0-0' }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- TOTAL A PAGAR Y CÓDIGO DE BARRAS / FECHA LÍMITE DE PAGO DINÁMICA -->
-        <div class="bg-slate-900 text-white rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <span [class]="'text-[10px] font-extrabold uppercase tracking-wide block ' + (facade.reciboModalData()?.esFechaInmediata ? 'text-amber-400' : 'text-emerald-400')">
-              Fecha Límite de Pago Oportuno
-            </span>
-            <span class="text-xs font-bold text-slate-200">
-              {{ facade.reciboModalData()?.fechaLimiteTexto }}
-              @if (facade.reciboModalData()?.esFechaInmediata) {
-                <span class="text-[10px] font-extrabold text-amber-400 block mt-0.5">(Aplica Sanciones / Mora por Vencimiento)</span>
-              } @else {
-                <span class="text-[10px] font-extrabold text-emerald-400 block mt-0.5">(Pago normal sin Sanciones ni Mora)</span>
-              }
-            </span>
-          </div>
-          <div class="text-right">
-            <span class="text-[10px] font-extrabold text-slate-400 uppercase block">TOTAL COMPROBANTE A PAGAR</span>
-            <span class="text-xl font-black text-emerald-400">${{ facade.reciboModalData()?.totalPagar | number:'1.0-0' }}</span>
-          </div>
-        </div>
-
-        <!-- REGLA Y FIRMA DIGITAL SIMULADA -->
-        <div class="border border-dashed border-slate-300 rounded-xl p-3 text-center bg-slate-50 text-[10.5px] text-slate-500">
-          <i class="fa-solid fa-barcode text-3xl text-slate-700 block mb-1"></i>
-          <span class="font-mono text-slate-700 font-bold block">(415)7709998001122(8020)000{{ facade.reciboModalData()?.totalPagar }}</span>
-          <span>Comprobante Oficial expedido conforme al Estatuto Tributario Departamental del Cauca.</span>
-        </div>
-      </div>
-
-      <!-- PIE DE MODAL CON BOTÓN DE IMPRESIÓN Y PDF -->
-      <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2.5 flex-wrap">
-        <button 
-          (click)="facade.cerrarReciboModal()" 
-          type="button" 
-          class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 border-none cursor-pointer">
-          Cerrar
-        </button>
-        <button 
-          (click)="facade.abrirPdfPreview(facade.reciboModalData()!.placa, facade.reciboModalData()!.esUnificado ? undefined : facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
-          type="button" 
-          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white border-none cursor-pointer shadow-sm">
-          <i class="fa-solid fa-file-pdf"></i>
-          Ver Preview PDF
-        </button>
-        <button 
-          (click)="facade.descargarPdfDirecto(facade.reciboModalData()!.placa, facade.reciboModalData()!.esUnificado ? undefined : facade.reciboModalData()?.items?.[0]?.vigenciaAnio, facade.reciboModalData()!.esUnificado)" 
-          type="button" 
-          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white border-none cursor-pointer shadow-sm">
-          <i class="fa-solid fa-download"></i>
-          Descargar PDF
-        </button>
-        <button 
-          (click)="facade.cerrarReciboModal()" 
-          type="button" 
-          class="inline-flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-bold bg-[#1e3a7b] hover:bg-[#152a5a] text-white border-none cursor-pointer shadow-sm">
-          <i class="fa-solid fa-print"></i>
-          Imprimir Recibo Oficial
-        </button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- COMPONENTE REUTILIZABLE DOCUMENT VIEWER PARA PREVIEW PDF OFICIAL -->
-<app-document-viewer 
-  [isOpen]="facade.isPdfViewerOpen()" 
-  [documentos]="facade.pdfDocumentos()" 
-  (onClose)="facade.cerrarPdfViewer()" 
-  title="Visor Oficial de Liquidación Tributaria (PDF)">
-</app-document-viewer>
