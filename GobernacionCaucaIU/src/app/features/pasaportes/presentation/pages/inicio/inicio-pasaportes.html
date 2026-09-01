@@ -1,0 +1,59 @@
+<section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+  <div class="mb-6 text-center">
+    <p class="text-xs font-bold uppercase tracking-widest text-[#1b53ad]">Módulo de Pasaportes</p>
+    <h1 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+      Solicitud y agendamiento
+    </h1>
+    <p class="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+      Registre la información solicitada para iniciar el proceso.
+    </p>
+  </div>
+
+  <ol class="mx-auto mb-6 flex max-w-4xl items-center" aria-label="Progreso del formulario">
+    <li class="flex flex-1 items-center gap-2 text-xs font-semibold text-[#1b53ad]">
+      <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#1b53ad] text-white">1</span>
+      <span class="hidden sm:inline">Datos del ciudadano</span>
+    </li>
+    <li class="h-px flex-1 bg-slate-300" aria-hidden="true"></li>
+    <li class="flex flex-1 items-center justify-center gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() >= 2" [class.text-slate-400]="pasoActual() === 1">
+      <span class="hidden sm:inline">Datos de contacto</span>
+      <span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() >= 2" [class.text-white]="pasoActual() >= 2" [class.bg-slate-200]="pasoActual() === 1">2</span>
+    </li>
+    <li class="h-px flex-1 bg-slate-300" aria-hidden="true"></li>
+    <li class="flex flex-1 items-center justify-end gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() === 3" [class.text-slate-400]="pasoActual() < 3"><span class="hidden sm:inline">Agendamiento</span><span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() === 3" [class.text-white]="pasoActual() === 3" [class.bg-slate-200]="pasoActual() < 3">3</span></li>
+  </ol>
+
+  <div class="mx-auto max-w-5xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="h-1.5 bg-[#1b53ad]"></div>
+    <div class="p-5 sm:p-8">
+      @if (pasoActual() === 1) {
+        <app-informacion-personal-form
+          [formulario]="formularioPersonal"
+          (continuar)="irAContacto()"
+        />
+      } @else if (pasoActual() === 2) {
+        <app-informacion-contacto-form
+          [formulario]="formularioContacto"
+          [completado]="datosCompletos()"
+          (anterior)="volverAPersonal()"
+          (continuar)="continuar()"
+        />
+      } @else {
+        <app-agendamiento-form
+          [tipoPasaporteSeleccionado]="tipoPasaporteSeleccionado()"
+          [fechaSeleccionada]="fechaSeleccionada()"
+          [intervaloSeleccionado]="intervaloSeleccionado()"
+          [completado]="datosCompletos()"
+          [creandoCita]="creandoCita()"
+          [consecutivoCita]="consecutivoCita()"
+          [errorCreacion]="errorCreacionCita()"
+          (tipoPasaporteChange)="actualizarTipoPasaporte($event)"
+          (fechaChange)="actualizarFecha($event)"
+          (intervaloChange)="actualizarIntervalo($event)"
+          (anterior)="volverAContacto()"
+          (continuar)="completarAgendamiento()"
+        />
+      }
+    </div>
+  </div>
+</section>
