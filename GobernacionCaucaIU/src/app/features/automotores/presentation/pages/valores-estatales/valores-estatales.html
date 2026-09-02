@@ -1,728 +1,820 @@
-<div class="flex-1 overflow-y-auto px-6 py-6 min-w-0 bg-slate-50 relative h-full font-sans text-slate-800">
+<main class="flex-1 overflow-y-auto px-6 py-5 min-w-0 bg-slate-50 relative h-full font-sans text-slate-800 pb-16">
 
-  <!-- CABECERA Y BREADCRUMB -->
-  <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
-    <div>
-      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
-        <a routerLink="/" class="hover:text-slate-600 transition">Inicio</a>
-        <i class="fa-solid fa-chevron-right text-[9px] text-slate-400"></i>
-        <a routerLink="/automotores" class="hover:text-slate-600 transition">Módulo Vehicular</a>
-        <i class="fa-solid fa-chevron-right text-[9px] text-slate-400"></i>
-        <span class="font-bold text-slate-800">Valores Estatales</span>
+  <!-- ========================================================================= -->
+  <!-- CABECERA DE PÁGINA (ESTILO ESTÁNDAR DEL MÓDULO VEHICULAR)                 -->
+  <!-- ========================================================================= -->
+  <div class="mb-5 pb-4 border-b border-slate-200/80">
+    <!-- Breadcrumb -->
+    <div class="flex items-center gap-1.5 text-[11.5px] text-slate-400 mb-2">
+      <a routerLink="/" class="font-normal hover:text-slate-600 cursor-pointer flex items-center gap-1 transition">
+        <i class="fa-solid fa-house text-[10px]"></i>
+        <span>Inicio</span>
+      </a>
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <a routerLink="/automotores" class="font-normal hover:text-slate-600 cursor-pointer transition">Módulo Vehicular</a>
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      <span class="text-slate-900 font-semibold">Valores Estatales</span>
+    </div>
+    
+    <!-- Title & Main Actions Area -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h1 class="text-[18px] font-bold text-slate-900 m-0 leading-snug flex items-center gap-2">
+          Valores Estatales
+          <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-blue-50 text-[#1e3a7b] border border-blue-200 uppercase tracking-wider">
+            Normatividad Oficial
+          </span>
+        </h1>
+        <p class="text-[12px] text-slate-400 mt-0.5">
+          Gestión oficial de UVT histórico, tasas de interés y salario mínimo legal
+        </p>
       </div>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-sm">
-          <i class="fa-solid fa-dollar-sign text-lg"></i>
+
+      <div class="flex gap-2 items-center shrink-0">
+        <!-- Recargar -->
+        <button
+          (click)="facade.cargarTodos()"
+          type="button"
+          class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 shadow-xs"
+          [disabled]="facade.uvtLoading() || facade.tasasLoading() || facade.salariosLoading()"
+          title="Recargar datos del servidor"
+        >
+          <i class="fa-solid fa-arrows-rotate text-xs" [class.fa-spin]="facade.uvtLoading() || facade.tasasLoading() || facade.salariosLoading()"></i>
+          <span class="hidden sm:inline">Recargar</span>
+        </button>
+
+        <!-- Botón Nuevo Registro (Estilo Módulo) -->
+        <button
+          (click)="abrirCrearModal()"
+          type="button"
+          class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-[#70b238] hover:bg-[#5f972f] text-white border-none shadow-sm"
+        >
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>Nuevo Registro</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- NAVBAR SUPERIOR DINÁMICO (3 PESTAÑAS: UVT, TASAS, SALARIOS)                -->
+  <!-- ========================================================================= -->
+  <nav class="bg-white rounded-2xl p-1.5 sm:p-2 border border-slate-200 shadow-xs flex flex-wrap gap-1.5 sm:gap-2 mb-5">
+    
+    <!-- Pestaña 1: UVT HISTÓRICO -->
+    <button
+      type="button"
+      (click)="facade.cambiarTab('UVT')"
+      class="flex-1 min-w-[150px] sm:min-w-[180px] flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left"
+      [ngClass]="facade.tabActiva() === 'UVT'
+        ? 'bg-[#0f4984] text-white shadow-md shadow-[#0f4984]/25'
+        : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-transparent'"
+    >
+      <div class="flex items-center gap-2.5">
+        <div 
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition"
+          [ngClass]="facade.tabActiva() === 'UVT' ? 'bg-white/20 text-white' : 'bg-blue-50 text-[#0f4984]'"
+        >
+          <i class="fa-solid fa-scale-balanced"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl font-black text-slate-900 tracking-tight leading-none">
-              Valores Estatales & Parámetros Tributarios
-            </h1>
-            <span class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-emerald-100 text-emerald-800 uppercase tracking-wider">
-              Parámetros Oficiales
-            </span>
-          </div>
-          <p class="text-xs text-slate-500 mt-1">
-            Gestión de UVT, SMLMV, sanciones, tasas de interés y parámetros para cálculo de impuestos
-          </p>
+          <span class="block text-xs font-bold uppercase tracking-wide">UVT Histórico</span>
+          <span class="block text-[10.5px] opacity-80 font-normal">Unidad Valor Tributario</span>
         </div>
       </div>
-    </div>
+      <span 
+        class="px-2 py-0.5 text-[11px] font-bold rounded-full"
+        [ngClass]="facade.tabActiva() === 'UVT' ? 'bg-white text-[#0f4984]' : 'bg-slate-100 text-slate-700'"
+      >
+        {{ facade.uvtList().length }}
+      </span>
+    </button>
 
-    <!-- BOTONES DE ACCIÓN PRINCIPALES -->
-    <div class="flex items-center gap-2.5 shrink-0">
-      <button 
-        (click)="facade.cargarTodos()" 
-        type="button" 
-        class="btn btn-sm bg-white hover:bg-slate-100 text-slate-700 border-slate-200 shadow-sm gap-2 normal-case font-semibold cursor-pointer"
-        [disabled]="facade.loading()">
-        <i class="fa-solid fa-arrows-rotate text-xs" [class.fa-spin]="facade.loading()"></i>
-        <span class="hidden sm:inline">Recargar</span>
-      </button>
+    <!-- Pestaña 2: TASAS DE INTERÉS -->
+    <button
+      type="button"
+      (click)="facade.cambiarTab('TASAS')"
+      class="flex-1 min-w-[150px] sm:min-w-[180px] flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left"
+      [ngClass]="facade.tabActiva() === 'TASAS'
+        ? 'bg-[#0f4984] text-white shadow-md shadow-[#0f4984]/25'
+        : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-transparent'"
+    >
+      <div class="flex items-center gap-2.5">
+        <div 
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition"
+          [ngClass]="facade.tabActiva() === 'TASAS' ? 'bg-white/20 text-white' : 'bg-blue-50 text-[#0f4984]'"
+        >
+          <i class="fa-solid fa-percent"></i>
+        </div>
+        <div>
+          <span class="block text-xs font-bold uppercase tracking-wide">Tasas de Interés</span>
+          <span class="block text-[10.5px] opacity-80 font-normal">Mora & Bancaria Corriente</span>
+        </div>
+      </div>
+      <span 
+        class="px-2 py-0.5 text-[11px] font-bold rounded-full"
+        [ngClass]="facade.tabActiva() === 'TASAS' ? 'bg-white text-[#0f4984]' : 'bg-slate-100 text-slate-700'"
+      >
+        {{ facade.tasasList().length }}
+      </span>
+    </button>
 
-      <button 
-        (click)="abrirCrearModal()" 
-        type="button" 
-        class="btn btn-sm bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm gap-2 normal-case font-bold cursor-pointer border-none">
-        <i class="fa-solid fa-plus text-xs"></i>
-        <span>Nuevo Parámetro Tributario</span>
-      </button>
-    </div>
-  </header>
+    <!-- Pestaña 3: SALARIO MÍNIMO -->
+    <button
+      type="button"
+      (click)="facade.cambiarTab('SALARIOS')"
+      class="flex-1 min-w-[150px] sm:min-w-[180px] flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left"
+      [ngClass]="facade.tabActiva() === 'SALARIOS'
+        ? 'bg-[#0f4984] text-white shadow-md shadow-[#0f4984]/25'
+        : 'hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-transparent'"
+    >
+      <div class="flex items-center gap-2.5">
+        <div 
+          class="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition"
+          [ngClass]="facade.tabActiva() === 'SALARIOS' ? 'bg-white/20 text-white' : 'bg-blue-50 text-[#0f4984]'"
+        >
+          <i class="fa-solid fa-money-bill-wave"></i>
+        </div>
+        <div>
+          <span class="block text-xs font-bold uppercase tracking-wide">Salario Mínimo</span>
+          <span class="block text-[10.5px] opacity-80 font-normal">SMLMV + Auxilio</span>
+        </div>
+      </div>
+      <span 
+        class="px-2 py-0.5 text-[11px] font-bold rounded-full"
+        [ngClass]="facade.tabActiva() === 'SALARIOS' ? 'bg-white text-[#0f4984]' : 'bg-slate-100 text-slate-700'"
+      >
+        {{ facade.salariosList().length }}
+      </span>
+    </button>
+  </nav>
 
   <!-- TOAST FEEDBACK NOTIFICATION -->
-  @if (toastMessage()) {
-    <div class="mb-6 alert shadow-lg rounded-xl transition-all border p-4 flex items-center justify-between"
-         [ngClass]="{
-           'bg-emerald-50 border-emerald-200 text-emerald-900': toastMessage()?.type === 'success',
-           'bg-rose-50 border-rose-200 text-rose-900': toastMessage()?.type === 'error',
-           'bg-blue-50 border-blue-200 text-blue-900': toastMessage()?.type === 'info'
-         }">
+  @if (facade.toastMessage()) {
+    <div 
+      class="mb-4 p-3.5 rounded-lg border shadow-xs flex items-center justify-between transition-all animate-fadeIn"
+      [ngClass]="{
+        'bg-emerald-50 border-emerald-200 text-emerald-900': facade.toastMessage()?.type === 'success',
+        'bg-rose-50 border-rose-200 text-rose-900': facade.toastMessage()?.type === 'error',
+        'bg-blue-50 border-blue-200 text-blue-900': facade.toastMessage()?.type === 'info'
+      }"
+    >
       <div class="flex items-center gap-3">
-        <i class="fa-solid text-base"
-           [ngClass]="{
-             'fa-circle-check text-emerald-600': toastMessage()?.type === 'success',
-             'fa-circle-xmark text-rose-600': toastMessage()?.type === 'error',
-             'fa-circle-info text-blue-600': toastMessage()?.type === 'info'
-           }"></i>
+        <i 
+          class="fa-solid text-base"
+          [ngClass]="{
+            'fa-circle-check text-[#70b238]': facade.toastMessage()?.type === 'success',
+            'fa-circle-xmark text-rose-600': facade.toastMessage()?.type === 'error',
+            'fa-circle-info text-[#1e3a7b]': facade.toastMessage()?.type === 'info'
+          }"
+        ></i>
         <div>
-          <h4 class="font-bold text-xs">{{ toastMessage()?.title }}</h4>
-          <p class="text-xs opacity-90">{{ toastMessage()?.desc }}</p>
+          <h4 class="font-bold text-xs">{{ facade.toastMessage()?.title }}</h4>
+          <p class="text-[11.5px] opacity-90 font-medium">{{ facade.toastMessage()?.desc }}</p>
         </div>
       </div>
-      <button (click)="cerrarToast()" class="btn btn-xs btn-ghost text-slate-500 hover:text-slate-800">
-        <i class="fa-solid fa-xmark"></i>
+      <button (click)="facade.cerrarToast()" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer">
+        <i class="fa-solid fa-xmark text-sm"></i>
       </button>
     </div>
   }
 
-  <!-- KPIS PRINCIPALES -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-    <!-- Card 1 -->
-    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-      <div class="flex items-start justify-between gap-2 mb-2">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Total Parámetros</span>
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-50 text-blue-700 border border-blue-200 text-sm">
-          <i class="fa-solid fa-sliders"></i>
+  <!-- ========================================================================= -->
+  <!-- KPIS CARDS ESTILO ESTÁNDAR DEL MÓDULO                                     -->
+  <!-- ========================================================================= -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mb-5">
+    @for (kpi of facade.kpisActivos(); track kpi.label) {
+      <div class="bg-white border border-slate-200 rounded-lg py-4 px-5 shadow-sm flex flex-col gap-2.5 flex-1 min-w-0">
+        <div class="flex items-center justify-between">
+          <div 
+            class="w-9 h-9 rounded-md flex items-center justify-center text-[#1e3a7b]"
+            [ngClass]="{
+              'bg-[#1e3a7b14] text-[#1e3a7b]': kpi.color === 'blue',
+              'bg-[#70b2381a] text-[#70b238]': kpi.color === 'emerald',
+              'bg-teal-50 text-teal-700': kpi.color === 'teal',
+              'bg-amber-50 text-amber-800': kpi.color === 'amber'
+            }"
+          >
+            <i class="fa-solid {{ kpi.icon }} text-[15px]"></i>
+          </div>
+        </div>
+        <div>
+          <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+            {{ kpi.label }}
+          </div>
+          <div class="text-2xl font-bold text-slate-900 leading-none">
+            {{ kpi.value }}
+          </div>
+        </div>
+        <div class="text-[11.5px] text-slate-500 truncate">
+          {{ kpi.subtext }}
         </div>
       </div>
-      <span class="text-2xl font-black text-slate-900 tracking-tight leading-none">
-        {{ facade.totalGeneral() }}
-      </span>
-      <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 mt-2">
-        Parámetros registrados en base de datos
-      </div>
-    </div>
+    }
+  </div>
 
-    <!-- Card 2 -->
-    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-      <div class="flex items-start justify-between gap-2 mb-2">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Vigentes Actualmente</span>
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-50 text-emerald-700 border border-emerald-200 text-sm">
-          <i class="fa-solid fa-circle-check"></i>
-        </div>
-      </div>
-      <span class="text-2xl font-black text-slate-900 tracking-tight leading-none">
-        {{ facade.totalVigentes() }}
-      </span>
-      <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 mt-2">
-        Vigencia activa sin fecha fin expirada
-      </div>
-    </div>
-
-    <!-- Card 3 -->
-    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-      <div class="flex items-start justify-between gap-2 mb-2">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Parámetros Activos</span>
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-teal-50 text-teal-700 border border-teal-200 text-sm">
-          <i class="fa-solid fa-toggle-on"></i>
-        </div>
-      </div>
-      <span class="text-2xl font-black text-slate-900 tracking-tight leading-none">
-        {{ facade.totalActivos() }}
-      </span>
-      <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 mt-2">
-        Habilitados para cálculo de liquidaciones
-      </div>
-    </div>
-
-    <!-- Card 4 -->
-    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-between">
-      <div class="flex items-start justify-between gap-2 mb-2">
-        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider leading-tight">Inactivos / Inhabilitados</span>
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-amber-50 text-amber-800 border border-amber-200 text-sm">
-          <i class="fa-solid fa-ban"></i>
-        </div>
-      </div>
-      <span class="text-2xl font-black text-slate-900 tracking-tight leading-none">
-        {{ facade.totalInactivos() }}
-      </span>
-      <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-100 mt-2">
-        Borrado lógico conservando trazabilidad
-      </div>
-    </div>
-  </section>
-
-  <!-- SECCIÓN DE TABLA Y FILTROS -->
-  <section class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+  <!-- ========================================================================= -->
+  <!-- FILTROS Y BÚSQUEDA ESTÁNDAR DEL MÓDULO                                    -->
+  <!-- ========================================================================= -->
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
     
-    <!-- BARRA DE BUSQUEDA Y FILTROS -->
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5 pb-4 border-b border-slate-100">
-      
-      <!-- BUSCADOR -->
-      <div class="relative flex-1 max-w-md">
-        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-          <i class="fa-solid fa-magnifying-glass text-xs"></i>
-        </div>
-        <input 
-          type="text"
-          [ngModel]="facade.searchTerm()"
-          (ngModelChange)="facade.searchTerm.set($event)"
-          placeholder="Buscar por código, nombre o valor..."
-          class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
-        />
-      </div>
+    <!-- Buscador -->
+    <div class="relative flex-1 min-w-[260px] max-w-md">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+      </span>
+      <input
+        type="text"
+        [ngModel]="
+          facade.tabActiva() === 'UVT' ? facade.uvtSearchTerm() :
+          facade.tabActiva() === 'TASAS' ? facade.tasasSearchTerm() :
+          facade.salariosSearchTerm()
+        "
+        (ngModelChange)="
+          facade.tabActiva() === 'UVT' ? facade.uvtSearchTerm.set($event) :
+          facade.tabActiva() === 'TASAS' ? facade.tasasSearchTerm.set($event) :
+          facade.salariosSearchTerm.set($event)
+        "
+        placeholder="Buscar por año, valor, tipo o norma..."
+        class="w-full bg-white border border-slate-200 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+      />
+    </div>
 
-      <!-- FILTROS DROPDOWN -->
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- Filtro Vigencia -->
-        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs">
-          <span class="font-bold text-slate-400 uppercase tracking-wider text-[10px] mr-2">Vigencia:</span>
-          <select 
-            [ngModel]="facade.vigenciaFiltro()"
-            (ngModelChange)="facade.vigenciaFiltro.set($event)"
-            class="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer">
-            <option value="TODOS">Todas las vigencias</option>
-            @for (v of facade.vigencias(); track v.id) {
-              <option [value]="v.id">Vigencia {{ v.anio }} {{ v.activa ? '(Activa)' : '' }}</option>
+    <!-- Dropdowns de Filtro -->
+    <div class="flex flex-wrap items-center gap-2">
+      
+      @if (facade.tabActiva() === 'UVT' || facade.tabActiva() === 'SALARIOS') {
+        <div class="flex items-center bg-white border border-slate-200 rounded-md px-2.5 py-1 text-xs">
+          <span class="font-bold text-slate-400 uppercase text-[10px] mr-2">Año:</span>
+          <select
+            [ngModel]="facade.tabActiva() === 'UVT' ? facade.uvtAnioFiltro() : facade.salariosAnioFiltro()"
+            (ngModelChange)="facade.tabActiva() === 'UVT' ? facade.uvtAnioFiltro.set($event) : facade.salariosAnioFiltro.set($event)"
+            class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer"
+          >
+            <option value="TODOS">Todos los años</option>
+            @for (year of facade.aniosDisponibles(); track year) {
+              <option [value]="year">Año {{ year }}</option>
             }
           </select>
         </div>
+      }
 
-        <!-- Filtro Estado -->
-        <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-xs">
-          <span class="font-bold text-slate-400 uppercase tracking-wider text-[10px] mr-2">Estado:</span>
-          <select 
-            [ngModel]="facade.estadoFiltro()"
-            (ngModelChange)="facade.estadoFiltro.set($event)"
-            class="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer">
-            <option value="TODOS">Todos los estados</option>
-            <option value="ACTIVOS">Solo Activos</option>
-            <option value="INACTIVOS">Solo Inactivos</option>
-            <option value="VIGENTES">Vigentes (Activos)</option>
-            <option value="CERRADOS">Cerrados (Con Fecha Fin)</option>
+      @if (facade.tabActiva() === 'TASAS') {
+        @if (facade.tiposTasasDisponibles().length > 0) {
+          <div class="flex items-center bg-white border border-slate-200 rounded-md px-2.5 py-1 text-xs">
+            <span class="font-bold text-slate-400 uppercase text-[10px] mr-2">Tipo:</span>
+            <select
+              [ngModel]="facade.tasasTipoFiltro()"
+              (ngModelChange)="facade.tasasTipoFiltro.set($event)"
+              class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer"
+            >
+              <option value="TODOS">Todos los tipos</option>
+              @for (tipo of facade.tiposTasasDisponibles(); track tipo) {
+                <option [value]="tipo">{{ tipo }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        <div class="flex items-center bg-white border border-slate-200 rounded-md px-2.5 py-1 text-xs">
+          <span class="font-bold text-slate-400 uppercase text-[10px] mr-2">Periodicidad:</span>
+          <select
+            [ngModel]="facade.tasasPeriodicidadFiltro()"
+            (ngModelChange)="facade.tasasPeriodicidadFiltro.set($event)"
+            class="bg-transparent font-semibold text-slate-800 focus:outline-none cursor-pointer"
+          >
+            <option value="TODOS">Todas</option>
+            <option value="Efectiva Anual">Efectiva Anual</option>
+            <option value="Mensual">Mensual</option>
+            <option value="Nominal Anual">Nominal Anual</option>
           </select>
         </div>
-      </div>
+      }
+
     </div>
+  </div>
 
-    <!-- TABLA DE PARAMETROS -->
-    <div class="overflow-x-auto">
-      <table class="table table-xs w-full">
-        <thead>
-          <tr class="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200">
-            <th class="py-3 px-3">Código</th>
-            <th>Nombre del Parámetro</th>
-            <th>Vigencia Fiscal</th>
-            <th>Valor (Decimal / Texto)</th>
-            <th>Vigencia (Inicio — Fin)</th>
-            <th class="text-center">Estado (Activo)</th>
-            <th class="text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100 text-xs">
-          @for (item of facade.parametrosFiltrados(); track item.id) {
-            <tr class="hover:bg-slate-50/80 transition-colors" [class.opacity-60]="!item.activo">
-              <!-- CÓDIGO -->
-              <td class="font-bold text-slate-800 py-3 px-3">
-                <span class="px-2 py-1 rounded bg-slate-100 text-slate-900 font-mono font-bold text-[11px] border border-slate-200 shadow-2xs tracking-wider">
-                  {{ item.codigo }}
-                </span>
-              </td>
-
-              <!-- NOMBRE -->
-              <td class="font-semibold text-slate-800 max-w-xs">
-                <div class="flex flex-col">
-                  <span class="truncate" [title]="item.nombre">{{ item.nombre }}</span>
-                  @if (item.normaTributariaId) {
-                    <span class="text-[10px] font-normal text-slate-400">
-                      Norma Tributaria ID: {{ item.normaTributariaId }}
-                    </span>
-                  }
-                </div>
-              </td>
-
-              <!-- VIGENCIA FISCAL -->
-              <td>
-                <div class="flex items-center gap-1.5">
-                  <span class="px-2 py-0.5 rounded font-bold text-[10.5px] bg-blue-50 text-blue-800 border border-blue-200">
-                    Vigencia {{ facade.getAnioPorVigenciaId(item.vigenciaFiscalId) }}
-                  </span>
-                  <span class="text-[9.5px] text-slate-400 font-mono" title="ID de Vigencia en Base de Datos">
-                    (ID: {{ item.vigenciaFiscalId }})
-                  </span>
-                </div>
-              </td>
-
-              <!-- VALOR DECIMAL / TEXTO -->
-              <td class="font-mono font-bold text-slate-900">
-                <div class="flex flex-col">
-                  @if (item.valorDecimal !== undefined && item.valorDecimal !== null) {
-                    <span class="text-emerald-700 font-black">
-                      ${{ item.valorDecimal | number:'1.2-2' }}
-                    </span>
-                  }
-                  @if (item.valorTexto) {
-                    <span class="text-[10px] text-slate-500 font-normal">{{ item.valorTexto }}</span>
-                  }
-                </div>
-              </td>
-
-              <!-- FECHAS INICIO Y FIN VIGENCIA -->
-              <td>
-                <div class="flex flex-col text-[11px]">
-                  <span class="text-slate-700">
-                    <i class="fa-regular fa-calendar text-[10px] text-slate-400 mr-1"></i>
-                    {{ item.fechaInicioVigencia }}
-                  </span>
-                  @if (item.fechaFinVigencia) {
-                    <span class="text-amber-800 font-medium">
-                      Hasta: {{ item.fechaFinVigencia }}
-                    </span>
-                  } @else {
-                    <span class="text-emerald-600 font-bold text-[10px]">
-                      Indefinida / Sin fecha fin
-                    </span>
-                  }
-                </div>
-              </td>
-
-              <!-- ESTADO (ACTIVO) TOGGLE -->
-              <td class="text-center">
-                <button 
-                  type="button" 
-                  (click)="toggleEstadoActivo(item, $event)"
-                  class="cursor-pointer inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold transition-all border"
-                  [ngClass]="item.activo 
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100' 
-                    : 'bg-slate-100 text-slate-500 border-slate-300 hover:bg-slate-200'"
-                  [title]="item.activo ? 'Clic para inhabilitar (Borrado lógico)' : 'Clic para habilitar'">
-                  <i class="fa-solid text-[9px]" [ngClass]="item.activo ? 'fa-check text-emerald-600' : 'fa-ban text-slate-400'"></i>
-                  {{ item.activo ? 'ACTIVO' : 'INACTIVO' }}
-                </button>
-              </td>
-
-              <!-- ACCIONES -->
-              <td class="text-right whitespace-nowrap">
-                <div class="flex items-center justify-end gap-1">
-                  <!-- Editar -->
-                  <button 
-                    (click)="abrirEditarModal(item)"
-                    type="button" 
-                    class="btn btn-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 gap-1 font-semibold"
-                    title="Editar Nombre, Valor o Parámetro">
-                    <i class="fa-solid fa-pen text-[10px]"></i>
-                    <span class="hidden sm:inline">Editar</span>
-                  </button>
-
-                  <!-- Cerrar Parámetro -->
-                  <button 
-                    (click)="abrirCerrarModal(item)"
-                    type="button" 
-                    class="btn btn-xs bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300 gap-1 font-semibold"
-                    title="Cerrar Vigencia o aperturar nueva">
-                    <i class="fa-solid fa-clock-rotate-left text-[10px]"></i>
-                    <span class="hidden sm:inline">Cerrar</span>
-                  </button>
-
-                  <!-- Audit -->
-                  <button 
-                    (click)="abrirAuditoriaModal(item)"
-                    type="button" 
-                    class="btn btn-xs btn-ghost text-slate-400 hover:text-slate-700"
-                    title="Ver Auditoría y Concurrencia (RowVersion, UpdatedAt)">
-                    <i class="fa-solid fa-shield-halved text-xs"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="7" class="py-14 text-center">
-                <div class="flex flex-col items-center justify-center gap-2 max-w-sm mx-auto">
-                  <div class="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-1 shadow-xs">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
-                    </svg>
-                  </div>
-                  <span class="text-xs font-bold text-slate-700">Sin parámetros tributarios encontrados</span>
-                  <p class="text-[11.5px] text-slate-400 m-0 leading-relaxed">
-                    No se encontraron parámetros tributarios con los criterios de búsqueda o filtros seleccionados.
-                  </p>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-</div>
-
-<!-- ========================================================================= -->
-<!-- MODAL / SIDEBAR: CREAR / EDITAR PARAMETRO TRIBUTARIO -->
-<!-- ========================================================================= -->
-@if (facade.modalMode() === 'CREATE' || facade.modalMode() === 'EDIT') {
-  <div class="fixed inset-0 z-50 flex justify-end">
-    <!-- Backdrop Overlay -->
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarModal()"></div>
+  <!-- ========================================================================= -->
+  <!-- CONTENEDOR DE TABLAS (ESTILO ESTÁNDAR DEL MÓDULO)                         -->
+  <!-- ========================================================================= -->
+  <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
     
-    <!-- Sidebar Panel Drawer -->
-    <div (click)="$event.stopPropagation()" data-theme="light" class="relative z-10 w-full max-w-lg sm:max-w-xl h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900 animate-in slide-in-from-right duration-200">
-      
-      <!-- CABECERA SIDEBAR -->
+    <!-- --------------------------------------------------------------------- -->
+    <!-- TABLA 1: UVT HISTÓRICO                                                -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (facade.tabActiva() === 'UVT') {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10.5px] font-bold uppercase tracking-wider">
+              <th class="py-3 px-4">Año Fiscal</th>
+              <th class="py-3 px-4">Valor UVT (COP)</th>
+              <th class="py-3 px-4">Sanción Mínima (5 UVT)</th>
+              <th class="py-3 px-4">Soporte Legal / Resolución</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-[12.5px]">
+            @for (item of facade.uvtFiltrados(); track item.idUvt) {
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3 px-4 font-bold text-[#1e3a7b]">
+                  <span class="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 font-mono">
+                    {{ item.anio }}
+                  </span>
+                </td>
+
+                <td class="py-3 px-4 font-bold text-slate-900 font-mono">
+                  ${{ item.valor | number:'1.0-0' }} COP
+                </td>
+
+                <td class="py-3 px-4">
+                  <span class="font-bold text-[#70b238] font-mono">
+                    ${{ (item.valor * 5) | number:'1.0-0' }} COP
+                  </span>
+                </td>
+
+                <td class="py-3 px-4 text-slate-600 max-w-xs">
+                  <span class="truncate block" [title]="item.fuenteLegal || 'Sin especificar'">
+                    {{ item.fuenteLegal || 'No especificada' }}
+                  </span>
+                </td>
+
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      (click)="abrirEditarUvt(item)"
+                      type="button"
+                      class="px-2 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition cursor-pointer"
+                      title="Editar valor UVT"
+                    >
+                      <i class="fa-solid fa-pen text-[11px] mr-1"></i>Editar
+                    </button>
+                    <button
+                      (click)="abrirEliminar('UVT', item.idUvt, 'UVT Año ' + item.anio)"
+                      type="button"
+                      class="px-2 py-1 rounded text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                      title="Eliminar registro"
+                    >
+                      <i class="fa-solid fa-trash-can text-[11px] mr-1"></i>Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="py-14 text-center">
+                  <div class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-1">
+                      <i class="fa-solid fa-scale-balanced text-base"></i>
+                    </div>
+                    <h3 class="text-xs font-bold text-slate-700 uppercase m-0">Sin información registrada</h3>
+                    <p class="text-[11.5px] text-slate-400 m-0">
+                      No se encontraron registros de UVT en la base de datos.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- TABLA 2: TASAS DE INTERÉS                                             -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (facade.tabActiva() === 'TASAS') {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10.5px] font-bold uppercase tracking-wider">
+              <th class="py-3 px-4">Tipo de Tasa</th>
+              <th class="py-3 px-4">Periodicidad</th>
+              <th class="py-3 px-4">Tasa de Interés</th>
+              <th class="py-3 px-4">Vigencia (Desde — Hasta)</th>
+              <th class="py-3 px-4">Soporte Legal</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-[12.5px]">
+            @for (item of facade.tasasFiltradas(); track item.idTasaInteres) {
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3 px-4 font-bold text-slate-900">
+                  {{ item.tipoTasaInteres }}
+                </td>
+                <td class="py-3 px-4">
+                  <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    {{ item.periodicidad }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 font-bold text-[#1e3a7b] font-mono">
+                  {{ item.valor | number:'1.2-2' }}%
+                </td>
+                <td class="py-3 px-4 text-slate-700 text-[11.5px]">
+                  <div>Desde: {{ item.vigenciaDesde }}</div>
+                  @if (item.vigenciaHasta) {
+                    <div class="text-amber-800 font-semibold">Hasta: {{ item.vigenciaHasta }}</div>
+                  } @else {
+                    <div class="text-[#70b238] font-bold text-[10px]">Indefinida</div>
+                  }
+                </td>
+                <td class="py-3 px-4 text-slate-600 max-w-xs">
+                  <span class="truncate block" [title]="item.fuenteLegal || 'Sin especificar'">
+                    {{ item.fuenteLegal || 'No especificada' }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      (click)="abrirEditarTasa(item)"
+                      type="button"
+                      class="px-2 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition cursor-pointer"
+                      title="Editar tasa"
+                    >
+                      <i class="fa-solid fa-pen text-[11px] mr-1"></i>Editar
+                    </button>
+                    <button
+                      (click)="abrirEliminar('TASA', item.idTasaInteres, item.tipoTasaInteres + ' (' + item.valor + '%)')"
+                      type="button"
+                      class="px-2 py-1 rounded text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                      title="Eliminar tasa"
+                    >
+                      <i class="fa-solid fa-trash-can text-[11px] mr-1"></i>Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="py-14 text-center">
+                  <div class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-1">
+                      <i class="fa-solid fa-percent text-base"></i>
+                    </div>
+                    <h3 class="text-xs font-bold text-slate-700 uppercase m-0">Sin información registrada</h3>
+                    <p class="text-[11.5px] text-slate-400 m-0">
+                      No se encontraron tasas de interés en la base de datos.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------------------- -->
+    <!-- TABLA 3: SALARIO MÍNIMO                                               -->
+    <!-- --------------------------------------------------------------------- -->
+    @if (facade.tabActiva() === 'SALARIOS') {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[10.5px] font-bold uppercase tracking-wider">
+              <th class="py-3 px-4">Año</th>
+              <th class="py-3 px-4">Salario Mínimo (SMLMV)</th>
+              <th class="py-3 px-4">Auxilio de Transporte</th>
+              <th class="py-3 px-4">Total Devengado Mensual</th>
+              <th class="py-3 px-4">Salario Diario (Base 30)</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-[12.5px]">
+            @for (item of facade.salariosFiltrados(); track item.idSalario) {
+              <tr class="hover:bg-slate-50 transition-colors">
+                <td class="py-3 px-4 font-bold text-[#1e3a7b]">
+                  <span class="px-2 py-0.5 rounded bg-blue-50 border border-blue-200 font-mono">
+                    {{ item.anio }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 font-bold text-slate-900 font-mono">
+                  ${{ item.valor | number:'1.0-0' }} COP
+                </td>
+                <td class="py-3 px-4 font-semibold text-slate-700 font-mono">
+                  ${{ item.auxilioTransporte | number:'1.0-0' }} COP
+                </td>
+                <td class="py-3 px-4 font-bold text-[#70b238] font-mono">
+                  ${{ (item.valor + item.auxilioTransporte) | number:'1.0-0' }} COP
+                </td>
+                <td class="py-3 px-4 text-slate-600 font-mono">
+                  ${{ (item.valor / 30) | number:'1.0-0' }} COP
+                </td>
+                <td class="py-3 px-4 text-right whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <button
+                      (click)="abrirEditarSalario(item)"
+                      type="button"
+                      class="px-2 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 transition cursor-pointer"
+                      title="Editar salario mínimo"
+                    >
+                      <i class="fa-solid fa-pen text-[11px] mr-1"></i>Editar
+                    </button>
+                    <button
+                      (click)="abrirEliminar('SALARIO', item.idSalario, 'Salario Mínimo ' + item.anio)"
+                      type="button"
+                      class="px-2 py-1 rounded text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                      title="Eliminar registro"
+                    >
+                      <i class="fa-solid fa-trash-can text-[11px] mr-1"></i>Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="py-14 text-center">
+                  <div class="flex flex-col items-center justify-center max-w-sm mx-auto space-y-2">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400 mb-1">
+                      <i class="fa-solid fa-money-bill-wave text-base"></i>
+                    </div>
+                    <h3 class="text-xs font-bold text-slate-700 uppercase m-0">Sin información registrada</h3>
+                    <p class="text-[11.5px] text-slate-400 m-0">
+                      No se encontraron registros de Salario Mínimo en la base de datos.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  </div>
+</main>
+
+<!-- ========================================================================= -->
+<!-- DRAWER SIDEBAR DESPLEGABLE DE CREACIÓN / EDICIÓN (ESTILO SIDEBAR)          -->
+<!-- ========================================================================= -->
+@if (modalMode() === 'CREATE' || modalMode() === 'EDIT') {
+  <div class="fixed inset-0 z-50 flex justify-end animate-fadeIn">
+    
+    <!-- Backdrop Overlay -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="cerrarModal()"></div>
+    
+    <!-- Panel Lateral Drawer (Sidebar) -->
+    <div 
+      (click)="$event.stopPropagation()" 
+      class="relative z-10 w-full max-w-lg sm:max-w-xl h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900 animate-in slide-in-from-right duration-200"
+    >
+      <!-- Cabecera del Sidebar Drawer -->
       <div class="px-6 py-4 bg-[#1e3a7b] text-white flex items-center justify-between border-b border-[#1e3a7b] shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              @if (facade.modalMode() === 'CREATE') {
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-              } @else {
-                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
-              }
-            </svg>
+            <i class="fa-solid" [ngClass]="modalMode() === 'CREATE' ? 'fa-plus' : 'fa-pen-to-square'"></i>
           </div>
           <div>
             <h3 class="text-base font-bold text-white m-0">
-              {{ facade.modalMode() === 'CREATE' ? 'Nuevo Parámetro Tributario' : 'Editar Parámetro Tributario' }}
+              {{ modalMode() === 'CREATE' ? 'Nuevo Registro' : 'Editar Registro' }} — {{ facade.tabActiva() }}
             </h3>
-            <p class="text-[11.5px] text-white/80 m-0 mt-0.5">Configuración de valores oficiales para cálculos tributarios</p>
+            <p class="text-[11.5px] text-white/80 m-0 mt-0.5">Configuración oficial de parámetros estatales</p>
           </div>
         </div>
-        <button (click)="facade.cerrarModal()" type="button" class="w-8 h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
+        <button (click)="cerrarModal()" type="button" class="w-8 h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
+          <i class="fa-solid fa-xmark text-base"></i>
         </button>
       </div>
 
-      <!-- CUERPO FORMULARIO SIDEBAR -->
-      <form [formGroup]="parametroForm" (ngSubmit)="guardarParametro()" class="flex-1 overflow-y-auto p-6 bg-white text-slate-800 flex flex-col justify-between">
+      <!-- Cuerpo del Formulario en el Sidebar -->
+      <div class="flex-1 overflow-y-auto p-6 bg-white text-slate-800">
         
-        <div class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Código -->
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Código Único del Parámetro <span class="text-red-500">*</span>
+        <!-- FORMULARIO UVT -->
+        @if (facade.tabActiva() === 'UVT') {
+          <form [formGroup]="uvtForm" id="uvtFormId" (ngSubmit)="guardarRegistro()" class="space-y-4">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Año Fiscal <span class="text-red-500">*</span>
               </label>
-              <input 
-                type="text" 
-                formControlName="codigo"
-                placeholder="Ej: UVT_2026, SMLMV_2026"
-                class="w-full text-xs font-mono font-bold text-slate-900 px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none uppercase placeholder:text-slate-400 placeholder:font-normal"
-                [class.border-red-500]="parametroForm.get('codigo')?.invalid && parametroForm.get('codigo')?.touched"
+              <input
+                type="number"
+                formControlName="anio"
+                placeholder="Ej: 2026"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
               />
-              @if (parametroForm.get('codigo')?.invalid && parametroForm.get('codigo')?.touched) {
-                <p class="text-[10.5px] text-red-600 font-bold mt-1">El código es obligatorio y solo admite letras, números y guiones bajas (ej: UVT_2026).</p>
-              } @else {
-                <p class="text-[10.5px] text-slate-500 mt-1">Identificador técnico utilizado en fórmulas de liquidación</p>
+              @if (uvtForm.get('anio')?.invalid && uvtForm.get('anio')?.touched) {
+                <p class="text-[11px] text-red-600 font-medium">El año es requerido (1990 - 2100).</p>
               }
             </div>
 
-            <!-- Vigencia Fiscal -->
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Vigencia Fiscal <span class="text-red-500">*</span>
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Valor UVT (COP) <span class="text-red-500">*</span>
               </label>
-              <div class="relative">
-                <select 
-                  formControlName="vigenciaFiscalId"
-                  class="w-full text-xs font-bold text-slate-900 px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none appearance-none cursor-pointer">
-                  @for (v of facade.vigencias(); track v.id) {
-                    <option [value]="v.id" class="bg-white text-slate-900">
-                      Vigencia {{ v.anio }} {{ v.activa ? '(Activa - ID: ' + v.id + ')' : '(ID: ' + v.id + ')' }}
-                    </option>
-                  }
+              <input
+                type="number"
+                formControlName="valor"
+                placeholder="Ej: 49799"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+              />
+              @if (uvtForm.get('valor')?.invalid && uvtForm.get('valor')?.touched) {
+                <p class="text-[11px] text-red-600 font-medium">El valor de UVT es obligatorio y mayor a 0.</p>
+              }
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Soporte Legal / Resolución
+              </label>
+              <input
+                type="text"
+                formControlName="fuenteLegal"
+                placeholder="Ej: Resolución DIAN No. 000187 de 2025"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+              />
+            </div>
+          </form>
+        }
+
+        <!-- FORMULARIO TASAS DE INTERÉS -->
+        @if (facade.tabActiva() === 'TASAS') {
+          <form [formGroup]="tasaForm" id="tasaFormId" (ngSubmit)="guardarRegistro()" class="space-y-4">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Tipo de Tasa <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="tipoTasaInteres"
+                placeholder="Ej: Mora Tributaria / Bancaria Corriente"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+              />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Periodicidad <span class="text-red-500">*</span>
+                </label>
+                <select
+                  formControlName="periodicidad"
+                  class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition cursor-pointer"
+                >
+                  <option value="Efectiva Anual">Efectiva Anual</option>
+                  <option value="Mensual">Mensual</option>
+                  <option value="Nominal Anual">Nominal Anual</option>
                 </select>
-                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Porcentaje (%) <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  formControlName="valor"
+                  placeholder="Ej: 28.45"
+                  class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+                />
               </div>
             </div>
-          </div>
 
-          <!-- Nombre -->
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Nombre Descriptivo <span class="text-red-500">*</span>
-            </label>
-            <input 
-              type="text" 
-              formControlName="nombre"
-              placeholder="Ej: Unidad de Valor Tributario (UVT) 2026"
-              class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none placeholder:text-slate-400"
-              [class.border-red-500]="parametroForm.get('nombre')?.invalid && parametroForm.get('nombre')?.touched"
-            />
-            @if (parametroForm.get('nombre')?.invalid && parametroForm.get('nombre')?.touched) {
-              <p class="text-[10.5px] text-red-600 font-bold mt-1">El nombre descriptivo es obligatorio.</p>
-            } @else {
-              <p class="text-[10.5px] text-slate-500 mt-1">Ajustes descriptivos u ortográficos que no alteren el sentido sustancial</p>
-            }
-          </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Vigencia Desde <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  formControlName="vigenciaDesde"
+                  class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+                />
+              </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Valor Decimal -->
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Valor Decimal / Cuantía (COP)
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Vigencia Hasta
+                </label>
+                <input
+                  type="date"
+                  formControlName="vigenciaHasta"
+                  class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+                />
+              </div>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Fuente Legal / Certificación
               </label>
-              <input 
-                type="number" 
-                step="0.01"
-                formControlName="valorDecimal"
-                placeholder="Ej: 49799.00"
-                class="w-full text-xs font-mono font-bold text-slate-900 px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none placeholder:text-slate-400 placeholder:font-normal"
+              <input
+                type="text"
+                formControlName="fuenteLegal"
+                placeholder="Ej: Certificación Superintendencia Financiera"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
+              />
+            </div>
+          </form>
+        }
+
+        <!-- FORMULARIO SALARIO MÍNIMO -->
+        @if (facade.tabActiva() === 'SALARIOS') {
+          <form [formGroup]="salarioForm" id="salarioFormId" (ngSubmit)="guardarRegistro()" class="space-y-4">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Año Fiscal <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="anio"
+                placeholder="Ej: 2026"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
               />
             </div>
 
-            <!-- Valor Texto -->
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Valor en Texto / Leyenda
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Salario Mínimo Mensual (COP) <span class="text-red-500">*</span>
               </label>
-              <input 
-                type="text" 
-                formControlName="valorTexto"
-                placeholder="Ej: $49.799 COP o 2.15% E.A."
-                class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none placeholder:text-slate-400"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Fecha Inicio Vigencia -->
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Fecha Inicio Vigencia <span class="text-red-500">*</span>
-              </label>
-              <input 
-                type="date" 
-                formControlName="fechaInicioVigencia"
-                class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none"
+              <input
+                type="number"
+                formControlName="valor"
+                placeholder="Ej: 1423500"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
               />
             </div>
 
-            <!-- Fecha Fin Vigencia -->
-            <div>
-              <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Fecha Fin Vigencia (Cierre)
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Auxilio de Transporte (COP) <span class="text-red-500">*</span>
               </label>
-              <input 
-                type="date" 
-                formControlName="fechaFinVigencia"
-                class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#1e3a7b]/15 focus:border-[#1e3a7b] focus:outline-none"
+              <input
+                type="number"
+                formControlName="auxilioTransporte"
+                placeholder="Ej: 200000"
+                class="w-full bg-slate-50 hover:bg-white focus:bg-white text-slate-800 text-xs font-semibold rounded-lg px-3.5 py-2.5 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1e3a7b] focus:border-transparent transition"
               />
-              <p class="text-[10.5px] text-slate-500 mt-1">Dejar vacío si aplica de forma indefinida</p>
             </div>
-          </div>
+          </form>
+        }
 
-          <!-- Checkbox Activo -->
-          <div class="pt-3 border-t border-slate-200 flex items-center justify-between">
-            <div>
-              <span class="text-xs font-bold text-slate-900">Estado Administrativo (Activo)</span>
-              <p class="text-[11px] text-slate-500">Permite habilitar o inhabilitar sin romper la integridad referencial histórica</p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" formControlName="activo" class="sr-only peer" />
-              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#70b238]"></div>
-            </label>
-          </div>
-        </div>
-
-        <!-- PIE DE SIDEBAR -->
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5 mt-auto shrink-0">
-          <button 
-            type="button" 
-            (click)="facade.cerrarModal()"
-            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
-            Cancelar
-          </button>
-          <button 
-            type="submit" 
-            class="px-4 py-2 text-xs font-bold text-white bg-[#70b238] hover:bg-[#5f972f] rounded-lg transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-            </svg>
-            Guardar Parámetro
-          </button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-}
-
-<!-- ========================================================================= -->
-<!-- MODAL / SIDEBAR: CERRAR VIGENCIA DE PARAMETRO -->
-<!-- ========================================================================= -->
-@if (facade.modalMode() === 'CERRAR') {
-  <div class="fixed inset-0 z-50 flex justify-end">
-    <!-- Backdrop Overlay -->
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarModal()"></div>
-    
-    <!-- Sidebar Panel Drawer -->
-    <div (click)="$event.stopPropagation()" data-theme="light" class="relative z-10 w-full max-w-lg h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900 animate-in slide-in-from-right duration-200">
-      
-      <div class="px-6 py-4 bg-amber-900 text-white flex items-center justify-between border-b border-amber-900 shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white m-0">Cerrar Vigencia del Parámetro</h3>
-            <p class="text-[11.5px] text-amber-200 m-0 mt-0.5">{{ facade.selectedParametro()?.codigo }}</p>
-          </div>
-        </div>
-        <button (click)="facade.cerrarModal()" type="button" class="w-8 h-8 rounded-lg text-amber-200 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
       </div>
 
-      <form [formGroup]="cerrarForm" (ngSubmit)="confirmarCierreVigencia()" class="flex-1 overflow-y-auto p-6 bg-white text-slate-800 flex flex-col justify-between">
-        
-        <div class="space-y-4">
-          <div class="p-3.5 bg-amber-50/80 border border-amber-200 rounded-xl text-xs text-amber-950 flex items-start gap-2.5">
-            <svg class="w-4 h-4 text-amber-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0zm-9 3.75h.008v.008H12v-.008z"/>
-            </svg>
-            <div class="leading-relaxed">
-              <span class="font-bold block mb-0.5">Regla Tributaria de Cierre:</span>
-              Establecer <span class="font-mono font-bold text-amber-900">[FechaFinVigencia]</span> permite "cerrar" un parámetro cuando cambia la norma o finaliza un período fiscal sin sobreescribir los valores pasados.
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Fecha Fin de Vigencia <span class="text-red-500">*</span>
-            </label>
-            <input 
-              type="date" 
-              formControlName="fechaFinVigencia"
-              class="w-full text-xs text-slate-900 font-medium px-3 py-2 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-600 focus:outline-none"
-            />
-          </div>
-
-          <div class="pt-2 border-t border-slate-200">
-            <label class="flex items-center gap-2.5 cursor-pointer">
-              <input type="checkbox" formControlName="crearNuevoPeriodo" class="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 cursor-pointer" />
-              <span class="text-xs font-bold text-slate-800">
-                Registrar automáticamente nuevo parámetro para el siguiente período fiscal
-              </span>
-            </label>
-          </div>
-
-          @if (cerrarForm.get('crearNuevoPeriodo')?.value) {
-            <div class="p-4 bg-slate-50/80 rounded-xl border border-slate-200 space-y-3">
-              <h4 class="text-xs font-extrabold text-slate-800 m-0">Datos para la Nueva Vigencia:</h4>
-              
-              <div class="grid grid-cols-2 gap-3">
-                <div>
-                  <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nueva Vigencia Fiscal</label>
-                  <select formControlName="nuevaVigenciaFiscalId" class="w-full text-xs text-slate-900 font-bold px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500 cursor-pointer">
-                    @for (v of facade.vigencias(); track v.id) {
-                      <option [value]="v.id">Vigencia {{ v.anio }} (ID: {{ v.id }})</option>
-                    }
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nueva Fecha Inicio</label>
-                  <input type="date" formControlName="nuevaFechaInicioVigencia" class="w-full text-xs text-slate-900 font-medium px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500" />
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Nuevo Valor Decimal (COP)</label>
-                <input type="number" step="0.01" formControlName="nuevoValorDecimal" placeholder="Ej: 52300" class="w-full text-xs font-mono font-bold text-slate-900 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-amber-500 placeholder:font-normal placeholder:text-slate-400" />
-              </div>
-            </div>
+      <!-- Pie de Página del Sidebar Drawer (Botones Fijos) -->
+      <div class="p-4 border-t border-slate-200 flex items-center justify-end gap-3 shrink-0 bg-slate-50">
+        <button
+          type="button"
+          (click)="cerrarModal()"
+          class="px-4 py-2 rounded-md font-semibold text-[13px] text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="guardarRegistro()"
+          [disabled]="facade.uvtLoading() || facade.tasasLoading() || facade.salariosLoading()"
+          class="px-5 py-2 rounded-md font-semibold text-[13px] bg-[#70b238] hover:bg-[#5f972f] text-white shadow-sm transition-colors cursor-pointer flex items-center gap-1.5 border-none"
+        >
+          @if (facade.uvtLoading() || facade.tasasLoading() || facade.salariosLoading()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Guardando...</span>
+          } @else {
+            <i class="fa-solid fa-check"></i>
+            <span>Guardar Registro</span>
           }
-        </div>
+        </button>
+      </div>
 
-        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5 mt-auto shrink-0">
-          <button 
-            type="button" 
-            (click)="facade.cerrarModal()"
-            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
-            Cancelar
-          </button>
-          <button 
-            type="submit" 
-            class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg transition-colors shadow-xs cursor-pointer border-none flex items-center gap-1.5">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
-            </svg>
-            Confirmar Cierre de Vigencia
-          </button>
-        </div>
-
-      </form>
     </div>
   </div>
 }
 
 <!-- ========================================================================= -->
-<!-- MODAL / SIDEBAR: AUDITORIA Y CONCURRENCIA -->
+<!-- MODAL CONFIRMACIÓN DE ELIMINACIÓN                                         -->
 <!-- ========================================================================= -->
-@if (facade.modalMode() === 'AUDIT') {
-  <div class="fixed inset-0 z-50 flex justify-end">
-    <!-- Backdrop Overlay -->
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarModal()"></div>
-    
-    <!-- Sidebar Panel Drawer -->
-    <div (click)="$event.stopPropagation()" data-theme="light" class="relative z-10 w-full max-w-md h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900 animate-in slide-in-from-right duration-200">
+@if (itemParaEliminar()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+    <div class="w-full max-w-sm bg-white rounded-lg shadow-xl p-6 text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl mx-auto shadow-xs">
+        <i class="fa-solid fa-trash-can"></i>
+      </div>
       
-      <div class="px-6 py-4 bg-[#1e3a7b] text-white flex items-center justify-between border-b border-[#1e3a7b] shrink-0">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-white/10 text-white flex items-center justify-center shrink-0 border border-white/20">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z"/>
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-white m-0">Detalles de Auditoría & Concurrencia</h3>
-            <p class="text-[11.5px] text-white/80 m-0 mt-0.5">{{ facade.selectedParametro()?.codigo }}</p>
-          </div>
-        </div>
-        <button (click)="facade.cerrarModal()" type="button" class="w-8 h-8 rounded-lg text-white/80 hover:text-white hover:bg-white/10 flex items-center justify-center transition-colors border-none bg-transparent cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
+      <div>
+        <h3 class="text-sm font-bold text-slate-900 uppercase">¿Confirmar Eliminación?</h3>
+        <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+          Está a punto de eliminar el registro oficial:
+          <br>
+          <strong class="text-slate-800 text-xs font-mono mt-1 block">{{ itemParaEliminar()?.titulo }}</strong>
+        </p>
+      </div>
+
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <button
+          type="button"
+          (click)="cerrarEliminar()"
+          class="flex-1 px-4 py-2 rounded-md text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarEliminacion()"
+          class="flex-1 px-4 py-2 rounded-md text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-sm transition cursor-pointer border-none"
+        >
+          Sí, Eliminar
         </button>
       </div>
-
-      <div class="p-6 space-y-3 text-xs bg-white text-slate-800 flex-1 overflow-y-auto flex flex-col justify-between">
-        <div class="space-y-3">
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">ID Registro:</span>
-            <span class="font-mono font-bold text-slate-900 text-sm">{{ facade.selectedParametro()?.id }}</span>
-          </div>
-
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Fecha de Creación (CreatedAt):</span>
-            <span class="font-mono font-bold text-slate-800">{{ facade.selectedParametro()?.createdAt || 'N/A' }}</span>
-          </div>
-
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Última Actualización (UpdatedAt):</span>
-            <span class="font-mono font-bold text-slate-800">{{ facade.selectedParametro()?.updatedAt || 'N/A' }}</span>
-          </div>
-
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Token de Concurrencia (RowVersion):</span>
-            <span class="font-mono text-emerald-700 font-bold block truncate" [title]="facade.selectedParametro()?.rowVersion">
-              {{ facade.selectedParametro()?.rowVersion || 'Automático por DB Trigger' }}
-            </span>
-          </div>
-
-          <p class="text-[11px] text-slate-500 italic m-0 pt-1">
-            * UpdatedAt y RowVersion son actualizados de forma automática por el motor de base de datos o triggers de auditoría para control de concurrencia optimista.
-          </p>
-        </div>
-
-        <div class="pt-4 border-t border-slate-200 text-right mt-auto shrink-0">
-          <button (click)="facade.cerrarModal()" type="button" class="px-4 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer border-none">
-            Cerrar
-          </button>
-        </div>
-      </div>
-
     </div>
   </div>
 }

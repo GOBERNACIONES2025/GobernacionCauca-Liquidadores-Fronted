@@ -1,8 +1,13 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ParametrosTributariosFacade } from '../../../application/facades/parametros-tributarios.facade';
-import { ParametroTributario } from '../../../domain/models/parametro-tributario.model';
+import { ValoresEstatalesFacade } from '../../../application/facades/valores-estatales.facade';
+import {
+  ValoresEstatalesTab,
+  UvtHistoricoDto,
+  TasasInteresDto,
+  SalarioMinimoDto,
+} from '../../../domain/interfaces/valores-estatales.interface';
 
 @Component({
   selector: 'app-valores-estatales',
@@ -11,201 +16,196 @@ import { ParametroTributario } from '../../../domain/models/parametro-tributario
   templateUrl: './valores-estatales.html',
 })
 export class ValoresEstatalesPage implements OnInit {
-  public facade = inject(ParametrosTributariosFacade);
+  public facade = inject(ValoresEstatalesFacade);
   private fb = inject(FormBuilder);
 
-  // Formulario Reactivo
-  parametroForm!: FormGroup;
-  cerrarForm!: FormGroup;
+  // Formularios Reactivos para cada entidad
+  uvtForm!: FormGroup;
+  tasaForm!: FormGroup;
+  salarioForm!: FormGroup;
 
-  // Feedback Toast
-  readonly toastMessage = signal<{ title: string; desc: string; type: 'success' | 'error' | 'info' } | null>(null);
+  // Estado de modales
+  readonly modalMode = signal<'CREATE' | 'EDIT' | null>(null);
+  readonly itemParaEliminar = signal<{ tipo: 'UVT' | 'TASA' | 'SALARIO'; id: number; titulo: string } | null>(null);
 
   ngOnInit(): void {
     this.initForms();
   }
 
   private initForms(): void {
+    const currentYear = new Date().getFullYear();
     const today = new Date().toISOString().split('T')[0];
-    const defaultVigenciaId = this.facade.vigenciaActiva()?.id || 1;
 
-    this.parametroForm = this.fb.group({
+    // Formulario UVT
+    this.uvtForm = this.fb.group({
       id: [0],
-      vigenciaFiscalId: [defaultVigenciaId, [Validators.required]],
-      normaTributariaId: [null],
-      codigo: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_-]+$/)]],
-      nombre: ['', [Validators.required, Validators.minLength(2)]],
-      fechaInicioVigencia: [today, [Validators.required]],
-      fechaFinVigencia: [''],
-      valorDecimal: [null],
-      valorTexto: [''],
-      activo: [true],
+      anio: [currentYear, [Validators.required, Validators.min(1990), Validators.max(2100)]],
+      valor: [null, [Validators.required, Validators.min(1)]],
+      fuenteLegal: [''],
     });
 
-    this.cerrarForm = this.fb.group({
-      fechaFinVigencia: [today, [Validators.required]],
-      crearNuevoPeriodo: [true],
-      nuevaVigenciaFiscalId: [defaultVigenciaId, [Validators.required]],
-      nuevoValorDecimal: [null],
-      nuevoValorTexto: [''],
-      nuevaFechaInicioVigencia: ['2027-01-01', [Validators.required]],
+    // Formulario Tasas de Interés
+    this.tasaForm = this.fb.group({
+      id: [0],
+      tipoTasaInteres: ['Mora Tributaria', [Validators.required]],
+      periodicidad: ['Efectiva Anual', [Validators.required]],
+      valor: [null, [Validators.required, Validators.min(0)]],
+      vigenciaDesde: [today, [Validators.required]],
+      vigenciaHasta: [''],
+      fuenteLegal: [''],
+    });
+
+    // Formulario Salario Mínimo
+    this.salarioForm = this.fb.group({
+      id: [0],
+      anio: [currentYear, [Validators.required, Validators.min(1990), Validators.max(2100)]],
+      valor: [null, [Validators.required, Validators.min(1)]],
+      auxilioTransporte: [null, [Validators.required, Validators.min(0)]],
     });
   }
 
-  // Acciones de Modal
+  // =========================================================================
+  // CONTROL DE MODALES (CREAR / EDITAR)
+  // =========================================================================
   abrirCrearModal(): void {
+    const tab = this.facade.tabActiva();
+    const currentYear = new Date().getFullYear();
     const today = new Date().toISOString().split('T')[0];
-    const defaultVigenciaId = this.facade.vigenciaActiva()?.id || 1;
 
-    this.parametroForm.reset({
-      id: 0,
-      vigenciaFiscalId: defaultVigenciaId,
-      normaTributariaId: null,
-      codigo: '',
-      nombre: '',
-      fechaInicioVigencia: today,
-      fechaFinVigencia: '',
-      valorDecimal: null,
-      valorTexto: '',
-      activo: true,
+    if (tab === 'UVT') {
+      this.uvtForm.reset({ id: 0, anio: currentYear, valor: null, fuenteLegal: '' });
+    } else if (tab === 'TASAS') {
+      this.tasaForm.reset({
+        id: 0,
+        tipoTasaInteres: 'Mora Tributaria',
+        periodicidad: 'Efectiva Anual',
+        valor: null,
+        vigenciaDesde: today,
+        vigenciaHasta: '',
+        fuenteLegal: '',
+      });
+    } else if (tab === 'SALARIOS') {
+      this.salarioForm.reset({ id: 0, anio: currentYear, valor: null, auxilioTransporte: null });
+    }
+
+    this.modalMode.set('CREATE');
+  }
+
+  abrirEditarUvt(item: UvtHistoricoDto): void {
+    this.uvtForm.patchValue({
+      id: item.idUvt,
+      anio: item.anio,
+      valor: item.valor,
+      fuenteLegal: item.fuenteLegal || '',
     });
-    this.facade.abrirCrear();
+    this.facade.tabActiva.set('UVT');
+    this.modalMode.set('EDIT');
   }
 
-  abrirEditarModal(item: ParametroTributario): void {
-    this.parametroForm.patchValue({
-      id: item.id,
-      vigenciaFiscalId: item.vigenciaFiscalId,
-      normaTributariaId: item.normaTributariaId ?? null,
-      codigo: item.codigo,
-      nombre: item.nombre,
-      fechaInicioVigencia: item.fechaInicioVigencia,
-      fechaFinVigencia: item.fechaFinVigencia || '',
-      valorDecimal: item.valorDecimal,
-      valorTexto: item.valorTexto || '',
-      activo: item.activo,
+  abrirEditarTasa(item: TasasInteresDto): void {
+    this.tasaForm.patchValue({
+      id: item.idTasaInteres,
+      tipoTasaInteres: item.tipoTasaInteres,
+      periodicidad: item.periodicidad,
+      valor: item.valor,
+      vigenciaDesde: item.vigenciaDesde,
+      vigenciaHasta: item.vigenciaHasta || '',
+      fuenteLegal: item.fuenteLegal || '',
     });
-    this.facade.abrirEditar(item);
+    this.facade.tabActiva.set('TASAS');
+    this.modalMode.set('EDIT');
   }
 
-  abrirCerrarModal(item: ParametroTributario): void {
-    const today = new Date().toISOString().split('T')[0];
-    const anioActual = Number(this.facade.getAnioPorVigenciaId(item.vigenciaFiscalId));
-    const siguienteAnio = anioActual + 1;
-    const siguienteFechaInicio = `${siguienteAnio}-01-01`;
-
-    this.cerrarForm.patchValue({
-      fechaFinVigencia: item.fechaFinVigencia || today,
-      crearNuevoPeriodo: true,
-      nuevaVigenciaFiscalId: item.vigenciaFiscalId,
-      nuevoValorDecimal: item.valorDecimal,
-      nuevoValorTexto: item.valorTexto || '',
-      nuevaFechaInicioVigencia: siguienteFechaInicio,
+  abrirEditarSalario(item: SalarioMinimoDto): void {
+    this.salarioForm.patchValue({
+      id: item.idSalario,
+      anio: item.anio,
+      valor: item.valor,
+      auxilioTransporte: item.auxilioTransporte,
     });
-    this.facade.abrirCerrar(item);
+    this.facade.tabActiva.set('SALARIOS');
+    this.modalMode.set('EDIT');
   }
 
-  abrirAuditoriaModal(item: ParametroTributario): void {
-    this.facade.abrirAuditoria(item);
+  cerrarModal(): void {
+    this.modalMode.set(null);
   }
 
-  guardarParametro(): void {
-    if (this.parametroForm.invalid) {
-      this.parametroForm.markAllAsTouched();
-      const camposInvalidos: string[] = [];
-      Object.keys(this.parametroForm.controls).forEach((key) => {
-        if (this.parametroForm.get(key)?.invalid) {
-          camposInvalidos.push(key);
-        }
-      });
-      this.toastMessage.set({
-        title: 'Formulario Incompleto',
-        desc: `Revise los campos obligatorios (${camposInvalidos.join(', ')}).`,
-        type: 'error',
-      });
-      return;
-    }
+  // =========================================================================
+  // GUARDAR REGISTROS (SUBMIT REACCIONANDO SEGÚN LA TAB ACTIVA)
+  // =========================================================================
+  guardarRegistro(): void {
+    const tab = this.facade.tabActiva();
 
-    const val = { ...this.parametroForm.value };
-    if (val.codigo) {
-      val.codigo = val.codigo.toUpperCase().trim();
-    }
-    const isEdit = this.facade.modalMode() === 'EDIT';
-
-    if (isEdit) {
-      this.facade.actualizarParametro(val.id, val).subscribe({
-        next: () => {
-          this.toastMessage.set({
-            title: 'Parámetro Actualizado',
-            desc: `El parámetro ${val.codigo} ha sido modificado exitosamente.`,
-            type: 'success',
-          });
-        },
-      });
-    } else {
-      this.facade.crearParametro(val).subscribe({
-        next: () => {
-          this.toastMessage.set({
-            title: 'Parámetro Registrado',
-            desc: `El parámetro ${val.codigo} ha sido creado exitosamente.`,
-            type: 'success',
-          });
-        },
-      });
+    if (tab === 'UVT') {
+      if (this.uvtForm.invalid) {
+        this.uvtForm.markAllAsTouched();
+        return;
+      }
+      const val = this.uvtForm.value;
+      if (val.id && val.id > 0) {
+        this.facade.actualizarUvt(val.id, { idUvt: val.id, anio: Number(val.anio), valor: Number(val.valor), fuenteLegal: val.fuenteLegal }).subscribe((ok) => {
+          if (ok) this.cerrarModal();
+        });
+      } else {
+        this.facade.crearUvt({ anio: Number(val.anio), valor: Number(val.valor), fuenteLegal: val.fuenteLegal }).subscribe((ok) => {
+          if (ok) this.cerrarModal();
+        });
+      }
+    } else if (tab === 'TASAS') {
+      if (this.tasaForm.invalid) {
+        this.tasaForm.markAllAsTouched();
+        return;
+      }
+      const val = this.tasaForm.value;
+      if (val.id && val.id > 0) {
+        this.facade.actualizarTasa(val.id, { idTasaInteres: val.id, tipoTasaInteres: val.tipoTasaInteres, periodicidad: val.periodicidad, valor: Number(val.valor), vigenciaDesde: val.vigenciaDesde, vigenciaHasta: val.vigenciaHasta || undefined, fuenteLegal: val.fuenteLegal }).subscribe((ok) => {
+          if (ok) this.cerrarModal();
+        });
+      } else {
+        this.facade.crearTasa({ tipoTasaInteres: val.tipoTasaInteres, periodicidad: val.periodicidad, valor: Number(val.valor), vigenciaDesde: val.vigenciaDesde, vigenciaHasta: val.vigenciaHasta || undefined, fuenteLegal: val.fuenteLegal }).subscribe((ok) => {
+          if (ok) this.cerrarModal();
+        });
+      }
+    } else if (tab === 'SALARIOS') {
+      if (this.salarioForm.invalid) {
+        this.salarioForm.markAllAsTouched();
+        return;
+      }
+      const val = this.salarioForm.value;
+      if (val.id && val.id > 0) {
+        this.facade.actualizarSalario(val.id, { idSalario: val.id, anio: Number(val.anio), valor: Number(val.valor), auxilioTransporte: Number(val.auxilioTransporte) }).subscribe((ok) => {
+          if (ok) this.cerrarModal();
+        });
+      } else {
+        this.facade.crearSalario({ anio: Number(val.anio), valor: Number(val.valor), auxilioTransporte: Number(val.auxilioTransporte) }).subscribe((ok) => {
+          if (ok) this.cerrarModal();
+        });
+      }
     }
   }
 
-  confirmarCierreVigencia(): void {
-    if (this.cerrarForm.invalid) {
-      this.cerrarForm.markAllAsTouched();
-      return;
-    }
+  // =========================================================================
+  // ELIMINACIÓN
+  // =========================================================================
+  abrirEliminar(tipo: 'UVT' | 'TASA' | 'SALARIO', id: number, titulo: string): void {
+    this.itemParaEliminar.set({ tipo, id, titulo });
+  }
 
-    const item = this.facade.selectedParametro();
+  cerrarEliminar(): void {
+    this.itemParaEliminar.set(null);
+  }
+
+  confirmarEliminacion(): void {
+    const item = this.itemParaEliminar();
     if (!item) return;
 
-    const val = this.cerrarForm.value;
-
-    this.facade
-      .cerrarParametroVigencia({
-        id: item.id,
-        fechaFinVigencia: val.fechaFinVigencia,
-        crearNuevoPeriodo: val.crearNuevoPeriodo,
-        nuevaVigenciaFiscalId: Number(val.nuevaVigenciaFiscalId),
-        nuevoValorDecimal: val.nuevoValorDecimal !== null ? Number(val.nuevoValorDecimal) : null,
-        nuevoValorTexto: val.nuevoValorTexto,
-        nuevaFechaInicioVigencia: val.nuevaFechaInicioVigencia,
-      })
-      .subscribe({
-        next: () => {
-          this.toastMessage.set({
-            title: 'Parámetro Cerrado',
-            desc: `Se ha establecido la fecha de fin de vigencia (${val.fechaFinVigencia}) para ${item.codigo}.` +
-              (val.crearNuevoPeriodo ? ' Se aperturó la nueva vigencia fiscal.' : ''),
-            type: 'success',
-          });
-        },
-      });
-  }
-
-  toggleEstadoActivo(item: ParametroTributario, event: Event): void {
-    event.stopPropagation();
-    this.facade.toggleActivo(item);
-    this.toastMessage.set({
-      title: item.activo ? 'Parámetro Inhabilitado' : 'Parámetro Habilitado',
-      desc: `El estado del parámetro ${item.codigo} cambió a ${!item.activo ? 'ACTIVO' : 'INACTIVO'}.`,
-      type: 'info',
-    });
-  }
-
-  cerrarToast(): void {
-    this.toastMessage.set(null);
-  }
-
-  isVigente(item: ParametroTributario): boolean {
-    if (!item.activo) return false;
-    const today = new Date().toISOString().split('T')[0];
-    if (!item.fechaFinVigencia) return true;
-    return item.fechaFinVigencia >= today;
+    if (item.tipo === 'UVT') {
+      this.facade.eliminarUvt(item.id).subscribe(() => this.cerrarEliminar());
+    } else if (item.tipo === 'TASA') {
+      this.facade.eliminarTasa(item.id).subscribe(() => this.cerrarEliminar());
+    } else if (item.tipo === 'SALARIO') {
+      this.facade.eliminarSalario(item.id).subscribe(() => this.cerrarEliminar());
+    }
   }
 }

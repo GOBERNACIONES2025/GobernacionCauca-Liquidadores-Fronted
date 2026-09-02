@@ -276,10 +276,10 @@ export class ParametrosTributariosFacade {
         if (items.length > 0) {
           this.parametros.set(items);
         } else {
-          this.parametros.set(this.initialMockData);
+          this.parametros.set([]);
         }
       } else {
-        this.parametros.set(this.initialMockData);
+        this.parametros.set([]);
       }
       this.loading.set(false);
     });
