@@ -29,8 +29,13 @@ import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/config
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
 import { Registros } from './presentation/pages/registros/registros';
+import { ConsultaCiudadanaSharedComponent } from '../../shared/components/consulta-ciudadana/consulta-ciudadana-shared';
 
 export const registrosRoutes: Routes = [
+  {
+    path: 'portal-ciudadano',
+    component: ConsultaCiudadanaSharedComponent,
+  },
   {
     path: '',
     component: RegistrosLayoutComponent,

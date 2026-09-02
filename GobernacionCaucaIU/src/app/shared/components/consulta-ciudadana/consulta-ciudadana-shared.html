@@ -1,0 +1,262 @@
+<div class="relative w-full min-h-screen bg-white flex items-center justify-center lg:justify-start p-4 md:p-8 lg:pl-20 overflow-hidden font-sans select-none">
+ 
+  <!-- BLOQUE 4: diagonal superior izquierda -->
+  <div class="absolute -top-55 right-90 rotate-[-30deg] w-[365px] h-[210px] bg-[#16599d] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
+
+  <!-- BLOQUE 5: diagonal inferior izquierda -->
+  <div class="absolute bottom-1 w-[900px] h-[230px] bg-[#0f4984] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
+
+  <!-- BLOQUE 1: diagonal inferior (Azul Claro / Base) -->
+  <div class="absolute -right-50 bottom-40 w-[900px] h-[200px] bg-[#16599d] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
+
+  <!-- BLOQUE 2: diagonal inferior (Azul Oscuro / Front) -->
+  <div class="absolute -right-50 -bottom-1 w-[600px] h-[230px] bg-[#2978c8] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
+
+  <!-- BLOQUE 3: tarjeta blanca rotada con Branding UNIFORME en Azul #0f4984 -->
+  <div class="absolute -right-35 rounded-3xl -top-60 w-[680px] h-[520px] bg-white rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden lg:flex items-center justify-center">
+    <div class="rotate-[30deg] flex flex-col items-center justify-center text-center space-y-4 -translate-x-14">
+      <div>
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-1">Gobernación del Cauca</span>
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black text-[#0f4984] tracking-wider uppercase drop-shadow-xs">
+          {{ config().brandingTitle }}
+        </h2>
+        
+        <!-- Líneas Tricolor -->
+        <div class="flex items-center justify-center gap-2 mt-2">
+          <span class="w-8 sm:w-10 h-1.5 bg-[#d32f2f] rounded-full"></span>
+          <span class="w-8 sm:w-10 h-1.5 bg-[#1976d2] rounded-full"></span>
+          <span class="w-8 sm:w-10 h-1.5 bg-[#568224] rounded-full"></span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <div class="w-9 h-9 rounded-full bg-[#16599d] text-white flex items-center justify-center text-lg shadow-sm">
+          <i class="fa-solid fa-globe"></i>
+        </div>
+        <img 
+          src="/Logo_gov_cauca.png" 
+          alt="Gobernación del Cauca" 
+          class="h-20 lg:h-24 w-auto object-contain drop-shadow-sm" 
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Logo de 101 Software en esquina inferior derecha -->
+  <div class="absolute bottom-4 right-6 z-10 hidden sm:flex items-center gap-2">
+    <img 
+      src="/logo_101_software_white.png" 
+      alt="101 Software" 
+      class="h-6 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity drop-shadow-md" 
+    />
+  </div>
+
+  <!-- TARJETA PRINCIPAL (Lado Izquierdo) -->
+  <div class="relative z-10 w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4),0_0_30px_rgba(15,73,132,0.15)] overflow-hidden transition-all duration-300">
+    
+    <!-- Header del Formulario (Unificado en Azul #0f4984) -->
+    <div class="bg-[#0f4984] text-white py-4 px-6 text-center shadow-md flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid {{ config().buttonIcon }} text-lg"></i>
+        <h1 class="text-xs sm:text-sm font-black uppercase tracking-wider m-0">
+          {{ config().headerTitle }}
+        </h1>
+      </div>
+      <button 
+        (click)="salir()" 
+        type="button" 
+        class="text-white/80 hover:text-white text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+        title="Volver a la Home"
+      >
+        <i class="fa-solid fa-house"></i>
+      </button>
+    </div>
+
+    <!-- CASO A: DEGÜELLO (Aún no disponible) -->
+    @if (activeKey() === 'deguello') {
+      <div class="p-6 sm:p-8 space-y-6 text-center">
+        
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center shadow-xs">
+          <i class="fa-solid fa-clock-rotate-left text-3xl"></i>
+        </div>
+
+        <div>
+          <h2 class="text-base font-bold text-slate-900 m-0">Servicio Próximamente Disponible</h2>
+          <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+            El portal ciudadano de consulta y pago del <strong>Impuesto de Degüello de Ganado</strong> se encuentra actualmente en fase de implementación y desarrollo tecnológico por la Gobernación del Cauca.
+          </p>
+        </div>
+
+        <div class="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-[11px] text-amber-800 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600 shrink-0 text-xs"></i>
+          <span>Agradecemos su comprensión. Estará disponible en la próxima actualización.</span>
+        </div>
+
+        <div class="pt-2">
+          <button
+            type="button"
+            (click)="salir()"
+            class="w-full bg-[#0f4984] hover:bg-[#0c3c6d] text-white font-bold text-sm py-3 px-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-none active:scale-[0.99]"
+          >
+            <i class="fa-solid fa-house text-sm"></i>
+            <span>Volver a la Página Principal</span>
+          </button>
+        </div>
+
+      </div>
+    } 
+
+    <!-- CASO B: PASAPORTES (Botón directo "Hacer Solicitud") -->
+    @else if (activeKey() === 'pasaportes') {
+      <div class="p-6 sm:p-8 space-y-6 text-center">
+        
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-blue-50 text-[#0f4984] border border-blue-100 flex items-center justify-center shadow-xs">
+          <i class="fa-solid fa-passport text-3xl"></i>
+        </div>
+
+        <div>
+          <h2 class="text-base font-bold text-slate-900 m-0">Portal Ciudadano de Pasaportes</h2>
+          <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+            Bienvenido al servicio oficial de la Gobernación del Cauca para agendamiento de citas, requisitos y solicitud de expedición de pasaporte.
+          </p>
+        </div>
+
+        <div class="pt-2">
+          <button
+            type="button"
+            (click)="irASolicitudPasaporte()"
+            class="w-full bg-[#0f4984] hover:bg-[#0c3c6d] text-white font-bold text-sm py-3 px-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-none active:scale-[0.99]"
+          >
+            <i class="fa-solid fa-file-pen text-sm"></i>
+            <span>Hacer Solicitud de Pasaporte</span>
+          </button>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-center">
+          <button 
+            type="button"
+            (click)="salir()"
+            class="text-xs text-slate-500 hover:text-slate-800 font-semibold transition cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-arrow-left text-[10px]"></i>
+            <span>Volver a la página principal</span>
+          </button>
+        </div>
+
+      </div>
+    } 
+
+    <!-- CASO C: VEHICULAR Y REGISTROS (Formulario con Cédula + Campo Secundario) -->
+    @else {
+      <form (submit)="submitForm(); $event.preventDefault()" class="p-6 sm:p-8 space-y-5">
+        
+        <!-- Mensaje de Error si ocurre -->
+        @if (errorMessage()) {
+          <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg text-xs text-red-700 flex items-start gap-2 animate-fadeIn shadow-sm">
+            <i class="fa-solid fa-circle-exclamation mt-0.5 text-red-500 shrink-0"></i>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <p class="text-xs text-slate-500 font-medium m-0 leading-relaxed">
+          {{ config().headerSubtitle }}
+        </p>
+
+        <!-- Campo 1: Identificación FIJA (Tipo + Número) -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wide">
+            NÚMERO DE IDENTIFICACIÓN:
+          </label>
+          <div class="flex gap-2">
+            <select 
+              [ngModel]="tipoDocumento()" 
+              (ngModelChange)="tipoDocumento.set($event)"
+              name="tipoDoc"
+              class="w-24 bg-[#cce3fc]/70 hover:bg-[#cce3fc] focus:bg-[#d8eafd] text-slate-800 text-xs font-bold rounded-lg px-2.5 py-3 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-[#0f4984] focus:border-transparent transition-all cursor-pointer"
+            >
+              <option value="CC">C.C.</option>
+              <option value="NIT">NIT</option>
+              <option value="CE">C.E.</option>
+              <option value="PAS">PAS</option>
+              <option value="TI">T.I.</option>
+            </select>
+
+            <div class="relative flex-1 flex items-center">
+              <input
+                type="text"
+                [ngModel]="numeroDocumento()"
+                (ngModelChange)="numeroDocumento.set($event)"
+                name="numDoc"
+                placeholder="Ingrese número de documento"
+                class="w-full bg-[#cce3fc]/70 hover:bg-[#cce3fc] focus:bg-[#d8eafd] text-slate-800 text-sm font-medium rounded-lg px-4 py-3 pl-10 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-[#0f4984] focus:border-transparent transition-all placeholder:text-slate-500"
+              />
+              <i class="fa-solid fa-id-card absolute left-3.5 text-slate-500 text-sm"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Campo 2: Campo DINÁMICO según Liquidador -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-800 uppercase tracking-wide">
+            {{ config().secondaryFieldLabel }}
+          </label>
+          <div class="relative flex items-center">
+            <input
+              type="text"
+              [ngModel]="secondaryValue()"
+              (input)="formatearSecondaryInput($event)"
+              name="secondaryVal"
+              [placeholder]="config().secondaryFieldPlaceholder"
+              class="w-full bg-[#cce3fc]/70 hover:bg-[#cce3fc] focus:bg-[#d8eafd] text-slate-800 text-sm font-bold uppercase rounded-lg px-4 py-3 pl-10 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-[#0f4984] focus:border-transparent transition-all placeholder:text-slate-500 placeholder:normal-case font-mono tracking-wider"
+            />
+            <i class="fa-solid {{ config().secondaryFieldIcon }} absolute left-3.5 text-slate-500 text-sm"></i>
+          </div>
+        </div>
+
+        <!-- Botón de Envío -->
+        <div class="pt-2">
+          <button
+            type="submit"
+            [disabled]="isLoading()"
+            class="w-full bg-[#0f4984] hover:bg-[#0c3c6d] text-white font-bold text-sm py-3 px-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 border-none active:scale-[0.99] disabled:opacity-60"
+          >
+            @if (isLoading()) {
+              <i class="fa-solid fa-circle-notch fa-spin text-sm"></i>
+              <span>Consultando...</span>
+            } @else {
+              <i class="fa-solid {{ config().buttonIcon }} text-sm"></i>
+              <span>{{ config().buttonText }}</span>
+            }
+          </button>
+        </div>
+
+      </form>
+
+      <!-- Accesos Rápidos de Prueba (Adaptativos) -->
+      @if (config().quickExamples.length > 0) {
+        <div class="px-6 pb-6 pt-2 bg-slate-50 border-t border-slate-100">
+          <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block mb-2 text-center">
+            Perfiles Rápidos de Prueba:
+          </span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            @for (ej of config().quickExamples; track ej.label) {
+              <button
+                type="button"
+                (click)="cargarEjemplo(ej)"
+                class="p-2.5 bg-white hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 rounded-xl text-left transition-all cursor-pointer group shadow-2xs"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-800 group-hover:text-[#0f4984] truncate">{{ ej.label }}</span>
+                  <span class="text-[9.5px] font-mono font-bold bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded shrink-0">{{ ej.secondary }}</span>
+                </div>
+                <span class="text-[9.5px] text-slate-400 block mt-0.5">CC {{ ej.doc }} &middot; {{ ej.tag }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+    }
+
+  </div>
+</div>

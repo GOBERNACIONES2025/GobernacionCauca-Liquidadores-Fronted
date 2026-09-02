@@ -34,7 +34,7 @@ export class Home {
       description: 'Declaración, liquidación oficial, pago en línea y paz y salvo.',
       icon: '/vehicular.svg',
       routeAdmin: '/automotores',
-      routeCitizen: '/portal-ciudadano',
+      routeCitizen: '/automotores/portal-ciudadano',
     },
     {
       id: 'pasaporte',
@@ -42,7 +42,7 @@ export class Home {
       description: 'Cita previa, requisitos, agendamiento y seguimiento departamental.',
       icon: '/pasaporte.svg',
       routeAdmin: '/pasaportes/admin',
-      routeCitizen: '/pasaportes',
+      routeCitizen: '/pasaportes/portal-ciudadano',
     },
     {
       id: 'registros',
@@ -50,13 +50,14 @@ export class Home {
       description: 'Liquidación y registro de actos, contratos y documentos notariales.',
       icon: '/registros.svg',
       routeAdmin: '/registros',
-      routeCitizen: '/registros',
+      routeCitizen: '/registros/portal-ciudadano',
     },
     {
       id: 'deguello',
       title: 'Degüello',
       description: 'Declaración y pago por sacrificio de ganado vacuno y menor.',
       icon: '/deguello.svg',
+      routeCitizen: '/deguello/portal-ciudadano',
     },
     {
       id: 'sobretasa',

@@ -5,6 +5,7 @@ import { ContribuyentesIndex } from './presentation/pages/contribuyentes-index/c
 import { LiquidacionesPage } from './presentation/pages/liquidaciones/liquidaciones';
 import { ValoresEstatalesPage } from './presentation/pages/valores-estatales/valores-estatales';
 import { AutomotoresConfiguracionLayout } from './presentation/layout/configuracion-layout/configuracion-layout';
+import { PortalCiudadano } from './presentation/pages/portal-ciudadano/portal-ciudadano';
 
 // Catálogos & Configuración
 import { DepartamentosPage } from './presentation/pages/configuracion/territorio/departamentos';
@@ -23,6 +24,10 @@ import { NaturalezasJuridicasPage } from './presentation/pages/configuracion/con
 import { PendientesAprobacionPage } from './presentation/pages/configuracion/control/pendientes-aprobacion';
 
 export const automotoresRoutes: Routes = [
+  {
+    path: 'portal-ciudadano',
+    component: PortalCiudadano
+  },
   {
     path: '',
     component: AutomotoresLayout,

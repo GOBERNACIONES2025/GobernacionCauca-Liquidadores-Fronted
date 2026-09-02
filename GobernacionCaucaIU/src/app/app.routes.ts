@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Home } from './features/home/presentation/pages/home/home';
-import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
 import { LoginComponent } from './shared/components/login/login';
+import { ConsultaCiudadanaSharedComponent } from './shared/components/consulta-ciudadana/consulta-ciudadana-shared';
 
 export const routes: Routes = [
   {
@@ -14,8 +14,13 @@ export const routes: Routes = [
     component: LoginComponent,
   },
   {
+    path: 'deguello/portal-ciudadano',
+    component: ConsultaCiudadanaSharedComponent,
+  },
+  {
     path: 'portal-ciudadano',
-    component: PortalCiudadano,
+    redirectTo: 'automotores/portal-ciudadano',
+    pathMatch: 'full',
   },
   {
     path: 'automotores',
