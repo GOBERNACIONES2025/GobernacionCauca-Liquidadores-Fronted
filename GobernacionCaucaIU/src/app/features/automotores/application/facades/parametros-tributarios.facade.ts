@@ -294,14 +294,14 @@ export class ParametrosTributariosFacade {
 
     const requestPayload = {
       vigenciaFiscalId: Number(dto.vigenciaFiscalId),
-      normaTributariaId: dto.normaTributariaId ? Number(dto.normaTributariaId) : null,
+      normaTributariaId: (dto.normaTributariaId && Number(dto.normaTributariaId) > 0) ? Number(dto.normaTributariaId) : null,
       codigo: dto.codigo.toUpperCase().trim(),
       nombre: dto.nombre.trim(),
       fechaInicioVigencia: dto.fechaInicioVigencia,
       fechaFinVigencia: dto.fechaFinVigencia || null,
-      valorDecimal: dto.valorDecimal !== null && dto.valorDecimal !== undefined ? Number(dto.valorDecimal) : null,
+      valorDecimal: (dto.valorDecimal !== null && dto.valorDecimal !== undefined && dto.valorDecimal !== ('' as any)) ? Number(dto.valorDecimal) : null,
       valorTexto: dto.valorTexto?.trim() || null,
-      activo: dto.activo ?? true,
+      activo: Boolean(dto.activo ?? true),
     };
 
     const nuevoLocal: ParametroTributario = {
@@ -314,7 +314,10 @@ export class ParametrosTributariosFacade {
 
     return new Observable<boolean>((observer) => {
       this.api.post<any>('ParametrosTributarios', requestPayload, {}, 'AUTOMOTORES').pipe(
-        catchError(() => of(null))
+        catchError((err) => {
+          console.error('Error al crear parámetro tributario en API:', err);
+          return of(null);
+        })
       ).subscribe((res) => {
         const createdItem = (res?.data && typeof res.data === 'object' && res.data.id) ? res.data : nuevoLocal;
         if (typeof res?.data === 'number') {
@@ -338,14 +341,14 @@ export class ParametrosTributariosFacade {
 
     const requestPayload = {
       vigenciaFiscalId: Number(dto.vigenciaFiscalId),
-      normaTributariaId: dto.normaTributariaId ? Number(dto.normaTributariaId) : null,
+      normaTributariaId: (dto.normaTributariaId && Number(dto.normaTributariaId) > 0) ? Number(dto.normaTributariaId) : null,
       codigo: dto.codigo.toUpperCase().trim(),
       nombre: dto.nombre.trim(),
       fechaInicioVigencia: dto.fechaInicioVigencia,
       fechaFinVigencia: dto.fechaFinVigencia || null,
-      valorDecimal: dto.valorDecimal !== null && dto.valorDecimal !== undefined ? Number(dto.valorDecimal) : null,
+      valorDecimal: (dto.valorDecimal !== null && dto.valorDecimal !== undefined && dto.valorDecimal !== ('' as any)) ? Number(dto.valorDecimal) : null,
       valorTexto: dto.valorTexto?.trim() || null,
-      activo: dto.activo,
+      activo: Boolean(dto.activo),
     };
 
     return new Observable<boolean>((observer) => {

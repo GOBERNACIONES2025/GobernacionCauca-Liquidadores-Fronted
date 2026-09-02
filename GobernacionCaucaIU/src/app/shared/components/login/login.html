@@ -1,0 +1,173 @@
+<div class="relative w-full min-h-screen bg-white flex items-center justify-center lg:justify-start p-4 md:p-8 lg:pl-20 overflow-hidden font-sans select-none">
+ 
+  <!-- BLOQUE 4: diagonal superior izquierda             -->
+  <div class="absolute -top-55 right-90 rotate-[-30deg] w-[365px] h-[210px] bg-[#16599d] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
+
+  <!-- BLOQUE 5: diagonal inferior izquierda             -->
+  <div class="absolute bottom-1 w-[900px] h-[230px] bg-[#0f4984] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden sm:block"></div>
+
+  <!-- BLOQUE 1: diagonal inferior (Azul Claro / Base)   -->
+  <div class="absolute -right-50 bottom-40 w-[900px] h-[200px] bg-[#16599d] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
+
+  <!-- BLOQUE 2: diagonal inferior (Azul Oscuro / Front) -->
+  <div class="absolute -right-50 -bottom-1 w-[600px] h-[230px] bg-[#2978c8] rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden md:block"></div>
+
+  <!-- BLOQUE 3: tarjeta blanca rotada con Branding       -->
+  <div class="absolute -right-35 rounded-3xl -top-60 w-[680px] h-[520px] bg-white rotate-[-30deg] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.45),0_0_20px_rgba(15,73,132,0.2)] z-0 pointer-events-none origin-bottom-right hidden lg:flex items-center justify-center">
+    <!-- Contenedor interno centrado y contrarrotado (30deg) para mantenerse derecho -->
+    <div class="rotate-[30deg] flex flex-col items-center justify-center text-center space-y-4 -translate-x-14">
+      <!-- Título y Líneas -->
+      <div>
+        <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black text-[#0f4984] tracking-wider uppercase drop-shadow-xs">
+          LIQUIDADORES
+        </h2>
+        
+        <!-- Líneas Tricolor -->
+        <div class="flex items-center justify-center gap-2 mt-2">
+          <span class="w-8 sm:w-10 h-1.5 bg-[#d32f2f] rounded-full"></span>
+          <span class="w-8 sm:w-10 h-1.5 bg-[#1976d2] rounded-full"></span>
+          <span class="w-8 sm:w-10 h-1.5 bg-[#568224] rounded-full"></span>
+        </div>
+      </div>
+
+      <!-- Logo Gobernación del Cauca Centrado con Icono Web -->
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <div class="w-9 h-9 rounded-full bg-[#16599d] text-white flex items-center justify-center text-lg shadow-sm">
+          <i class="fa-solid fa-globe"></i>
+        </div>
+        <img 
+          src="/Logo_gov_cauca.png" 
+          alt="Gobernación del Cauca" 
+          class="h-20 lg:h-24 w-auto object-contain drop-shadow-sm" 
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- Logo de 101 Software en esquina inferior derecha -->
+  <div class="absolute bottom-4 right-6 z-10 hidden sm:flex items-center gap-2">
+    <img 
+      src="/logo_101_software_white.png" 
+      alt="101 Software" 
+      class="h-6 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity drop-shadow-md" 
+    />
+  </div>
+
+  <!-- FORMULARIO DE LOGIN (Lado Izquierdo)                     -->
+  <div class="relative z-10 w-full max-w-sm sm:max-w-md bg-white rounded-2xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.4),0_0_30px_rgba(15,73,132,0.15)] overflow-hidden transition-all duration-300">
+    <!-- Header del Formulario -->
+    <div class="bg-[#0f4984] text-white py-4 px-6 text-center shadow-md flex items-center justify-center gap-2">
+      <i class="fa-solid fa-user-lock text-lg"></i>
+      <h1 class="text-base sm:text-lg font-black uppercase tracking-wider">
+        INICIAR SESIÓN
+      </h1>
+    </div>
+
+    <!-- Cuerpo del Formulario -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="p-6 sm:p-8 space-y-5">
+      <!-- Mensaje de Error si ocurre -->
+      @if (errorMessage()) {
+        <div class="bg-red-50 border-l-4 border-red-500 p-3 rounded-r-lg text-xs text-red-700 flex items-start gap-2 animate-fadeIn shadow-sm">
+          <i class="fa-solid fa-circle-exclamation mt-0.5 text-red-500"></i>
+          <span>{{ errorMessage() }}</span>
+        </div>
+      }
+
+      <!-- Campo Usuario -->
+      <div class="space-y-1.5">
+        <label for="usuario" class="block text-xs font-bold text-slate-800 uppercase tracking-wide">
+          USUARIO:
+        </label>
+        <div class="relative flex items-center">
+          <input
+            id="usuario"
+            type="text"
+            formControlName="usuario"
+            placeholder="Ingrese su usuario o documento"
+            class="w-full bg-[#cce3fc]/70 hover:bg-[#cce3fc] focus:bg-[#d8eafd] text-slate-800 text-sm font-medium rounded-lg px-4 py-3 pl-10 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-[#0f4984] focus:border-transparent transition-all placeholder:text-slate-500"
+            [class.border-red-400]="loginForm.get('usuario')?.invalid && loginForm.get('usuario')?.touched"
+            autocomplete="username"
+          />
+          <i class="fa-solid fa-user absolute left-3.5 text-slate-500 text-sm"></i>
+        </div>
+        @if (loginForm.get('usuario')?.invalid && loginForm.get('usuario')?.touched) {
+          <p class="text-[11px] text-red-600 font-medium">El usuario es requerido.</p>
+        }
+      </div>
+
+      <!-- Campo Contraseña -->
+      <div class="space-y-1.5">
+        <label for="clave" class="block text-xs font-bold text-slate-800 uppercase tracking-wide">
+          CONTRASEÑA:
+        </label>
+        <div class="relative flex items-center">
+          <input
+            id="clave"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="clave"
+            placeholder="••••••••••••"
+            class="w-full bg-[#cce3fc]/70 hover:bg-[#cce3fc] focus:bg-[#d8eafd] text-slate-800 text-sm font-medium rounded-lg px-4 py-3 pl-10 pr-10 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-[#0f4984] focus:border-transparent transition-all placeholder:text-slate-500"
+            [class.border-red-400]="loginForm.get('clave')?.invalid && loginForm.get('clave')?.touched"
+            autocomplete="current-password"
+          />
+          <i class="fa-solid fa-lock absolute left-3.5 text-slate-500 text-sm"></i>
+          <button
+            type="button"
+            (click)="togglePassword()"
+            class="absolute right-3 text-slate-500 hover:text-slate-800 focus:outline-none cursor-pointer"
+            title="Mostrar / Ocultar contraseña"
+          >
+            <i class="fa-solid" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()"></i>
+          </button>
+        </div>
+        @if (loginForm.get('clave')?.invalid && loginForm.get('clave')?.touched) {
+          <p class="text-[11px] text-red-600 font-medium">La contraseña es requerida.</p>
+        }
+      </div>
+
+      <!-- Acceso Rápido de Prueba -->
+      <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-2.5 flex items-center justify-between text-xs shadow-xs">
+        <span class="text-slate-600 font-medium text-[11px]">
+          <i class="fa-solid fa-key text-blue-600 mr-1"></i>
+          Demo: <strong>admin</strong> / <strong>admin123</strong>
+        </span>
+        <button
+          type="button"
+          (click)="fillQuickDemo('admin')"
+          class="text-[11px] font-bold text-[#0f4984] hover:text-blue-900 bg-white px-2 py-0.5 rounded border border-blue-200 shadow-2xs hover:bg-blue-50 transition cursor-pointer"
+        >
+          Autocompletar
+        </button>
+      </div>
+
+      <!-- Botón Ingresar -->
+      <div class="pt-1">
+        <button
+          type="submit"
+          [disabled]="isLoading()"
+          class="w-full bg-[#568224] hover:bg-[#466a1d] text-white font-bold py-3.5 px-6 rounded-lg text-sm sm:text-base shadow-[0_10px_25px_rgba(86,130,36,0.45)] hover:shadow-[0_15px_30px_rgba(86,130,36,0.6)] transition-all duration-200 active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          @if (isLoading()) {
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <span>Ingresando...</span>
+          } @else {
+            <span>Ingresar</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          }
+        </button>
+      </div>
+
+      <!-- Enlace para volver a la Home -->
+      <div class="text-center pt-2">
+        <a
+          routerLink="/"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0f4984] hover:text-blue-900 hover:underline transition-colors"
+        >
+          <i class="fa-solid fa-arrow-left text-[10px]"></i>
+          <span>Volver al portal principal</span>
+        </a>
+      </div>
+    </form>
+  </div>
+
+</div>
