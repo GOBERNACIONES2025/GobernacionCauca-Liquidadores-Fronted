@@ -170,15 +170,13 @@
           <div class="flex gap-2">
             <select 
               [ngModel]="tipoDocumento()" 
-              (ngModelChange)="tipoDocumento.set($event)"
+              (ngModelChange)="tipoDocumento.set(+$event)"
               name="tipoDoc"
               class="w-24 bg-[#cce3fc]/70 hover:bg-[#cce3fc] focus:bg-[#d8eafd] text-slate-800 text-xs font-bold rounded-lg px-2.5 py-3 border border-blue-200 focus:outline-none focus:ring-2 focus:ring-[#0f4984] focus:border-transparent transition-all cursor-pointer"
             >
-              <option value="CC">C.C.</option>
-              <option value="NIT">NIT</option>
-              <option value="CE">C.E.</option>
-              <option value="PAS">PAS</option>
-              <option value="TI">T.I.</option>
+              @for (tipo of tiposDocumento; track tipo.id) {
+                <option [value]="tipo.id" [title]="tipo.nombre">{{ tipo.codigo }}</option>
+              }
             </select>
 
             <div class="relative flex-1 flex items-center">

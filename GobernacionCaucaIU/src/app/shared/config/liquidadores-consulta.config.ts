@@ -1,5 +1,6 @@
 export interface LiquidadorConsultaExample {
   label: string;
+  tipoDocId?: number;
   doc: string;
   secondary: string;
   tag: string;
@@ -16,6 +17,7 @@ export interface LiquidadorConsultaConfig {
   secondaryFieldIcon: string;       // Ej: "fa-car"
   buttonText: string;               // Ej: "Consultar Vehículo"
   buttonIcon: string;               // Ej: "fa-magnifying-glass"
+  iconSvg?: string;                 // Ruta al SVG del liquidador (ej: '/vehicular.svg')
   headerBgColor: string;            // Ej: "bg-[#0f4984]"
   brandingTextColor: string;        // Ej: "text-[#0f4984]"
   buttonBgColor: string;            // Ej: "bg-[#0f4984] hover:bg-[#0c3c6d]"
@@ -31,17 +33,18 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     headerSubtitle: 'Consulte el impuesto sobre vehículos automotores, estado de cuenta y paz y salvo.',
     secondaryFieldKey: 'placa',
     secondaryFieldLabel: 'PLACA DEL VEHÍCULO:',
-    secondaryFieldPlaceholder: 'Ej: QWE-123',
+    secondaryFieldPlaceholder: 'Ej: AAA001',
     secondaryFieldIcon: 'fa-car',
     buttonText: 'Consultar Impuesto Vehicular',
     buttonIcon: 'fa-magnifying-glass',
+    iconSvg: '/vehicular.svg',
     headerBgColor: 'bg-[#0f4984]',
     brandingTextColor: 'text-[#0f4984]',
     buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
     iconBadgeColor: 'bg-blue-50 text-[#0f4984] border-blue-100',
     quickExamples: [
-      { label: 'Consulta de Prueba 1', doc: '12345678', secondary: 'AAA-000', tag: 'Popayán' },
-      { label: 'Consulta de Prueba 2', doc: '11223344', secondary: 'AAA-001', tag: 'Cali / Santander' }
+      { label: 'Vehículo Prueba Real', tipoDocId: 1, doc: '11223344', secondary: 'AAA001', tag: 'DS 3' },
+      { label: 'Consulta Alterna', tipoDocId: 1, doc: '1234567', secondary: 'AAA000', tag: 'Prueba' }
     ]
   },
   pasaportes: {
@@ -55,6 +58,7 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     secondaryFieldIcon: 'fa-passport',
     buttonText: 'Hacer Solicitud de Pasaporte',
     buttonIcon: 'fa-file-pen',
+    iconSvg: '/pasaporte.svg',
     headerBgColor: 'bg-[#0f4984]',
     brandingTextColor: 'text-[#0f4984]',
     buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
@@ -72,13 +76,14 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     secondaryFieldIcon: 'fa-barcode',
     buttonText: 'Consultar Impuesto de Registro',
     buttonIcon: 'fa-file-circle-check',
+    iconSvg: '/registros.svg',
     headerBgColor: 'bg-[#0f4984]',
     brandingTextColor: 'text-[#0f4984]',
     buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
     iconBadgeColor: 'bg-blue-50 text-[#0f4984] border-blue-100',
     quickExamples: [
-      { label: 'Radicado Liquidado 1', doc: '12345678', secondary: 'RAD-2026-4410', tag: 'Notaría 1' },
-      { label: 'Radicado Liquidado 2', doc: '11223344', secondary: 'RAD-2026-5512', tag: 'Notaría 2' }
+      { label: 'Radicado Liquidado 1', tipoDocId: 1, doc: '12345678', secondary: 'RAD-2026-4410', tag: 'Notaría 1' },
+      { label: 'Radicado Liquidado 2', tipoDocId: 1, doc: '11223344', secondary: 'RAD-2026-5512', tag: 'Notaría 2' }
     ]
   },
   deguello: {
@@ -92,6 +97,7 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     secondaryFieldIcon: 'fa-file-invoice',
     buttonText: 'Consultar Guía de Degüello',
     buttonIcon: 'fa-cow',
+    iconSvg: '/deguello.svg',
     headerBgColor: 'bg-[#0f4984]',
     brandingTextColor: 'text-[#0f4984]',
     buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',

@@ -8,9 +8,25 @@ import {
   LiquidadorConsultaExample 
 } from '../../config/liquidadores-consulta.config';
 
+export interface TipoDocumentoOpcion {
+  id: number;
+  codigo: string;
+  nombre: string;
+}
+
+export const TIPOS_DOCUMENTO_OPCIONES: TipoDocumentoOpcion[] = [
+  { id: 1, codigo: 'CC', nombre: 'Cédula de Ciudadanía' },
+  { id: 2, codigo: 'NIT', nombre: 'NIT' },
+  { id: 3, codigo: 'CE', nombre: 'Cédula de Extranjería' },
+  { id: 4, codigo: 'TI', nombre: 'Tarjeta de Identidad' },
+  { id: 5, codigo: 'PA', nombre: 'Pasaporte' },
+  { id: 6, codigo: 'RC', nombre: 'Registro Civil' },
+];
+
 export interface ConsultaSubmitPayload {
   config: LiquidadorConsultaConfig;
-  tipoDocumento: string;
+  tipoDocumento: number;
+  tipoDocumentoCodigo?: string;
   numeroDocumento: string;
   secondaryValue: string;
 }
@@ -25,13 +41,16 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
+  /** Opciones oficiales de tipo de documento */
+  readonly tiposDocumento = TIPOS_DOCUMENTO_OPCIONES;
+
   /** Si se pasa directamente por propiedad Input */
   @Input() liquidadorKey?: string;
 
   /** Evento emitido cuando el ciudadano envía la consulta */
   @Output() onConsultar = new EventEmitter<ConsultaSubmitPayload>();
 
-  readonly tipoDocumento = signal<string>('CC');
+  readonly tipoDocumento = signal<number>(1);
   readonly numeroDocumento = signal<string>('');
   readonly secondaryValue = signal<string>('');
   readonly isLoading = signal<boolean>(false);
@@ -68,7 +87,7 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
   }
 
   cargarEjemplo(ejemplo: LiquidadorConsultaExample): void {
-    this.tipoDocumento.set('CC');
+    this.tipoDocumento.set(ejemplo.tipoDocId || 1);
     this.numeroDocumento.set(ejemplo.doc);
     this.secondaryValue.set(ejemplo.secondary);
     this.submitForm();
@@ -79,9 +98,6 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
     let val = input.value.toUpperCase();
     if (this.activeKey() === 'automotores') {
       val = val.replace(/[^A-Z0-9]/g, '');
-      if (val.length > 3) {
-        val = `${val.substring(0, 3)}-${val.substring(3, 6)}`;
-      }
     }
     this.secondaryValue.set(val);
   }
@@ -108,9 +124,13 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
     this.errorMessage.set(null);
     this.isLoading.set(true);
 
+    const tipoDocId = Number(this.tipoDocumento()) || 1;
+    const tipoDocOpc = this.tiposDocumento.find(t => t.id === tipoDocId);
+
     this.onConsultar.emit({
       config: cfg,
-      tipoDocumento: this.tipoDocumento(),
+      tipoDocumento: tipoDocId,
+      tipoDocumentoCodigo: tipoDocOpc?.codigo || 'CC',
       numeroDocumento: doc,
       secondaryValue: sec,
     });

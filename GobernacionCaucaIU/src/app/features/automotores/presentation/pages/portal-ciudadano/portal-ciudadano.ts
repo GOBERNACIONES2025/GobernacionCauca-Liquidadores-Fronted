@@ -1,64 +1,94 @@
 import { Component, signal, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { PropietariosApiService } from '../../../infrastructure/api/propietarios-api.service';
 import { VehiculosApiService } from '../../../infrastructure/api/vehiculos-api.service';
 import { 
   ConsultaCiudadanaSharedComponent, 
-  ConsultaSubmitPayload 
+  ConsultaSubmitPayload,
+  TIPOS_DOCUMENTO_OPCIONES
 } from '../../../../../shared/components/consulta-ciudadana/consulta-ciudadana-shared';
+import { 
+  ConsultaVehicularData, 
+  ConsultaVehicularRequest
+} from '../../../domain/interfaces/consulta-vehicular.interface';
 
-export interface Liquidacion {
+export interface LiquidacionCiudadano {
   id: string;
   vigencia: number;
-  referencia: string;
-  concepto: string;
-  fecha: string;
-  fechaVencimiento?: string;
+  placa: string;
+  detalle: string;
   valor: number;
-  descuento?: number;
-  estado: 'PAGADA' | 'PENDIENTE';
-  comprobanteUrl?: string;
+  estado: string;
+  esPagada: boolean;
 }
 
-export interface VehiculoCiudadano {
-  id?: number;
-  placa: string;
-  marca: string;
-  linea: string;
-  modelo: number;
-  tipo: string;
-  servicio: string;
-  cilindraje: string;
-  estado: 'Al día' | 'Pendiente';
-  deuda?: number;
-  liquidaciones: Liquidacion[];
+export interface HistorialCiudadano {
+  fecha: string;
+  accion: string;
+  usuario?: string;
+}
+
+export interface NovedadCiudadano {
+  tipo?: string;
+  detalle?: string;
+  fecha?: string;
 }
 
 export interface CertificadoCiudadano {
   id: string;
   tipo: string;
-  codigo: string;
-  placa?: string;
+  vigencia: number;
+  placa: string;
   fecha: string;
+  codigo: string;
+}
+
+export interface PropietarioCiudadano {
+  nombre: string;
+  tipoDocumentoId: number;
+  tipoDocumentoNombre: string;
+  documento: string;
+  email: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  ciudad: string | null;
+  activo: boolean;
+}
+
+export interface VehiculoCiudadano {
+  id: number;
+  placa: string;
+  marca: string;
+  linea: string;
+  modelo: number;
+  cilindraje: number;
+  tipoVehiculo: string | null;
+  clase: string | null;
+  servicio: string | null;
+  combustible: string | null;
+  pasajeros: number | null;
+  fechaMatricula: string | null;
+  estadoMatriculaNombre: string | null;
+  organismoTransitoNombre: string | null;
+  estadoGeneral: 'Al día' | 'Pendiente';
+  deudaTotal: number;
+  liquidaciones: LiquidacionCiudadano[];
+  historial: HistorialCiudadano[];
+  novedades: NovedadCiudadano[];
+}
+
+export interface RelacionCiudadano {
+  tipoVinculo: string;
+  porcentaje: number;
+  esResponsable: boolean;
+  fechaInicio: string | null;
 }
 
 export interface CiudadanoData {
-  nombre: string;
-  tipoDocumento: string;
-  documento: string;
-  ciudad: string;
-  placaConsultada: string;
-  vehiculos: VehiculoCiudadano[];
+  propietario: PropietarioCiudadano;
+  relacion: RelacionCiudadano;
+  vehiculo: VehiculoCiudadano;
   certificados: CertificadoCiudadano[];
-  actividades: {
-    titulo: string;
-    placa?: string;
-    fecha: string;
-    tipo: 'pago' | 'tramite' | 'certificado';
-  }[];
 }
 
 @Component({
@@ -70,244 +100,160 @@ export interface CiudadanoData {
 export class PortalCiudadano implements OnInit {
   @ViewChild(ConsultaCiudadanaSharedComponent) sharedComponent?: ConsultaCiudadanaSharedComponent;
 
-  private propietariosApi = inject(PropietariosApiService);
   private vehiculosApi = inject(VehiculosApiService);
   private router = inject(Router);
 
   readonly isConsulted = signal<boolean>(false);
-  readonly activeTab = signal<'inicio' | 'vehiculos' | 'liquidaciones' | 'certificados'>('inicio');
+  readonly activeTab = signal<'inicio' | 'historial' | 'liquidaciones' | 'certificados'>('inicio');
 
   // Modales
-  readonly vehiculoSeleccionado = signal<VehiculoCiudadano | null>(null);
-  readonly liquidacionParaPagar = signal<Liquidacion | null>(null);
+  readonly liquidacionParaPagar = signal<LiquidacionCiudadano | null>(null);
 
-  // Datos dinámicos del ciudadano
+  // Datos dinámicos del ciudadano provenientes exclusivamente de la API
   readonly ciudadano = signal<CiudadanoData | null>(null);
 
   ngOnInit(): void {}
 
   alConsultar(payload: ConsultaSubmitPayload): void {
-    const tipoDoc = payload.tipoDocumento;
-    const cedula = payload.numeroDocumento.trim();
+    const tipoDocId = Number(payload.tipoDocumento) || 1;
+    const docNum = payload.numeroDocumento.trim();
     const placaLimpia = payload.secondaryValue.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-    const placaFormateada = placaLimpia.length > 3 
-      ? `${placaLimpia.substring(0, 3)}-${placaLimpia.substring(3, 6)}` 
-      : placaLimpia;
+    const request: ConsultaVehicularRequest = {
+      tipoDocumento: tipoDocId,
+      numeroDocumento: docNum,
+      placa: placaLimpia
+    };
 
-    forkJoin({
-      propietarioRes: this.propietariosApi.getPropietarioByDocumento(tipoDoc, cedula).pipe(
-        catchError(() => of(null))
-      ),
-      vehiculoRes: this.vehiculosApi.getVehiculoByPlaca(placaLimpia).pipe(
-        catchError(() => of(null))
-      ),
-      expedienteVehiculoRes: this.vehiculosApi.getExpedienteByPlaca(placaLimpia).pipe(
-        catchError(() => of(null))
-      )
-    }).subscribe({
-      next: ({ propietarioRes, vehiculoRes, expedienteVehiculoRes }) => {
-        const prop = propietarioRes?.data || (propietarioRes as any);
-        const veh = vehiculoRes?.data || (vehiculoRes as any);
-        const exp = expedienteVehiculoRes?.data || (expedienteVehiculoRes as any);
-
-        if (!prop && !veh && !exp) {
-          this.sharedComponent?.setLoading(false);
-          this.sharedComponent?.setErrorMessage('No se encontró ningún registro con el documento y placa ingresados. Verifique los datos.');
+    this.vehiculosApi.consultarVehicular(request).subscribe({
+      next: (res) => {
+        this.sharedComponent?.setLoading(false);
+        if (!res || !res.success || !res.data) {
+          this.sharedComponent?.setErrorMessage(res?.message || 'No se encontró información del vehículo o propietario con los datos ingresados.');
           return;
         }
 
-        if (prop?.id) {
-          this.propietariosApi.getExpediente(prop.id).pipe(
-            catchError(() => of(null))
-          ).subscribe((expPropRes: any) => {
-            this.sharedComponent?.setLoading(false);
-            this.construirYRenderizarCiudadano(prop, veh, exp, expPropRes?.data || expPropRes, tipoDoc, cedula, placaFormateada);
-          });
-        } else {
-          this.sharedComponent?.setLoading(false);
-          this.construirYRenderizarCiudadano(prop, veh, exp, null, tipoDoc, cedula, placaFormateada);
-        }
+        this.procesarRespuestaApi(res.data, tipoDocId);
       },
-      error: () => {
+      error: (err) => {
         this.sharedComponent?.setLoading(false);
-        this.sharedComponent?.setErrorMessage('Error al conectar con la API de la Gobernación del Cauca.');
+        const errMsg = err?.error?.message || err?.message || 'No se encontró ningún registro con el documento y placa ingresados. Verifique los datos.';
+        this.sharedComponent?.setErrorMessage(errMsg);
       }
     });
   }
 
-  private construirYRenderizarCiudadano(
-    prop: any, 
-    veh: any, 
-    expVeh: any, 
-    expProp: any, 
-    tipoDoc: string, 
-    cedula: string, 
-    placaFormateada: string
-  ): void {
-    let nombreCiudadano = 'Ciudadano / Contribuyente';
-    if (prop) {
-      if (prop.razonSocial) {
-        nombreCiudadano = prop.razonSocial;
-      } else {
-        const partes = [prop.primerNombre, prop.segundoNombre, prop.primerApellido, prop.segundoApellido].filter(Boolean);
-        if (partes.length > 0) nombreCiudadano = partes.join(' ');
-      }
-    } else if (veh?.propietario?.nombre) {
-      nombreCiudadano = veh.propietario.nombre;
-    } else if (veh?.propietarioNombre) {
-      nombreCiudadano = veh.propietarioNombre;
-    }
+  private procesarRespuestaApi(data: ConsultaVehicularData, tipoDocId: number): void {
+    const prop = data.propietario;
+    const veh = data.vehiculo;
+    const rel = data.relacionPropietario;
+    const rawLiqs = data.liquidaciones || [];
+    const rawHist = data.historial || [];
+    const rawNov = data.novedades || [];
 
-    const ciudadCiudadano = prop?.ciudad || 'Popayán, Cauca';
-    const docCiudadano = prop?.numeroDocumento || cedula;
+    // Tipo de Documento Nombre
+    const tipoDocOpc = TIPOS_DOCUMENTO_OPCIONES.find(t => t.id === (prop?.tipoDocumentoId || tipoDocId));
+    const tipoDocStr = tipoDocOpc ? `${tipoDocOpc.nombre} (${tipoDocOpc.codigo})` : 'Cédula de Ciudadanía (CC)';
 
-    const vehiculosMap = new Map<string, VehiculoCiudadano>();
-    const targetVeh = veh || expVeh?.vehiculo;
-    if (targetVeh) {
-      const vPlaca = targetVeh.placa ? targetVeh.placa.toUpperCase() : placaFormateada;
-      vehiculosMap.set(vPlaca, this.mapearVehiculoCiudadano(targetVeh, expVeh));
-    }
-
-    if (expProp?.vehiculos && Array.isArray(expProp.vehiculos)) {
-      expProp.vehiculos.forEach((vItem: any) => {
-        const vPlaca = (vItem.placa || '').toUpperCase();
-        if (vPlaca && !vehiculosMap.has(vPlaca)) {
-          vehiculosMap.set(vPlaca, {
-            placa: vPlaca,
-            marca: vItem.marca || 'Generico',
-            linea: vItem.linea || 'Estándar',
-            modelo: Number(vItem.modelo) || 2024,
-            tipo: vItem.clase || 'Automóvil',
-            servicio: 'Particular',
-            cilindraje: '1600 cc',
-            estado: vItem.estado === 'Activo' || vItem.estado === 'Matrícula Activa' ? 'Al día' : 'Pendiente',
-            liquidaciones: []
-          });
-        }
-      });
-    }
-
-    if (vehiculosMap.size === 0) {
-      vehiculosMap.set(placaFormateada, {
-        placa: placaFormateada,
-        marca: 'Automotor',
-        linea: 'Registrado',
-        modelo: 2024,
-        tipo: 'Automóvil',
-        servicio: 'Particular',
-        cilindraje: '1600 cc',
-        estado: 'Al día',
-        liquidaciones: []
-      });
-    }
-
-    const vehiculosList = Array.from(vehiculosMap.values());
-    const fechaActualStr = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
-    const certificadosList: CertificadoCiudadano[] = [
-      {
-        id: 'cert-1',
-        tipo: 'Estado de Cuenta Tributario',
-        codigo: `EST-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-        placa: placaFormateada,
-        fecha: fechaActualStr
-      },
-      {
-        id: 'cert-2',
-        tipo: 'Paz y Salvo Impuesto Vehicular',
-        codigo: `PAZ-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-        placa: placaFormateada,
-        fecha: fechaActualStr
-      }
-    ];
-
-    const actividadesList = [
-      {
-        titulo: 'Consulta de estado vehicular',
-        placa: placaFormateada,
-        fecha: fechaActualStr,
-        tipo: 'tramite' as const
-      },
-      {
-        titulo: 'Certificado tributario disponible',
-        placa: placaFormateada,
-        fecha: fechaActualStr,
-        tipo: 'certificado' as const
-      }
-    ];
-
-    this.ciudadano.set({
-      nombre: nombreCiudadano,
-      tipoDocumento: tipoDoc,
-      documento: docCiudadano,
-      ciudad: ciudadCiudadano,
-      placaConsultada: placaFormateada,
-      vehiculos: vehiculosList,
-      certificados: certificadosList,
-      actividades: actividadesList
+    // Mapear liquidaciones
+    const liquidacionesMapped: LiquidacionCiudadano[] = rawLiqs.map((l, index) => {
+      const valor = Number(l.valor) || 0;
+      const estadoUpper = (l.estado || '').toUpperCase();
+      const esPagada = valor === 0 || estadoUpper.includes('PAGAD') || estadoUpper.includes('SATISFECH');
+      return {
+        id: `liq-${index + 1}`,
+        vigencia: l.vigencia,
+        placa: l.placa,
+        detalle: l.detalle || `Vigencia ${l.vigencia}`,
+        valor,
+        estado: l.estado,
+        esPagada
+      };
     });
 
+    // Calcular deuda total y estado general
+    const deudasPendientes = liquidacionesMapped.filter(l => !l.esPagada && l.valor > 0);
+    const totalDeuda = deudasPendientes.reduce((acc, curr) => acc + curr.valor, 0);
+    const estadoGeneral: 'Al día' | 'Pendiente' = (deudasPendientes.length === 0 && totalDeuda === 0) ? 'Al día' : 'Pendiente';
+
+    // Mapear historial
+    const historialMapped: HistorialCiudadano[] = rawHist.map(h => ({
+      fecha: h.fecha,
+      accion: h.accion,
+      usuario: h.usuario
+    }));
+
+    // Mapear novedades
+    const novedadesMapped: NovedadCiudadano[] = rawNov.map(n => ({
+      tipo: n.tipoNovedad,
+      detalle: n.detalle,
+      fecha: n.fecha
+    }));
+
+    // Mapear certificados solo para las vigencias pagadas
+    const vigenciasPagadas = liquidacionesMapped.filter(l => l.esPagada);
+    const fechaEmisionStr = new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+    
+    const certificadosMapped: CertificadoCiudadano[] = vigenciasPagadas.map((l, idx) => ({
+      id: `cert-${l.vigencia}-${idx}`,
+      tipo: `Paz y Salvo Impuesto Vehicular - Vigencia ${l.vigencia}`,
+      vigencia: l.vigencia,
+      placa: veh?.placa || l.placa,
+      fecha: fechaEmisionStr,
+      codigo: `CERT-${l.vigencia}-${l.placa}-${Math.floor(1000 + Math.random() * 9000)}`
+    }));
+
+    this.ciudadano.set({
+      propietario: {
+        nombre: prop?.nombreCompleto || 'No especificado',
+        tipoDocumentoId: prop?.tipoDocumentoId || tipoDocId,
+        tipoDocumentoNombre: tipoDocStr,
+        documento: prop?.numeroDocumento || '',
+        email: prop?.correoElectronico || null,
+        telefono: prop?.telefono || null,
+        direccion: prop?.direccion || null,
+        ciudad: prop?.ciudad || null,
+        activo: prop?.activo ?? true
+      },
+      relacion: {
+        tipoVinculo: rel?.tipoVinculoNombre || 'Propietario',
+        porcentaje: rel?.porcentajePropiedad ?? 100,
+        esResponsable: rel?.esResponsablePrincipal ?? true,
+        fechaInicio: rel?.fechaInicio || null
+      },
+      vehiculo: {
+        id: veh?.id,
+        placa: veh?.placa,
+        marca: veh?.marca || 'No registrada',
+        linea: veh?.linea || 'No registrada',
+        modelo: veh?.modelo || 0,
+        cilindraje: veh?.cilindraje || 0,
+        tipoVehiculo: veh?.tipoVehiculo || null,
+        clase: veh?.clase || null,
+        servicio: veh?.servicio || 'Particular',
+        combustible: veh?.combustible || null,
+        pasajeros: veh?.pasajeros || null,
+        fechaMatricula: veh?.fechaMatricula || null,
+        estadoMatriculaNombre: veh?.estadoMatriculaNombre || 'Matrícula Activa',
+        organismoTransitoNombre: veh?.organismoTransitoNombre || null,
+        estadoGeneral,
+        deudaTotal: totalDeuda,
+        liquidaciones: liquidacionesMapped,
+        historial: historialMapped,
+        novedades: novedadesMapped
+      },
+      certificados: certificadosMapped
+    });
+
+    this.activeTab.set('inicio');
     this.isConsulted.set(true);
   }
 
-  private mapearVehiculoCiudadano(v: any, expVeh: any): VehiculoCiudadano {
-    const rawLiqs = expVeh?.liquidaciones || expVeh?.novedades || v?.liquidaciones || [];
-    const liquidacionesMapped: Liquidacion[] = [];
-
-    if (Array.isArray(rawLiqs) && rawLiqs.length > 0) {
-      rawLiqs.forEach((l: any, index: number) => {
-        liquidacionesMapped.push({
-          id: l.id || `liq-${index + 1}`,
-          vigencia: l.vigencia || Number(l.anio) || 2026,
-          referencia: l.referencia || l.codigo || `LIQ-2026-${1000 + index}`,
-          concepto: l.concepto || l.detalle || 'Impuesto sobre Vehículos Automotores',
-          fecha: l.fecha || new Date().toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }),
-          fechaVencimiento: l.fechaVencimiento || '30 de junio de 2026',
-          valor: Number(l.valor) || Number(l.monto) || 250000,
-          estado: l.estado === 'PAGADA' || l.estado === 'PAGADO' ? 'PAGADA' : 'PENDIENTE'
-        });
-      });
-    }
-
-    const tieneDeudas = liquidacionesMapped.some(l => l.estado === 'PENDIENTE');
-    const totalDeuda = liquidacionesMapped
-      .filter(l => l.estado === 'PENDIENTE')
-      .reduce((acc, l) => acc + l.valor, 0);
-
-    return {
-      id: v.id,
-      placa: v.placa || '',
-      marca: v.marca || 'N/A',
-      linea: v.linea || 'N/A',
-      modelo: Number(v.modelo) || 2024,
-      tipo: v.tipoVehiculo || v.clase || 'Automóvil',
-      servicio: v.servicio || 'Particular',
-      cilindraje: v.cilindraje ? `${v.cilindraje} cc` : 'N/A',
-      estado: tieneDeudas ? 'Pendiente' : 'Al día',
-      deuda: tieneDeudas ? totalDeuda : undefined,
-      liquidaciones: liquidacionesMapped
-    };
-  }
-
-  nuevaConsulta(): void {
-    this.isConsulted.set(false);
-    this.ciudadano.set(null);
-    this.activeTab.set('inicio');
-  }
-
-  cambiarTab(tab: 'inicio' | 'vehiculos' | 'liquidaciones' | 'certificados'): void {
+  cambiarTab(tab: 'inicio' | 'historial' | 'liquidaciones' | 'certificados'): void {
     this.activeTab.set(tab);
   }
 
-  verHojaDeVida(v: VehiculoCiudadano): void {
-    this.vehiculoSeleccionado.set(v);
-  }
-
-  cerrarHojaDeVida(): void {
-    this.vehiculoSeleccionado.set(null);
-  }
-
-  abrirPago(liq: Liquidacion): void {
+  abrirPago(liq: LiquidacionCiudadano): void {
     this.liquidacionParaPagar.set(liq);
   }
 
@@ -315,10 +261,10 @@ export class PortalCiudadano implements OnInit {
     this.liquidacionParaPagar.set(null);
   }
 
-  totalVehiculosPendientes(): number {
-    const c = this.ciudadano();
-    if (!c) return 0;
-    return c.vehiculos.filter(v => v.estado === 'Pendiente').length;
+  nuevaConsulta(): void {
+    this.isConsulted.set(false);
+    this.ciudadano.set(null);
+    this.activeTab.set('inicio');
   }
 
   salir(): void {

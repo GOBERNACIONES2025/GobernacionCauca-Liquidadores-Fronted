@@ -12,6 +12,7 @@ import {
   VincularPropietarioRequest, 
   VehiculoExpedienteDto 
 } from '../../domain/interfaces/vehiculo.interface';
+import { ConsultaVehicularRequest, ConsultaVehicularData } from '../../domain/interfaces/consulta-vehicular.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -103,5 +104,9 @@ export class VehiculosApiService {
 
   cambiarEstadoAprobacion(id: number, nuevoEstado: string): Observable<ApiResponse<any>> {
     return this.api.put<ApiResponse<any>>(`/vehiculos/${id}/estado-aprobacion`, {}, { params: { nuevoEstado } }, 'AUTOMOTORES');
+  }
+
+  consultarVehicular(body: ConsultaVehicularRequest): Observable<ApiResponse<ConsultaVehicularData>> {
+    return this.api.post<ApiResponse<ConsultaVehicularData>>('/Consultas/Vehicular', body, {}, 'AUTOMOTORES');
   }
 }
