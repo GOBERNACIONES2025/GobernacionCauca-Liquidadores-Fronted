@@ -143,6 +143,22 @@ export class PortalCiudadano implements OnInit {
     });
   }
 
+  /**
+   * Limpia prefijos institucionales repetitivos como "SECRETARÍA DE MOVILIDAD DE",
+   * "INSPECCIÓN DE TRÁNSITO Y TRANSPORTE DE", etc., para conservar únicamente el municipio.
+   */
+  private limpiarNombreOrganismoTransito(nombre?: string | null): string {
+    if (!nombre) return '';
+    let limpio = nombre.trim();
+
+    const regex = /^(SECRETAR[IÍ]A\s+DE\s+MOVILIDAD(\s+(DE|DEL))?|INSPECCI[OÓ]N\s+DE\s+TR[AÁ]NSITO\s+Y\s+TRANSPORTE(\s+(DE|DEL))?|SECRETAR[IÍ]A\s+DE\s+TR[AÁ]NSITO\s+Y\s+TRANSPORTE(\s+(DE|DEL))?|SECRETAR[IÍ]A\s+DE\s+TRANSPORTES?\s+Y\s+TR[AÁ]NSITO(\s+(DE|DEL))?|DIRECCI[OÓ]N\s+DE\s+TR[AÁ]NSITO(\s+Y\s+TRANSPORTE)?(\s+(DE|DEL))?|INSTITUTO\s+DE\s+TR[AÁ]NSITO(\s+Y\s+TRANSPORTE)?(\s+(DE|DEL))?)\s*/i;
+
+    limpio = limpio.replace(regex, '').trim();
+    limpio = limpio.replace(/^(DE|DEL)\s+/i, '').trim();
+
+    return limpio || nombre;
+  }
+
   private procesarRespuestaApi(data: ConsultaVehicularData, tipoDocId: number): void {
     const prop = data.propietario;
     const veh = data.vehiculo;
@@ -154,6 +170,9 @@ export class PortalCiudadano implements OnInit {
     // Tipo de Documento Nombre
     const tipoDocOpc = TIPOS_DOCUMENTO_OPCIONES.find(t => t.id === (prop?.tipoDocumentoId || tipoDocId));
     const tipoDocStr = tipoDocOpc ? `${tipoDocOpc.nombre} (${tipoDocOpc.codigo})` : 'Cédula de Ciudadanía (CC)';
+
+    // Organismo de tránsito / Municipio formateado limpiando prefijos
+    const organismoTransitoLimpio = this.limpiarNombreOrganismoTransito(veh?.organismoTransitoNombre);
 
     // Mapear liquidaciones
     const liquidacionesMapped: LiquidacionCiudadano[] = rawLiqs.map((l, index) => {
@@ -235,7 +254,7 @@ export class PortalCiudadano implements OnInit {
         pasajeros: veh?.pasajeros || null,
         fechaMatricula: veh?.fechaMatricula || null,
         estadoMatriculaNombre: veh?.estadoMatriculaNombre || 'Matrícula Activa',
-        organismoTransitoNombre: veh?.organismoTransitoNombre || null,
+        organismoTransitoNombre: organismoTransitoLimpio || null,
         estadoGeneral,
         deudaTotal: totalDeuda,
         liquidaciones: liquidacionesMapped,
