@@ -95,6 +95,18 @@ export class LiquidacionesApiService {
   }
 
   /**
+   * Descarga el documento oficial de liquidación en PDF como Blob binario en memoria.
+   * Evita bloqueos de seguridad del navegador por 'Insecure Connection / Mixed Content' en entornos HTTP/Desarrollo.
+   */
+  descargarPdfBlob(placa: string, vigencia?: number, esUnificado: boolean = false): Observable<Blob> {
+    const params: Record<string, string | number | boolean> = { placa, descargar: true };
+    if (vigencia) params['vigencia'] = vigencia;
+    if (esUnificado) params['esUnificado'] = esUnificado;
+
+    return this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }, 'AUTOMOTORES');
+  }
+
+  /**
    * Construye la URL completa para descargar o visualizar el archivo binario PDF oficial.
    */
   construirPdfUrl(placa: string, vigencia?: number, esUnificado: boolean = false, descargar: boolean = true): string {

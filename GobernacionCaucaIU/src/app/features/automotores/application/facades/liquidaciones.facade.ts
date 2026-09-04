@@ -623,17 +623,27 @@ export class LiquidacionesFacade {
   }
 
   /**
-   * Descarga el documento oficial de liquidación en PDF directamente desde la API.
+   * Descarga el documento oficial de liquidación en PDF de forma segura como Blob en memoria.
+   * Totalmente compatible con entornos HTTP de desarrollo y servidores IIS sin certificado SSL.
    */
   descargarFacturaPdf(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const url = this.api.construirPdfUrl(placa, vigencia, esUnificado, true);
-    const link = document.createElement('a');
-    link.href = url;
-    link.target = '_blank';
-    link.download = esUnificado ? `Recibo_Unificado_${placa}.pdf` : `Recibo_${placa}_${vigencia || 2026}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    this.api.descargarPdfBlob(placa, vigencia, esUnificado).pipe(
+      catchError(err => {
+        console.error('Error al descargar PDF:', err);
+        return of(null);
+      })
+    ).subscribe(blob => {
+      if (!blob) return;
+      const fileName = esUnificado ? `Recibo_Unificado_${placa}.pdf` : `Recibo_${placa}_${vigencia || 2026}.pdf`;
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+    });
   }
 
   /**
