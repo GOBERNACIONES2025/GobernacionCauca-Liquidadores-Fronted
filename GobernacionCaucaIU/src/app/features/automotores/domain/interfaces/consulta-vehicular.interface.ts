@@ -35,6 +35,14 @@ export interface VehiculoConsultaDto {
   estadoMatriculaNombre?: string | null;
   organismoTransitoId?: number;
   organismoTransitoNombre?: string | null;
+  organismoTransito?: string | null;
+  organismoTransitoDescripcion?: string | null;
+  nombreOrganismoTransito?: string | null;
+  secretaria?: string | null;
+  secretariaTransito?: string | null;
+  municipio?: string | null;
+  municipioNombre?: string | null;
+  municipioTransito?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
 }

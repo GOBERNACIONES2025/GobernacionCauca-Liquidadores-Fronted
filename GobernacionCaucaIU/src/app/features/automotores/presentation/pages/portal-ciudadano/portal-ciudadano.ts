@@ -11,6 +11,7 @@ import {
   ConsultaVehicularData, 
   ConsultaVehicularRequest
 } from '../../../domain/interfaces/consulta-vehicular.interface';
+import { DEFAULT_ORGANISMOS_TRANSITO } from '../../../application/facades/vehiculos.facade';
 
 export interface LiquidacionCiudadano {
   id: string;
@@ -151,10 +152,11 @@ export class PortalCiudadano implements OnInit {
     if (!nombre) return '';
     let limpio = nombre.trim();
 
-    const regex = /^(SECRETAR[IÍ]A\s+DE\s+MOVILIDAD(\s+(DE|DEL))?|INSPECCI[OÓ]N\s+DE\s+TR[AÁ]NSITO\s+Y\s+TRANSPORTE(\s+(DE|DEL))?|SECRETAR[IÍ]A\s+DE\s+TR[AÁ]NSITO\s+Y\s+TRANSPORTE(\s+(DE|DEL))?|SECRETAR[IÍ]A\s+DE\s+TRANSPORTES?\s+Y\s+TR[AÁ]NSITO(\s+(DE|DEL))?|DIRECCI[OÓ]N\s+DE\s+TR[AÁ]NSITO(\s+Y\s+TRANSPORTE)?(\s+(DE|DEL))?|INSTITUTO\s+DE\s+TR[AÁ]NSITO(\s+Y\s+TRANSPORTE)?(\s+(DE|DEL))?)\s*/i;
+    // Regex amplio para remover prefijos como "Secretaría de Tránsito y Transporte de", "Inspección de Tránsito de", "Secretaría de Movilidad de", etc.
+    const regex = /^(SECRETAR[IÍ]A|INSPECCI[OÓ]N|DIRECCI[OÓ]N|INSTITUTO|ORGANISMO|ALCALD[IÍ]A)?\s*(MUNICIPAL|DEPARTAMENTAL|DISTRITAL)?\s*(DE|DEL)?\s*(MOVILIDAD|TR[AÁ]NSITO|TRANSPORTES?|MOVILIDAD\s+Y\s+TR[AÁ]NSITO|TR[AÁ]NSITO\s+Y\s+TRANSPORTE|TRANSPORTES?\s+Y\s+TR[AÁ]NSITO)?\s*(MUNICIPAL|DEPARTAMENTAL|DISTRITAL)?\s*(DE|DEL)?\s*/i;
 
     limpio = limpio.replace(regex, '').trim();
-    limpio = limpio.replace(/^(DE|DEL)\s+/i, '').trim();
+    limpio = limpio.replace(/^(DE|DEL|MUNICIPAL)\s+/i, '').trim();
 
     return limpio || nombre;
   }
@@ -171,8 +173,28 @@ export class PortalCiudadano implements OnInit {
     const tipoDocOpc = TIPOS_DOCUMENTO_OPCIONES.find(t => t.id === (prop?.tipoDocumentoId || tipoDocId));
     const tipoDocStr = tipoDocOpc ? `${tipoDocOpc.nombre} (${tipoDocOpc.codigo})` : 'Cédula de Ciudadanía (CC)';
 
+    // 1. Extraer nombre del organismo de tránsito con fallback a todas las propiedades posibles
+    let rawOrganismo: string | null | undefined = 
+      veh?.organismoTransitoNombre ||
+      veh?.organismoTransito ||
+      veh?.organismoTransitoDescripcion ||
+      veh?.nombreOrganismoTransito ||
+      veh?.secretaria ||
+      veh?.secretariaTransito ||
+      veh?.municipio ||
+      veh?.municipioNombre ||
+      veh?.municipioTransito;
+
+    // 2. Si no viene el nombre pero viene el ID del organismo de tránsito, buscar en catálogo por ID
+    if (!rawOrganismo && veh?.organismoTransitoId) {
+      const match = DEFAULT_ORGANISMOS_TRANSITO.find(o => o.id === Number(veh.organismoTransitoId));
+      if (match) {
+        rawOrganismo = match.nombre;
+      }
+    }
+
     // Organismo de tránsito / Municipio formateado limpiando prefijos
-    const organismoTransitoLimpio = this.limpiarNombreOrganismoTransito(veh?.organismoTransitoNombre);
+    const organismoTransitoLimpio = this.limpiarNombreOrganismoTransito(rawOrganismo);
 
     // Mapear liquidaciones
     const liquidacionesMapped: LiquidacionCiudadano[] = rawLiqs.map((l, index) => {
