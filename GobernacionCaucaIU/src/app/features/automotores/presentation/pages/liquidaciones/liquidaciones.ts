@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 
 @Component({
@@ -11,6 +12,7 @@ import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.
 })
 export class LiquidacionesPage implements OnInit {
   readonly facade = inject(LiquidacionesFacade);
+  private sanitizer = inject(DomSanitizer);
 
   placaBuscarModal: string = '';
 
@@ -27,5 +29,9 @@ export class LiquidacionesPage implements OnInit {
     if (!this.placaBuscarModal.trim()) return;
     
     this.facade.abrirSimulacion(this.placaBuscarModal.trim());
+  }
+
+  getSafeHtml(html: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html);
   }
 }

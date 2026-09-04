@@ -75,3 +75,18 @@ export interface LiquidacionMasivaResultado {
   detalleLiquidaciones?: any[];
   mensaje: string;
 }
+
+export interface FacturaPreview {
+  placa: string;
+  numeroLiquidacion: string;
+  vigenciaAnio: number;
+  propietarioNombre: string;
+  propietarioDocumento: string;
+  totalPagar: number;
+  fechaEmision: string;
+  fechaLimitePago: string;
+  barcodeRawData: string;
+  barcodeFormattedText: string;
+  barcodeSvg: string;
+  htmlContent: string;
+}

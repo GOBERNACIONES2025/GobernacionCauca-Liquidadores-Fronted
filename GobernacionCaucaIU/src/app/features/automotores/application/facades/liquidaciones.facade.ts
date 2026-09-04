@@ -1,11 +1,12 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { BaseApiService } from '../../../../core/services/base-api.service';
+import { LiquidacionesApiService } from '../../infrastructure/api/liquidaciones-api.service';
 import { 
   SimulacionLiquidacion, 
   SimularLiquidacionRequest, 
   VigenciaLiquidada,
   LiquidacionMasivaRequest,
-  LiquidacionMasivaResultado
+  LiquidacionMasivaResultado,
+  FacturaPreview
 } from '../../domain/models/liquidacion.model';
 import { ApiResponse } from '../../domain/models/vehiculo.model';
 import { generatePdfBlobFromHtml, downloadPdfFromHtml } from '../../../../shared/utils/pdf-exporter.util';
@@ -108,7 +109,7 @@ export interface PagedResult<T> {
   providedIn: 'root'
 })
 export class LiquidacionesFacade {
-  private api = inject(BaseApiService);
+  private api = inject(LiquidacionesApiService);
 
   /** Pestaña activa actual: 'sin-liquidar' (vehículos pendientes con ID nulo) o 'liquidadas' (oficiales emitidas) */
   readonly activeTab = signal<'sin-liquidar' | 'liquidadas'>('sin-liquidar');
@@ -145,8 +146,13 @@ export class LiquidacionesFacade {
   readonly vehiculoExpandidoMasivo = signal<string | null>(null);
 
   /** Agrupación y acordeón para pestaña de Emitidas */
-  /** Agrupación y acordeón para pestaña de Emitidas */
   readonly placasExpandidasEmitidas = signal<string[]>([]);
+
+  /** Estado del visor y previsualización de facturas */
+  readonly isFacturaModalOpen = signal<boolean>(false);
+  readonly isFacturaLoading = signal<boolean>(false);
+  readonly facturaPreviewData = signal<FacturaPreview | null>(null);
+  readonly facturaPreviewHtml = computed(() => this.facturaPreviewData()?.htmlContent ?? '');
 
   /** Agrupa las liquidaciones emitidas por placa vehicular para la vista de acordeón */
   readonly liquidacionesEmitidasAgrupadas = computed(() => {
@@ -268,18 +274,20 @@ export class LiquidacionesFacade {
    */
   cargarLiquidaciones(): void {
     this.loadingTabla.set(true);
-    const params: any = {
+    const params = {
       page: this.page(),
       pageSize: this.pageSize(),
       buscar: this.buscar(),
-      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : null
+      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : undefined
     };
 
-    const endpoint = this.activeTab() === 'sin-liquidar' ? '/liquidaciones/pendientes' : '/liquidaciones/emitidas';
+    const call$ = this.activeTab() === 'sin-liquidar' 
+      ? this.api.getPendientes(params) 
+      : this.api.getEmitidas(params);
 
-    this.api.get<ApiResponse<PagedResult<LiquidacionItem>>>(endpoint, params).pipe(
+    call$.pipe(
       catchError(err => {
-        console.warn(`Error al consultar endpoint ${endpoint}:`, err);
+        console.warn('Error al consultar liquidaciones:', err);
         this.loadingTabla.set(false);
         return of(null);
       })
@@ -296,7 +304,7 @@ export class LiquidacionesFacade {
    * Consulta los indicadores KPI métricos del módulo en el backend.
    */
   cargarKpis(): void {
-    this.api.get<ApiResponse<LiquidacionKpis>>('/liquidaciones/kpis').pipe(
+    this.api.getKpis().pipe(
       catchError(err => {
         console.warn('Error al cargar KPIs de liquidaciones:', err);
         return of(null);
@@ -362,7 +370,7 @@ export class LiquidacionesFacade {
       placa: placa
     };
 
-    this.api.post<ApiResponse<SimulacionLiquidacion>>('/liquidaciones/simular', req).pipe(
+    this.api.simular(req).pipe(
       catchError(err => {
         console.warn('Error al simular liquidación:', err);
         this.error.set('No se pudo conectar con el motor de liquidaciones.');
@@ -372,7 +380,6 @@ export class LiquidacionesFacade {
     ).subscribe(res => {
       this.loading.set(false);
       if (res && res.data) {
-        console.log("Liquidacion" , res.data);
         this.simulacion.set(res.data);
         const validas = (res.data.vigencias || [])
           .filter(v => !v.parametrosFaltantesEnDb)
@@ -466,7 +473,7 @@ export class LiquidacionesFacade {
     }
 
     const requests = placasDestino.map(placa => 
-      this.api.post<ApiResponse<SimulacionLiquidacion>>('/liquidaciones/simular', { placa }).pipe(
+      this.api.simular({ placa }).pipe(
         map(res => res?.data || null),
         catchError(() => of(null))
       )
@@ -524,7 +531,7 @@ export class LiquidacionesFacade {
         placa: sim.placa,
         vigencias: aniosOficializar
       };
-      return this.api.post<ApiResponse<LiquidacionItem[]>>('/liquidaciones/oficializar', req).pipe(
+      return this.api.oficializar(req).pipe(
         map(res => res?.data || []),
         catchError(() => of([]))
       );
@@ -567,7 +574,7 @@ export class LiquidacionesFacade {
       vigencias: this.selectedVigenciaAnios()
     };
 
-    this.api.post<ApiResponse<LiquidacionItem[]>>('/liquidaciones/oficializar', req).pipe(
+    this.api.oficializar(req).pipe(
       catchError(err => {
         console.warn('Error al oficializar liquidación:', err);
         this.error.set('No se pudo expedir la liquidación oficial en BD.');
@@ -582,5 +589,79 @@ export class LiquidacionesFacade {
         this.cargarKpis();
       }
     });
+  }
+
+  /**
+   * Abre el visor y carga la previsualización HTML de la factura/declaración tributaria oficial.
+   */
+  abrirFacturaPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
+    this.isFacturaLoading.set(true);
+    this.facturaPreviewData.set(null);
+    this.isFacturaModalOpen.set(true);
+
+    this.api.previsualizarFactura(placa, vigencia, esUnificado).pipe(
+      catchError(err => {
+        console.error('Error al cargar previsualización de factura:', err);
+        this.isFacturaLoading.set(false);
+        return of(null);
+      })
+    ).subscribe(res => {
+      this.isFacturaLoading.set(false);
+      if (res && res.data) {
+        this.facturaPreviewData.set(res.data);
+      }
+    });
+  }
+
+  /**
+   * Cierra el modal de previsualización de facturas.
+   */
+  cerrarFacturaModal(): void {
+    this.isFacturaModalOpen.set(false);
+    this.facturaPreviewData.set(null);
+    this.isFacturaLoading.set(false);
+  }
+
+  /**
+   * Descarga el documento oficial de liquidación en PDF directamente desde la API.
+   */
+  descargarFacturaPdf(placa: string, vigencia?: number, esUnificado: boolean = false): void {
+    const url = this.api.construirPdfUrl(placa, vigencia, esUnificado, true);
+    const link = document.createElement('a');
+    link.href = url;
+    link.target = '_blank';
+    link.download = esUnificado ? `Recibo_Unificado_${placa}.pdf` : `Recibo_${placa}_${vigencia || 2026}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /**
+   * Envía a imprimir el documento renderizado en la previsualización de factura.
+   */
+  imprimirFacturaPreview(): void {
+    const data = this.facturaPreviewData();
+    if (!data || !data.htmlContent) return;
+
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+
+    const doc = printFrame.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(data.htmlContent);
+      doc.close();
+      setTimeout(() => {
+        printFrame.contentWindow?.focus();
+        printFrame.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(printFrame), 1000);
+      }, 500);
+    }
   }
 }

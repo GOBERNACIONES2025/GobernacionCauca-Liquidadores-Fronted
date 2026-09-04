@@ -386,13 +386,35 @@
                   </td>
 
                   <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                    <button 
-                      (click)="facade.toggleExpandirPlacaEmitida(grupo.placa)"
-                      type="button" 
-                      class="inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-bold bg-slate-800 hover:bg-slate-900 text-white border-none cursor-pointer shadow-xs">
-                      <i class="fa-solid text-xs" [class.fa-chevron-down]="!facade.placasExpandidasEmitidas().includes(grupo.placa)" [class.fa-chevron-up]="facade.placasExpandidasEmitidas().includes(grupo.placa)"></i>
-                      {{ facade.placasExpandidasEmitidas().includes(grupo.placa) ? 'Ocultar Vigencias' : 'Ver Vigencias' }}
-                    </button>
+                    <div class="flex items-center justify-center gap-1.5">
+                      <!-- Botón Ver Factura Unificada -->
+                      <button 
+                        (click)="facade.abrirFacturaPreview(grupo.placa, undefined, true)"
+                        type="button" 
+                        title="Previsualizar Declaración y Factura Unificada del Vehículo"
+                        class="inline-flex items-center justify-center gap-1.5 h-7 px-2.5 rounded-md text-[11px] font-bold bg-[#0f2d59] hover:bg-blue-900 text-white border-none cursor-pointer shadow-xs transition-colors">
+                        <i class="fa-solid fa-eye text-xs"></i>
+                        <span>Factura Unificada</span>
+                      </button>
+
+                      <!-- Botón Descargar PDF Unificado -->
+                      <button 
+                        (click)="facade.descargarFacturaPdf(grupo.placa, undefined, true)"
+                        type="button" 
+                        title="Descargar PDF de la Declaración Unificada"
+                        class="inline-flex items-center justify-center h-7 w-7 rounded-md text-xs font-bold bg-emerald-700 hover:bg-emerald-600 text-white border-none cursor-pointer shadow-xs transition-colors">
+                        <i class="fa-solid fa-file-pdf"></i>
+                      </button>
+
+                      <!-- Botón Ver/Ocultar Vigencias (Acordeón) -->
+                      <button 
+                        (click)="facade.toggleExpandirPlacaEmitida(grupo.placa)"
+                        type="button" 
+                        title="Ver / Ocultar vigencias individuales"
+                        class="inline-flex items-center justify-center gap-1 h-7 px-2 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer shadow-2xs transition-colors">
+                        <i class="fa-solid text-xs" [class.fa-chevron-down]="!facade.placasExpandidasEmitidas().includes(grupo.placa)" [class.fa-chevron-up]="facade.placasExpandidasEmitidas().includes(grupo.placa)"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
 
@@ -442,7 +464,26 @@
                       </td>
 
                       <td class="py-2.5 px-4 text-center whitespace-nowrap text-slate-400 text-xs">
-                        —
+                        <div class="flex items-center justify-center gap-1.5">
+                          <!-- Botón Ver Factura Vigencia -->
+                          <button 
+                            (click)="facade.abrirFacturaPreview(grupo.placa, v.vigenciaAnio, false)"
+                            type="button" 
+                            title="Previsualizar Declaración de la Vigencia {{ v.vigenciaAnio }}"
+                            class="inline-flex items-center justify-center gap-1 h-6 px-2 rounded text-[10.5px] font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 cursor-pointer transition-colors">
+                            <i class="fa-solid fa-eye text-[10px]"></i>
+                            <span>Ver Recibo</span>
+                          </button>
+
+                          <!-- Botón Descargar PDF Vigencia -->
+                          <button 
+                            (click)="facade.descargarFacturaPdf(grupo.placa, v.vigenciaAnio, false)"
+                            type="button" 
+                            title="Descargar PDF de la Vigencia {{ v.vigenciaAnio }}"
+                            class="inline-flex items-center justify-center h-6 w-6 rounded text-[10.5px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer transition-colors">
+                            <i class="fa-solid fa-file-arrow-down text-[10px]"></i>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   }
@@ -927,5 +968,104 @@
     </div>
   </div>
 }
+
+<!-- ========================================================================= -->
+<!-- MODAL DE PREVISUALIZACIÓN DE FACTURA / DECLARACIÓN OFICIAL DE IMPUESTO   -->
+<!-- ========================================================================= -->
+@if (facade.isFacturaModalOpen()) {
+  <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- HEADER DEL MODAL -->
+      <div class="bg-[#0f2d59] text-white px-5 py-3.5 flex items-center justify-between shrink-0 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white">
+            <i class="fa-solid fa-receipt text-base"></i>
+          </div>
+          <div>
+            <h3 class="font-extrabold text-sm text-white tracking-wide">
+              Declaración y Liquidación Oficial de Impuesto Vehicular
+            </h3>
+            <p class="text-[11px] text-blue-200 font-medium">
+              Gobernación del Cauca · Dirección de Rentas y Gestión Tributaria
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Botón Imprimir -->
+          <button 
+            (click)="facade.imprimirFacturaPreview()" 
+            [disabled]="facade.isFacturaLoading()"
+            type="button" 
+            title="Imprimir Declaración"
+            class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 cursor-pointer transition-all disabled:opacity-50">
+            <i class="fa-solid fa-print"></i>
+            <span>Imprimir</span>
+          </button>
+
+          <!-- Botón Descargar PDF -->
+          @if (facade.facturaPreviewData(); as factura) {
+            <button 
+              (click)="facade.descargarFacturaPdf(factura.placa, factura.vigenciaAnio, false)" 
+              type="button" 
+              title="Descargar archivo PDF"
+              class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white border-none cursor-pointer shadow-xs transition-all">
+              <i class="fa-solid fa-file-pdf"></i>
+              <span>Descargar PDF</span>
+            </button>
+          }
+
+          <!-- Botón Cerrar -->
+          <button 
+            (click)="facade.cerrarFacturaModal()" 
+            type="button" 
+            title="Cerrar Visor"
+            class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border-none cursor-pointer transition-colors ml-1">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- CUERPO DEL VISOR / HOJA DE FACTURA -->
+      <div class="p-4 sm:p-6 overflow-y-auto bg-slate-200 flex-1 flex justify-center">
+        @if (facade.isFacturaLoading()) {
+          <div class="py-24 text-center">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-[#0f2d59] mb-3 block"></i>
+            <span class="text-sm font-bold text-slate-700 block">Generando Declaración Oficial y Código de Barras...</span>
+            <span class="text-xs text-slate-500">Conectando con base de datos e integrando normas tributarias</span>
+          </div>
+        } @else if (facade.facturaPreviewHtml()) {
+          <!-- CONTENEDOR TIPO HOJA IMPRESA -->
+          <div class="w-full max-w-[790px] bg-white shadow-xl rounded-sm p-2 border border-slate-300">
+            <div [innerHTML]="getSafeHtml(facade.facturaPreviewHtml())"></div>
+          </div>
+        } @else {
+          <div class="py-20 text-center text-slate-500">
+            <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-500 mb-2 block"></i>
+            <span class="text-sm font-semibold">No se pudo generar la previsualización del documento.</span>
+          </div>
+        }
+      </div>
+
+      <!-- FOOTER DEL MODAL -->
+      <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex items-center justify-between shrink-0 text-xs">
+        <div class="flex items-center gap-2 text-slate-500">
+          <i class="fa-solid fa-shield-halved text-emerald-600 text-sm"></i>
+          <span>Documento Oficial Certificado con Código de Barras GS1-128 para Recaudo Bancario</span>
+        </div>
+
+        <button 
+          (click)="facade.cerrarFacturaModal()" 
+          type="button" 
+          class="px-4 py-1.5 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 border-none cursor-pointer transition-colors">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+}
+
 
 
