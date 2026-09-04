@@ -439,47 +439,106 @@
         <!-- ======================================================== -->
         <!-- PESTAÑA 2: HISTORIAL COMPLETO                            -->
         <!-- ======================================================== -->
+        <!-- ======================================================== -->
+        <!-- PESTAÑA 2: HISTORIAL DE TRÁMITES (LÍNEA DE TIEMPO OFICIAL)  -->
+        <!-- ======================================================== -->
         @if (activeTab() === 'historial') {
           <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            
+            <!-- ENCABEZADO OFICIAL -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
               <div>
-                <h2 class="text-base font-bold text-slate-900 m-0">Historial de Trámites y Movimientos</h2>
-                <p class="text-xs text-slate-500 mt-1 m-0">Registro cronológico oficial del automotor con placa <strong class="font-mono text-slate-800">{{ ciudadano()?.vehiculo?.placa }}</strong>.</p>
+                <h2 class="text-base font-extrabold text-slate-900 m-0">Historial de Trámites y Movimientos</h2>
+                <p class="text-xs text-slate-500 mt-1 m-0">Registro cronológico oficial de la hoja de vida del automotor con placa <strong class="font-mono text-slate-800">{{ ciudadano()?.vehiculo?.placa }}</strong>.</p>
               </div>
-              <span class="px-3 py-1 bg-blue-50 text-[#0f4984] font-bold text-xs rounded-lg border border-blue-100">
-                Historial Oficial
+              <span class="px-3 py-1 bg-blue-50 text-[#0f4984] font-bold text-xs rounded-lg border border-blue-100 flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-clock-rotate-left text-blue-600 text-xs"></i>
+                Línea de Tiempo Oficial
               </span>
             </div>
 
+            <!-- CONTENEDOR LÍNEA DE TIEMPO CON CONECTORES Y NODOS CONCÉNTRICOS -->
             @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
-              <div class="space-y-4">
+              <div class="relative space-y-2 py-2">
+                
                 @for (ev of ciudadano()?.vehiculo?.historial; track $index) {
-                  <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                    <div class="flex items-start gap-3">
-                      <div class="w-10 h-10 rounded-xl bg-[#0f4984] text-white flex items-center justify-center text-sm shrink-0">
-                        <i class="fa-solid fa-file-contract"></i>
-                      </div>
-                      <div>
-                        <h3 class="text-xs font-bold text-slate-900 m-0">{{ ev.accion }}</h3>
-                        @if (ev.usuario) {
-                          <span class="text-[11px] text-slate-500 block mt-0.5">Usuario responsable: {{ ev.usuario }}</span>
+                  <div class="group relative flex items-center gap-3 sm:gap-4">
+                    
+                    <!-- COLUMNA IZQUIERDA: LÍNEA DE TIEMPO CON NODO CIRCULAR CONCÉNTRICO -->
+                    <div class="relative w-12 sm:w-16 h-16 shrink-0 select-none flex items-center justify-center">
+                      <svg class="absolute inset-0 w-full h-full overflow-visible pointer-events-none" viewBox="0 0 64 64">
+                        <!-- Línea vertical continua gris de fondo -->
+                        <line x1="24" y1="0" x2="24" y2="64" stroke="#cbd5e1" stroke-width="2" />
+                        
+                        <!-- Pista azul institucional continua para la línea principal -->
+                        <line x1="24" y1="0" x2="24" y2="64" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" stroke-opacity="0.85" />
+
+                        <!-- Curva o derivación conectora si la pista es secundaria -->
+                        @if (ev.trackIndex === 1) {
+                          <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#f59e0b" stroke-width="2" />
                         }
-                      </div>
+                        @if (ev.trackIndex === 2) {
+                          <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#10b981" stroke-width="2" />
+                        }
+
+                        <!-- CÍRCULO NODO CONCÉNTRICO (ANILLO EXTERIOR E INTERIOR) -->
+                        <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="8" fill="white" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" />
+                        <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="3.5" [attr.fill]="ev.colorHex || '#0f4984'" />
+                      </svg>
                     </div>
 
-                    <div class="text-right shrink-0">
-                      <span class="text-xs font-bold font-mono text-slate-700 bg-white px-2.5 py-1 rounded border border-slate-200 block">
-                        {{ ev.fecha | date:'yyyy-MM-dd HH:mm' }}
-                      </span>
+                    <!-- TARJETA CONTENIDO DEL EVENTO EN ESTÉTICA OFICIAL DEL PORTAL -->
+                    <div class="flex-1 bg-slate-50/80 group-hover:bg-blue-50/40 border border-slate-200/90 group-hover:border-blue-200 rounded-xl p-3.5 sm:p-4 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                      
+                      <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <!-- BADGE DE CATEGORÍA -->
+                          <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold border shrink-0" [ngClass]="ev.badgeClass || 'bg-blue-100 text-[#0f4984] border-blue-200'">
+                            {{ ev.categoriaNombre || 'Trámite' }}
+                          </span>
+
+                          <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 m-0 truncate group-hover:text-[#0f4984] transition-colors">
+                            {{ ev.accion }}
+                          </h3>
+                        </div>
+
+                        <!-- USUARIO Y REGISTRO RESPONSABLE -->
+                        @if (ev.usuario) {
+                          <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                            <i class="fa-solid fa-building-columns text-slate-400 text-[10px]"></i>
+                            <span>{{ ev.usuario }}</span>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- FECHA Y HORA EN FORMATO ESPAÑOL ELEGANTE -->
+                      <div class="shrink-0 text-left sm:text-right">
+                        <div class="inline-flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs">
+                          <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1">
+                            <i class="fa-regular fa-calendar-check text-blue-600 text-xs"></i>
+                            {{ ev.fechaFormateada || ev.fecha }}
+                          </span>
+                          @if (ev.horaFormateada) {
+                            <span class="text-[10.5px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              <i class="fa-regular fa-clock text-slate-400 mr-0.5"></i>
+                              {{ ev.horaFormateada }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+
                     </div>
+
                   </div>
                 }
+
               </div>
             } @else {
-              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center font-medium">
                 No registra trámites históricos en el sistema.
               </div>
             }
+
           </div>
         }
 

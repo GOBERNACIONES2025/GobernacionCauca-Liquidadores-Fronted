@@ -1,6 +1,8 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { ValoresEstatalesFacade } from '../../../application/facades/valores-estatales.facade';
 import {
   ValoresEstatalesTab,
@@ -18,6 +20,7 @@ import {
 export class ValoresEstatalesPage implements OnInit {
   public facade = inject(ValoresEstatalesFacade);
   private fb = inject(FormBuilder);
+  private router = inject(Router);
 
   // Formularios Reactivos para cada entidad
   uvtForm!: FormGroup;
@@ -30,6 +33,32 @@ export class ValoresEstatalesPage implements OnInit {
 
   ngOnInit(): void {
     this.initForms();
+    this.syncTabWithUrl(this.router.url);
+
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.syncTabWithUrl(event.urlAfterRedirects || event.url);
+    });
+  }
+
+  private syncTabWithUrl(url: string): void {
+    if (!url) return;
+    if (url.includes('/valores-estatales/tasas')) {
+      this.facade.cambiarTab('TASAS');
+    } else if (url.includes('/valores-estatales/salarios')) {
+      this.facade.cambiarTab('SALARIOS');
+    } else if (url.includes('/valores-estatales/uvt')) {
+      this.facade.cambiarTab('UVT');
+    }
+  }
+
+  seleccionarTab(tab: 'UVT' | 'TASAS' | 'SALARIOS'): void {
+    this.facade.cambiarTab(tab);
+    const subPath = tab.toLowerCase();
+    if (this.router.url.includes('/automotores/configuracion/valores-estatales')) {
+      this.router.navigate([`/automotores/configuracion/valores-estatales/${subPath}`]);
+    }
   }
 
   private initForms(): void {

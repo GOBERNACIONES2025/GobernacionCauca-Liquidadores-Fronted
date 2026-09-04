@@ -126,6 +126,22 @@ export const automotoresRoutes: Routes = [
           {
             path: 'control/pendientes-aprobacion',
             component: PendientesAprobacionPage
+          },
+          {
+            path: 'valores-estatales/uvt',
+            component: ValoresEstatalesPage
+          },
+          {
+            path: 'valores-estatales/tasas',
+            component: ValoresEstatalesPage
+          },
+          {
+            path: 'valores-estatales/salarios',
+            component: ValoresEstatalesPage
+          },
+          {
+            path: 'valores-estatales',
+            component: ValoresEstatalesPage
           }
         ]
       }

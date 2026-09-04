@@ -64,7 +64,7 @@
     <!-- Pestaña 1: UVT HISTÓRICO -->
     <button
       type="button"
-      (click)="facade.cambiarTab('UVT')"
+      (click)="seleccionarTab('UVT')"
       class="flex-1 min-w-[150px] sm:min-w-[180px] flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left"
       [ngClass]="facade.tabActiva() === 'UVT'
         ? 'bg-[#0f4984] text-white shadow-md shadow-[#0f4984]/25'
@@ -93,7 +93,7 @@
     <!-- Pestaña 2: TASAS DE INTERÉS -->
     <button
       type="button"
-      (click)="facade.cambiarTab('TASAS')"
+      (click)="seleccionarTab('TASAS')"
       class="flex-1 min-w-[150px] sm:min-w-[180px] flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left"
       [ngClass]="facade.tabActiva() === 'TASAS'
         ? 'bg-[#0f4984] text-white shadow-md shadow-[#0f4984]/25'
@@ -122,7 +122,7 @@
     <!-- Pestaña 3: SALARIO MÍNIMO -->
     <button
       type="button"
-      (click)="facade.cambiarTab('SALARIOS')"
+      (click)="seleccionarTab('SALARIOS')"
       class="flex-1 min-w-[150px] sm:min-w-[180px] flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer text-left"
       [ngClass]="facade.tabActiva() === 'SALARIOS'
         ? 'bg-[#0f4984] text-white shadow-md shadow-[#0f4984]/25'

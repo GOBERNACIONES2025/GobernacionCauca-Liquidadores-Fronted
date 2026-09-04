@@ -4,6 +4,7 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { filter } from 'rxjs/operators';
 import { CatalogoVehicularFacade } from '../../../../application/facades/catalogo-vehicular.facade';
+import { ValoresEstatalesFacade } from '../../../../application/facades/valores-estatales.facade';
 
 export interface CatalogItem {
   name: string;
@@ -28,6 +29,7 @@ export interface CatalogGroup {
 })
 export class AutomotoresConfigSidebar {
   public facade = inject(CatalogoVehicularFacade);
+  public valoresFacade = inject(ValoresEstatalesFacade);
   private router = inject(Router);
 
   readonly closeSidebar = output<void>();
@@ -157,6 +159,27 @@ export class AutomotoresConfigSidebar {
           name: 'Directorio de Propietarios',
           route: '/automotores/contribuyentes-index',
           count: this.facade.totalPropietarios()
+        }
+      ]
+    },
+    {
+      name: 'Valores Estatales & Parámetros',
+      icon: 'banknotes',
+      items: [
+        {
+          name: 'Unidades de Valor Tributario (UVT)',
+          route: '/automotores/configuracion/valores-estatales/uvt',
+          count: this.valoresFacade.uvtList().length
+        },
+        {
+          name: 'Tasas de Interés Mora',
+          route: '/automotores/configuracion/valores-estatales/tasas',
+          count: this.valoresFacade.tasasList().length
+        },
+        {
+          name: 'Salarios Mínimos (SMMLV)',
+          route: '/automotores/configuracion/valores-estatales/salarios',
+          count: this.valoresFacade.salariosList().length
         }
       ]
     },
