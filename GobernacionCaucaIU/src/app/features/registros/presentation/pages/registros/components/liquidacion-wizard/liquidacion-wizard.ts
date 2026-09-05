@@ -12,6 +12,8 @@ import { TiposPersonaFacade } from '../../../../../application/facades/Contribuy
 import { TiposIdentificacionFacade } from '../../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
 import { ContribuyentesFacade } from '../../../../../application/facades/Contribuyentes/contribuyentes.facade';
 import { EntidadesRegistroFacade } from '../../../../../application/facades/Registro/entidades-registro.facade';
+import { TiposEntidadRegistroFacade } from '../../../../../application/facades/Registro/tipos-entidad-registro.facade';
+import { CategoriasActoFacade } from '../../../../../application/facades/Registro/categorias-acto.facade';
 import { MunicipiosFacade } from '../../../../../application/facades/Territorios/municipios.facade';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
 import { TiposActoRegistroFacade } from '../../../../../application/facades/Registro/tipos-acto-registro.facade';
@@ -44,6 +46,8 @@ export class LiquidacionWizardComponent implements OnInit {
   tiFacade = inject(TiposIdentificacionFacade);
   cFacade = inject(ContribuyentesFacade);
   erFacade = inject(EntidadesRegistroFacade);
+  teFacade = inject(TiposEntidadRegistroFacade);
+  caFacade = inject(CategoriasActoFacade);
   mFacade = inject(MunicipiosFacade);
   dFacade = inject(DepartamentosFacade);
   taFacade = inject(TiposActoRegistroFacade);
@@ -73,6 +77,8 @@ export class LiquidacionWizardComponent implements OnInit {
     this.tiFacade.cargarTiposIdentificacion(1, 100);
     this.cFacade.cargarContribuyentes(1, 100);
     this.erFacade.cargarEntidadesRegistro(1, 100);
+    this.teFacade.cargarTiposEntidadRegistro(1, 100);
+    this.caFacade.cargarCategoriasActo(1, 100);
     this.mFacade.cargarMunicipios(1, 100);
     this.dFacade.cargarDepartamentos(1, 100);
     this.taFacade.cargarTiposActoRegistro(1, 100);

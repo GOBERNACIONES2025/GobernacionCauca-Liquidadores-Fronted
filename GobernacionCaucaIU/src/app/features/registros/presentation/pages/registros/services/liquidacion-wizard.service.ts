@@ -251,14 +251,24 @@ export class LiquidacionWizardService {
     // Poblar Paso 2, 3 y 4
     if (solicitud.documentos && solicitud.documentos.length > 0) {
       const doc = solicitud.documentos[0];
+      const tipoEntidadId = doc.tipoEntidadRegistroId ?? null;
+      const categoriaId = doc.categoriaActoId ?? (doc.actos && doc.actos.length > 0 ? (doc.actos[0].categoriaActoId ?? null) : null);
+
+      if (tipoEntidadId) {
+        this.paso2Form.get('municipioJurisdiccionId')?.enable({ emitEvent: false });
+        this.paso2Form.get('categoriaActoId')?.enable({ emitEvent: false });
+      }
+      if (tipoEntidadId && doc.municipioJurisdiccionId) {
+        this.paso2Form.get('entidadRegistroId')?.enable({ emitEvent: false });
+      }
+
       this.paso2Form.patchValue({
         numeroDocumento: doc.numeroDocumento,
         fechaDocumento: doc.fechaDocumento ? doc.fechaDocumento.substring(0, 10) : '',
-        tipoEntidadRegistroId: null, // FIXME si no viene en el backend
-        categoriaActoId: null, // FIXME si no viene en el backend
+        tipoEntidadRegistroId: tipoEntidadId,
+        categoriaActoId: categoriaId,
         entidadRegistroId: doc.entidadRegistroId,
         municipioJurisdiccionId: doc.municipioJurisdiccionId,
-        tipoActoRegistroId: null, // FIXME
         descripcionDocumento: doc.descripcion
       });
 
@@ -329,7 +339,7 @@ export class LiquidacionWizardService {
             tipoActoId: Number(a.tipoActoRegistroId || a.tipoActoId),
             tipoActoCodigo: a.tipoActoCodigo || '',
             tipoActoNombre: a.tipoActoRegistroNombre || a.tipoActoNombre || 'Acto Registrado',
-            categoriaNombre: a.categoriaNombre || '',
+            categoriaNombre: a.categoriaActoNombre || a.categoriaNombre || '',
             naturalezaNombre: a.naturalezaNombre || '',
             tarifaInfo: a.tarifaInfo || '',
             valorActo: Number(a.valorActo || 0),

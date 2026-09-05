@@ -11,6 +11,7 @@ import { RegistrarDocumentoDto } from '../../../../../../domain/models/Radicacio
 import { TiposEntidadRegistroFacade } from '../../../../../../application/facades/Registro/tipos-entidad-registro.facade';
 import { CategoriasActoFacade } from '../../../../../../application/facades/Registro/categorias-acto.facade';
 import { combineLatest } from 'rxjs';
+import { startWith, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-step-documento',
@@ -39,37 +40,54 @@ export class StepDocumentoComponent implements OnInit {
     const entidadCtrl = this.wizardService.paso2Form.get('entidadRegistroId');
 
     if (tipoEntidadCtrl && municipioCtrl && categoriaCtrl && entidadCtrl) {
-      // 1. Cuando Tipo Entidad cambia: Habilitar Municipio y Categoría
-      tipoEntidadCtrl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(val => {
-        if (val) {
-          municipioCtrl.enable({emitEvent: false});
-          categoriaCtrl.enable({emitEvent: false});
-        } else {
-          municipioCtrl.disable({emitEvent: false});
-          categoriaCtrl.disable({emitEvent: false});
-          municipioCtrl.setValue(null);
-          categoriaCtrl.setValue(null);
-        }
-      });
+      // Estado inicial si ya viene con valores (continuando proceso)
+      const initialTipo = tipoEntidadCtrl.value;
+      const initialMuni = municipioCtrl.value;
 
-      // 2. Entidades de Registro (Filtro por Tipo Entidad y Municipio)
+      if (initialTipo) {
+        municipioCtrl.enable({ emitEvent: false });
+        categoriaCtrl.enable({ emitEvent: false });
+      }
+      if (initialTipo && initialMuni) {
+        entidadCtrl.enable({ emitEvent: false });
+        this.entidadesFacade.cargarEntidadesRegistro(1, 100, Number(initialTipo), undefined, Number(initialMuni));
+      }
+
+      // 1. Cuando Tipo Entidad cambia: Habilitar Municipio y Categoría
+      tipoEntidadCtrl.valueChanges
+        .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+        .subscribe(val => {
+          if (val) {
+            municipioCtrl.enable({ emitEvent: false });
+            categoriaCtrl.enable({ emitEvent: false });
+          } else {
+            municipioCtrl.disable({ emitEvent: false });
+            categoriaCtrl.disable({ emitEvent: false });
+            if (tipoEntidadCtrl.dirty) {
+              municipioCtrl.setValue(null);
+              categoriaCtrl.setValue(null);
+            }
+          }
+        });
+
+      // 2. Entidades de Registro (Filtro dependiente de Tipo Entidad y Municipio)
       combineLatest([
-        tipoEntidadCtrl.valueChanges,
-        municipioCtrl.valueChanges
-      ]).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(([tipoEntidadId, municipioId]) => {
-        if (tipoEntidadId && municipioId) {
-          entidadCtrl.enable({emitEvent: false});
-          this.entidadesFacade.cargarEntidadesRegistro(1, 100, Number(tipoEntidadId), undefined, Number(municipioId));
-        } else {
-          entidadCtrl.disable({emitEvent: false});
-          entidadCtrl.setValue(null);
-          this.entidadesFacade.entidadesRegistro.set([]);
-        }
-      });
-      
-      // Emitir valores iniciales por si vienen precargados
-      if (tipoEntidadCtrl.value) tipoEntidadCtrl.updateValueAndValidity();
-      if (tipoEntidadCtrl.value && municipioCtrl.value) municipioCtrl.updateValueAndValidity();
+        tipoEntidadCtrl.valueChanges.pipe(startWith(tipoEntidadCtrl.value), distinctUntilChanged()),
+        municipioCtrl.valueChanges.pipe(startWith(municipioCtrl.value), distinctUntilChanged())
+      ])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(([tipoEntidadId, municipioId]) => {
+          if (tipoEntidadId && municipioId) {
+            entidadCtrl.enable({ emitEvent: false });
+            this.entidadesFacade.cargarEntidadesRegistro(1, 100, Number(tipoEntidadId), undefined, Number(municipioId));
+          } else {
+            entidadCtrl.disable({ emitEvent: false });
+            if (tipoEntidadCtrl.dirty || municipioCtrl.dirty) {
+              entidadCtrl.setValue(null);
+            }
+            this.entidadesFacade.entidadesRegistro.set([]);
+          }
+        });
     }
   }
 

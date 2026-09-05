@@ -92,6 +92,8 @@ export interface SolicitudActoRegistradoDto {
   tipoActoRegistroNombre?: string;
   tipoActoCodigo?: string;
   tipoActoNombre?: string;
+  categoriaActoId?: number;
+  categoriaActoNombre?: string;
   categoriaNombre?: string;
   naturalezaNombre?: string;
   inmuebleId?: number | null;
@@ -117,7 +119,13 @@ export interface SolicitudDocumentoRegistroDto {
   numeroDocumento: string;
   fechaDocumento: string;
   entidadRegistroId: number;
+  entidadRegistroNombre?: string;
+  tipoEntidadRegistroId?: number;
+  tipoEntidadRegistroNombre?: string;
+  categoriaActoId?: number;
+  categoriaActoNombre?: string;
   municipioJurisdiccionId: number;
+  municipioJurisdiccionNombre?: string;
   descripcion?: string | null;
   nombreArchivo?: string | null;
   actos: SolicitudActoRegistradoDto[];

@@ -146,8 +146,8 @@ export class StepActosComponent implements OnInit, OnDestroy {
   tiposActoFiltrados = computed(() => {
     const categoriaId = this.wizardService.paso2Form.get('categoriaActoId')?.value;
     const actos = this.tiposActoFacade.tiposActoRegistro();
-    if (!categoriaId) return actos; // o return [] si es obligatorio
-    return actos.filter(a => a.categoriaActo?.id === Number(categoriaId));
+    if (!categoriaId) return actos;
+    return actos.filter(a => (a.categoriaActo?.id && Number(a.categoriaActo.id) === Number(categoriaId)) || ((a as any).categoriaActoId && Number((a as any).categoriaActoId) === Number(categoriaId)));
   });
 
   get selectedTipoActoDetalle(): TipoActoRegistro | null {
