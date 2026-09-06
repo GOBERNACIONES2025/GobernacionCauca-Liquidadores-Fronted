@@ -16,6 +16,8 @@ import { NaturalezasActoFacade } from '../../../../application/facades/Registro/
 import { TiposActoRegistroFacade } from '../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { TiposCalculoTarifaFacade } from '../../../../application/facades/Tarifas/tipos-calculo-tarifa.facade';
 import { TarifasFacade } from '../../../../application/facades/Tarifas/tarifas.facade';
+import { ConfiguracionExtemporaneidadFacade } from '../../../../application/facades/Tarifas/configuracion-extemporaneidad.facade';
+import { TasasInteresMoraFacade } from '../../../../application/facades/Tarifas/tasas-interes-mora.facade';
 import { TiposBeneficiarioExencionFacade } from '../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 import { TiposPersonaFacade } from '../../../../application/facades/Contribuyentes/tipos-persona.facade';
@@ -66,6 +68,8 @@ export class ConfigSidebar {
   private tiposActoFacade = inject(TiposActoRegistroFacade);
   private tiposCalculoFacade = inject(TiposCalculoTarifaFacade);
   private tarifasFacade = inject(TarifasFacade);
+  private extemporaneidadFacade = inject(ConfiguracionExtemporaneidadFacade);
+  private tasasMoraFacade = inject(TasasInteresMoraFacade);
   private tiposBeneficiarioFacade = inject(TiposBeneficiarioExencionFacade);
   private exencionesFacade = inject(ExencionesFacade);
   private tiposPersonaFacade = inject(TiposPersonaFacade);
@@ -227,6 +231,16 @@ export class ConfigSidebar {
           route: '/registros/configuracion/tarifas/tarifas',
           count: this.tarifasFacade.totalTarifas() || this.tarifasFacade.tarifas().length, 
           hasWarning: true 
+        },
+        { 
+          name: 'Extemporaneidad', 
+          route: '/registros/configuracion/tarifas/extemporaneidad',
+          count: this.extemporaneidadFacade.totalConfiguraciones() || this.extemporaneidadFacade.configuraciones().length 
+        },
+        { 
+          name: 'Tasas de Interés de Mora', 
+          route: '/registros/configuracion/tarifas/tasas-mora',
+          count: this.tasasMoraFacade.totalTasas() || this.tasasMoraFacade.tasas().length 
         }
       ]
     },
