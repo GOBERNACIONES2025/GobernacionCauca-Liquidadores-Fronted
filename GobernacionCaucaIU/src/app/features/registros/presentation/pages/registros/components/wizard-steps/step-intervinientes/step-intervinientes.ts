@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+﻿import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { concatMap, finalize } from 'rxjs/operators';
@@ -148,7 +148,10 @@ export class StepIntervinientesComponent implements OnInit {
         documento: contrib.numeroIdentificacion,
         rolId: Number(formValue.rolId),
         rolNombre: rolObj?.nombre || 'Desconocido',
-        porcentaje: Number(formValue.porcentaje)
+        porcentaje: Number(formValue.porcentaje),
+        direccion: contrib.direccion || '',
+        telefono: contrib.telefono || '',
+        email: contrib.email || ''
       };
 
       // Agregar al acto correspondiente en actosExpediente

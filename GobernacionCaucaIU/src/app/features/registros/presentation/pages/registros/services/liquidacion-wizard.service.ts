@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+﻿import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
@@ -11,6 +11,9 @@ export interface IntervinienteTemp {
   rolId: number;
   rolNombre: string;
   porcentaje: number;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
 }
 
 export interface ActoTemp {
@@ -41,7 +44,7 @@ export class LiquidacionWizardService {
   // Estado visual
   currentStep = signal<number>(1);
   
-  // Datos fijos/temporales de la sesión
+  // Datos fijos/temporales de la sesiÃ³n
   solicitudId = signal<number | null>(null);
   etapaGuardada = signal<number>(0);
   radicadoGenerado = signal<string>('');
@@ -62,7 +65,7 @@ export class LiquidacionWizardService {
   
   // ===================== FORMULARIOS =====================
 
-  // Paso 1: Radicación & Contribuyente
+  // Paso 1: RadicaciÃ³n & Contribuyente
   paso1Form: FormGroup = this.fb.group({
     contribuyenteId: [null as number | null],
     tipoPersonaId: [null as number | null, Validators.required],
@@ -73,7 +76,7 @@ export class LiquidacionWizardService {
     telefono: [''],
     direccion: [''],
     
-    // Datos de radicación
+    // Datos de radicaciÃ³n
     numeroRadicado: ['', Validators.required],
     fechaRadicado: [new Date().toISOString().split('T')[0], Validators.required],
     vigenciaFiscal: [null as number | null, Validators.required],
@@ -134,12 +137,12 @@ export class LiquidacionWizardService {
     porcentaje: [100, [Validators.required, Validators.min(1), Validators.max(100)]]
   });
 
-  // Paso 4: Liquidación
+  // Paso 4: LiquidaciÃ³n
   liquidacionGeneradaExitosa = signal<boolean>(false);
   idLiquidacionFinal = signal<number | null>(null);
   liquidacionSimulada = signal<LiquidacionSimuladaResponse | null>(null);
 
-  // MÉTODOS DE UTILIDAD
+  // MÃ‰TODOS DE UTILIDAD
 
   resetWizard() {
     this.currentStep.set(1);
@@ -221,8 +224,8 @@ export class LiquidacionWizardService {
     }
 
     
-    // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
-    // Si etapa es 1 (Radicación completada), saltamos al paso 2
+    // Asignar el paso actual segÃºn la etapa guardada (nunca superando el paso 5)
+    // Si etapa es 1 (RadicaciÃ³n completada), saltamos al paso 2
     // Si etapa es 2 (Documento completado), saltamos al paso 3, etc.
     const nextStep = Math.min(solicitud.etapaActual + 1, 5);
     this.currentStep.set(nextStep);
@@ -289,7 +292,7 @@ export class LiquidacionWizardService {
       // Poblar Actos
       if (doc.actos && doc.actos.length > 0) {
         const actosTemp = doc.actos.map((a: any) => {
-          // 1. Extraer IDs y Nombres de Exención de forma tolerante
+          // 1. Extraer IDs y Nombres de ExenciÃ³n de forma tolerante
           let exIds: number[] = [];
           if (Array.isArray(a.exencionesIds) && a.exencionesIds.length > 0) {
             exIds = a.exencionesIds.map((id: any) => Number(id));
@@ -314,7 +317,7 @@ export class LiquidacionWizardService {
             const exList = (this.exencionesFacade.exenciones() as any[]) || [];
             exNombres = exIds.map(id => {
               const exFound = exList.find((e: any) => e.id === id);
-              return exFound ? exFound.nombre : `Exención #${id}`;
+              return exFound ? exFound.nombre : `ExenciÃ³n #${id}`;
             });
           }
 

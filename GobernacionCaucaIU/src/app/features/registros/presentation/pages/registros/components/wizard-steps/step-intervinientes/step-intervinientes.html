@@ -1,4 +1,4 @@
-<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+﻿<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
   <!-- RESUMEN DE ACTOS PARA ASIGNAR INTERVINIENTES -->
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -89,7 +89,11 @@
             </div>
             <div>
               <p class="text-sm font-bold text-slate-800">{{ wizardService.intervinienteSeleccionado()?.nombre }}</p>
-              <p class="text-xs text-slate-500">Documento: {{ wizardService.intervinienteSeleccionado()?.numeroIdentificacion }}</p>
+              <p class="text-xs text-slate-500">Documento: {{ wizardService.intervinienteSeleccionado()?.numeroIdentificacion }}
+                @if (wizardService.intervinienteSeleccionado()?.telefono) { &bull; Tel: {{ wizardService.intervinienteSeleccionado()?.telefono }} }
+                @if (wizardService.intervinienteSeleccionado()?.email) { &bull; Email: {{ wizardService.intervinienteSeleccionado()?.email }} }
+                @if (wizardService.intervinienteSeleccionado()?.direccion) { &bull; Dir: {{ wizardService.intervinienteSeleccionado()?.direccion }} }
+              </p>
             </div>
           </div>
           
@@ -145,6 +149,18 @@
               <div class="md:col-span-2">
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombre Completo / Razón Social *</label>
                 <input formControlName="nombre" type="text" class="w-full text-sm p-2 border border-slate-300 rounded" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">DirecciÃ³n de NotificaciÃ³n / Domicilio</label>
+                <input formControlName="direccion" type="text" placeholder="Ej. Calle 5 # 4-20" class="w-full text-sm p-2 border border-slate-300 rounded" />
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">TelÃ©fono / Celular</label>
+                <input formControlName="telefono" type="text" placeholder="Ej. 3123456789" class="w-full text-sm p-2 border border-slate-300 rounded" />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Correo ElectrÃ³nico Fiscal</label>
+                <input formControlName="email" type="email" placeholder="Ej. interviniente@gmail.com" class="w-full text-sm p-2 border border-slate-300 rounded" />
               </div>
             </div>
             
