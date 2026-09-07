@@ -623,26 +623,47 @@ export class LiquidacionesFacade {
   }
 
   /**
-   * Descarga el documento oficial de liquidación en PDF de forma segura como Blob en memoria.
-   * Totalmente compatible con entornos HTTP de desarrollo y servidores IIS sin certificado SSL.
+   * Descarga el documento oficial de liquidación en PDF de forma segura y en alta definición.
+   * Totalmente compatible con entornos HTTP de desarrollo y servidores sin dependencias nativas de SO.
    */
   descargarFacturaPdf(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    this.api.descargarPdfBlob(placa, vigencia, esUnificado).pipe(
+    const fileName = esUnificado ? `Recibo_Unificado_${placa}.pdf` : `Recibo_${placa}_${vigencia || 2026}.pdf`;
+
+    // 1. Si la factura ya está cargada en memoria y previsualizada, generar directamente el PDF de alta definición
+    const preview = this.facturaPreviewData();
+    if (preview && preview.placa?.toUpperCase() === placa.toUpperCase() && preview.htmlContent) {
+      downloadPdfFromHtml(preview.htmlContent, fileName);
+      return;
+    }
+
+    // 2. Si se descarga desde la tabla sin abrir el modal, obtener el HTML oficial y compilar el PDF de alta fidelidad
+    this.api.previsualizarFactura(placa, vigencia, esUnificado).pipe(
       catchError(err => {
-        console.error('Error al descargar PDF:', err);
+        console.warn('Error al consultar HTML de factura, usando fallback binario:', err);
         return of(null);
       })
-    ).subscribe(blob => {
-      if (!blob) return;
-      const fileName = esUnificado ? `Recibo_Unificado_${placa}.pdf` : `Recibo_${placa}_${vigencia || 2026}.pdf`;
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+    ).subscribe(res => {
+      if (res && res.data && res.data.htmlContent) {
+        downloadPdfFromHtml(res.data.htmlContent, fileName);
+      } else {
+        // 3. Fallback directo al endpoint binario del backend
+        this.api.descargarPdfBlob(placa, vigencia, esUnificado).pipe(
+          catchError(blobErr => {
+            console.error('Error al descargar PDF del backend:', blobErr);
+            return of(null);
+          })
+        ).subscribe(blob => {
+          if (!blob) return;
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+        });
+      }
     });
   }
 
@@ -650,6 +671,13 @@ export class LiquidacionesFacade {
    * Envía a imprimir el documento renderizado en la previsualización de factura.
    */
   imprimirFacturaPreview(): void {
+    const iframe = document.getElementById('facturaIframe') as HTMLIFrameElement;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      return;
+    }
+
     const data = this.facturaPreviewData();
     if (!data || !data.htmlContent) return;
 
