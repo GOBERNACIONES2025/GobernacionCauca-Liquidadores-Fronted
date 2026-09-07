@@ -42,13 +42,24 @@ export interface ActoSimuladoDto {
 
 export interface LiquidacionSimuladaResponse {
   numeroLiquidacion: string;
+  fechaExpedicionDocumento?: string;
+  fechaRadicacion?: string;
+  fechaLimiteOportuna?: string;
+  fechaVencimiento?: string;
+  diasPlazoPermitido?: number;
+  diasTranscurridos?: number;
+  tipoEntidadDestino?: string;
   subtotal: number;
   totalDescuentos: number;
   sancionExtemporaneidad?: number;
   interesesMora?: number;
   totalMora?: number;
   diasMora?: number;
+  mesesMora?: number;
   esExtemporaneo?: boolean;
+  tasaInteresDiariaAplicada?: number;
+  tasaInteresMensualAplicada?: number;
+  porcentajeSancionAplicado?: number;
   granTotalPagar: number;
   actos: ActoSimuladoDto[];
 }

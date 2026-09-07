@@ -48,9 +48,9 @@
                   <div class="font-bold text-blue-900 text-sm">{{ acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
                 </td>
                 <td class="p-4 text-sm text-slate-600">
-                  @if (acto.exencionesNombres && acto.exencionesNombres.length > 0) {
+                  @if (getExencionesNombres(acto).length > 0) {
                     <div class="flex flex-wrap gap-1">
-                      @for (exName of acto.exencionesNombres; track exName) {
+                      @for (exName of getExencionesNombres(acto); track exName) {
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                           {{ exName }}
                         </span>

@@ -141,15 +141,15 @@
         <div class="border-2 border-slate-900 grid grid-cols-2 sm:grid-cols-4 divide-x-2 divide-y-2 sm:divide-y-0 divide-slate-900 text-center bg-slate-50/50">
           <div class="p-2">
             <div class="text-[8px] font-bold uppercase text-slate-500">[04] Fecha de Radicación</div>
-            <div class="font-mono font-bold text-xs text-slate-900 mt-0.5">{{ datosRadicacion().fechaRadicacion }}</div>
+            <div class="font-mono font-bold text-xs text-slate-900 mt-0.5">{{ fechaRadicacionFormatted() }}</div>
           </div>
           <div class="p-2">
             <div class="text-[8px] font-bold uppercase text-slate-500">[05] Fecha de Expedición</div>
-            <div class="font-mono font-bold text-xs text-slate-900 mt-0.5">{{ todayDateFormatted }}</div>
+            <div class="font-mono font-bold text-xs text-slate-900 mt-0.5">{{ fechaExpedicionFormatted() }}</div>
           </div>
           <div class="p-2 bg-red-50/40">
             <div class="text-[8px] font-bold uppercase text-red-700">[06] Fecha Límite Oportuna</div>
-            <div class="font-mono font-black text-xs text-red-900 mt-0.5">{{ fechaVencimientoFormatted() }}</div>
+            <div class="font-mono font-black text-xs text-red-900 mt-0.5">{{ fechaLimiteOportunaFormatted() }}</div>
           </div>
           <div class="p-2">
             <div class="text-[8px] font-bold uppercase text-slate-500">[07] Estado del Documento</div>
@@ -553,7 +553,11 @@
                   </div>
                   <div>
                     <span class="text-slate-500 font-bold uppercase text-[8px] block">Fecha Límite Oportuna:</span>
-                    <span class="font-mono font-black text-red-700">{{ fechaVencimientoFormatted() }}</span>
+                    <span class="font-mono font-black text-red-700">{{ fechaLimiteOportunaFormatted() }}</span>
+                  </div>
+                  <div>
+                    <span class="text-slate-500 font-bold uppercase text-[8px] block">Vence Recibo de Pago:</span>
+                    <span class="font-mono font-bold text-slate-800">{{ fechaVencimientoFormatted() }}</span>
                   </div>
                 </div>
 

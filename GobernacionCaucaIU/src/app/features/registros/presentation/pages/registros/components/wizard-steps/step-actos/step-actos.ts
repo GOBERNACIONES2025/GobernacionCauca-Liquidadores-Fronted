@@ -192,7 +192,22 @@ export class StepActosComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.cargarCatalogoActosSegunEntidad();
     this.municipiosFacade.cargarMunicipios(1, 100);
+    this.exencionesFacade.cargarExenciones(1, 100);
     this.configurarSuscripcionesReactividad();
+  }
+
+  getExencionesNombres(acto: ActoTemp): string[] {
+    if (acto.exencionesNombres && acto.exencionesNombres.length > 0) {
+      return acto.exencionesNombres;
+    }
+    if (acto.exencionesIds && acto.exencionesIds.length > 0) {
+      const list = this.exencionesList();
+      return acto.exencionesIds.map(id => {
+        const found = list.find((e: any) => e.id === id);
+        return found ? found.nombre : `Exención #${id}`;
+      });
+    }
+    return [];
   }
 
   ngOnDestroy(): void {

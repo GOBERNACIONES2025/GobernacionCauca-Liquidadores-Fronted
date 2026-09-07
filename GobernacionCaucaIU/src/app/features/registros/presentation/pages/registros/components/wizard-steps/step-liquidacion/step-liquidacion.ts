@@ -25,10 +25,72 @@ export class StepLiquidacionComponent implements OnInit {
   isCompleting = signal<boolean>(false);
 
   todayDateFormatted = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  
   fechaVencimientoFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaVencimiento) {
+      const parts = sim.fechaVencimiento.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
     const d = new Date();
     d.setDate(d.getDate() + 30);
     return d.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  });
+
+  fechaLimiteOportunaFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaLimiteOportuna) {
+      const parts = sim.fechaLimiteOportuna.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return sim.fechaLimiteOportuna;
+    }
+
+    // Fallback de ley (Ley 223 de 1995 Art. 231) calculado a partir de la fecha del documento
+    const docFechaStr = this.wizardService.paso2Form.get('fechaDocumento')?.value;
+    if (docFechaStr) {
+      const [y, m, d] = docFechaStr.split('-').map(Number);
+      if (y && m && d) {
+        const fechaDoc = new Date(y, m - 1, d);
+        const tipoEntidad = (this.wizardService.paso2Form.get('tipoEntidadRegistroNombre')?.value || '').toLowerCase();
+        let meses = 2; // Notarías / ORIP (2 meses)
+        if (tipoEntidad.includes('camara') || tipoEntidad.includes('comercio')) meses = 1; // Cámara de Comercio (1 mes)
+        if (tipoEntidad.includes('exterior') || tipoEntidad.includes('consul')) meses = 3; // Exterior (3 meses)
+        
+        fechaDoc.setMonth(fechaDoc.getMonth() + meses);
+        return fechaDoc.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      }
+    }
+
+    return this.fechaVencimientoFormatted();
+  });
+
+  fechaExpedicionFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaExpedicionDocumento) {
+      const parts = sim.fechaExpedicionDocumento.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return sim.fechaExpedicionDocumento;
+    }
+    const docFecha = this.wizardService.paso2Form.get('fechaDocumento')?.value;
+    return docFecha ? docFecha : this.todayDateFormatted;
+  });
+
+  fechaRadicacionFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaRadicacion) {
+      try {
+        return new Date(sim.fechaRadicacion).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      } catch {
+        return String(sim.fechaRadicacion).substring(0, 10);
+      }
+    }
+    return this.datosRadicacion().fechaRadicacion;
   });
 
   // Hash de seguridad institucional
