@@ -140,6 +140,7 @@ export interface SolicitudCompletaDto {
   nombreEstado: string;
   etapaActual: number;
   vigenciaId: number;
+  vigenciaAnio?: number;
   departamentoId: number;
   contribuyente?: SolicitudContribuyenteDto;
   documentos: SolicitudDocumentoRegistroDto[];

@@ -40,6 +40,15 @@ export class StepRadicacionComponent implements OnInit {
     this.tiposPersonaFacade.cargarTiposPersona();
     this.tiposIdentificacionFacade.cargarTiposIdentificacion();
     this.deptFacade.cargarDepartamentos(1, 100);
+
+    this.wizardService.paso1Form.get('vigenciaFiscal')?.valueChanges.subscribe(val => {
+      if (val) {
+        const v = this.vigenciasFacade.vigencias().find(item => item.id === val);
+        if (v) {
+          this.wizardService.vigenciaAnio.set(v.anio);
+        }
+      }
+    });
   }
 
   buscarContribuyente() {
@@ -186,6 +195,10 @@ export class StepRadicacionComponent implements OnInit {
             this.wizardService.currentStep.set(2);
             this.wizardService.etapaGuardada.set(Math.max(this.wizardService.etapaGuardada(), 1));
             this.wizardService.vigenciaFiscal.set(formValue.vigenciaFiscal);
+            const vObj = this.vigenciasFacade.vigencias().find(v => v.id === formValue.vigenciaFiscal);
+            if (vObj) {
+              this.wizardService.vigenciaAnio.set(vObj.anio);
+            }
             this.toastService.success('Datos actualizados correctamente');
           },
           error: (err) => {
@@ -219,6 +232,10 @@ export class StepRadicacionComponent implements OnInit {
             this.wizardService.currentStep.set(2);
             this.wizardService.etapaGuardada.set(1);
             this.wizardService.vigenciaFiscal.set(formValue.vigenciaFiscal);
+            const vObj = this.vigenciasFacade.vigencias().find(v => v.id === formValue.vigenciaFiscal);
+            if (vObj) {
+              this.wizardService.vigenciaAnio.set(vObj.anio);
+            }
             this.toastService.success('Radicación y contribuyente guardados');
           }
         }

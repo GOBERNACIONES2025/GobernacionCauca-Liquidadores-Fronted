@@ -47,6 +47,7 @@ export class LiquidacionWizardService {
   radicadoGenerado = signal<string>('');
   fechaRadicado = signal<string>(new Date().toISOString().split('T')[0]);
   vigenciaFiscal = signal<number | null>(null);
+  vigenciaAnio = signal<number | null>(null);
 
   // Estado global transversal
   tipoTramite = signal<'Liquidacion' | 'Reliquidacion' | 'Anulacion'>('Liquidacion');
@@ -147,6 +148,8 @@ export class LiquidacionWizardService {
     this.radicadoGenerado.set('');
     this.estadoSolicitudId.set(1);
     this.estadoSolicitudNombre.set('Radicada');
+    this.vigenciaFiscal.set(null);
+    this.vigenciaAnio.set(null);
     
     this.paso1Form.reset({
       contribuyenteId: null,
@@ -226,6 +229,10 @@ export class LiquidacionWizardService {
 
     // Poblar Paso 1
     if (solicitud.numeroRadicado) {
+      this.vigenciaFiscal.set(solicitud.vigenciaId || null);
+      if (solicitud.vigenciaAnio) {
+        this.vigenciaAnio.set(solicitud.vigenciaAnio);
+      }
       this.paso1Form.patchValue({
         numeroRadicado: solicitud.numeroRadicado,
         fechaRadicacion: solicitud.fechaRadicacion ? solicitud.fechaRadicacion.substring(0, 10) : this.paso1Form.value.fechaRadicado,

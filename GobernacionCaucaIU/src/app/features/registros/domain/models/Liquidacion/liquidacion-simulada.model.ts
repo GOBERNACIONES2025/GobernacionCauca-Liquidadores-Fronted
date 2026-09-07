@@ -42,6 +42,8 @@ export interface ActoSimuladoDto {
 
 export interface LiquidacionSimuladaResponse {
   numeroLiquidacion: string;
+  vigenciaId?: number;
+  vigenciaAnio?: number;
   fechaExpedicionDocumento?: string;
   fechaRadicacion?: string;
   fechaLimiteOportuna?: string;

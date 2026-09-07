@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { LiquidacionWizardService } from '../../../services/liquidacion-wizard.service';
 import { GeneracionLiquidacionFacade } from '../../../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { SolicitudesLiquidacionFacade } from '../../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
+import { VigenciasFacade } from '../../../../../../application/facades/Normatividad/vigencias.facade';
 import { ToastService } from '../../../../../../../../core/services/toast.service';
 import { finalize } from 'rxjs/operators';
 
@@ -17,6 +18,7 @@ export class StepLiquidacionComponent implements OnInit {
   wizardService = inject(LiquidacionWizardService);
   generacionFacade = inject(GeneracionLiquidacionFacade);
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
+  vigenciasFacade = inject(VigenciasFacade);
   toast = inject(ToastService);
   router = inject(Router);
 
@@ -112,15 +114,53 @@ export class StepLiquidacionComponent implements OnInit {
   datosDocumento = computed(() => this.wizardService.paso2Form.value);
   datosRadicacion = computed(() => {
     const p1 = this.wizardService.paso1Form.value;
+    const sim = this.wizardService.liquidacionSimulada();
+
+    // 1. Obtener el año directamente de la simulación o del servicio si está disponible
+    let anioReal: number | string | null = sim?.vigenciaAnio || this.wizardService.vigenciaAnio() || null;
+
+    // 2. Si no se tiene aún el año, buscar en el catálogo de vigencias según el ID seleccionado
+    const vigenciaId = p1.vigenciaFiscal || sim?.vigenciaId || this.wizardService.vigenciaFiscal();
+    if (!anioReal && vigenciaId) {
+      if (typeof vigenciaId === 'number' && vigenciaId > 1900) {
+        // En caso de que ya sea un año calendario directo (ej. 2026)
+        anioReal = vigenciaId;
+      } else {
+        const vEncontrada = this.vigenciasFacade.vigencias().find(v => v.id === vigenciaId);
+        if (vEncontrada) {
+          anioReal = vEncontrada.anio;
+        }
+      }
+    }
+
+    // 3. Fallback de seguridad: fecha de radicado o año actual
+    if (!anioReal) {
+      const fecha = p1.fechaRadicado || this.wizardService.fechaRadicado() || sim?.fechaRadicacion;
+      if (fecha) {
+        try {
+          anioReal = new Date(fecha).getFullYear();
+        } catch {
+          anioReal = new Date().getFullYear();
+        }
+      } else {
+        anioReal = new Date().getFullYear();
+      }
+    }
+
     return {
       numeroRadicado: this.wizardService.radicadoGenerado() || p1.numeroRadicado || 'RAD-000000',
       fechaRadicacion: p1.fechaRadicado || this.wizardService.fechaRadicado() || new Date().toISOString().split('T')[0],
-      vigenciaFiscal: p1.vigenciaFiscal || 2026,
+      vigenciaFiscal: anioReal,
       departamento: 'Cauca (Popayán)'
     };
   });
 
   ngOnInit() {
+    // Asegurar que el catálogo de vigencias esté cargado para resolver nombres/años
+    if (this.vigenciasFacade.vigencias().length === 0) {
+      this.vigenciasFacade.cargarVigencias(1, 100);
+    }
+
     // Siempre refrescamos la simulación al entrar al Paso 5 a menos que la liquidación oficial ya haya sido generada
     if (!this.wizardService.liquidacionGeneradaExitosa()) {
       this.cargarSimulacion();
@@ -138,6 +178,9 @@ export class StepLiquidacionComponent implements OnInit {
       next: (res: any) => {
         if (res.success && res.data) {
           this.wizardService.liquidacionSimulada.set(res.data);
+          if (res.data.vigenciaAnio) {
+            this.wizardService.vigenciaAnio.set(res.data.vigenciaAnio);
+          }
         } else {
           this.toast.error(res.message || 'Error al simular la liquidación');
         }
