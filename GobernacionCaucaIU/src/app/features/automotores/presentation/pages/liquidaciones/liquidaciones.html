@@ -1027,8 +1027,8 @@
         </div>
       </div>
 
-      <!-- CUERPO DEL VISOR / HOJA DE FACTURA -->
-      <div class="p-4 sm:p-6 overflow-y-auto bg-slate-200 flex-1 flex justify-center">
+      <!-- CUERPO DEL VISOR / HOJA DE FACTURA EN IFRAME AISLADO -->
+      <div class="p-2 sm:p-4 overflow-hidden bg-slate-200 flex-1 flex justify-center items-center">
         @if (facade.isFacturaLoading()) {
           <div class="py-24 text-center">
             <i class="fa-solid fa-circle-notch fa-spin text-4xl text-[#0f2d59] mb-3 block"></i>
@@ -1036,9 +1036,14 @@
             <span class="text-xs text-slate-500">Conectando con base de datos e integrando normas tributarias</span>
           </div>
         } @else if (facade.facturaPreviewHtml()) {
-          <!-- CONTENEDOR TIPO HOJA IMPRESA -->
-          <div class="w-full max-w-[790px] bg-white shadow-xl rounded-sm p-2 border border-slate-300">
-            <div [innerHTML]="getSafeHtml(facade.facturaPreviewHtml())"></div>
+          <!-- VISOR DE DOCUMENTO IFRAME DE ALTA DEFINICIÓN -->
+          <div class="w-full h-full flex flex-col items-center">
+            <iframe 
+              id="facturaIframe"
+              [srcdoc]="getSafeHtml(facade.facturaPreviewHtml())" 
+              class="w-full h-[76vh] rounded-lg shadow-xl border border-slate-300 bg-white"
+              title="Declaración Oficial de Impuesto Vehicular">
+            </iframe>
           </div>
         } @else {
           <div class="py-20 text-center text-slate-500">

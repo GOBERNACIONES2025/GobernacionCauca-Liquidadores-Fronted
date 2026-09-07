@@ -31,7 +31,7 @@ export class LiquidacionesPage implements OnInit {
     this.facade.abrirSimulacion(this.placaBuscarModal.trim());
   }
 
-  getSafeHtml(html: string): SafeHtml {
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+  getSafeHtml(html: string | null | undefined): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html || '');
   }
 }
