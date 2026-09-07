@@ -216,7 +216,7 @@
     <!-- Selector de Vigencia -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Vigencia Fiscal</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Vigencia Fiscal <span class="text-error">*</span></span>
       </label>
       <app-searchable-select
         formControlName="vigenciaId"
@@ -224,9 +224,11 @@
         [resolveIdFn]="resolveVigenciaFn"
         labelKey="anio"
         valueKey="id"
-        placeholder="Buscar vigencia fiscal (opcional)..."
+        placeholder="Buscar vigencia fiscal..."
       ></app-searchable-select>
-      <p class="text-[10px] text-slate-400 mt-1">Opcional. Permite vincular la tasa a una vigencia anual específica.</p>
+      @if (tasaForm.get('vigenciaId')?.touched && tasaForm.get('vigenciaId')?.errors?.['required']) {
+        <span class="text-error text-[11px] mt-1">La vigencia fiscal es obligatoria.</span>
+      }
     </div>
 
     <!-- Rango de Fechas -->

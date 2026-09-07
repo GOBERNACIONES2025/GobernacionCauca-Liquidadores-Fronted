@@ -156,6 +156,11 @@
             <div class="font-bold text-xs uppercase mt-0.5" [ngClass]="wizardService.liquidacionGeneradaExitosa() ? 'text-emerald-700' : 'text-amber-800'">
               {{ wizardService.liquidacionGeneradaExitosa() ? 'OFICIAL VIGENTE' : 'PRE-LIQUIDACIÓN (SIM)' }}
             </div>
+            @if (resumen.esExtemporaneo) {
+              <div class="inline-block mt-0.5 text-[8px] font-black uppercase text-red-700 bg-red-100 border border-red-200 px-1 py-0.2 rounded">
+                EXTEMPORÁNEO (+{{ resumen.diasMora }}d MORA)
+              </div>
+            }
           </div>
         </div>
 
@@ -417,6 +422,14 @@
                 <span class="font-mono font-black text-xs text-slate-950 uppercase block mt-1 tracking-tight leading-snug">
                   {{ totalEnLetras() }}
                 </span>
+                @if (resumen.esExtemporaneo) {
+                  <div class="mt-2 p-1.5 bg-amber-100/70 border border-amber-300 rounded text-[9px] text-amber-950 font-bold flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-amber-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <span>TRÁMITE EXTEMPORÁNEO: {{ resumen.diasMora }} día(s) en mora. Liquidación con sanción e intereses moratorios de ley.</span>
+                  </div>
+                }
               </div>
               <div class="text-[8px] text-slate-500 leading-tight border-t border-slate-300 pt-2">
                 <span class="font-bold text-slate-700">FUNDAMENTO JURÍDICO:</span> La presente liquidación del Impuesto de Registro se expide con fundamento en la Ley 223 de 1995, Decretos Reglamentarios y la Ordenanza de Rentas vigente del Departamento del Cauca. Cualquier falsedad o inexactitud en la base declarada acarrea las sanciones previstas en el Estatuto Tributario Nacional.
@@ -437,13 +450,21 @@
                   {{ totalDescuentosCalculado() > 0 ? ('-$ ' + (totalDescuentosCalculado() | number:'1.0-0')) : '$ 0' }}
                 </span>
               </div>
-              <div class="p-2 flex justify-between items-center">
-                <span class="text-[9px] font-bold text-slate-600 uppercase">[23] Intereses Moratorios:</span>
-                <span class="font-mono font-bold text-slate-600">$ 0</span>
+              <div class="p-2 flex justify-between items-center" [ngClass]="{'bg-amber-50/70': (resumen.interesesMora || 0) > 0}">
+                <span class="text-[9px] font-bold uppercase" [ngClass]="(resumen.interesesMora || 0) > 0 ? 'text-amber-900' : 'text-slate-600'">
+                  [23] Intereses Moratorios:
+                </span>
+                <span class="font-mono font-bold" [ngClass]="(resumen.interesesMora || 0) > 0 ? 'text-amber-900 font-black' : 'text-slate-600'">
+                  {{ ((resumen.interesesMora || 0) > 0) ? ('+ ' + ((resumen.interesesMora || 0) | currency:'COP':'symbol-narrow':'1.0-0')) : '$ 0' }}
+                </span>
               </div>
-              <div class="p-2 flex justify-between items-center">
-                <span class="text-[9px] font-bold text-slate-600 uppercase">[24] Sanciones Liquidadas:</span>
-                <span class="font-mono font-bold text-slate-600">$ 0</span>
+              <div class="p-2 flex justify-between items-center" [ngClass]="{'bg-red-50/70': (resumen.sancionExtemporaneidad || 0) > 0}">
+                <span class="text-[9px] font-bold uppercase" [ngClass]="(resumen.sancionExtemporaneidad || 0) > 0 ? 'text-red-900' : 'text-slate-600'">
+                  [24] Sanciones Liquidadas:
+                </span>
+                <span class="font-mono font-bold" [ngClass]="(resumen.sancionExtemporaneidad || 0) > 0 ? 'text-red-900 font-black' : 'text-slate-600'">
+                  {{ ((resumen.sancionExtemporaneidad || 0) > 0) ? ('+ ' + ((resumen.sancionExtemporaneidad || 0) | currency:'COP':'symbol-narrow':'1.0-0')) : '$ 0' }}
+                </span>
               </div>
               <div class="p-2.5 flex justify-between items-center bg-slate-900 text-white">
                 <span class="text-[10px] font-black uppercase tracking-wider text-amber-300">[25] TOTAL SALDO A PAGAR:</span>

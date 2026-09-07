@@ -49,6 +49,12 @@ export class ConfiguracionExtemporaneidadApiService {
       if (paramsOrPage.tipoCalculoTarifaId) {
         queryParams.TipoCalculoTarifaId = paramsOrPage.tipoCalculoTarifaId;
       }
+      if (paramsOrPage.vigenciaId) {
+        queryParams.VigenciaId = paramsOrPage.vigenciaId;
+      }
+      if (paramsOrPage.normaId) {
+        queryParams.NormaId = paramsOrPage.normaId;
+      }
     } else {
       queryParams.PageNumber = paramsOrPage ?? 1;
       queryParams.PageSize = pageSize ?? 10;

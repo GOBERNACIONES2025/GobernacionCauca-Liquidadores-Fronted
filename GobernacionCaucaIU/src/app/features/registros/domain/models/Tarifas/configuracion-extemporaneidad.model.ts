@@ -1,5 +1,7 @@
 import { Departamento } from '../Territorios/departamento.model';
 import { TipoCalculoTarifa } from './tipo-calculo-tarifa.model';
+import { Vigencia } from '../Normatividad/vigencia.model';
+import { NormaListado } from '../Normatividad/norma.model';
 
 /**
  * @description
@@ -14,6 +16,14 @@ export interface ConfiguracionExtemporaneidad {
   tipoCalculoTarifaNombre?: string | null;
   tipoCalculoTarifaCodigo?: string | null;
   tipoCalculoTarifa?: TipoCalculoTarifa;
+  vigenciaId: number;
+  vigenciaAnio?: number | null;
+  vigencia?: Vigencia;
+  normaId: number;
+  normaNumero?: string | null;
+  norma?: NormaListado;
+  fechaInicio?: string | null;
+  fechaFin?: string | null;
   diasPlazo: number;
   porcentajeSancion?: number | null;
   valorFijoSancion?: number | null;
@@ -31,6 +41,10 @@ export interface ConfiguracionExtemporaneidad {
 export interface CrearConfiguracionExtemporaneidadRequest {
   departamentoId: number;
   tipoCalculoTarifaId: number;
+  vigenciaId: number;
+  normaId: number;
+  fechaInicio?: string | null;
+  fechaFin?: string | null;
   diasPlazo: number;
   porcentajeSancion?: number | null;
   valorFijoSancion?: number | null;
@@ -44,6 +58,10 @@ export interface ActualizarConfiguracionExtemporaneidadRequest {
   id: number;
   departamentoId: number;
   tipoCalculoTarifaId: number;
+  vigenciaId: number;
+  normaId: number;
+  fechaInicio?: string | null;
+  fechaFin?: string | null;
   diasPlazo: number;
   porcentajeSancion?: number | null;
   valorFijoSancion?: number | null;
@@ -61,5 +79,7 @@ export interface ConfiguracionExtemporaneidadQueryParams {
   searchTerm?: string;
   activo?: boolean;
   departamentoId?: number;
+  vigenciaId?: number;
+  normaId?: number;
   tipoCalculoTarifaId?: number;
 }

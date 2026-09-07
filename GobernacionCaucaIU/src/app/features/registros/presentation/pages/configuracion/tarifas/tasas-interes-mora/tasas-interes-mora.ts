@@ -69,7 +69,7 @@ export class TasasInteresMoraComponent implements OnInit {
 
   tasaForm = this.fb.group(
     {
-      vigenciaId: [null as number | null],
+      vigenciaId: [null as number | null, [Validators.required]],
       fechaInicio: ['', [Validators.required]],
       fechaFin: ['', [Validators.required]],
       tasaMensual: [null as number | null, [Validators.required, Validators.min(0.0001)]],
@@ -144,6 +144,9 @@ export class TasasInteresMoraComponent implements OnInit {
   }
 
   getVigenciaAnio(item: TasaInteresMora): string {
+    if (item.vigenciaAnio) {
+      return item.vigenciaAnio.toString();
+    }
     if (item.vigencia?.anio) {
       return item.vigencia.anio.toString();
     }
@@ -235,7 +238,8 @@ export class TasasInteresMoraComponent implements OnInit {
           this.cargarItems();
         },
         error: (err: any) => {
-          this.toast.error('Error al cambiar el estado de la tasa');
+          const msg = err?.error?.detail || err?.error?.message || 'Error al cambiar el estado de la tasa';
+          this.toast.error(msg);
           console.error(err);
         }
       });
@@ -257,7 +261,7 @@ export class TasasInteresMoraComponent implements OnInit {
       const actionName = this.isEditMode ? 'actualizada' : 'creada';
 
       const payload = {
-        vigenciaId: val.vigenciaId ? Number(val.vigenciaId) : null,
+        vigenciaId: Number(val.vigenciaId),
         fechaInicio: val.fechaInicio!,
         fechaFin: val.fechaFin!,
         tasaMensual: Number(val.tasaMensual),
@@ -278,7 +282,8 @@ export class TasasInteresMoraComponent implements OnInit {
               this.cargarItems();
             },
             error: (err: any) => {
-              this.toast.error('Error al actualizar la tasa de interés');
+              const msg = err?.error?.detail || err?.error?.message || 'Error al actualizar la tasa de interés';
+              this.toast.error(msg);
               console.error(err);
             }
           });
@@ -290,7 +295,8 @@ export class TasasInteresMoraComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error('Error al crear la tasa de interés');
+            const msg = err?.error?.detail || err?.error?.message || 'Error al crear la tasa de interés';
+            this.toast.error(msg);
             console.error(err);
           }
         });

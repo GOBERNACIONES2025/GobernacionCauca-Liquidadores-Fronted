@@ -44,6 +44,11 @@ export interface LiquidacionSimuladaResponse {
   numeroLiquidacion: string;
   subtotal: number;
   totalDescuentos: number;
+  sancionExtemporaneidad?: number;
+  interesesMora?: number;
+  totalMora?: number;
+  diasMora?: number;
+  esExtemporaneo?: boolean;
   granTotalPagar: number;
   actos: ActoSimuladoDto[];
 }

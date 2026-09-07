@@ -6,7 +6,8 @@ import { Vigencia } from '../Normatividad/vigencia.model';
  */
 export interface TasaInteresMora {
   id: number;
-  vigenciaId?: number | null;
+  vigenciaId: number;
+  vigenciaAnio?: number | null;
   vigencia?: Vigencia;
   fechaInicio: string;
   fechaFin: string;
@@ -23,7 +24,7 @@ export interface TasaInteresMora {
  * Payload para registrar una nueva Tasa de Interés de Mora.
  */
 export interface CrearTasaInteresMoraRequest {
-  vigenciaId?: number | null;
+  vigenciaId: number;
   fechaInicio: string;
   fechaFin: string;
   tasaMensual: number;
@@ -35,7 +36,7 @@ export interface CrearTasaInteresMoraRequest {
  */
 export interface ActualizarTasaInteresMoraRequest {
   id: number;
-  vigenciaId?: number | null;
+  vigenciaId: number;
   fechaInicio: string;
   fechaFin: string;
   tasaMensual: number;
