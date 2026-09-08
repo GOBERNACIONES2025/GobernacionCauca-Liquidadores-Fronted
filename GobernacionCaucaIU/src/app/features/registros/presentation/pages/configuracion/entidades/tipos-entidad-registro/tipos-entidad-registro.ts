@@ -1,27 +1,46 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { TiposEntidadRegistroFacade } from '../../../../../application/facades/Registro/tipos-entidad-registro.facade';
 import { TipoEntidadRegistro } from '../../../../../domain/models/Registro/tipo-entidad-registro.model';
+import { TiposEntidadRegistroApiService } from '../../../../../infrastructure/api/Registro/tipos-entidad-registro-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-tipos-entidad-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './tipos-entidad-registro.html',
   styleUrl: './tipos-entidad-registro.css'
 })
 export class TiposEntidadRegistro implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(TiposEntidadRegistroFacade);
+  public apiService = inject(TiposEntidadRegistroApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Entidades', 'Tipo de Entidad de Registro'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -38,44 +57,50 @@ export class TiposEntidadRegistro implements OnInit {
   });
 
   // Filtered list
-  tiposEntidadFiltrados = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.tiposEntidadRegistro();
-
-    if (filter === 'activos') {
-      items = items.filter(t => t.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(t => !t.activo);
-    }
-
-    if (query) {
-      items = items.filter(t => 
-        t.codigo.toLowerCase().includes(query) || 
-        t.nombre.toLowerCase().includes(query)
-      );
-    }
-
-    return items;
-  });
+  tiposEntidadFiltrados = computed(() => this.facade.tiposEntidadRegistro());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.tiposEntidadRegistro();
     return {
-      total: all.length,
-      active: all.filter(t => t.activo).length,
-      inactive: all.filter(t => !t.activo).length
+      total: this.facade.totalTiposEntidadRegistro()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarTiposEntidadRegistro(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarTiposEntidadRegistro(this.pageNumber(), this.pageSize(), this.searchText(), activo);
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -84,13 +109,25 @@ export class TiposEntidadRegistro implements OnInit {
   }
 
   edit(item: TipoEntidadRegistro) {
-    this.selectedId = item.id;
-    this.tipoEntidadForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.tipoEntidadForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del tipo de entidad');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: TipoEntidadRegistro) {
@@ -105,7 +142,7 @@ export class TiposEntidadRegistro implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Tipo de entidad ${actionName} exitosamente`);
-        this.facade.cargarTiposEntidadRegistro(1, 100);
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar el tipo de entidad`);
@@ -134,7 +171,7 @@ export class TiposEntidadRegistro implements OnInit {
           next: () => {
             this.toast.success(`Tipo de entidad ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarTiposEntidadRegistro(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar el tipo de entidad`);
@@ -149,7 +186,7 @@ export class TiposEntidadRegistro implements OnInit {
           next: () => {
             this.toast.success(`Tipo de entidad ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarTiposEntidadRegistro(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear el tipo de entidad`);

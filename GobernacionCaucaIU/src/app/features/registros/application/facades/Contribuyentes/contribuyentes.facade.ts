@@ -34,11 +34,11 @@ export class ContribuyentesFacade {
   /**
    * Carga la lista paginada de contribuyentes.
    */
-  cargarContribuyentes(pageNumber: number = 1, pageSize: number = 10): void {
+  cargarContribuyentes(pageNumber: number = 1, pageSize: number = 10, search?: string, activo?: boolean): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos(pageNumber, pageSize, search, activo).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.contribuyentes.set(response.data.items || []);

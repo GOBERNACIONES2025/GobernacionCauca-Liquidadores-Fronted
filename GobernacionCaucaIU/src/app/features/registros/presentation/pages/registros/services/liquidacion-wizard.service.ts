@@ -1,6 +1,7 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+﻿import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
+import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 
 export interface IntervinienteTemp {
   idTemp: string;
@@ -10,6 +11,9 @@ export interface IntervinienteTemp {
   rolId: number;
   rolNombre: string;
   porcentaje: number;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
 }
 
 export interface ActoTemp {
@@ -22,10 +26,11 @@ export interface ActoTemp {
   tarifaInfo: string;
   valorActo: number;
   baseDeclarada: number;
+  inmuebleId?: number | null;
   matriculaInmobiliaria?: string;
   avaluoCatastral?: number;
-  exencionId?: number | null;
-  exencionNombre?: string | null;
+  exencionesIds?: number[];
+  exencionesNombres?: string[];
   intervinientes: IntervinienteTemp[];
 }
 
@@ -34,20 +39,33 @@ export interface ActoTemp {
 })
 export class LiquidacionWizardService {
   private fb = inject(FormBuilder);
+  private exencionesFacade = inject(ExencionesFacade);
 
   // Estado visual
   currentStep = signal<number>(1);
   
-  // Datos fijos/temporales de la sesión
+  // Datos fijos/temporales de la sesiÃ³n
   solicitudId = signal<number | null>(null);
   etapaGuardada = signal<number>(0);
   radicadoGenerado = signal<string>('');
   fechaRadicado = signal<string>(new Date().toISOString().split('T')[0]);
   vigenciaFiscal = signal<number | null>(null);
+  vigenciaAnio = signal<number | null>(null);
+
+  // Estado global transversal
+  tipoTramite = signal<'Liquidacion' | 'Reliquidacion' | 'Anulacion'>('Liquidacion');
+
+  // Estados de Solicitud (1: RADICADA, 2: EN_REVISION, 3: PENDIENTE, 4: LIQUIDADA, 5: DEVUELTA, 6: ANULADA, 7: CERRADA)
+  estadoSolicitudId = signal<number>(1);
+  estadoSolicitudNombre = signal<string>('Radicada');
+  
+  // Banderas de control de mutabilidad
+  esSoloLectura = computed(() => [4, 6, 7].includes(this.estadoSolicitudId()) || this.liquidacionGeneradaExitosa());
+  esEditable = computed(() => !this.esSoloLectura());
   
   // ===================== FORMULARIOS =====================
 
-  // Paso 1: Radicación & Contribuyente
+  // Paso 1: RadicaciÃ³n & Contribuyente
   paso1Form: FormGroup = this.fb.group({
     contribuyenteId: [null as number | null],
     tipoPersonaId: [null as number | null, Validators.required],
@@ -58,7 +76,7 @@ export class LiquidacionWizardService {
     telefono: [''],
     direccion: [''],
     
-    // Datos de radicación
+    // Datos de radicaciÃ³n
     numeroRadicado: ['', Validators.required],
     fechaRadicado: [new Date().toISOString().split('T')[0], Validators.required],
     vigenciaFiscal: [null as number | null, Validators.required],
@@ -70,8 +88,10 @@ export class LiquidacionWizardService {
   paso2Form: FormGroup = this.fb.group({
     numeroDocumento: ['', Validators.required],
     fechaDocumento: [new Date().toISOString().split('T')[0], Validators.required],
-    entidadRegistroId: [null as number | null, Validators.required],
-    municipioJurisdiccionId: [null as number | null, Validators.required],
+    tipoEntidadRegistroId: [null as number | null, Validators.required],
+    categoriaActoId: [{value: null as number | null, disabled: true}, Validators.required],
+    municipioJurisdiccionId: [{value: null as number | null, disabled: true}, Validators.required],
+    entidadRegistroId: [{value: null as number | null, disabled: true}, Validators.required],
     descripcionDocumento: ['']
   });
   
@@ -85,11 +105,12 @@ export class LiquidacionWizardService {
   
   actoForm: FormGroup = this.fb.group({
     tipoActoRegistroId: [null as number | null, Validators.required],
+    inmuebleId: [null as number | null],
     valorActo: [0, [Validators.required, Validators.min(0)]],
     baseDeclarada: [0, [Validators.required, Validators.min(0)]],
     matriculaInmobiliaria: [''],
     avaluoCatastral: [0],
-    exencionId: [null as number | null]
+    exencionesIds: [[] as number[]]
   });
 
   // Paso 4: Intervinientes (NUEVO)
@@ -116,18 +137,22 @@ export class LiquidacionWizardService {
     porcentaje: [100, [Validators.required, Validators.min(1), Validators.max(100)]]
   });
 
-  // Paso 4: Liquidación
+  // Paso 4: LiquidaciÃ³n
   liquidacionGeneradaExitosa = signal<boolean>(false);
   idLiquidacionFinal = signal<number | null>(null);
   liquidacionSimulada = signal<LiquidacionSimuladaResponse | null>(null);
 
-  // MÉTODOS DE UTILIDAD
+  // MÃ‰TODOS DE UTILIDAD
 
   resetWizard() {
     this.currentStep.set(1);
     this.solicitudId.set(null);
     this.etapaGuardada.set(0);
     this.radicadoGenerado.set('');
+    this.estadoSolicitudId.set(1);
+    this.estadoSolicitudNombre.set('Radicada');
+    this.vigenciaFiscal.set(null);
+    this.vigenciaAnio.set(null);
     
     this.paso1Form.reset({
       contribuyenteId: null,
@@ -148,18 +173,22 @@ export class LiquidacionWizardService {
     this.paso2Form.reset({
       numeroDocumento: '',
       fechaDocumento: new Date().toISOString().split('T')[0],
+      tipoEntidadRegistroId: null,
+      categoriaActoId: null,
       entidadRegistroId: null,
       municipioJurisdiccionId: null,
+      tipoActoRegistroId: null,
       descripcionDocumento: ''
     });
     
     this.actoForm.reset({
       tipoActoRegistroId: null,
+      inmuebleId: null,
       valorActo: 0,
       baseDeclarada: 0,
       matriculaInmobiliaria: '',
       avaluoCatastral: 0,
-      exencionId: null
+      exencionesIds: []
     });
     
     this.intervinientesActoActual.set([]);
@@ -179,18 +208,34 @@ export class LiquidacionWizardService {
     this.intervinienteAsignarForm.reset({ rolId: null, porcentaje: 100 });
   }
   cargarDatosDesdeSolicitud(solicitud: any) {
+    // Limpiar estados previos de otras solicitudes
+    this.liquidacionGeneradaExitosa.set(false);
+    this.idLiquidacionFinal.set(null);
+    this.liquidacionSimulada.set(null);
+
     this.solicitudId.set(solicitud.solicitudId);
     this.etapaGuardada.set(solicitud.etapaActual);
     this.radicadoGenerado.set(solicitud.numeroRadicado);
+    this.estadoSolicitudId.set(solicitud.estadoSolicitudId || 1);
+    this.estadoSolicitudNombre.set(solicitud.nombreEstado || 'Radicada');
+
+    if (solicitud.estadoSolicitudId === 4) {
+      this.liquidacionGeneradaExitosa.set(true);
+    }
+
     
-    // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
-    // Si etapa es 1 (Radicación completada), saltamos al paso 2
+    // Asignar el paso actual segÃºn la etapa guardada (nunca superando el paso 5)
+    // Si etapa es 1 (RadicaciÃ³n completada), saltamos al paso 2
     // Si etapa es 2 (Documento completado), saltamos al paso 3, etc.
     const nextStep = Math.min(solicitud.etapaActual + 1, 5);
     this.currentStep.set(nextStep);
 
     // Poblar Paso 1
     if (solicitud.numeroRadicado) {
+      this.vigenciaFiscal.set(solicitud.vigenciaId || null);
+      if (solicitud.vigenciaAnio) {
+        this.vigenciaAnio.set(solicitud.vigenciaAnio);
+      }
       this.paso1Form.patchValue({
         numeroRadicado: solicitud.numeroRadicado,
         fechaRadicacion: solicitud.fechaRadicacion ? solicitud.fechaRadicacion.substring(0, 10) : this.paso1Form.value.fechaRadicado,
@@ -216,9 +261,22 @@ export class LiquidacionWizardService {
     // Poblar Paso 2, 3 y 4
     if (solicitud.documentos && solicitud.documentos.length > 0) {
       const doc = solicitud.documentos[0];
+      const tipoEntidadId = doc.tipoEntidadRegistroId ?? null;
+      const categoriaId = doc.categoriaActoId ?? (doc.actos && doc.actos.length > 0 ? (doc.actos[0].categoriaActoId ?? null) : null);
+
+      if (tipoEntidadId) {
+        this.paso2Form.get('municipioJurisdiccionId')?.enable({ emitEvent: false });
+        this.paso2Form.get('categoriaActoId')?.enable({ emitEvent: false });
+      }
+      if (tipoEntidadId && doc.municipioJurisdiccionId) {
+        this.paso2Form.get('entidadRegistroId')?.enable({ emitEvent: false });
+      }
+
       this.paso2Form.patchValue({
         numeroDocumento: doc.numeroDocumento,
         fechaDocumento: doc.fechaDocumento ? doc.fechaDocumento.substring(0, 10) : '',
+        tipoEntidadRegistroId: tipoEntidadId,
+        categoriaActoId: categoriaId,
         entidadRegistroId: doc.entidadRegistroId,
         municipioJurisdiccionId: doc.municipioJurisdiccionId,
         descripcionDocumento: doc.descripcion
@@ -233,31 +291,78 @@ export class LiquidacionWizardService {
       
       // Poblar Actos
       if (doc.actos && doc.actos.length > 0) {
-        const actosTemp = doc.actos.map((a: any) => ({
-          idTemp: a.id.toString(), // Usamos el ID del backend como ID temporal para mantener la referencia
-          tipoActoId: a.tipoActoRegistroId,
-          tipoActoCodigo: '', // Se podría buscar del facade si hace falta
-          tipoActoNombre: a.tipoActoRegistroNombre || 'Acto Cargado',
-          categoriaNombre: '',
-          naturalezaNombre: '',
-          tarifaInfo: '',
-          valorActo: a.valorActo,
-          baseDeclarada: a.baseDeclarada,
-          matriculaInmobiliaria: '', // El backend usa inmuebleId, habría que adaptarlo si es string o num
-          avaluoCatastral: 0,
-          exencionId: null, // Asignar si viene en el DTO
-          exencionNombre: null,
-          intervinientes: a.intervinientes ? a.intervinientes.map((i: any) => ({
-            idTemp: i.id.toString(),
-            contribuyenteId: i.contribuyente.id,
-            nombre: i.contribuyente.nombre,
-            documento: i.contribuyente.numeroIdentificacion,
-            rolId: i.rolIntervinienteId,
-            rolNombre: i.rolIntervinienteNombre || 'Rol Desconocido',
-            porcentaje: i.porcentajeParticipacion
-          })) : []
-        }));
-        
+        const actosTemp = doc.actos.map((a: any) => {
+          // 1. Extraer IDs y Nombres de ExenciÃ³n de forma tolerante
+          let exIds: number[] = [];
+          if (Array.isArray(a.exencionesIds) && a.exencionesIds.length > 0) {
+            exIds = a.exencionesIds.map((id: any) => Number(id));
+          } else if (Array.isArray(a.exenciones) && a.exenciones.length > 0) {
+            exIds = a.exenciones.map((e: any) => Number(e.exencionId || e.id || e));
+          } else if (Array.isArray(a.actosExenciones) && a.actosExenciones.length > 0) {
+            exIds = a.actosExenciones.map((e: any) => Number(e.exencionId || e.id));
+          } else if (a.exencionId && Number(a.exencionId) > 0) {
+            exIds = [Number(a.exencionId)];
+          }
+
+          let exNombres: string[] = [];
+          if (Array.isArray(a.exenciones) && a.exenciones.length > 0 && (a.exenciones[0]?.exencionNombre || a.exenciones[0]?.nombre)) {
+            exNombres = a.exenciones.map((e: any) => e.exencionNombre || e.nombre);
+          } else if (Array.isArray(a.actosExenciones) && a.actosExenciones.length > 0 && (a.actosExenciones[0]?.exencionNombre || a.actosExenciones[0]?.exencion?.nombre)) {
+            exNombres = a.actosExenciones.map((e: any) => e.exencionNombre || e.exencion?.nombre);
+          } else if (a.exencionNombre) {
+            exNombres = [a.exencionNombre];
+          }
+
+          if (exNombres.length === 0 && exIds.length > 0) {
+            const exList = (this.exencionesFacade.exenciones() as any[]) || [];
+            exNombres = exIds.map(id => {
+              const exFound = exList.find((e: any) => e.id === id);
+              return exFound ? exFound.nombre : `ExenciÃ³n #${id}`;
+            });
+          }
+
+
+          // 2. Extraer Intervinientes de forma tolerante
+          const rawIntvs = Array.isArray(a.intervinientes) ? a.intervinientes : (a.intervinientesActo || a.actoIntervinientes || []);
+          const intervinientesMapped = rawIntvs.map((i: any) => {
+            const contrib = i.contribuyente || {};
+            const contribId = Number(contrib.id || i.contribuyenteId || i.idContribuyente || 0);
+            const contribNombre = contrib.nombre || contrib.nombreCompleto || contrib.razonSocial || i.contribuyenteNombre || i.nombre || 'Desconocido';
+            const contribDoc = contrib.numeroIdentificacion || contrib.documento || i.numeroIdentificacion || i.documento || '';
+            const rolId = Number(i.rolIntervinienteId || i.rolId || i.idRol || 0);
+            const rolNombre = i.rolIntervinienteNombre || i.rolNombre || i.nombreRol || i.rol?.nombre || 'Rol Desconocido';
+            const porcentaje = Number(i.porcentajeParticipacion ?? i.porcentaje ?? i.porcentajeParticipacionActo ?? 100);
+
+            return {
+              idTemp: (i.id || Math.random()).toString(),
+              contribuyenteId: contribId,
+              nombre: contribNombre,
+              documento: contribDoc,
+              rolId: rolId,
+              rolNombre: rolNombre,
+              porcentaje: porcentaje
+            };
+          });
+
+          return {
+            idTemp: a.id ? a.id.toString() : Math.random().toString(),
+            tipoActoId: Number(a.tipoActoRegistroId || a.tipoActoId),
+            tipoActoCodigo: a.tipoActoCodigo || '',
+            tipoActoNombre: a.tipoActoRegistroNombre || a.tipoActoNombre || 'Acto Registrado',
+            categoriaNombre: a.categoriaActoNombre || a.categoriaNombre || '',
+            naturalezaNombre: a.naturalezaNombre || '',
+            tarifaInfo: a.tarifaInfo || '',
+            valorActo: Number(a.valorActo || 0),
+            baseDeclarada: Number(a.baseDeclarada || 0),
+            inmuebleId: a.inmuebleId ? Number(a.inmuebleId) : null,
+            matriculaInmobiliaria: a.inmuebleMatricula || a.matriculaInmobiliaria || '',
+            avaluoCatastral: Number(a.inmuebleAvaluo || a.avaluoCatastral || 0),
+            exencionesIds: exIds,
+            exencionesNombres: exNombres,
+            intervinientes: intervinientesMapped
+          };
+        });
+
         this.actosExpediente.set(actosTemp);
       }
     }

@@ -22,6 +22,74 @@ import {
 import { BaseApiService } from '../../../../core/services/base-api.service';
 import { TodosCatalogosDto } from '../../domain/interfaces/catalogo.interface';
 
+// Catálogos por defecto para asegurar estabilidad y evitar selects vacíos
+export const DEFAULT_SERVICIOS_VEHICULO: CatalogoItem[] = [
+  { id: 1, nombre: 'Particular', codigo: 'PARTICULAR' },
+  { id: 2, nombre: 'Público', codigo: 'PUBLICO' },
+  { id: 3, nombre: 'Oficial', codigo: 'OFICIAL' },
+  { id: 4, nombre: 'Especial', codigo: 'ESPECIAL' },
+  { id: 5, nombre: 'Diplomático', codigo: 'DIPLOMATICO' }
+];
+
+export const DEFAULT_COMBUSTIBLES: CatalogoItem[] = [
+  { id: 1, nombre: 'Gasolina', codigo: 'GASOLINA' },
+  { id: 2, nombre: 'Diésel', codigo: 'DIESEL' },
+  { id: 3, nombre: 'Eléctrico', codigo: 'ELECTRICO' },
+  { id: 4, nombre: 'Híbrido', codigo: 'HIBRIDO' },
+  { id: 5, nombre: 'Gas GNV', codigo: 'GAS_GNV' }
+];
+
+export const DEFAULT_ESTADOS_MATRICULA: CatalogoItem[] = [
+  { id: 1, nombre: 'Matrícula Activa', codigo: 'ACTIVA' },
+  { id: 2, nombre: 'Cancelada', codigo: 'CANCELADA' },
+  { id: 3, nombre: 'Trasladada', codigo: 'TRASLADADA' },
+  { id: 4, nombre: 'Radicada', codigo: 'RADICADA' }
+];
+
+export const DEFAULT_TIPOS_VEHICULO: CatalogoItem[] = [
+  { id: 1, nombre: 'AUTOMOVILES', codigo: 'AUT' },
+  { id: 2, nombre: 'CAMPEROS', codigo: 'CMP' },
+  { id: 3, nombre: 'CAMIONETAS', codigo: 'CMT' },
+  { id: 4, nombre: 'MOTOCICLETAS', codigo: 'MOT' },
+  { id: 5, nombre: 'MOTOCARROS', codigo: 'MTC' },
+  { id: 6, nombre: 'BUSES Y BUSETAS', codigo: 'BUS' },
+  { id: 7, nombre: 'CAMIONES', codigo: 'CAM' },
+  { id: 8, nombre: 'TRACTOCAMIONES', codigo: 'TRA' }
+];
+
+export const DEFAULT_TIPOS_DOCUMENTO: CatalogoTipoDocumento[] = [
+  { id: 1, codigo: 'CC', nombre: 'Cédula de Ciudadanía' },
+  { id: 2, codigo: 'NIT', nombre: 'NIT' },
+  { id: 3, codigo: 'CE', nombre: 'Cédula de Extranjería' },
+  { id: 4, codigo: 'TI', nombre: 'Tarjeta de Identidad' },
+  { id: 5, codigo: 'PAS', nombre: 'Pasaporte' },
+  { id: 6, codigo: 'RC', nombre: 'Registro Civil' }
+];
+
+export const DEFAULT_NATURALEZAS_JURIDICAS: CatalogoNaturalezaJuridica[] = [
+  { id: 1, codigo: 'NAT', nombre: 'Persona Natural' },
+  { id: 2, codigo: 'JUR', nombre: 'Persona Jurídica' }
+];
+
+export const DEFAULT_TIPOS_VINCULO: CatalogoItem[] = [
+  { id: 1, nombre: 'Propietario', codigo: 'PROP' },
+  { id: 2, nombre: 'Locatario / Leasing', codigo: 'LEAS' },
+  { id: 3, nombre: 'Poseedor', codigo: 'POS' }
+];
+
+export const DEFAULT_ORGANISMOS_TRANSITO: CatalogoItem[] = [
+  { id: 1, nombre: 'Secretaría de Tránsito y Transporte de Popayán', codigo: 'POPAYAN' },
+  { id: 2, nombre: 'Secretaría de Tránsito de Santander de Quilichao', codigo: 'SANTANDER' },
+  { id: 3, nombre: 'Secretaría de Tránsito de Puerto Tejada', codigo: 'PUERTO_TEJADA' },
+  { id: 4, nombre: 'Secretaría de Tránsito de El Bordo - Patía', codigo: 'PATIA' },
+  { id: 5, nombre: 'Secretaría de Tránsito de Bolívar', codigo: 'BOLIVAR' },
+  { id: 6, nombre: 'Secretaría de Tránsito de Miranda', codigo: 'MIRANDA' },
+  { id: 7, nombre: 'Secretaría de Tránsito de Piendamó', codigo: 'PIENDAMO' },
+  { id: 8, nombre: 'Secretaría de Tránsito de Silvia', codigo: 'SILVIA' },
+  { id: 9, nombre: 'Secretaría de Tránsito de Guapi', codigo: 'GUAPI' },
+  { id: 10, nombre: 'Secretaría de Tránsito de Timbío', codigo: 'TIMBIO' }
+];
+
 @Injectable({
   providedIn: 'root',
 })
@@ -69,19 +137,19 @@ export class VehiculosFacade {
   readonly filtroEstado = signal<string>('Todos');
   readonly filtroTipo = signal<string>('Todos');
 
-  // Catálogos para el Wizard (Cargados 100% en tiempo real desde la Base de Datos SQL Server)
+  // Catálogos para el Wizard (Cargados 100% en tiempo real desde la Base de Datos SQL Server con fallbacks)
   readonly marcas = signal<CatalogoMarca[]>([]);
   readonly marcasDisponibles = signal<CatalogoMarca[]>([]);
   readonly lineas = signal<CatalogoLinea[]>([]);
   readonly lineasDisponibles = signal<CatalogoLinea[]>([]);
-  readonly estadosMatricula = signal<CatalogoItem[]>([]);
-  readonly serviciosVehiculo = signal<CatalogoItem[]>([]);
-  readonly tiposVinculo = signal<CatalogoItem[]>([]);
-  readonly tiposVehiculo = signal<CatalogoItem[]>([]);
-  readonly combustibles = signal<CatalogoItem[]>([]);
-  readonly organismosTransito = signal<CatalogoItem[]>([]);
-  readonly tiposDocumento = signal<CatalogoTipoDocumento[]>([]);
-  readonly naturalezasJuridicas = signal<CatalogoNaturalezaJuridica[]>([]);
+  readonly estadosMatricula = signal<CatalogoItem[]>(DEFAULT_ESTADOS_MATRICULA);
+  readonly serviciosVehiculo = signal<CatalogoItem[]>(DEFAULT_SERVICIOS_VEHICULO);
+  readonly tiposVinculo = signal<CatalogoItem[]>(DEFAULT_TIPOS_VINCULO);
+  readonly tiposVehiculo = signal<CatalogoItem[]>(DEFAULT_TIPOS_VEHICULO);
+  readonly combustibles = signal<CatalogoItem[]>(DEFAULT_COMBUSTIBLES);
+  readonly organismosTransito = signal<CatalogoItem[]>(DEFAULT_ORGANISMOS_TRANSITO);
+  readonly tiposDocumento = signal<CatalogoTipoDocumento[]>(DEFAULT_TIPOS_DOCUMENTO);
+  readonly naturalezasJuridicas = signal<CatalogoNaturalezaJuridica[]>(DEFAULT_NATURALEZAS_JURIDICAS);
   readonly departamentos = signal<CatalogoDepartamento[]>([]);
   readonly ciudades = signal<CatalogoCiudad[]>([]);
   readonly ciudadesDisponibles = signal<CatalogoCiudad[]>([]);
@@ -372,19 +440,32 @@ export class VehiculosFacade {
       departamentos: this.departamentosApi.getDepartamentos().pipe(
         map(res => (res && 'data' in res && res.data ? res.data : (Array.isArray(res) ? res : []))),
         catchError(() => of([] as CatalogoDepartamento[]))
+      ),
+      servicios: this.catalogoApi.getServiciosVehiculo().pipe(
+        map(res => (res && 'data' in res && res.data ? res.data : (Array.isArray(res) ? res : []))),
+        catchError(() => of([] as CatalogoItem[]))
       )
     }).subscribe({
-      next: (results: { todos: TodosCatalogosDto; departamentos: CatalogoDepartamento[] }) => {
+      next: (results: { todos: TodosCatalogosDto; departamentos: CatalogoDepartamento[]; servicios: CatalogoItem[] }) => {
         const t = results.todos || {};
-        this.estadosMatricula.set(t.estadosMatricula || []);
-        this.serviciosVehiculo.set(t.serviciosVehiculo || []);
-        this.tiposVinculo.set(t.tiposVinculo || []);
-        this.tiposVehiculo.set(t.tiposVehiculo || []);
-        this.combustibles.set(t.combustibles || []);
-        this.organismosTransito.set(t.organismosTransito || []);
-        this.tiposDocumento.set(t.tiposDocumento || []);
-        this.naturalezasJuridicas.set(t.naturalezasJuridicas || []);
-        this.departamentos.set(results.departamentos || []);
+
+        const servs = (results.servicios && results.servicios.length > 0)
+          ? results.servicios
+          : (t.serviciosVehiculo && t.serviciosVehiculo.length > 0)
+            ? t.serviciosVehiculo
+            : ((t as any).servicios && (t as any).servicios.length > 0)
+              ? (t as any).servicios
+              : DEFAULT_SERVICIOS_VEHICULO;
+
+        this.estadosMatricula.set((t.estadosMatricula && t.estadosMatricula.length > 0) ? t.estadosMatricula : DEFAULT_ESTADOS_MATRICULA);
+        this.serviciosVehiculo.set(servs);
+        this.tiposVinculo.set((t.tiposVinculo && t.tiposVinculo.length > 0) ? t.tiposVinculo : DEFAULT_TIPOS_VINCULO);
+        this.tiposVehiculo.set((t.tiposVehiculo && t.tiposVehiculo.length > 0) ? t.tiposVehiculo : DEFAULT_TIPOS_VEHICULO);
+        this.combustibles.set((t.combustibles && t.combustibles.length > 0) ? t.combustibles : DEFAULT_COMBUSTIBLES);
+        this.organismosTransito.set((t.organismosTransito && t.organismosTransito.length > 0) ? t.organismosTransito : DEFAULT_ORGANISMOS_TRANSITO);
+        this.tiposDocumento.set((t.tiposDocumento && t.tiposDocumento.length > 0) ? t.tiposDocumento : DEFAULT_TIPOS_DOCUMENTO);
+        this.naturalezasJuridicas.set((t.naturalezasJuridicas && t.naturalezasJuridicas.length > 0) ? t.naturalezasJuridicas : DEFAULT_NATURALEZAS_JURIDICAS);
+        this.departamentos.set(results.departamentos && results.departamentos.length > 0 ? results.departamentos : []);
         this.catalogosLoaded.set(true);
         this.catalogosLoading.set(false);
       },

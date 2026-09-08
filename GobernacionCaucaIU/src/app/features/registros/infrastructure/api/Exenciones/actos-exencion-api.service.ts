@@ -29,12 +29,29 @@ export class ActosExencionApiService {
    * @returns {Observable<ApiResponse<PagedResult<ActoExencion>>>} Lista paginada de vinculaciones.
    */
   obtenerTodos(
-    pageNumber: number = 1, 
+    paramsOrPage: number | any = 1, 
     pageSize: number = 10, 
-    exencionId?: number
+    searchTerm?: string,
+    exencionId?: number,
+    activo?: boolean,
+    filtrosEspecificos?: any
   ): Observable<ApiResponse<PagedResult<ActoExencion>>> {
-    const params: any = { pageNumber, pageSize };
-    if (exencionId) params.exencionId = exencionId;
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.exencionId) params.ExencionId = paramsOrPage.exencionId;
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') params.SearchTerm = searchTerm.trim();
+      if (exencionId) params.ExencionId = exencionId;
+      if (activo !== undefined && activo !== null) params.Activo = activo;
+      if (filtrosEspecificos) Object.assign(params, filtrosEspecificos);
+    }
 
     return this.api.get<ApiResponse<PagedResult<ActoExencion>>>(
       this.baseUrl,

@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { RegistrosSidebar } from './registros-sidebar/registros-sidebar';
 import { RegistrosTopbar } from './registros-topbar/registros-topbar';
 
@@ -12,7 +13,20 @@ import { RegistrosTopbar } from './registros-topbar/registros-topbar';
   styleUrl: './registros-layout.css'
 })
 export class RegistrosLayoutComponent {
-  isSidebarCollapsed = signal<boolean>(false);
+  private router = inject(Router);
+
+  isSidebarCollapsed = signal<boolean>(true);
+  isSidebarHovered = signal<boolean>(false);
+
+  constructor() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      if (event.url.includes('/registros/configuracion')) {
+        this.isSidebarCollapsed.set(true);
+      }
+    });
+  }
 
   toggleSidebar() {
     this.isSidebarCollapsed.update(v => !v);

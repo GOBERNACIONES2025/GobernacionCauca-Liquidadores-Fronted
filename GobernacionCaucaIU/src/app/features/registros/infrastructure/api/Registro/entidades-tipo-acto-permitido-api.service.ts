@@ -34,14 +34,32 @@ export class EntidadesTipoActoPermitidoApiService {
    * @returns {Observable<ApiResponse<PagedResult<EntidadTipoActoPermitido>>>} Respuesta paginada.
    */
   obtenerTodos(
-    pageNumber: number = 1, 
+    paramsOrPage: number | any = 1, 
     pageSize: number = 10, 
+    searchTerm?: string,
     entidadRegistroId?: number, 
-    tipoActoRegistroId?: number
+    tipoActoRegistroId?: number,
+    activo?: boolean,
+    filtrosEspecificos?: any
   ): Observable<ApiResponse<PagedResult<EntidadTipoActoPermitido>>> {
-    const params: any = { pageNumber, pageSize };
-    if (entidadRegistroId) params.entidadRegistroId = entidadRegistroId;
-    if (tipoActoRegistroId) params.tipoActoRegistroId = tipoActoRegistroId;
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.entidadRegistroId) params.EntidadRegistroId = paramsOrPage.entidadRegistroId;
+      if (paramsOrPage.tipoActoRegistroId) params.TipoActoRegistroId = paramsOrPage.tipoActoRegistroId;
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') params.SearchTerm = searchTerm.trim();
+      if (entidadRegistroId) params.EntidadRegistroId = entidadRegistroId;
+      if (tipoActoRegistroId) params.TipoActoRegistroId = tipoActoRegistroId;
+      if (activo !== undefined && activo !== null) params.Activo = activo;
+      if (filtrosEspecificos) Object.assign(params, filtrosEspecificos);
+    }
 
     return this.api.get<ApiResponse<PagedResult<EntidadTipoActoPermitido>>>(
       this.baseUrl,

@@ -23,14 +23,14 @@
         </div>
         <input 
           type="text" 
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
+          [value]="searchText()"
+          (input)="onSearchChange($event)"
           placeholder="Buscar exención..." 
           class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
         />
-        @if (searchQuery()) {
+        @if (searchText()) {
           <button 
-            (click)="searchQuery.set('')"
+            (click)="searchText.set(''); searchSubject.next('')"
             class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -87,6 +87,7 @@
         <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
           <th class="py-3 px-4 w-32">Código</th>
           <th class="py-3 px-4">Nombre de la Exención</th>
+          <th class="py-3 px-4">Beneficio</th>
           <th class="py-3 px-4">Beneficiario / Rol</th>
           <th class="py-3 px-4">Norma</th>
           <th class="py-3 px-4">Departamento</th>
@@ -124,6 +125,17 @@
                   <span class="text-[11px] text-slate-400">{{ item.descripcion }}</span>
                 }
               </div>
+            </td>
+
+            <!-- Beneficio -->
+            <td class="py-3.5 px-4 text-slate-800 font-medium text-sm">
+              @if (item.porcentaje) {
+                <span class="text-blue-600 font-bold">{{ item.porcentaje }}%</span>
+              } @else if (item.valorFijo) {
+                <span class="text-emerald-600 font-bold">{{ item.valorFijo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+              } @else {
+                <span class="text-slate-400 text-xs italic">N/A</span>
+              }
             </td>
 
             <!-- Beneficiario / Rol -->
@@ -171,11 +183,16 @@
               <div class="flex items-center justify-end gap-1.5">
                 <button 
                   (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
                   title="Editar exención"
-                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors">
-                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
                 </button>
                 
                 <button 
@@ -196,6 +213,14 @@
     </table>
   </div>
   
+  <!-- Paginación -->
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="counts().total"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
   <!-- Footer Counter -->
   <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
     Mostrando {{ exencionesFiltradas().length }} de {{ counts().total }} registros
@@ -220,16 +245,14 @@
         <label class="label pt-0 pb-1">
           <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento</span>
         </label>
-        <select 
-          formControlName="departamentoId" 
-          class="select select-sm select-bordered w-full text-slate-800"
-          [class.select-error]="exencionForm.get('departamentoId')?.invalid && exencionForm.get('departamentoId')?.touched"
-        >
-          <option [ngValue]="null" disabled>Seleccione</option>
-          @for (dep of departamentosFacade.departamentos(); track dep.id) {
-            <option [ngValue]="dep.id">{{ dep.nombre }}</option>
-          }
-        </select>
+        <app-searchable-select
+          formControlName="departamentoId"
+          [searchFn]="searchDepartamentosFn"
+          [resolveIdFn]="resolveDepartamentoFn"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Buscar departamento..."
+        ></app-searchable-select>
       </div>
 
       <!-- Norma Select -->
@@ -237,16 +260,14 @@
         <label class="label pt-0 pb-1">
           <span class="label-text font-bold text-xs uppercase text-slate-600">Norma Aplicable</span>
         </label>
-        <select 
-          formControlName="normaId" 
-          class="select select-sm select-bordered w-full text-slate-800"
-          [class.select-error]="exencionForm.get('normaId')?.invalid && exencionForm.get('normaId')?.touched"
-        >
-          <option [ngValue]="null" disabled>Seleccione una norma</option>
-          @for (norma of normasFacade.normas(); track norma.id) {
-            <option [ngValue]="norma.id">{{ norma.numero }} ({{ norma.anio }})</option>
-          }
-        </select>
+        <app-searchable-select
+          formControlName="normaId"
+          [searchFn]="searchNormasFn"
+          [resolveIdFn]="resolveNormaFn"
+          labelKey="numero"
+          valueKey="id"
+          placeholder="Buscar norma..."
+        ></app-searchable-select>
       </div>
     </div>
 
@@ -257,12 +278,14 @@
         <label class="label pt-0 pb-1">
           <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo Beneficiario</span>
         </label>
-        <select formControlName="tipoBeneficiarioId" class="select select-sm select-bordered w-full text-slate-800">
-          <option [ngValue]="null">Ninguno / General</option>
-          @for (tipo of tiposBeneficiarioFacade.tiposBeneficiario(); track tipo.id) {
-            <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
-          }
-        </select>
+        <app-searchable-select
+          formControlName="tipoBeneficiarioId"
+          [searchFn]="searchTiposBeneficiarioFn"
+          [resolveIdFn]="resolveTipoBeneficiarioFn"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Ninguno / General"
+        ></app-searchable-select>
       </div>
 
       <!-- Rol Interviniente Select -->
@@ -270,12 +293,14 @@
         <label class="label pt-0 pb-1">
           <span class="label-text font-bold text-xs uppercase text-slate-600">Rol Interviniente</span>
         </label>
-        <select formControlName="rolIntervinienteId" class="select select-sm select-bordered w-full text-slate-800">
-          <option [ngValue]="null">Ninguno / No aplica</option>
-          @for (rol of rolesFacade.rolesInterviniente(); track rol.id) {
-            <option [ngValue]="rol.id">{{ rol.nombre }}</option>
-          }
-        </select>
+        <app-searchable-select
+          formControlName="rolIntervinienteId"
+          [searchFn]="searchRolesFn"
+          [resolveIdFn]="resolveRolFn"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Ninguno / No aplica"
+        ></app-searchable-select>
       </div>
     </div>
 
@@ -324,6 +349,35 @@
         placeholder="Detalles sobre las causales de la exención..." 
         class="textarea textarea-sm textarea-bordered w-full text-slate-800"
       ></textarea>
+    </div>
+
+    <!-- Beneficio (Porcentaje o Valor Fijo) -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Porcentaje (%)</span>
+        </label>
+        <input 
+          type="number" 
+          formControlName="porcentaje" 
+          placeholder="Ej. 100" 
+          class="input input-sm input-bordered w-full text-slate-800"
+          min="0" max="100" 
+        />
+      </div>
+
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Valor Fijo ($)</span>
+        </label>
+        <input 
+          type="number" 
+          formControlName="valorFijo" 
+          placeholder="Ej. 50000" 
+          class="input input-sm input-bordered w-full text-slate-800"
+          min="0" 
+        />
+      </div>
     </div>
 
     <!-- Estado -->

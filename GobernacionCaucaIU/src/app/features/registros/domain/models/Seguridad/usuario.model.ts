@@ -40,5 +40,8 @@ export interface UsuarioQueryParams {
   pageNumber?: number;
   pageSize?: number;
   search?: string;
+  searchTerm?: string;
   sort?: string;
+  activo?: boolean;
+  rolId?: number;
 }

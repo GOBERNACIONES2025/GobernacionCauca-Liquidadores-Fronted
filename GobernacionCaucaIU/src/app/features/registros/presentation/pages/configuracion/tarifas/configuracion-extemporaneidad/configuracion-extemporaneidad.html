@@ -1,0 +1,493 @@
+<div class="p-6 h-full flex flex-col relative bg-base-100">
+  
+  <!-- Encabezado y Controles -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/80 pb-4 mb-4 gap-4">
+    
+    <!-- Page Header -->
+    <app-page-header
+      [breadcrumbs]="breadcrumbs"
+      title="Extemporaneidad"
+      [tags]="[{ text: 'Parametrización', type: 'warning' }]"
+      [counts]="counts()"
+    ></app-page-header>
+
+    <!-- Buscador, Filtro de Estados y Botón Nuevo -->
+    <div class="flex flex-wrap items-center gap-3">
+      
+      <!-- Buscador -->
+      <div class="relative w-full sm:w-56 md:w-64">
+        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+        </div>
+        <input 
+          type="text" 
+          [value]="searchText()"
+          (input)="onSearchChange($event)"
+          placeholder="Buscar configuración..." 
+          class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
+        />
+        @if (searchText()) {
+          <button 
+            (click)="searchText.set(''); searchSubject.next('')"
+            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        }
+      </div>
+
+      <!-- Segmented Control de Estados -->
+      <div class="inline-flex p-0.5 bg-slate-100/90 border border-slate-200/80 rounded-lg">
+        <button 
+          (click)="setFilter('todos')"
+          [class]="selectedFilter() === 'todos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Todos
+        </button>
+        <button 
+          (click)="setFilter('activos')"
+          [class]="selectedFilter() === 'activos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Activos
+        </button>
+        <button 
+          (click)="setFilter('inactivos')"
+          [class]="selectedFilter() === 'inactivos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Inactivos
+        </button>
+      </div>
+
+      <!-- Botón Agregar Nueva Configuración -->
+      <button 
+        (click)="openNew()" 
+        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0f3b73] hover:bg-[#0a274d] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors shrink-0">
+        <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Nueva configuración
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Contenedor de la Tabla -->
+  <div class="flex-1 overflow-auto bg-base-100 relative custom-scrollbar">
+    <table class="w-full text-left border-collapse">
+      <thead class="sticky top-0 bg-base-100 z-10 border-b border-slate-200">
+        <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <th class="py-3 px-4">Departamento</th>
+          <th class="py-3 px-4">Vigencia</th>
+          <th class="py-3 px-4">Norma</th>
+          <th class="py-3 px-4">Tipo Cálculo</th>
+          <th class="py-3 px-4">Plazo Gracia</th>
+          <th class="py-3 px-4">Sanción</th>
+          <th class="py-3 px-4">Vigencia Regla</th>
+          <th class="py-3 px-4">Interés Mora</th>
+          <th class="py-3 px-4 w-28">Estado</th>
+          <th class="py-3 px-4 w-24 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        @if (facade.loading()) {
+          <tr>
+            <td colspan="10" class="text-center py-12">
+              <span class="loading loading-spinner text-primary"></span>
+            </td>
+          </tr>
+        } @else if (configuracionesFiltradas().length === 0) {
+          <tr>
+            <td colspan="10" class="text-center py-12 text-slate-400 text-xs">
+              No se encontraron configuraciones de extemporaneidad registradas.
+            </td>
+          </tr>
+        }
+        
+        @for (item of configuracionesFiltradas(); track item.id) {
+          <tr class="hover:bg-slate-50/70 transition-colors group">
+            
+            <!-- Departamento -->
+            <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-700 flex items-center justify-center font-bold text-xs">
+                  {{ item.departamentoId }}
+                </div>
+                <span>{{ getDepartamentoNombre(item) }}</span>
+              </div>
+            </td>
+
+            <!-- Vigencia -->
+            <td class="py-3.5 px-4 font-mono font-bold text-xs text-blue-700">
+              <span class="px-2 py-0.5 rounded bg-blue-50 border border-blue-100">
+                {{ getVigenciaAnio(item) }}
+              </span>
+            </td>
+
+            <!-- Norma -->
+            <td class="py-3.5 px-4 text-xs font-semibold text-slate-700">
+              {{ getNormaNumero(item) }}
+            </td>
+
+            <!-- Tipo Cálculo -->
+            <td class="py-3.5 px-4 text-xs font-medium text-slate-700">
+              <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-semibold text-[11px]">
+                {{ getTipoCalculoNombre(item) }}
+              </span>
+            </td>
+
+            <!-- Plazo Gracia -->
+            <td class="py-3.5 px-4 text-slate-700 text-xs font-medium">
+              <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-800 font-semibold font-mono text-[11px]">
+                {{ item.diasPlazo }} días
+              </span>
+            </td>
+
+            <!-- Sanción Configurada -->
+            <td class="py-3.5 px-4 text-sm">
+              @if (item.porcentajeSancion) {
+                <span class="inline-flex items-center gap-1 font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 text-xs">
+                  {{ item.porcentajeSancion }}%
+                </span>
+              } @else if (item.valorFijoSancion) {
+                <span class="inline-flex items-center gap-1 font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 text-xs">
+                  {{ item.valorFijoSancion | currency:'USD':'symbol':'1.0-0' }}
+                </span>
+              } @else {
+                <span class="text-slate-400 text-xs">Sin sanción fija</span>
+              }
+            </td>
+
+            <!-- Vigencia Regla (Amnistía o Permanente) -->
+            <td class="py-3.5 px-4 text-xs font-mono">
+              @if (item.fechaInicio && item.fechaFin) {
+                <div class="flex flex-col">
+                  <span class="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 w-fit">
+                    Amnistía / Especial
+                  </span>
+                  <span class="text-[11px] text-slate-600 mt-0.5">
+                    {{ item.fechaInicio | date:'dd/MM/yyyy' }} - {{ item.fechaFin | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+              } @else {
+                <span class="text-slate-500 text-[11px]">Anual permanente</span>
+              }
+            </td>
+
+            <!-- Interés Moratorio -->
+            <td class="py-3.5 px-4 text-xs">
+              @if (item.aplicaInteresMora) {
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                  Interés Diario
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  Solo Sanción
+                </span>
+              }
+            </td>
+
+            <!-- Estado -->
+            <td class="py-3.5 px-4">
+              @if (item.activo) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Activo
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  Inactivo
+                </span>
+              }
+            </td>
+
+            <!-- Acciones -->
+            <td class="py-3.5 px-4 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button 
+                  (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
+                  title="Editar configuración"
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
+                </button>
+                
+                <button 
+                  (click)="toggleActivo(item)"
+                  [title]="item.activo ? 'Desactivar' : 'Activar'"
+                  class="p-1 rounded border border-transparent transition-colors"
+                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Paginación -->
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="counts().total"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
+
+  <!-- Contador al pie -->
+  <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
+    Mostrando {{ configuracionesFiltradas().length }} de {{ counts().total }} registros
+  </div>
+</div>
+
+<!-- Slide-Over para Crear / Editar -->
+<app-slide-over 
+  [isOpen]="isSlideOverOpen" 
+  [title]="isEditMode ? 'Editar Configuración de Extemporaneidad' : 'Nueva Configuración de Extemporaneidad'" 
+  [description]="isEditMode ? 'Modifica los parámetros y sanciones de extemporaneidad para el departamento' : 'Ingresa los parámetros de gracia y sanciones por extemporaneidad'"
+  [isSaving]="facade.actionLoading()"
+  (onClose)="closeSlideOver()" 
+  (onSave)="save()">
+  
+  <form [formGroup]="extemporaneidadForm" class="flex flex-col gap-4">
+    
+    <!-- Selector de Departamento -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento <span class="text-error">*</span></span>
+      </label>
+      <app-searchable-select
+        formControlName="departamentoId"
+        [searchFn]="searchDepartamentosFn"
+        [resolveIdFn]="resolveDepartamentoFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar departamento..."
+      ></app-searchable-select>
+      @if (extemporaneidadForm.get('departamentoId')?.touched && extemporaneidadForm.get('departamentoId')?.errors?.['required']) {
+        <span class="text-error text-[11px] mt-1">El departamento es obligatorio.</span>
+      }
+    </div>
+
+    <!-- Grid Vigencia y Norma -->
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Vigencia -->
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Vigencia <span class="text-error">*</span></span>
+        </label>
+        <app-searchable-select
+          formControlName="vigenciaId"
+          [searchFn]="searchVigenciasFn"
+          [resolveIdFn]="resolveVigenciaFn"
+          labelKey="anio"
+          valueKey="id"
+          placeholder="Buscar vigencia..."
+        ></app-searchable-select>
+        @if (extemporaneidadForm.get('vigenciaId')?.touched && extemporaneidadForm.get('vigenciaId')?.errors?.['required']) {
+          <span class="text-error text-[11px] mt-1">La vigencia es obligatoria.</span>
+        }
+      </div>
+
+      <!-- Norma -->
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Norma <span class="text-error">*</span></span>
+        </label>
+        <app-searchable-select
+          formControlName="normaId"
+          [searchFn]="searchNormasFn"
+          [resolveIdFn]="resolveNormaFn"
+          labelKey="numero"
+          valueKey="id"
+          placeholder="Buscar norma..."
+        ></app-searchable-select>
+        @if (extemporaneidadForm.get('normaId')?.touched && extemporaneidadForm.get('normaId')?.errors?.['required']) {
+          <span class="text-error text-[11px] mt-1">La norma es obligatoria.</span>
+        }
+      </div>
+    </div>
+
+    <!-- Selector de Tipo de Cálculo de Tarifa -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Cálculo de Tarifa <span class="text-error">*</span></span>
+      </label>
+      <app-searchable-select
+        formControlName="tipoCalculoTarifaId"
+        [searchFn]="searchTiposCalculoFn"
+        [resolveIdFn]="resolveTipoCalculoFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Buscar tipo de cálculo..."
+      ></app-searchable-select>
+      @if (extemporaneidadForm.get('tipoCalculoTarifaId')?.touched && extemporaneidadForm.get('tipoCalculoTarifaId')?.errors?.['required']) {
+        <span class="text-error text-[11px] mt-1">El tipo de cálculo es obligatorio.</span>
+      }
+    </div>
+
+    <!-- Días de Plazo -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Días de Plazo Legal (Gracia) <span class="text-error">*</span></span>
+      </label>
+      <input 
+        type="number" 
+        formControlName="diasPlazo" 
+        min="0"
+        placeholder="Ej. 60" 
+        class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+      />
+      <p class="text-[10px] text-slate-400 mt-1">Número de días transcurridos desde el otorgamiento del acto sin causar sanción (generalmente 60 días).</p>
+      @if (extemporaneidadForm.get('diasPlazo')?.touched && extemporaneidadForm.get('diasPlazo')?.errors) {
+        <span class="text-error text-[11px] mt-1">Los días de plazo deben ser un valor mayor o igual a 0.</span>
+      }
+    </div>
+
+    <!-- Grid Sanción: Porcentaje y Valor Fijo -->
+    <div class="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80">
+      <div class="text-xs font-bold text-slate-700 uppercase mb-2">Cálculo de la Sanción</div>
+      <p class="text-[11px] text-slate-500 mb-3">
+        Configura el valor de la sanción según el tipo de cálculo seleccionado.
+      </p>
+      
+      <div class="grid grid-cols-2 gap-3">
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1">
+            <span class="label-text font-semibold text-xs text-slate-600">
+              Porcentaje Sanción (%)
+              @if (extemporaneidadForm.get('tipoCalculoTarifaId')?.value === 1) {
+                <span class="text-error font-bold">*</span>
+              }
+            </span>
+          </label>
+          <input 
+            type="number" 
+            step="0.01" 
+            formControlName="porcentajeSancion" 
+            placeholder="Ej. 5.00" 
+            class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+            [class.border-blue-500]="extemporaneidadForm.get('tipoCalculoTarifaId')?.value === 1"
+          />
+        </div>
+
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1">
+            <span class="label-text font-semibold text-xs text-slate-600">
+              Valor Fijo Sanción ($)
+              @if (extemporaneidadForm.get('tipoCalculoTarifaId')?.value === 2) {
+                <span class="text-error font-bold">*</span>
+              }
+            </span>
+          </label>
+          <input 
+            type="number" 
+            formControlName="valorFijoSancion" 
+            placeholder="Ej. 50000" 
+            class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+            [class.border-blue-500]="extemporaneidadForm.get('tipoCalculoTarifaId')?.value === 2"
+          />
+        </div>
+      </div>
+
+      @if (extemporaneidadForm.touched && extemporaneidadForm.hasError('requierePorcentaje')) {
+        <div class="alert alert-warning text-xs mt-2.5 py-2 px-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>Para cálculo Porcentual, debe ingresar un porcentaje válido entre 0.01% y 100%.</span>
+        </div>
+      } @else if (extemporaneidadForm.touched && extemporaneidadForm.hasError('requiereValorFijo')) {
+        <div class="alert alert-warning text-xs mt-2.5 py-2 px-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>Para cálculo por Valor Fijo, debe ingresar un valor mayor a 0.</span>
+        </div>
+      } @else if (extemporaneidadForm.touched && extemporaneidadForm.hasError('requiereSancion')) {
+        <div class="alert alert-warning text-xs mt-2.5 py-2 px-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-4 w-4" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <span>Debe ingresar al menos un porcentaje de sanción o un valor fijo mayor a 0.</span>
+        </div>
+      }
+    </div>
+
+    <!-- Rango Temporal Opcional (Amnistías / Papayazos) -->
+    <div class="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80">
+      <div class="text-xs font-bold text-slate-700 uppercase mb-1">Período de Aplicación Especial (Opcional)</div>
+      <p class="text-[11px] text-slate-500 mb-2">
+        Si se deja vacío, la regla aplicará durante todo el año. Especifica fechas para amnistías tributarias o beneficios temporales.
+      </p>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1">
+            <span class="label-text font-semibold text-xs text-slate-600">Fecha Inicio</span>
+          </label>
+          <input 
+            type="date" 
+            formControlName="fechaInicio" 
+            class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+          />
+        </div>
+
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1">
+            <span class="label-text font-semibold text-xs text-slate-600">Fecha Fin</span>
+          </label>
+          <input 
+            type="date" 
+            formControlName="fechaFin" 
+            class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+          />
+        </div>
+      </div>
+
+      @if (extemporaneidadForm.touched && extemporaneidadForm.hasError('fechaFinMenor')) {
+        <div class="alert alert-error text-xs mt-2.5 py-2 px-3">
+          <span>La fecha de fin debe ser igual o posterior a la fecha de inicio.</span>
+        </div>
+      }
+    </div>
+
+    <!-- Aplica Interés Moratorio -->
+    <div class="form-control w-full p-3 bg-slate-50/80 rounded-lg border border-slate-200/80">
+      <label class="label cursor-pointer justify-between p-0">
+        <div>
+          <span class="label-text font-bold text-xs uppercase text-slate-700">Aplica Intereses de Mora</span>
+          <p class="text-[11px] text-slate-500 mt-0.5">Si está habilitado, causará intereses moratorios diarios usando las tasas de mora configuradas.</p>
+        </div>
+        <input type="checkbox" formControlName="aplicaInteresMora" class="toggle toggle-primary toggle-sm" />
+      </label>
+    </div>
+
+    <!-- Estado Activo -->
+    <div class="form-control w-full">
+      <label class="label cursor-pointer justify-start gap-3 p-0">
+        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
+        <span class="label-text font-bold text-xs uppercase text-slate-700">Configuración Activa</span>
+      </label>
+      <p class="text-[10px] text-slate-400 mt-1">Si está inactiva, no se tendrá en cuenta durante la liquidación automática de impuestos de registro.</p>
+    </div>
+
+  </form>
+
+</app-slide-over>

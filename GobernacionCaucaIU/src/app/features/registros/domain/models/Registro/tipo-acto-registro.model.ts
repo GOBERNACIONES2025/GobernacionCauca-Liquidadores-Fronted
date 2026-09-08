@@ -10,6 +10,7 @@ export interface TipoActoRegistro {
   naturalezaActo: NaturalezaActo;
   codigo: string;
   nombre: string;
+  requiereAvaluo: boolean;
   activo: boolean;
 }
 
@@ -21,6 +22,7 @@ export interface CrearTipoActoRegistroRequest {
   naturalezaActoId: number;
   codigo: string;
   nombre: string;
+  requiereAvaluo?: boolean;
 }
 
 /**
@@ -32,5 +34,6 @@ export interface ActualizarTipoActoRegistroRequest {
   naturalezaActoId: number;
   codigo: string;
   nombre: string;
+  requiereAvaluo?: boolean;
   activo: boolean;
 }

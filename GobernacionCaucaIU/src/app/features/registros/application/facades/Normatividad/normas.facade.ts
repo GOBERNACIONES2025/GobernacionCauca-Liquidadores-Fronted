@@ -39,7 +39,7 @@ export class NormasFacade {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(departamentoId, pageNumber, pageSize).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, departamentoId }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.normas.set(response.data.items || []);

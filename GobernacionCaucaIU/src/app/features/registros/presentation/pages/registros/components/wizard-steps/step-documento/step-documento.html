@@ -18,9 +18,29 @@
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Fecha del Documento *</label>
           <input formControlName="fechaDocumento" type="date" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
         </div>
+
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tipo de Entidad *</label>
+          <select formControlName="tipoEntidadRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <option [ngValue]="null">Seleccione...</option>
+            @for (t of tiposEntidadFacade.tiposEntidadRegistro(); track t.id) {
+              <option [value]="t.id">{{ t.nombre }}</option>
+            }
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Municipio de Jurisdicción *</label>
+          <select formControlName="municipioJurisdiccionId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+            <option [ngValue]="null">Seleccione...</option>
+            @for (m of municipiosFacade.municipios(); track m.id) {
+              <option [value]="m.id">{{ m.nombre }}</option>
+            }
+          </select>
+        </div>
+
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Entidad de Registro / Notaría *</label>
-          <select formControlName="entidadRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+          <select formControlName="entidadRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <option [ngValue]="null">Seleccione...</option>
             @for (e of entidadesFacade.entidadesRegistro(); track e.id) {
               <option [value]="e.id">{{ e.nombre }}</option>
@@ -28,11 +48,11 @@
           </select>
         </div>
         <div>
-          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Municipio de Jurisdicción *</label>
-          <select formControlName="municipioJurisdiccionId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Categoría del Acto *</label>
+          <select formControlName="categoriaActoId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <option [ngValue]="null">Seleccione...</option>
-            @for (m of municipiosFacade.municipios(); track m.id) {
-              <option [value]="m.id">{{ m.nombre }}</option>
+            @for (c of categoriasActoFacade.categoriasActo(); track c.id) {
+              <option [value]="c.id">{{ c.nombre }}</option>
             }
           </select>
         </div>
@@ -75,7 +95,7 @@
       ← Atrás
     </button>
     <button type="button" (click)="continuar()" class="px-6 py-2.5 bg-blue-900 text-white font-medium text-sm rounded-lg hover:bg-blue-800 transition-colors shadow-md shadow-blue-900/20 flex items-center gap-2">
-      Guardar y continuar
+      {{ wizardService.esSoloLectura() ? 'Continuar' : 'Guardar y continuar' }}
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
       </svg>

@@ -14,3 +14,14 @@ export interface PagedResult<T> {
   hasNextPage?: boolean;
   hasPreviousPage?: boolean;
 }
+
+export interface BaseQuerySpec {
+  pageNumber?: number;
+  pageSize?: number;
+  searchTerm?: string;
+  sortColumn?: string;
+  sortDescending?: boolean;
+  activo?: boolean;
+  [key: string]: any;
+}
+

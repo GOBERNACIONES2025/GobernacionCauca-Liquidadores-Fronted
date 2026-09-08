@@ -1,5 +1,8 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
@@ -7,25 +10,46 @@ import { ActosExencionFacade } from '../../../../../application/facades/Exencion
 import { ExencionesFacade } from '../../../../../application/facades/Exenciones/exenciones.facade';
 import { TiposActoRegistroFacade } from '../../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { ActoExencion } from '../../../../../domain/models/Exenciones/acto-exencion.model';
+import { ActosExencionApiService } from '../../../../../infrastructure/api/Exenciones/actos-exencion-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { ExencionesApiService } from '../../../../../infrastructure/api/Exenciones/exenciones-api.service';
+import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-actos-exencion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './actos-exencion.html',
   styleUrl: './actos-exencion.css'
 })
 export class ActosExencionComponent implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(ActosExencionFacade);
+  public apiService = inject(ActosExencionApiService);
   public exencionesFacade = inject(ExencionesFacade);
   public tiposActoFacade = inject(TiposActoRegistroFacade);
+  
+  private exencionesApi = inject(ExencionesApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Exenciones', 'Actos con Exención'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedExencionFilter = signal<number | 'todas'>('todas');
 
   isSlideOverOpen = false;
@@ -36,39 +60,44 @@ export class ActosExencionComponent implements OnInit {
     exencionId: [null as number | null, Validators.required]
   });
 
+  searchExencionesFn = (term: string) => this.exencionesApi.obtenerTodos(1, 50, term).pipe(map(res => res.data.items));
+  resolveExencionFn = (id: number) => this.exencionesApi.obtenerPorId(id).pipe(map(res => res.data));
+
   // Filtered list
-  actosExencionFiltrados = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const exencionFilter = this.selectedExencionFilter();
-    let items = this.facade.actosExencion();
-
-    if (exencionFilter !== 'todas') {
-      items = items.filter(a => a.exencion?.id === exencionFilter);
-    }
-
-    if (query) {
-      items = items.filter(a => 
-        a.exencion?.nombre?.toLowerCase().includes(query) || 
-        a.exencion?.codigo?.toLowerCase().includes(query) ||
-        a.tipoActoRegistro?.nombre?.toLowerCase().includes(query) ||
-        a.tipoActoRegistro?.codigo?.toLowerCase().includes(query)
-      );
-    }
-
-    return items;
-  });
+  actosExencionFiltrados = computed(() => this.facade.actosExencion());
 
   counts = computed(() => {
-    const all = this.facade.actosExencion();
     return {
-      total: all.length
+      total: this.facade.totalActosExencion()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarActosExencion(1, 100);
-    this.exencionesFacade.cargarExenciones(1, 100);
-    this.tiposActoFacade.cargarTiposActoRegistro(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    
+    
+    this.facade.cargarActosExencion(this.selectedExencionId || 0, this.pageNumber(), this.pageSize());
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setExencionFilter(filter: number | 'todas') {
@@ -84,18 +113,27 @@ export class ActosExencionComponent implements OnInit {
   }
 
   edit(item: ActoExencion) {
-    this.selectedExencionId = item.exencion?.id ?? null;
-    this.vinculacionForm.patchValue({
-      exencionId: this.selectedExencionId
+    const exencionId = item.exencion?.id;
+    if (!exencionId) return;
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerTodos({ exencionId, pageSize: 1000 }).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        this.selectedExencionId = exencionId;
+        this.vinculacionForm.patchValue({
+          exencionId: this.selectedExencionId
+        });
+        const items = res?.data?.items || [];
+        const linkedActoIds = items.map((a: any) => a.tipoActoRegistro?.id || a.tipoActoRegistroId);
+        this.selectedTiposActoIds.set(linkedActoIds);
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener las vinculaciones del acto');
+        console.error(err);
+      }
     });
-
-    // Find all actos currently linked to this exencion
-    const linkedActoIds = this.facade.actosExencion()
-      .filter(a => a.exencion?.id === this.selectedExencionId)
-      .map(a => a.tipoActoRegistro.id);
-
-    this.selectedTiposActoIds.set(linkedActoIds);
-    this.isSlideOverOpen = true;
   }
 
   toggleActoSelection(actoId: number) {
@@ -139,7 +177,7 @@ export class ActosExencionComponent implements OnInit {
         next: () => {
           this.toast.success('Actos registrales vinculados exitosamente a la exención');
           this.closeSlideOver();
-          this.facade.cargarActosExencion(1, 100);
+          this.cargarItems();
         },
         error: (err: any) => {
           this.toast.error('Error al vincular los tipos de acto');

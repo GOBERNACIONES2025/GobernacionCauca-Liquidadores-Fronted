@@ -1,4 +1,4 @@
-import type { EChartsOption } from 'echarts';
+export type EChartsOption = any;
 
 export type TaxModuleKey = 
   | 'automotores' 
@@ -48,7 +48,10 @@ export interface RecentActivityItem {
   user: string;
   date: string;
   time: string;
-  status: 'APROBADO' | 'PENDIENTE' | 'RECHAZADO' | 'LIQUIDADO' | 'PAGADO' | 'BORRADOR' | string;
+  status: 'APROBADO' | 'PENDIENTE' | 'RECHAZADO' | 'LIQUIDADO' | 'PAGADO' | 'BORRADOR' | 'OFICIAL' | string;
+  statusLabel?: string;
+  badgeClass?: string;
+  placa?: string;
   statusColor?: string;
 }
 

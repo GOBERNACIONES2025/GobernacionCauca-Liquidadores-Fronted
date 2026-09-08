@@ -33,7 +33,7 @@ export class ActosExencionFacade {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize, exencionId).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, exencionId }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.actosExencion.set(response.data.items || []);

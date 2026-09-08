@@ -14,6 +14,8 @@ import { NaturalezasActo } from './presentation/pages/configuracion/actos-regist
 import { TiposActoRegistro } from './presentation/pages/configuracion/actos-registrales/tipos-acto-registro/tipos-acto-registro';
 import { TiposCalculoTarifa } from './presentation/pages/configuracion/tarifas/tipos-calculo-tarifa/tipos-calculo-tarifa';
 import { Tarifas } from './presentation/pages/configuracion/tarifas/tarifas/tarifas';
+import { ConfiguracionExtemporaneidadComponent } from './presentation/pages/configuracion/tarifas/configuracion-extemporaneidad/configuracion-extemporaneidad';
+import { TasasInteresMoraComponent } from './presentation/pages/configuracion/tarifas/tasas-interes-mora/tasas-interes-mora';
 import { TiposBeneficiarioExencionComponent } from './presentation/pages/configuracion/exenciones/tipos-beneficiario-exencion/tipos-beneficiario-exencion';
 import { Exenciones } from './presentation/pages/configuracion/exenciones/exenciones/exenciones';
 import { TiposPersona } from './presentation/pages/configuracion/contribuyentes/tipos-persona/tipos-persona';
@@ -29,8 +31,13 @@ import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/config
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
 import { Registros } from './presentation/pages/registros/registros';
+import { ConsultaCiudadanaSharedComponent } from '../../shared/components/consulta-ciudadana/consulta-ciudadana-shared';
 
 export const registrosRoutes: Routes = [
+  {
+    path: 'portal-ciudadano',
+    component: ConsultaCiudadanaSharedComponent,
+  },
   {
     path: '',
     component: RegistrosLayoutComponent,
@@ -128,6 +135,14 @@ export const registrosRoutes: Routes = [
           {
             path: 'tarifas/tarifas',
             component: Tarifas
+          },
+          {
+            path: 'tarifas/extemporaneidad',
+            component: ConfiguracionExtemporaneidadComponent
+          },
+          {
+            path: 'tarifas/tasas-mora',
+            component: TasasInteresMoraComponent
           },
           {
             path: 'exenciones/tipo-beneficiario',

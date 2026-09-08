@@ -1,27 +1,46 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { EstadosSolicitudFacade } from '../../../../../application/facades/Radicacion/estados-solicitud.facade';
 import { EstadoSolicitud } from '../../../../../domain/models/Radicacion/estado-solicitud.model';
+import { EstadosSolicitudApiService } from '../../../../../infrastructure/api/Radicacion/estados-solicitud-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-estados-solicitud',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
   templateUrl: './estados-solicitud.html',
   styleUrl: './estados-solicitud.css'
 })
 export class EstadosSolicitud implements OnInit {
   private fb = inject(FormBuilder);
   public facade = inject(EstadosSolicitudFacade);
+  public apiService = inject(EstadosSolicitudApiService);
   private toast = inject(ToastService);
 
   breadcrumbs = ['Configuración', 'Radicación', 'Estados de Solicitud'];
 
-  searchQuery = signal<string>('');
+  searchText = signal<string>('');
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  loadingEditId = signal<number | null>(null);
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(query => {
+      this.pageNumber.set(1);
+      this.cargarItems();
+    });
+  }
+  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -38,44 +57,50 @@ export class EstadosSolicitud implements OnInit {
   });
 
   // Filtered list
-  estadosFiltrados = computed(() => {
-    const query = this.searchQuery().trim().toLowerCase();
-    const filter = this.selectedFilter();
-    let items = this.facade.estadosSolicitud();
-
-    if (filter === 'activos') {
-      items = items.filter(e => e.activo);
-    } else if (filter === 'inactivos') {
-      items = items.filter(e => !e.activo);
-    }
-
-    if (query) {
-      items = items.filter(e => 
-        e.codigo.toLowerCase().includes(query) || 
-        e.nombre.toLowerCase().includes(query)
-      );
-    }
-
-    return items;
-  });
+  estadosFiltrados = computed(() => this.facade.estadosSolicitud());
 
   // Dynamic counts
   counts = computed(() => {
-    const all = this.facade.estadosSolicitud();
     return {
-      total: all.length,
-      active: all.filter(e => e.activo).length,
-      inactive: all.filter(e => !e.activo).length
+      total: this.facade.totalEstadosSolicitud()
     };
   });
 
   ngOnInit() {
-    this.facade.cargarEstadosSolicitud(1, 100);
+    this.cargarItems();
+  }
+
+  cargarItems() {
+    let activo: boolean | undefined = undefined;
+    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
+    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
+    this.facade.cargarEstadosSolicitud(this.pageNumber(), this.pageSize(), this.searchText(), activo);
+  }
+
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.cargarItems();
+  }
+
+  onPageSizeChange(size: number) {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onSearchChange(event: any) {
+    const value = event.target.value;
+    this.searchText.set(value);
+    this.searchSubject.next(value);
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
     this.selectedFilter.set(filter);
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
+
+  
 
   openNew() {
     this.selectedId = null;
@@ -84,13 +109,25 @@ export class EstadosSolicitud implements OnInit {
   }
 
   edit(item: EstadoSolicitud) {
-    this.selectedId = item.id;
-    this.estadoSolicitudForm.patchValue({
-      codigo: item.codigo,
-      nombre: item.nombre,
-      activo: item.activo
+    this.loadingEditId.set(item.id);
+    this.apiService.obtenerPorId(item.id).subscribe({
+      next: (res) => {
+        this.loadingEditId.set(null);
+        const data = res?.data || item;
+        this.selectedId = data.id;
+        this.estadoSolicitudForm.patchValue({
+          codigo: data.codigo,
+          nombre: data.nombre,
+          activo: data.activo
+        });
+        this.isSlideOverOpen = true;
+      },
+      error: (err) => {
+        this.loadingEditId.set(null);
+        this.toast.error('Error al obtener la información del estado de solicitud');
+        console.error(err);
+      }
     });
-    this.isSlideOverOpen = true;
   }
 
   toggleActivo(item: EstadoSolicitud) {
@@ -105,7 +142,7 @@ export class EstadosSolicitud implements OnInit {
     }).subscribe({
       next: () => {
         this.toast.success(`Estado de solicitud ${actionName} exitosamente`);
-        this.facade.cargarEstadosSolicitud(1, 100);
+        this.cargarItems();
       },
       error: (err: any) => {
         this.toast.error(`Error al actualizar el estado de solicitud`);
@@ -134,7 +171,7 @@ export class EstadosSolicitud implements OnInit {
           next: () => {
             this.toast.success(`Estado de solicitud ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarEstadosSolicitud(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al actualizar el estado de solicitud`);
@@ -149,7 +186,7 @@ export class EstadosSolicitud implements OnInit {
           next: () => {
             this.toast.success(`Estado de solicitud ${actionName} exitosamente`);
             this.closeSlideOver();
-            this.facade.cargarEstadosSolicitud(1, 100);
+            this.cargarItems();
           },
           error: (err: any) => {
             this.toast.error(`Error al crear el estado de solicitud`);

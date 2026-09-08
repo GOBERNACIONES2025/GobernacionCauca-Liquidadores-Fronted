@@ -1,12 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { LiquidacionWizardService } from '../../../services/liquidacion-wizard.service';
 import { GeneracionLiquidacionFacade } from '../../../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { SolicitudesLiquidacionFacade } from '../../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
+import { VigenciasFacade } from '../../../../../../application/facades/Normatividad/vigencias.facade';
 import { ToastService } from '../../../../../../../../core/services/toast.service';
-import { concatMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-step-liquidacion',
@@ -18,6 +18,7 @@ export class StepLiquidacionComponent implements OnInit {
   wizardService = inject(LiquidacionWizardService);
   generacionFacade = inject(GeneracionLiquidacionFacade);
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
+  vigenciasFacade = inject(VigenciasFacade);
   toast = inject(ToastService);
   router = inject(Router);
 
@@ -25,75 +26,303 @@ export class StepLiquidacionComponent implements OnInit {
   isSimulating = signal<boolean>(false);
   isCompleting = signal<boolean>(false);
 
-  ngOnInit() {
-    this.completarYSimular();
-  }
+  todayDateFormatted = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  
+  fechaVencimientoFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaVencimiento) {
+      const parts = sim.fechaVencimiento.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+    }
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  });
 
-  private completarYSimular() {
-    const solicitudId = this.wizardService.solicitudId();
-    if (!solicitudId) {
-      this.toast.error('No se encontró la solicitud.');
-      return;
+  fechaLimiteOportunaFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaLimiteOportuna) {
+      const parts = sim.fechaLimiteOportuna.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return sim.fechaLimiteOportuna;
     }
 
-    this.isCompleting.set(true);
-    // Primero completamos la solicitud (marca etapa 5 y valida)
-    this.solicitudesFacade.completarSolicitud(solicitudId).pipe(
-      concatMap(res => {
-        if (res.success) {
-          this.wizardService.etapaGuardada.set(5);
-          this.isSimulating.set(true);
-          // Construir payload de simulación (stateless) usando el estado del Wizard
-          const form1 = this.wizardService.paso1Form.value;
-          const payloadSimulacion = {
-            radicacion: {
-              numeroRadicado: form1.numeroRadicado,
-              fechaRadicacion: form1.fechaRadicado,
-              vigenciaId: form1.vigenciaFiscal,
-              departamentoId: form1.departamentoId,
-              observacion: form1.observacionRadicacion
-            },
-            actos: this.wizardService.actosExpediente().map(a => ({
-              tipoActoRegistroId: a.tipoActoId,
-              valorActo: a.valorActo,
-              baseDeclarada: a.baseDeclarada,
-              inmuebleId: null,
-              exencionesIds: a.exencionId ? [a.exencionId] : [],
-              intervinientes: (a.intervinientes || []).map(inv => ({
-                contribuyenteId: inv.contribuyenteId,
-                rolIntervinienteId: inv.rolId,
-                porcentajeParticipacion: inv.porcentaje
-              }))
-            }))
-          };
+    // Fallback de ley (Ley 223 de 1995 Art. 231) calculado a partir de la fecha del documento
+    const docFechaStr = this.wizardService.paso2Form.get('fechaDocumento')?.value;
+    if (docFechaStr) {
+      const [y, m, d] = docFechaStr.split('-').map(Number);
+      if (y && m && d) {
+        const fechaDoc = new Date(y, m - 1, d);
+        const tipoEntidad = (this.wizardService.paso2Form.get('tipoEntidadRegistroNombre')?.value || '').toLowerCase();
+        let meses = 2; // Notarías / ORIP (2 meses)
+        if (tipoEntidad.includes('camara') || tipoEntidad.includes('comercio')) meses = 1; // Cámara de Comercio (1 mes)
+        if (tipoEntidad.includes('exterior') || tipoEntidad.includes('consul')) meses = 3; // Exterior (3 meses)
+        
+        fechaDoc.setMonth(fechaDoc.getMonth() + meses);
+        return fechaDoc.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      }
+    }
 
-          // Luego simulamos para mostrar los totales
-          return this.generacionFacade.simularLiquidacion(payloadSimulacion);
-        } else {
-          this.toast.error(res.message || 'Error al completar la solicitud');
-          return of(null);
+    return this.fechaVencimientoFormatted();
+  });
+
+  fechaExpedicionFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaExpedicionDocumento) {
+      const parts = sim.fechaExpedicionDocumento.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return sim.fechaExpedicionDocumento;
+    }
+    const docFecha = this.wizardService.paso2Form.get('fechaDocumento')?.value;
+    return docFecha ? docFecha : this.todayDateFormatted;
+  });
+
+  fechaRadicacionFormatted = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (sim?.fechaRadicacion) {
+      try {
+        return new Date(sim.fechaRadicacion).toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' });
+      } catch {
+        return String(sim.fechaRadicacion).substring(0, 10);
+      }
+    }
+    return this.datosRadicacion().fechaRadicacion;
+  });
+
+  // Hash de seguridad institucional
+  codigoSeguridadHex = computed(() => {
+    const rad = this.wizardService.radicadoGenerado() || 'RAD-0000';
+    const id = this.wizardService.solicitudId() || 101;
+    return `CAUCA-${id.toString(16).toUpperCase()}-99B2-C10E-${rad.replace(/\D/g, '') || '2026'}`;
+  });
+
+  // Código de barras estructurado GS1-128
+  codigoBarrasTexto = computed(() => {
+    const rad = (this.datosRadicacion().numeroRadicado || '00000000').replace(/\D/g, '').padStart(10, '0');
+    const valor = Math.round(this.wizardService.liquidacionSimulada()?.granTotalPagar || 0).toString().padStart(8, '0');
+    const fecha = new Date().toISOString().slice(0,10).replace(/-/g, '');
+    return `(415)7709998000018(8020)${rad}(3900)${valor}(96)${fecha}`;
+  });
+
+  datosContribuyente = computed(() => this.wizardService.paso1Form.value);
+  datosDocumento = computed(() => this.wizardService.paso2Form.value);
+  datosRadicacion = computed(() => {
+    const p1 = this.wizardService.paso1Form.value;
+    const sim = this.wizardService.liquidacionSimulada();
+
+    // 1. Obtener el año directamente de la simulación o del servicio si está disponible
+    let anioReal: number | string | null = sim?.vigenciaAnio || this.wizardService.vigenciaAnio() || null;
+
+    // 2. Si no se tiene aún el año, buscar en el catálogo de vigencias según el ID seleccionado
+    const vigenciaId = p1.vigenciaFiscal || sim?.vigenciaId || this.wizardService.vigenciaFiscal();
+    if (!anioReal && vigenciaId) {
+      if (typeof vigenciaId === 'number' && vigenciaId > 1900) {
+        // En caso de que ya sea un año calendario directo (ej. 2026)
+        anioReal = vigenciaId;
+      } else {
+        const vEncontrada = this.vigenciasFacade.vigencias().find(v => v.id === vigenciaId);
+        if (vEncontrada) {
+          anioReal = vEncontrada.anio;
         }
-      })
+      }
+    }
+
+    // 3. Fallback de seguridad: fecha de radicado o año actual
+    if (!anioReal) {
+      const fecha = p1.fechaRadicado || this.wizardService.fechaRadicado() || sim?.fechaRadicacion;
+      if (fecha) {
+        try {
+          anioReal = new Date(fecha).getFullYear();
+        } catch {
+          anioReal = new Date().getFullYear();
+        }
+      } else {
+        anioReal = new Date().getFullYear();
+      }
+    }
+
+    return {
+      numeroRadicado: this.wizardService.radicadoGenerado() || p1.numeroRadicado || 'RAD-000000',
+      fechaRadicacion: p1.fechaRadicado || this.wizardService.fechaRadicado() || new Date().toISOString().split('T')[0],
+      vigenciaFiscal: anioReal,
+      departamento: 'Cauca (Popayán)'
+    };
+  });
+
+  ngOnInit() {
+    // Asegurar que el catálogo de vigencias esté cargado para resolver nombres/años
+    if (this.vigenciasFacade.vigencias().length === 0) {
+      this.vigenciasFacade.cargarVigencias(1, 100);
+    }
+
+    // Siempre refrescamos la simulación al entrar al Paso 5 a menos que la liquidación oficial ya haya sido generada
+    if (!this.wizardService.liquidacionGeneradaExitosa()) {
+      this.cargarSimulacion();
+    }
+  }
+
+  cargarSimulacion() {
+    const solicitudId = this.wizardService.solicitudId();
+    if (!solicitudId) return;
+
+    this.isSimulating.set(true);
+    this.generacionFacade.simularLiquidacion(solicitudId).pipe(
+      finalize(() => this.isSimulating.set(false))
     ).subscribe({
-      next: (simRes) => {
-        if (simRes && simRes.success && simRes.data) {
-          this.wizardService.liquidacionSimulada.set(simRes.data);
-        } else if (simRes && !simRes.success) {
-          this.toast.error(simRes.message || 'Error al simular la liquidación');
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.wizardService.liquidacionSimulada.set(res.data);
+          if (res.data.vigenciaAnio) {
+            this.wizardService.vigenciaAnio.set(res.data.vigenciaAnio);
+          }
+        } else {
+          this.toast.error(res.message || 'Error al simular la liquidación');
         }
-        this.isCompleting.set(false);
-        this.isSimulating.set(false);
       },
-      error: (err) => {
-        this.toast.error('Error del servidor en el proceso');
-        this.isCompleting.set(false);
-        this.isSimulating.set(false);
+      error: (err: any) => {
+        const msg = err?.error?.message || err?.error?.detail || 'Error de servidor al simular liquidación';
+        this.toast.error(msg);
       }
     });
   }
 
+  // Lista consolidada de intervinientes
+  intervinientesTotales = computed(() => {
+    const actosExp = this.wizardService.actosExpediente();
+    const simulacion = this.wizardService.liquidacionSimulada();
+    
+    const result: Array<{
+      actoNombre: string;
+      documento: string;
+      nombre: string;
+      rolNombre: string;
+      porcentaje: number;
+    }> = [];
+
+    for (const acto of actosExp) {
+      for (const inv of (acto.intervinientes || [])) {
+        result.push({
+          actoNombre: acto.tipoActoNombre,
+          documento: inv.documento || 'N/A',
+          nombre: inv.nombre,
+          rolNombre: inv.rolNombre,
+          porcentaje: inv.porcentaje
+        });
+      }
+    }
+
+    if (result.length === 0 && simulacion && simulacion.actos) {
+      for (const acto of simulacion.actos) {
+        for (const inv of (acto.intervinientes || [])) {
+          result.push({
+            actoNombre: acto.nombreTipoActo,
+            documento: 'N/A',
+            nombre: `Contribuyente #${inv.contribuyenteId || 'General'}`,
+            rolNombre: inv.nombreRol || 'Interviniente',
+            porcentaje: inv.porcentajeParticipacion
+          });
+        }
+      }
+    }
+
+    return result;
+  });
+
+  // Lista consolidada de exenciones evaluadas con su estado exacto
+  exencionesEvaluadasConsolidadas = computed(() => {
+    const simulacion = this.wizardService.liquidacionSimulada();
+    const actosExp = this.wizardService.actosExpediente();
+    const list: Array<{
+      actoNombre: string;
+      codigo: string;
+      nombre: string;
+      beneficio: string;
+      alcance: string;
+      estado: string;
+      fueAplicada: boolean;
+      valorDescontado?: number;
+    }> = [];
+
+    if (simulacion && simulacion.actos) {
+      for (const acto of simulacion.actos) {
+        if (acto.exencionesEvaluadas && acto.exencionesEvaluadas.length > 0) {
+          for (const ex of acto.exencionesEvaluadas) {
+            list.push({
+              actoNombre: acto.nombreTipoActo,
+              codigo: ex.codigo || 'EX',
+              nombre: ex.nombre,
+              beneficio: ex.beneficio || 'N/A',
+              alcance: ex.alcance || 'General',
+              estado: ex.estado || (ex.fueAplicada ? 'APLICADA' : 'NO APLICADA'),
+              fueAplicada: ex.fueAplicada === true || ex.estado === 'APLICADA',
+              valorDescontado: ex.fueAplicada ? (acto.exencionAplicada?.valorDescontado || 0) : 0
+            });
+          }
+        } else if (acto.exencionAplicada) {
+            list.push({
+              actoNombre: acto.nombreTipoActo,
+              codigo: acto.exencionAplicada.codigo,
+              nombre: acto.exencionAplicada.nombre,
+              beneficio: acto.exencionAplicada.beneficio,
+              alcance: acto.exencionAplicada.alcance,
+              estado: 'APLICADA',
+              fueAplicada: true,
+              valorDescontado: acto.exencionAplicada.valorDescontado
+            });
+        }
+      }
+    }
+
+    // Fallback con datos locales si aún no retorna lista el backend
+    if (list.length === 0) {
+      for (const acto of actosExp) {
+        if (acto.exencionesNombres && acto.exencionesNombres.length > 0) {
+          for (const exName of acto.exencionesNombres) {
+            list.push({
+              actoNombre: acto.tipoActoNombre,
+              codigo: 'EXC',
+              nombre: exName,
+              beneficio: 'Según norma',
+              alcance: 'Evaluada en liquidación',
+              estado: 'APLICADA',
+              fueAplicada: true
+            });
+          }
+        }
+      }
+    }
+
+    return list;
+  });
+
+  // Subtotal calculado
+  subtotalCalculado = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (!sim) return 0;
+    if (sim.subtotal !== undefined && sim.subtotal !== null && sim.subtotal > 0) return sim.subtotal;
+    
+    return sim.actos.reduce((acc, a) => {
+      const bruto = a.valorBruto ?? (a.baseCalculo * (a.tarifaAplicada / 100));
+      return acc + (bruto > 0 ? bruto : (a.valorPagar + (a.valorDescontado || 0)));
+    }, 0);
+  });
+
+  // Total de descuentos calculado
+  totalDescuentosCalculado = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    if (!sim) return 0;
+    if (sim.totalDescuentos !== undefined && sim.totalDescuentos !== null && sim.totalDescuentos > 0) return sim.totalDescuentos;
+    return sim.actos.reduce((acc, a) => acc + (a.valorDescontado || 0), 0);
+  });
+
   retroceder() {
-    this.wizardService.currentStep.set(3);
+    this.wizardService.currentStep.set(4);
   }
 
   generarLiquidacionOficial() {
@@ -109,17 +338,18 @@ export class StepLiquidacionComponent implements OnInit {
         if (res.success && res.data) {
           this.wizardService.liquidacionGeneradaExitosa.set(true);
           this.wizardService.idLiquidacionFinal.set(res.data);
-          this.toast.success(`¡Liquidación generada con radicado ${this.wizardService.radicadoGenerado()}!`);
-          
-          // En lugar de navegar, mantenemos al usuario en el componente para que pueda descargar el PDF
-          // this.router.navigate(['/liquidaciones']);
+          this.wizardService.estadoSolicitudId.set(4); // 4: LIQUIDADA
+          this.wizardService.estadoSolicitudNombre.set('Liquidada');
+          this.wizardService.etapaGuardada.set(5);
+          this.toast.success(`¡Liquidación oficial generada exitosamente con radicado ${this.wizardService.radicadoGenerado()}!`);
         } else {
           this.toast.error(res.message || 'Error al generar liquidación');
         }
         this.isGenerating.set(false);
       },
       error: (err) => {
-        this.toast.error('Error de servidor al generar liquidación oficial');
+        const errorMsg = err?.error?.message || err?.error?.detail || 'Error de servidor al generar liquidación oficial';
+        this.toast.error(errorMsg);
         this.isGenerating.set(false);
       }
     });
@@ -148,6 +378,71 @@ export class StepLiquidacionComponent implements OnInit {
         this.isGenerating.set(false);
       }
     });
+  }
+
+  totalEnLetras = computed(() => {
+    const sim = this.wizardService.liquidacionSimulada();
+    const valor = sim ? Math.round(sim.granTotalPagar) : 0;
+    return this.convertirNumeroALetras(valor);
+  });
+
+  imprimirDocumento() {
+    window.print();
+  }
+
+  private convertirNumeroALetras(numero: number): string {
+    if (numero === 0) return 'CERO PESOS M/CTE';
+    
+    const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+    const decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+    const diezY = ['DIEZ', 'ONCE', 'DOCE', 'TRECE', 'CATORCE', 'QUINCE', 'DIECISÉIS', 'DIECISIETE', 'DIECIOCHO', 'DIECINUEVE'];
+    const veinteY = ['VEINTE', 'VEINTIÚN', 'VEINTIDÓS', 'VEINTITRÉS', 'VEINTICUATRO', 'VEINTICINCO', 'VEINTISÉIS', 'VEINTISIETE', 'VEINTIOCHO', 'VEINTINUEVE'];
+    const centenas = ['', 'CIENTO', 'DOSCIENTOS', 'TRESCIENTOS', 'CUATROCIENTOS', 'QUINIENTOS', 'SEISCIENTOS', 'SETECIENTOS', 'OCHOCIENTOS', 'NOVECIENTOS'];
+
+    const leerGrupo = (n: number): string => {
+      let c = Math.floor(n / 100);
+      let d = Math.floor((n % 100) / 10);
+      let u = n % 10;
+      let resultado = '';
+
+      if (n === 100) return 'CIEN';
+      if (c > 0) resultado += centenas[c] + ' ';
+
+      if (d === 1) {
+        resultado += diezY[u] + ' ';
+      } else if (d === 2) {
+        resultado += veinteY[u] + ' ';
+      } else if (d > 2) {
+        resultado += decenas[d];
+        if (u > 0) resultado += ' Y ' + unidades[u];
+        resultado += ' ';
+      } else if (u > 0) {
+        resultado += unidades[u] + ' ';
+      }
+
+      return resultado.trim();
+    };
+
+    let millones = Math.floor(numero / 1000000);
+    let miles = Math.floor((numero % 1000000) / 1000);
+    let unidadesCientos = numero % 1000;
+    let texto = '';
+
+    if (millones > 0) {
+      if (millones === 1) texto += 'UN MILLÓN ';
+      else texto += leerGrupo(millones) + ' MILLONES ';
+    }
+
+    if (miles > 0) {
+      if (miles === 1) texto += 'MIL ';
+      else texto += leerGrupo(miles) + ' MIL ';
+    }
+
+    if (unidadesCientos > 0) {
+      texto += leerGrupo(unidadesCientos) + ' ';
+    }
+
+    return ('SON: ' + texto.trim() + ' PESOS M/CTE').toUpperCase();
   }
 
   irABandeja() {

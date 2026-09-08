@@ -1,17 +1,18 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
-import { DocumentViewerComponent } from '../../../../../shared/components/document-viewer/document-viewer';
 
 @Component({
   selector: 'app-liquidaciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, DocumentViewerComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './liquidaciones.html'
 })
 export class LiquidacionesPage implements OnInit {
   readonly facade = inject(LiquidacionesFacade);
+  private sanitizer = inject(DomSanitizer);
 
   placaBuscarModal: string = '';
 
@@ -26,6 +27,11 @@ export class LiquidacionesPage implements OnInit {
 
   onSimularDirecto(): void {
     if (!this.placaBuscarModal.trim()) return;
+    
     this.facade.abrirSimulacion(this.placaBuscarModal.trim());
+  }
+
+  getSafeHtml(html: string | null | undefined): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html || '');
   }
 }

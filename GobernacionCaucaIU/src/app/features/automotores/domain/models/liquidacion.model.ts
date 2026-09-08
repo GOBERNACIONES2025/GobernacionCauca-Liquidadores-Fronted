@@ -180,3 +180,18 @@ export interface OmisosFiltros {
   ordenarPor?: 'diasMora' | 'totalDeuda' | 'vigenciaMasAntigua';
   ordenDesc?: boolean;
 }
+
+export interface FacturaPreview {
+  placa: string;
+  numeroLiquidacion: string;
+  vigenciaAnio: number;
+  propietarioNombre: string;
+  propietarioDocumento: string;
+  totalPagar: number;
+  fechaEmision: string;
+  fechaLimitePago: string;
+  barcodeRawData: string;
+  barcodeFormattedText: string;
+  barcodeSvg: string;
+  htmlContent: string;
+}

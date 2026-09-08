@@ -1,0 +1,329 @@
+<div class="p-6 h-full flex flex-col relative bg-base-100">
+  
+  <!-- Encabezado y Controles -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/80 pb-4 mb-4 gap-4">
+    
+    <!-- Page Header -->
+    <app-page-header
+      [breadcrumbs]="breadcrumbs"
+      title="Tasas de Interés de Mora"
+      [tags]="[{ text: 'Parametrización', type: 'warning' }]"
+      [counts]="counts()"
+    ></app-page-header>
+
+    <!-- Buscador, Filtro de Estados y Botón Nuevo -->
+    <div class="flex flex-wrap items-center gap-3">
+      
+      <!-- Buscador -->
+      <div class="relative w-full sm:w-56 md:w-64">
+        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+        </div>
+        <input 
+          type="text" 
+          [value]="searchText()"
+          (input)="onSearchChange($event)"
+          placeholder="Buscar tasa de mora..." 
+          class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
+        />
+        @if (searchText()) {
+          <button 
+            (click)="searchText.set(''); searchSubject.next('')"
+            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        }
+      </div>
+
+      <!-- Segmented Control de Estados -->
+      <div class="inline-flex p-0.5 bg-slate-100/90 border border-slate-200/80 rounded-lg">
+        <button 
+          (click)="setFilter('todos')"
+          [class]="selectedFilter() === 'todos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Todos
+        </button>
+        <button 
+          (click)="setFilter('activos')"
+          [class]="selectedFilter() === 'activos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Activos
+        </button>
+        <button 
+          (click)="setFilter('inactivos')"
+          [class]="selectedFilter() === 'inactivos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Inactivos
+        </button>
+      </div>
+
+      <!-- Botón Agregar Nueva Tasa -->
+      <button 
+        (click)="openNew()" 
+        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0f3b73] hover:bg-[#0a274d] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors shrink-0">
+        <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Nueva tasa de mora
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Contenedor de la Tabla -->
+  <div class="flex-1 overflow-auto bg-base-100 relative custom-scrollbar">
+    <table class="w-full text-left border-collapse">
+      <thead class="sticky top-0 bg-base-100 z-10 border-b border-slate-200">
+        <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <th class="py-3 px-4">Vigencia</th>
+          <th class="py-3 px-4">Período de Aplicación</th>
+          <th class="py-3 px-4">Tasa Mensual (%)</th>
+          <th class="py-3 px-4">Tasa Diaria (%)</th>
+          <th class="py-3 px-4 w-32">Estado</th>
+          <th class="py-3 px-4 w-28 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        @if (facade.loading()) {
+          <tr>
+            <td colspan="6" class="text-center py-12">
+              <span class="loading loading-spinner text-primary"></span>
+            </td>
+          </tr>
+        } @else if (tasasFiltradas().length === 0) {
+          <tr>
+            <td colspan="6" class="text-center py-12 text-slate-400 text-xs">
+              No se encontraron tasas de interés de mora registradas.
+            </td>
+          </tr>
+        }
+        
+        @for (item of tasasFiltradas(); track item.id) {
+          <tr class="hover:bg-slate-50/70 transition-colors group">
+            
+            <!-- Vigencia -->
+            <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
+              <span class="px-2.5 py-1 rounded bg-blue-50 text-blue-700 border border-blue-100 font-mono text-xs font-semibold">
+                {{ getVigenciaAnio(item) }}
+              </span>
+            </td>
+
+            <!-- Período de Aplicación -->
+            <td class="py-3.5 px-4 text-xs font-mono text-slate-700">
+              <div class="flex items-center gap-1.5">
+                <span class="font-semibold text-slate-800">{{ item.fechaInicio | date:'dd/MM/yyyy' }}</span>
+                <span class="text-slate-400 font-sans">al</span>
+                <span class="font-semibold text-slate-800">{{ item.fechaFin | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </td>
+
+            <!-- Tasa Mensual -->
+            <td class="py-3.5 px-4 text-sm font-mono font-bold text-indigo-700">
+              {{ item.tasaMensual }}%
+            </td>
+
+            <!-- Tasa Diaria -->
+            <td class="py-3.5 px-4 text-sm font-mono font-medium text-emerald-700">
+              {{ item.tasaDiaria }}%
+            </td>
+
+            <!-- Estado -->
+            <td class="py-3.5 px-4">
+              @if (item.activo) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Activa
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  Inactiva
+                </span>
+              }
+            </td>
+
+            <!-- Acciones -->
+            <td class="py-3.5 px-4 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button 
+                  (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
+                  title="Editar tasa de mora"
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
+                </button>
+                
+                <button 
+                  (click)="toggleActivo(item)"
+                  [title]="item.activo ? 'Desactivar' : 'Activar'"
+                  class="p-1 rounded border border-transparent transition-colors"
+                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Paginación -->
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="counts().total"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
+
+  <!-- Contador al pie -->
+  <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
+    Mostrando {{ tasasFiltradas().length }} de {{ counts().total }} registros
+  </div>
+</div>
+
+<!-- Slide-Over para Crear / Editar -->
+<app-slide-over 
+  [isOpen]="isSlideOverOpen" 
+  [title]="isEditMode ? 'Editar Tasa de Interés de Mora' : 'Nueva Tasa de Interés de Mora'" 
+  [description]="isEditMode ? 'Modifica el porcentaje y vigencia de la tasa moratoria' : 'Parametriza la tasa de interés mensual y diaria vigente por resolución de la Superintendencia'"
+  [isSaving]="facade.actionLoading()"
+  (onClose)="closeSlideOver()" 
+  (onSave)="save()">
+  
+  <form [formGroup]="tasaForm" class="flex flex-col gap-4">
+    
+    <!-- Selector de Vigencia -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Vigencia Fiscal <span class="text-error">*</span></span>
+      </label>
+      <app-searchable-select
+        formControlName="vigenciaId"
+        [searchFn]="searchVigenciasFn"
+        [resolveIdFn]="resolveVigenciaFn"
+        labelKey="anio"
+        valueKey="id"
+        placeholder="Buscar vigencia fiscal..."
+      ></app-searchable-select>
+      @if (tasaForm.get('vigenciaId')?.touched && tasaForm.get('vigenciaId')?.errors?.['required']) {
+        <span class="text-error text-[11px] mt-1">La vigencia fiscal es obligatoria.</span>
+      }
+    </div>
+
+    <!-- Rango de Fechas -->
+    <div class="grid grid-cols-2 gap-3">
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Fecha Inicio <span class="text-error">*</span></span>
+        </label>
+        <input 
+          type="date" 
+          formControlName="fechaInicio" 
+          class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+        />
+        @if (tasaForm.get('fechaInicio')?.touched && tasaForm.get('fechaInicio')?.errors) {
+          <span class="text-error text-[11px] mt-1">La fecha de inicio es requerida.</span>
+        }
+      </div>
+
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Fecha Fin <span class="text-error">*</span></span>
+        </label>
+        <input 
+          type="date" 
+          formControlName="fechaFin" 
+          class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+        />
+        @if (tasaForm.get('fechaFin')?.touched && tasaForm.get('fechaFin')?.errors) {
+          <span class="text-error text-[11px] mt-1">La fecha de fin es requerida.</span>
+        }
+      </div>
+    </div>
+
+    @if (tasaForm.touched && tasaForm.hasError('fechaFinMenor')) {
+      <div class="alert alert-error text-xs py-2 px-3">
+        <span>La fecha de fin debe ser igual o posterior a la fecha de inicio.</span>
+      </div>
+    }
+
+    <!-- Grid Tasas: Mensual y Diaria -->
+    <div class="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-slate-700 uppercase">Valores de Tasa (%)</span>
+        <button 
+          type="button" 
+          (click)="calcularTasaDiariaSugerida()" 
+          class="text-[11px] text-blue-600 hover:text-blue-800 hover:underline font-medium">
+          Calcular diaria (Mensual/30)
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1">
+            <span class="label-text font-semibold text-xs text-slate-600">Tasa Mensual (%) <span class="text-error">*</span></span>
+          </label>
+          <input 
+            type="number" 
+            step="0.0001" 
+            formControlName="tasaMensual" 
+            placeholder="Ej. 2.15" 
+            class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+          />
+          @if (tasaForm.get('tasaMensual')?.touched && tasaForm.get('tasaMensual')?.errors) {
+            <span class="text-error text-[11px] mt-1">Debe ser mayor a 0.</span>
+          }
+        </div>
+
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1">
+            <span class="label-text font-semibold text-xs text-slate-600">Tasa Diaria (%) <span class="text-error">*</span></span>
+          </label>
+          <input 
+            type="number" 
+            step="0.000001" 
+            formControlName="tasaDiaria" 
+            placeholder="Ej. 0.071667" 
+            class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+          />
+          @if (tasaForm.get('tasaDiaria')?.touched && tasaForm.get('tasaDiaria')?.errors) {
+            <span class="text-error text-[11px] mt-1">Debe ser mayor a 0.</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado Activo -->
+    <div class="form-control w-full">
+      <label class="label cursor-pointer justify-start gap-3 p-0">
+        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
+        <span class="label-text font-bold text-xs uppercase text-slate-700">Tasa Activa</span>
+      </label>
+      <p class="text-[10px] text-slate-400 mt-1">Si está inactiva, el motor de mora buscará la última tasa activa configurada.</p>
+    </div>
+
+  </form>
+
+</app-slide-over>

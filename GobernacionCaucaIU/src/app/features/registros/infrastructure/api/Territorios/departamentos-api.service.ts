@@ -41,10 +41,30 @@ export class DepartamentosApiService {
    * @param {number} [pageSize=10] - El número máximo de registros a retornar por página.
    * @returns {Observable<ApiResponse<PagedResult<Departamento>>>} Flujo observable con la respuesta paginada y metadatos.
    */
-  obtenerTodos(pageNumber: number = 1, pageSize: number = 10): Observable<ApiResponse<PagedResult<Departamento>>> {
+  obtenerTodos(
+    paramsOrPage: number | any = 1, 
+    pageSize: number = 10, 
+    searchTerm?: string,
+    activo?: boolean,
+    filtrosEspecificos?: any
+  ): Observable<ApiResponse<PagedResult<Departamento>>> {
+    const params: any = {};
+    if (typeof paramsOrPage === 'object') {
+      params.PageNumber = paramsOrPage.pageNumber ?? 1;
+      params.PageSize = paramsOrPage.pageSize ?? 10;
+      const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
+      if (term && term.trim() !== '') params.SearchTerm = term.trim();
+      if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+    } else {
+      params.PageNumber = paramsOrPage ?? 1;
+      params.PageSize = pageSize ?? 10;
+      if (searchTerm && searchTerm.trim() !== '') params.SearchTerm = searchTerm.trim();
+      if (activo !== undefined && activo !== null) params.Activo = activo;
+      if (filtrosEspecificos) Object.assign(params, filtrosEspecificos);
+    }
     return this.api.get<ApiResponse<PagedResult<Departamento>>>(
       this.baseUrl,
-      { params: { pageNumber, pageSize } },
+      { params },
       'REGISTROS'
     );
   }

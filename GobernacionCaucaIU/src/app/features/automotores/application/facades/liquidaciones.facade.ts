@@ -1,16 +1,23 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { BaseApiService } from '../../../../core/services/base-api.service';
+import { LiquidacionesApiService } from '../../infrastructure/api/liquidaciones-api.service';
 import { 
   SimulacionLiquidacion, 
   SimularLiquidacionRequest, 
   VigenciaLiquidada,
   LiquidacionMasivaRequest,
-  LiquidacionMasivaResultado
+  LiquidacionMasivaResultado,
+  FacturaPreview
 } from '../../domain/models/liquidacion.model';
 import { ApiResponse } from '../../domain/models/vehiculo.model';
 import { generatePdfBlobFromHtml, downloadPdfFromHtml } from '../../../../shared/utils/pdf-exporter.util';
 import { catchError, map } from 'rxjs/operators';
 import { of, forkJoin } from 'rxjs';
+
+export interface PropietarioItem {
+  completeName: string;
+  identification: string;
+  typeIdentification: string;
+}
 
 /**
  * Representa un ítem individual de la lista de liquidaciones o parque pendiente.
@@ -21,8 +28,7 @@ export interface LiquidacionItem {
   placa: string;
   marcaLinea: string;
   modelo?: number;
-  contribuyenteNombre: string;
-  contribuyenteDocumento: string;
+  propietario: PropietarioItem[];
   vigenciaAnio: number;
   baseGravableAvaluo: number;
   impuestoBase: number;
@@ -41,8 +47,7 @@ export interface GrupoLiquidacionEmitida {
   placa: string;
   marcaLinea: string;
   modelo?: number;
-  contribuyenteNombre: string;
-  contribuyenteDocumento: string;
+  propietario: PropietarioItem[];
   totalVehiculo: number;
   impuestoTotal: number;
   sancionTotal: number;
@@ -55,8 +60,7 @@ export interface ReciboModel {
   placa: string;
   marcaLinea: string;
   modelo?: number;
-  contribuyenteNombre: string;
-  contribuyenteDocumento: string;
+  propietario: PropietarioItem[];
   fechaEmision: Date;
   fechaLimiteTexto: string;
   esFechaInmediata: boolean;
@@ -68,6 +72,7 @@ export interface ReciboModel {
     descuentos: number;
     sancionExtemporaneidad: number;
     interesesMora: number;
+    sistematizacionEstampillas: number;
     totalPagar: number;
   }[];
 }
@@ -76,13 +81,15 @@ export interface ReciboModel {
  * Resumen de indicadores métricos KPI del módulo tributario.
  */
 export interface LiquidacionKpis {
-  totalLiquidaciones: number;
-  totalRecaudoProyectado: number;
-  totalImpuestoVehicular: number;
-  totalSancionesMora: number;
-  totalInteresesMora: number;
-  totalEnMora: number;
-  totalAlDia: number;
+  totalVehiculosActivos: number;
+  vehiculosPendientesLiquidar: number;
+  vehiculosConLiquidacionesEmitidas: number;
+  totalLiquidacionesEmitidas: number;
+  totalRecaudoEmitido: number;
+  totalImpuestoBaseEmitido: number;
+  totalSancionesExtemporaneidad: number;
+  interesesMoratoriosLiquidados: number;
+  interesesMoratoriosPendientes: number;
 }
 
 /**
@@ -102,7 +109,7 @@ export interface PagedResult<T> {
   providedIn: 'root'
 })
 export class LiquidacionesFacade {
-  private api = inject(BaseApiService);
+  private api = inject(LiquidacionesApiService);
 
   /** Pestaña activa actual: 'sin-liquidar' (vehículos pendientes con ID nulo) o 'liquidadas' (oficiales emitidas) */
   readonly activeTab = signal<'sin-liquidar' | 'liquidadas'>('sin-liquidar');
@@ -112,7 +119,7 @@ export class LiquidacionesFacade {
   readonly kpis = signal<LiquidacionKpis | null>(null);
   readonly loadingTabla = signal<boolean>(false);
   readonly page = signal<number>(1);
-  readonly pageSize = signal<number>(10);
+  readonly pageSize = signal<number>(7);
   readonly totalCount = signal<number>(0);
   readonly buscar = signal<string>('');
   readonly vigenciaFiltro = signal<number>(0);
@@ -138,94 +145,14 @@ export class LiquidacionesFacade {
   readonly loadingPreSimulacionMasiva = signal<boolean>(false);
   readonly vehiculoExpandidoMasivo = signal<string | null>(null);
 
-  /** Modo de revisión en liquidación masiva: 'resumen' o 'revision-individual' (1 a 1) */
-  readonly modoRevisionMasivo = signal<'resumen' | 'revision-individual'>('resumen');
-  readonly indexVehiculoMasivo = signal<number>(0);
-  readonly vehiculoActualMasivo = computed<SimulacionLiquidacion | null>(() => {
-    const sims = this.preSimulacionesMasivo();
-    const idx = this.indexVehiculoMasivo();
-    return (sims && sims.length > idx && idx >= 0) ? sims[idx] : null;
-  });
-
   /** Agrupación y acordeón para pestaña de Emitidas */
   readonly placasExpandidasEmitidas = signal<string[]>([]);
-  readonly reciboModalData = signal<ReciboModel | null>(null);
 
-  /** Visor de PDF DocumentViewer */
-  readonly isPdfViewerOpen = signal<boolean>(false);
-  readonly pdfDocumentos = signal<any[]>([]);
-
-  /** Abre la vista previa del documento oficial en el visor modal interactivo */
-  abrirPdfPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const params: any = { placa, esUnificado, descargar: false };
-    if (vigencia) params.vigencia = vigencia;
-
-    this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
-      next: async (blob) => {
-        const text = await blob.text();
-        const isHtml = text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('<div') || text.includes('<table');
-        const nombreDoc = esUnificado 
-          ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
-          : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
-
-        const blobUrl = URL.createObjectURL(new Blob([blob], { type: isHtml ? 'text/html' : 'application/pdf' }));
-        
-        this.pdfDocumentos.set([{
-          id: placa,
-          nombreArchivo: nombreDoc,
-          rutaArchivo: blobUrl,
-          tipoArchivo: isHtml ? 'text/html' : 'application/pdf',
-          contenidoHtml: isHtml ? text : undefined
-        }]);
-        this.isPdfViewerOpen.set(true);
-      },
-      error: (err) => {
-        console.error('Error al solicitar la vista previa del PDF:', err);
-      }
-    });
-  }
-
-  /** Cierra el visor de PDF y libera memoria del Blob URL */
-  cerrarPdfViewer(): void {
-    const docs = this.pdfDocumentos();
-    if (docs && docs.length > 0 && docs[0].rutaArchivo?.startsWith('blob:')) {
-      URL.revokeObjectURL(docs[0].rutaArchivo);
-    }
-    this.isPdfViewerOpen.set(false);
-    this.pdfDocumentos.set([]);
-  }
-
-  /** Descarga directamente el archivo PDF binario oficial (.pdf 100% válido) */
-  descargarPdfDirecto(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const params: any = { placa, esUnificado, descargar: true };
-    if (vigencia) params.vigencia = vigencia;
-
-    this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }).subscribe({
-      next: async (blob) => {
-        const text = await blob.text();
-        const isHtml = text.includes('<!DOCTYPE') || text.includes('<html') || text.includes('<div') || text.includes('<table');
-        const nombreDoc = esUnificado 
-          ? `Recibo_Unificado_Automotores_${placa.toUpperCase()}.pdf` 
-          : `Recibo_Individual_${placa.toUpperCase()}_${vigencia || 2026}.pdf`;
-
-        if (isHtml) {
-          await downloadPdfFromHtml(text, nombreDoc);
-        } else {
-          const url = window.URL.createObjectURL(new Blob([blob], { type: 'application/pdf' }));
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = nombreDoc;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          window.URL.revokeObjectURL(url);
-        }
-      },
-      error: (err) => {
-        console.error('Error al descargar el archivo PDF:', err);
-      }
-    });
-  }
+  /** Estado del visor y previsualización de facturas */
+  readonly isFacturaModalOpen = signal<boolean>(false);
+  readonly isFacturaLoading = signal<boolean>(false);
+  readonly facturaPreviewData = signal<FacturaPreview | null>(null);
+  readonly facturaPreviewHtml = computed(() => this.facturaPreviewData()?.htmlContent ?? '');
 
   /** Agrupa las liquidaciones emitidas por placa vehicular para la vista de acordeón */
   readonly liquidacionesEmitidasAgrupadas = computed(() => {
@@ -241,8 +168,7 @@ export class LiquidacionesFacade {
           placa: item.placa,
           marcaLinea: item.marcaLinea,
           modelo: item.modelo,
-          contribuyenteNombre: item.contribuyenteNombre,
-          contribuyenteDocumento: item.contribuyenteDocumento,
+          propietario: item.propietario || [],
           totalVehiculo: 0,
           impuestoTotal: 0,
           sancionTotal: 0,
@@ -271,63 +197,6 @@ export class LiquidacionesFacade {
       curr.push(placa);
     }
     this.placasExpandidasEmitidas.set(curr);
-  }
-
-  /** Abre el recibo oficial individual para 1 vigencia específica */
-  abrirReciboIndividual(item: LiquidacionItem): void {
-    const tieneMora = item.sancionExtemporaneidad > 0 || item.interesesMora > 0 || item.vigenciaAnio < 2026;
-    this.reciboModalData.set({
-      esUnificado: false,
-      placa: item.placa,
-      marcaLinea: item.marcaLinea,
-      modelo: item.modelo,
-      contribuyenteNombre: item.contribuyenteNombre,
-      contribuyenteDocumento: item.contribuyenteDocumento,
-      fechaEmision: new Date(),
-      fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
-      esFechaInmediata: tieneMora,
-      totalPagar: item.totalPagar,
-      items: [{
-        numeroLiquidacion: item.numeroLiquidacion,
-        vigenciaAnio: item.vigenciaAnio,
-        impuestoBase: item.impuestoBase,
-        descuentos: item.descuentos,
-        sancionExtemporaneidad: item.sancionExtemporaneidad,
-        interesesMora: item.interesesMora,
-        totalPagar: item.totalPagar
-      }]
-    });
-  }
-
-  /** Abre el recibo oficial unificado / completo para todas las vigencias emitidas de una placa */
-  abrirReciboUnificado(grupo: GrupoLiquidacionEmitida): void {
-    const tieneMora = grupo.vigencias.some(v => v.sancionExtemporaneidad > 0 || v.interesesMora > 0 || v.vigenciaAnio < 2026);
-    this.reciboModalData.set({
-      esUnificado: true,
-      placa: grupo.placa,
-      marcaLinea: grupo.marcaLinea,
-      modelo: grupo.modelo,
-      contribuyenteNombre: grupo.contribuyenteNombre,
-      contribuyenteDocumento: grupo.contribuyenteDocumento,
-      fechaEmision: new Date(),
-      fechaLimiteTexto: tieneMora ? 'PAGO INMEDIATO (HOY MISMO)' : '31 DE JULIO DE 2026',
-      esFechaInmediata: tieneMora,
-      totalPagar: grupo.totalVehiculo,
-      items: grupo.vigencias.map(v => ({
-        numeroLiquidacion: v.numeroLiquidacion,
-        vigenciaAnio: v.vigenciaAnio,
-        impuestoBase: v.impuestoBase,
-        descuentos: v.descuentos,
-        sancionExtemporaneidad: v.sancionExtemporaneidad,
-        interesesMora: v.interesesMora,
-        totalPagar: v.totalPagar
-      }))
-    });
-  }
-
-  /** Cierra el modal de impresión de recibo */
-  cerrarReciboModal(): void {
-    this.reciboModalData.set(null);
   }
 
   /** Selección individual de vigencias por vehículo en el proceso masivo */
@@ -405,18 +274,20 @@ export class LiquidacionesFacade {
    */
   cargarLiquidaciones(): void {
     this.loadingTabla.set(true);
-    const params: any = {
+    const params = {
       page: this.page(),
       pageSize: this.pageSize(),
       buscar: this.buscar(),
-      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : null
+      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : undefined
     };
 
-    const endpoint = this.activeTab() === 'sin-liquidar' ? '/liquidaciones/pendientes' : '/liquidaciones/emitidas';
+    const call$ = this.activeTab() === 'sin-liquidar' 
+      ? this.api.getPendientes(params) 
+      : this.api.getEmitidas(params);
 
-    this.api.get<ApiResponse<PagedResult<LiquidacionItem>>>(endpoint, params).pipe(
+    call$.pipe(
       catchError(err => {
-        console.warn(`Error al consultar endpoint ${endpoint}:`, err);
+        console.warn('Error al consultar liquidaciones:', err);
         this.loadingTabla.set(false);
         return of(null);
       })
@@ -433,7 +304,7 @@ export class LiquidacionesFacade {
    * Consulta los indicadores KPI métricos del módulo en el backend.
    */
   cargarKpis(): void {
-    this.api.get<ApiResponse<LiquidacionKpis>>('/liquidaciones/kpis').pipe(
+    this.api.getKpis().pipe(
       catchError(err => {
         console.warn('Error al cargar KPIs de liquidaciones:', err);
         return of(null);
@@ -461,9 +332,21 @@ export class LiquidacionesFacade {
 
   /** Cambia la página actual */
   setPage(nuevaPagina: number): void {
+    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
     this.page.set(nuevaPagina);
     this.cargarLiquidaciones();
   }
+
+  /** Cambia el tamaño de página y recarga */
+  setPageSize(nuevoTamano: number): void {
+    this.pageSize.set(nuevoTamano);
+    this.page.set(1);
+    this.cargarLiquidaciones();
+  }
+
+  readonly totalPaginas = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
+  readonly rangoInicio = computed(() => this.totalCount() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1);
+  readonly rangoFin = computed(() => Math.min(this.page() * this.pageSize(), this.totalCount()));
 
   /** Total acumulado dinámico de las vigencias seleccionadas por el usuario */
   totalPagarSeleccionado = computed(() => {
@@ -487,7 +370,7 @@ export class LiquidacionesFacade {
       placa: placa
     };
 
-    this.api.post<ApiResponse<SimulacionLiquidacion>>('/liquidaciones/simular', req).pipe(
+    this.api.simular(req).pipe(
       catchError(err => {
         console.warn('Error al simular liquidación:', err);
         this.error.set('No se pudo conectar con el motor de liquidaciones.');
@@ -498,8 +381,8 @@ export class LiquidacionesFacade {
       this.loading.set(false);
       if (res && res.data) {
         this.simulacion.set(res.data);
-        const validas = res.data.vigencias
-          .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0)
+        const validas = (res.data.vigencias || [])
+          .filter(v => !v.parametrosFaltantesEnDb)
           .map(v => v.anio);
         this.selectedVigenciaAnios.set(validas);
       }
@@ -579,8 +462,6 @@ export class LiquidacionesFacade {
     this.vehiculoExpandidoMasivo.set(null);
     this.selectedVigenciasMasivasMap.set({});
     this.vigenciaFiltroMasivo.set(0);
-    this.modoRevisionMasivo.set('resumen');
-    this.indexVehiculoMasivo.set(0);
 
     const placasDestino = this.selectedPlacas().length > 0 
       ? this.selectedPlacas() 
@@ -592,7 +473,7 @@ export class LiquidacionesFacade {
     }
 
     const requests = placasDestino.map(placa => 
-      this.api.post<ApiResponse<SimulacionLiquidacion>>('/liquidaciones/simular', { placa }).pipe(
+      this.api.simular({ placa }).pipe(
         map(res => res?.data || null),
         catchError(() => of(null))
       )
@@ -613,29 +494,12 @@ export class LiquidacionesFacade {
     });
   }
 
-  /** Inicia el modo de revisión 1 a 1 de vehículos en el lote masivo */
-  irAModoRevisionMasivo(index: number = 0): void {
-    this.indexVehiculoMasivo.set(index);
-    this.modoRevisionMasivo.set('revision-individual');
-  }
-
-  /** Regresa a la vista de resumen consolidado del lote masivo */
-  irAModoResumenMasivo(): void {
-    this.modoRevisionMasivo.set('resumen');
-  }
-
-  /** Avanza al siguiente vehículo en la inspección 1 a 1 del lote masivo */
-  siguienteVehiculoMasivo(): void {
-    const total = this.preSimulacionesMasivo().length;
-    if (this.indexVehiculoMasivo() < total - 1) {
-      this.indexVehiculoMasivo.update(i => i + 1);
-    }
-  }
-
-  /** Regresa al vehículo anterior en la inspección 1 a 1 del lote masivo */
-  anteriorVehiculoMasivo(): void {
-    if (this.indexVehiculoMasivo() > 0) {
-      this.indexVehiculoMasivo.update(i => i - 1);
+  /** Expande o colapsa el detalle desglosado de un vehículo en la pre-revisión masiva */
+  toggleExpandirVehiculoMasivo(placa: string): void {
+    if (this.vehiculoExpandidoMasivo() === placa) {
+      this.vehiculoExpandidoMasivo.set(null);
+    } else {
+      this.vehiculoExpandidoMasivo.set(placa);
     }
   }
 
@@ -647,8 +511,6 @@ export class LiquidacionesFacade {
     this.preSimulacionesMasivo.set([]);
     this.vehiculoExpandidoMasivo.set(null);
     this.selectedVigenciasMasivasMap.set({});
-    this.modoRevisionMasivo.set('resumen');
-    this.indexVehiculoMasivo.set(0);
   }
 
   /**
@@ -669,7 +531,7 @@ export class LiquidacionesFacade {
         placa: sim.placa,
         vigencias: aniosOficializar
       };
-      return this.api.post<ApiResponse<LiquidacionItem[]>>('/liquidaciones/oficializar', req).pipe(
+      return this.api.oficializar(req).pipe(
         map(res => res?.data || []),
         catchError(() => of([]))
       );
@@ -712,7 +574,7 @@ export class LiquidacionesFacade {
       vigencias: this.selectedVigenciaAnios()
     };
 
-    this.api.post<ApiResponse<LiquidacionItem[]>>('/liquidaciones/oficializar', req).pipe(
+    this.api.oficializar(req).pipe(
       catchError(err => {
         console.warn('Error al oficializar liquidación:', err);
         this.error.set('No se pudo expedir la liquidación oficial en BD.');
@@ -727,5 +589,117 @@ export class LiquidacionesFacade {
         this.cargarKpis();
       }
     });
+  }
+
+  /**
+   * Abre el visor y carga la previsualización HTML de la factura/declaración tributaria oficial.
+   */
+  abrirFacturaPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
+    this.isFacturaLoading.set(true);
+    this.facturaPreviewData.set(null);
+    this.isFacturaModalOpen.set(true);
+
+    this.api.previsualizarFactura(placa, vigencia, esUnificado).pipe(
+      catchError(err => {
+        console.error('Error al cargar previsualización de factura:', err);
+        this.isFacturaLoading.set(false);
+        return of(null);
+      })
+    ).subscribe(res => {
+      this.isFacturaLoading.set(false);
+      if (res && res.data) {
+        this.facturaPreviewData.set(res.data);
+      }
+    });
+  }
+
+  /**
+   * Cierra el modal de previsualización de facturas.
+   */
+  cerrarFacturaModal(): void {
+    this.isFacturaModalOpen.set(false);
+    this.facturaPreviewData.set(null);
+    this.isFacturaLoading.set(false);
+  }
+
+  /**
+   * Descarga el documento oficial de liquidación en PDF de forma segura y en alta definición.
+   * Totalmente compatible con entornos HTTP de desarrollo y servidores sin dependencias nativas de SO.
+   */
+  descargarFacturaPdf(placa: string, vigencia?: number, esUnificado: boolean = false): void {
+    const fileName = esUnificado ? `Recibo_Unificado_${placa}.pdf` : `Recibo_${placa}_${vigencia || 2026}.pdf`;
+
+    // 1. Si la factura ya está cargada en memoria y previsualizada, generar directamente el PDF de alta definición
+    const preview = this.facturaPreviewData();
+    if (preview && preview.placa?.toUpperCase() === placa.toUpperCase() && preview.htmlContent) {
+      downloadPdfFromHtml(preview.htmlContent, fileName);
+      return;
+    }
+
+    // 2. Si se descarga desde la tabla sin abrir el modal, obtener el HTML oficial y compilar el PDF de alta fidelidad
+    this.api.previsualizarFactura(placa, vigencia, esUnificado).pipe(
+      catchError(err => {
+        console.warn('Error al consultar HTML de factura, usando fallback binario:', err);
+        return of(null);
+      })
+    ).subscribe(res => {
+      if (res && res.data && res.data.htmlContent) {
+        downloadPdfFromHtml(res.data.htmlContent, fileName);
+      } else {
+        // 3. Fallback directo al endpoint binario del backend
+        this.api.descargarPdfBlob(placa, vigencia, esUnificado).pipe(
+          catchError(blobErr => {
+            console.error('Error al descargar PDF del backend:', blobErr);
+            return of(null);
+          })
+        ).subscribe(blob => {
+          if (!blob) return;
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
+        });
+      }
+    });
+  }
+
+  /**
+   * Envía a imprimir el documento renderizado en la previsualización de factura.
+   */
+  imprimirFacturaPreview(): void {
+    const iframe = document.getElementById('facturaIframe') as HTMLIFrameElement;
+    if (iframe && iframe.contentWindow) {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+      return;
+    }
+
+    const data = this.facturaPreviewData();
+    if (!data || !data.htmlContent) return;
+
+    const printFrame = document.createElement('iframe');
+    printFrame.style.position = 'fixed';
+    printFrame.style.right = '0';
+    printFrame.style.bottom = '0';
+    printFrame.style.width = '0';
+    printFrame.style.height = '0';
+    printFrame.style.border = '0';
+    document.body.appendChild(printFrame);
+
+    const doc = printFrame.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(data.htmlContent);
+      doc.close();
+      setTimeout(() => {
+        printFrame.contentWindow?.focus();
+        printFrame.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(printFrame), 1000);
+      }, 500);
+    }
   }
 }

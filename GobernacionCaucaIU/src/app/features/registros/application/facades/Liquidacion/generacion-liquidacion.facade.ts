@@ -29,9 +29,9 @@ export class GeneracionLiquidacionFacade {
   /**
    * Ejecuta la simulación de liquidación y retorna el observable para manejarlo en el componente.
    */
-  simularLiquidacion(command: SimularLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
+  simularLiquidacion(solicitudId: number): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
     this.actionLoading.set(true);
-    return this.apiService.simularLiquidacion(command).pipe(
+    return this.apiService.simularLiquidacion(solicitudId).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }
@@ -62,6 +62,16 @@ export class GeneracionLiquidacionFacade {
   anularLiquidacion(id: number, motivo: string): Observable<ApiResponse<boolean>> {
     this.actionLoading.set(true);
     return this.apiService.anularLiquidacion(id, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  /**
+   * Reliquida una liquidación oficial, anulando la actual y reaperturando la solicitud.
+   */
+  reliquidarLiquidacion(id: number, motivo: string): Observable<ApiResponse<number>> {
+    this.actionLoading.set(true);
+    return this.apiService.reliquidarLiquidacion(id, motivo).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }

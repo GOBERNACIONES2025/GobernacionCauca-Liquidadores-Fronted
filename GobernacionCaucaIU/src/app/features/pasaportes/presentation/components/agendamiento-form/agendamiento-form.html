@@ -1,0 +1,70 @@
+<div>
+  <div class="mb-8 text-center">
+    <h2 class="text-xl font-bold text-[#1b53ad] sm:text-2xl">3. Agendamiento</h2>
+    <p class="mx-auto mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">Seleccione el tipo de pasaporte, una fecha disponible y el horario de atención.</p>
+  </div>
+
+  <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+    <label for="tipoPasaporte" class="mb-2 block text-sm font-semibold text-slate-700"><span class="text-red-500">*</span> Tipo de pasaporte</label>
+    <select id="tipoPasaporte" (change)="seleccionarTipo($event)" [disabled]="cargandoTipos() || tiposPasaporte().length === 0" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1b53ad] focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:opacity-60">
+      <option value="">Seleccione un tipo de pasaporte</option>
+      @for (tipo of tiposPasaporte(); track tipo.id) {
+        <option [value]="tipo.id" [selected]="tipoPasaporteSeleccionado()?.id === tipo.id">{{ tipo.nombre }} · {{ tipo.codigo }}</option>
+      }
+    </select>
+    @if (tipoPasaporteSeleccionado(); as tipo) { <p class="mt-2 text-xs text-slate-500">{{ tipo.descripcion }}</p> }
+    @if (cargandoTipos()) { <p class="mt-2 text-xs text-slate-500">Consultando tipos de pasaporte...</p> }
+    @if (!cargandoTipos() && !errorTipos() && tiposPasaporte().length === 0) { <p class="mt-2 text-xs text-amber-700">No hay tipos de pasaporte disponibles en este momento.</p> }
+    @if (errorTipos()) { <p class="mt-2 text-xs text-red-600">No fue posible consultar los tipos de pasaporte. Intente nuevamente.</p> }
+  </section>
+
+  <div class="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
+    <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <h3 class="mb-4 text-sm font-bold text-slate-800"><span class="text-red-500">*</span> Fecha disponible</h3>
+      @if (!tipoPasaporteSeleccionado()) { <p class="mb-4 rounded-lg bg-blue-50 px-3 py-2 text-xs text-blue-700">Seleccione primero el tipo de pasaporte.</p> }
+      <div class="mb-4 flex items-center justify-between gap-2">
+        <button type="button" (click)="cambiarMes(-1)" aria-label="Mes anterior" class="rounded-lg border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-50"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+        <div class="flex min-w-0 items-center gap-2">
+          <select (change)="seleccionarMes($event)" class="min-w-0 rounded-lg border border-slate-300 bg-white px-2 py-2 text-sm">
+            @for (mes of nombresMes; track mes; let indice = $index) { <option [value]="indice" [selected]="fechaVista().getMonth() === indice">{{ mes }}</option> }
+          </select>
+          <span class="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600">{{ fechaVista().getFullYear() }}</span>
+        </div>
+        <button type="button" (click)="cambiarMes(1)" aria-label="Mes siguiente" class="rounded-lg border border-slate-300 p-2 text-slate-600 transition hover:bg-slate-50"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+      </div>
+      <div class="grid grid-cols-7 text-center text-xs font-semibold text-slate-500">@for (dia of diasSemana; track dia) { <span class="py-2">{{ dia }}</span> }</div>
+      <div class="grid grid-cols-7 gap-1 text-center text-sm">
+        @for (_ of espaciosIniciales(); track $index) { <span></span> }
+        @for (dia of diasDelMes(); track dia) {
+          <button type="button" (click)="seleccionarDia(dia)" [disabled]="!tipoPasaporteSeleccionado() || !fechaDisponible(fechaIso(dia)) || cargandoCalendario()" [attr.aria-label]="'Seleccionar ' + fechaIso(dia)" class="mx-auto flex h-9 w-9 items-center justify-center rounded-full transition disabled:cursor-not-allowed disabled:opacity-50" [class.bg-[#1b53ad]]="fechaSeleccionada() === fechaIso(dia)" [class.text-white]="fechaSeleccionada() === fechaIso(dia)" [class.bg-blue-50]="fechaDisponible(fechaIso(dia)) && fechaSeleccionada() !== fechaIso(dia)" [class.text-[#1b53ad]]="fechaDisponible(fechaIso(dia)) && fechaSeleccionada() !== fechaIso(dia)" [class.hover:bg-blue-100]="tipoPasaporteSeleccionado() && fechaDisponible(fechaIso(dia)) && fechaSeleccionada() !== fechaIso(dia)" [class.text-slate-300]="!fechaDisponible(fechaIso(dia))">{{ dia }}</button>
+        }
+      </div>
+      @if (cargandoCalendario()) { <p class="mt-4 text-center text-xs text-slate-500">Consultando fechas disponibles...</p> }
+      @if (!cargandoCalendario() && !errorCalendario() && calendario().length === 0) { <p class="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-center text-xs text-amber-700">No hay fechas disponibles para este mes.</p> }
+      @if (errorCalendario()) { <p class="mt-4 rounded-lg bg-red-50 px-3 py-2 text-center text-xs text-red-600">No fue posible consultar las fechas. Intente cambiar de mes o inténtelo nuevamente.</p> }
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+      <h3 class="mb-4 text-sm font-bold text-slate-800"><span class="text-red-500">*</span> Horario disponible</h3>
+      @if (!fechaSeleccionada()) { <div class="rounded-xl border border-blue-200 bg-blue-50 p-5 text-sm text-blue-800">Seleccione una fecha en el calendario para consultar los horarios disponibles.</div> }
+      @if (fechaSeleccionada() && cargandoIntervalos()) { <p class="rounded-xl bg-slate-50 p-5 text-center text-sm text-slate-500">Consultando horarios disponibles...</p> }
+      @if (fechaSeleccionada() && !cargandoIntervalos() && !errorIntervalos() && intervalos().length === 0) { <div class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">No hay horarios disponibles para la fecha seleccionada. Elija otra fecha.</div> }
+      @if (errorIntervalos()) { <div class="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">No fue posible consultar los horarios disponibles. Seleccione nuevamente la fecha.</div> }
+      @if (!cargandoIntervalos() && intervalos().length > 0) {
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          @for (intervalo of intervalos(); track intervalo.idCitaHora) {
+            <button type="button" (click)="seleccionarIntervalo(intervalo)" class="rounded-xl border px-4 py-4 text-center text-sm transition" [class.border-[#1b53ad]]="intervaloSeleccionado()?.idCitaHora === intervalo.idCitaHora" [class.bg-[#1b53ad]]="intervaloSeleccionado()?.idCitaHora === intervalo.idCitaHora" [class.text-white]="intervaloSeleccionado()?.idCitaHora === intervalo.idCitaHora" [class.border-slate-300]="intervaloSeleccionado()?.idCitaHora !== intervalo.idCitaHora" [class.hover:bg-blue-50]="intervaloSeleccionado()?.idCitaHora !== intervalo.idCitaHora"><span class="block text-xs opacity-80">Desde las</span><strong>{{ intervalo.horaInicio.slice(0, 5) }}</strong><span class="block text-xs opacity-80">hasta las</span><strong>{{ intervalo.horaFin.slice(0, 5) }}</strong></button>
+          }
+        </div>
+      }
+    </section>
+  </div>
+
+  @if (consecutivoCita(); as consecutivo) { <div class="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><i class="fa-solid fa-circle-check mr-2" aria-hidden="true"></i>Cita creada correctamente.<span class="mt-1 block font-semibold">Consecutivo: {{ consecutivo }}</span></div> }
+  @if (errorCreacion()) { <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{{ errorCreacion() }}</div> }
+
+  <div class="mt-8 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+    <button type="button" (click)="anterior.emit()" class="rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Anterior</button>
+    <button type="button" (click)="continuar.emit()" [disabled]="!tipoPasaporteSeleccionado() || !fechaSeleccionada() || !intervaloSeleccionado() || !intervaloSeleccionado()!.idCitaHora || creandoCita() || completado() || consecutivoCita() !== null" class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">{{ creandoCita() ? 'Creando cita...' : 'Continuar' }}</button>
+  </div>
+</div>

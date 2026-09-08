@@ -1,7 +1,8 @@
 import { Component, inject, signal, computed, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { filter } from 'rxjs/operators';
 import { DepartamentosFacade } from '../../../../application/facades/Territorios/departamentos.facade';
 import { MunicipiosFacade } from '../../../../application/facades/Territorios/municipios.facade';
 import { EstadosNormaFacade } from '../../../../application/facades/Normatividad/estados-norma.facade';
@@ -15,6 +16,8 @@ import { NaturalezasActoFacade } from '../../../../application/facades/Registro/
 import { TiposActoRegistroFacade } from '../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { TiposCalculoTarifaFacade } from '../../../../application/facades/Tarifas/tipos-calculo-tarifa.facade';
 import { TarifasFacade } from '../../../../application/facades/Tarifas/tarifas.facade';
+import { ConfiguracionExtemporaneidadFacade } from '../../../../application/facades/Tarifas/configuracion-extemporaneidad.facade';
+import { TasasInteresMoraFacade } from '../../../../application/facades/Tarifas/tasas-interes-mora.facade';
 import { TiposBeneficiarioExencionFacade } from '../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 import { TiposPersonaFacade } from '../../../../application/facades/Contribuyentes/tipos-persona.facade';
@@ -39,6 +42,7 @@ export interface CatalogItem {
 
 export interface CatalogGroup {
   name: string;
+  icon?: string;
   items: CatalogItem[];
 }
 
@@ -50,6 +54,7 @@ export interface CatalogGroup {
   styleUrl: './config-sidebar.css',
 })
 export class ConfigSidebar {
+  private router = inject(Router);
   private departamentosFacade = inject(DepartamentosFacade);
   private municipiosFacade = inject(MunicipiosFacade);
   private estadosNormaFacade = inject(EstadosNormaFacade);
@@ -63,6 +68,8 @@ export class ConfigSidebar {
   private tiposActoFacade = inject(TiposActoRegistroFacade);
   private tiposCalculoFacade = inject(TiposCalculoTarifaFacade);
   private tarifasFacade = inject(TarifasFacade);
+  private extemporaneidadFacade = inject(ConfiguracionExtemporaneidadFacade);
+  private tasasMoraFacade = inject(TasasInteresMoraFacade);
   private tiposBeneficiarioFacade = inject(TiposBeneficiarioExencionFacade);
   private exencionesFacade = inject(ExencionesFacade);
   private tiposPersonaFacade = inject(TiposPersonaFacade);
@@ -80,10 +87,40 @@ export class ConfigSidebar {
   readonly closeSidebar = output<void>();
 
   searchTerm = signal('');
+  expandedGroups = signal<Set<string>>(new Set<string>());
+
+  constructor() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.autoExpandActiveGroup(event.urlAfterRedirects || event.url);
+    });
+
+    setTimeout(() => {
+      this.autoExpandActiveGroup(this.router.url);
+    }, 100);
+  }
+
+  autoExpandActiveGroup(url: string) {
+    if (!url) return;
+    const groups = this.catalogGroups();
+    for (const group of groups) {
+      const hasActiveChild = group.items.some(item => item.route && url.includes(item.route));
+      if (hasActiveChild) {
+        this.expandedGroups.update(set => {
+          const next = new Set(set);
+          next.add(group.name);
+          return next;
+        });
+        break;
+      }
+    }
+  }
 
   catalogGroups = computed<CatalogGroup[]>(() => [
     {
       name: 'Territorio',
+      icon: 'map',
       items: [
         { 
           name: 'Departamento', 
@@ -100,6 +137,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Inmuebles',
+      icon: 'building-office',
       items: [
         { 
           name: 'Inmuebles y Avalúos', 
@@ -110,6 +148,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Normatividad',
+      icon: 'document-text',
       items: [
         { 
           name: 'Estado de Norma', 
@@ -136,6 +175,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Entidades',
+      icon: 'building-library',
       items: [
         { 
           name: 'Tipo de Entidad de Registro', 
@@ -157,6 +197,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Actos Registrales',
+      icon: 'scale',
       items: [
         { 
           name: 'Categoría de Acto', 
@@ -176,9 +217,9 @@ export class ConfigSidebar {
         }
       ]
     },
-
     {
       name: 'Tarifas',
+      icon: 'currency-dollar',
       items: [
         { 
           name: 'Tipo de Cálculo de Tarifa', 
@@ -190,11 +231,22 @@ export class ConfigSidebar {
           route: '/registros/configuracion/tarifas/tarifas',
           count: this.tarifasFacade.totalTarifas() || this.tarifasFacade.tarifas().length, 
           hasWarning: true 
+        },
+        { 
+          name: 'Extemporaneidad', 
+          route: '/registros/configuracion/tarifas/extemporaneidad',
+          count: this.extemporaneidadFacade.totalConfiguraciones() || this.extemporaneidadFacade.configuraciones().length 
+        },
+        { 
+          name: 'Tasas de Interés de Mora', 
+          route: '/registros/configuracion/tarifas/tasas-mora',
+          count: this.tasasMoraFacade.totalTasas() || this.tasasMoraFacade.tasas().length 
         }
       ]
     },
     {
       name: 'Exenciones',
+      icon: 'tag',
       items: [
         { 
           name: 'Tipo de Beneficiario de Exención', 
@@ -211,6 +263,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Contribuyentes',
+      icon: 'user-group',
       items: [
         { 
           name: 'Directorio de Contribuyentes', 
@@ -231,6 +284,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Intervinientes',
+      icon: 'identification',
       items: [
         { 
           name: 'Rol de Interviniente', 
@@ -241,6 +295,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Radicación',
+      icon: 'inbox-arrow-down',
       items: [
         { 
           name: 'Estado de Solicitud', 
@@ -251,6 +306,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Liquidación',
+      icon: 'calculator',
       items: [
         { 
           name: 'Estado de Liquidación', 
@@ -261,6 +317,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Pagos',
+      icon: 'credit-card',
       items: [
         { 
           name: 'Estado de Pago', 
@@ -271,6 +328,7 @@ export class ConfigSidebar {
     },
     {
       name: 'Seguridad',
+      icon: 'shield-check',
       items: [
         { 
           name: 'Roles', 
@@ -285,7 +343,6 @@ export class ConfigSidebar {
       ]
     }
   ]);
-
 
   totalCount = computed(() => {
     return this.catalogGroups().reduce((acc, g) => acc + g.items.length, 0);
@@ -304,6 +361,50 @@ export class ConfigSidebar {
       }))
       .filter(group => group.items.length > 0);
   });
+
+  isGroupExpanded(groupName: string): boolean {
+    if (this.searchTerm().trim().length > 0) {
+      return true;
+    }
+    return this.expandedGroups().has(groupName);
+  }
+
+  hasActiveChild(group: CatalogGroup): boolean {
+    const currentUrl = this.router.url;
+    return group.items.some(item => item.route && currentUrl.includes(item.route));
+  }
+
+  toggleGroup(groupName: string) {
+    this.expandedGroups.update(set => {
+      const next = new Set<string>();
+      if (!set.has(groupName)) {
+        next.add(groupName);
+      }
+      return next;
+    });
+  }
+
+  expandAll() {
+    const all = new Set(this.catalogGroups().map(g => g.name));
+    this.expandedGroups.set(all);
+  }
+
+  collapseAll() {
+    this.expandedGroups.set(new Set());
+  }
+
+  areAllExpanded(): boolean {
+    const totalGroups = this.catalogGroups().length;
+    return totalGroups > 0 && this.expandedGroups().size === totalGroups;
+  }
+
+  toggleAll() {
+    if (this.areAllExpanded()) {
+      this.collapseAll();
+    } else {
+      this.expandAll();
+    }
+  }
 
   onItemClick() {
     this.closeSidebar.emit();

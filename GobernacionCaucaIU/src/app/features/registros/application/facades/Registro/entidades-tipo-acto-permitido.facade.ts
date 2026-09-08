@@ -43,7 +43,7 @@ export class EntidadesTipoActoPermitidoFacade {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos(pageNumber, pageSize, entidadRegistroId, tipoActoRegistroId).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, entidadRegistroId, tipoActoRegistroId }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.entidadesTipoActoPermitido.set(response.data.items || []);

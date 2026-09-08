@@ -33,13 +33,13 @@ export class GeneracionLiquidacionApiService {
 
   /**
    * @description
-   * Simula el cálculo de la liquidación sin persistir en base de datos.
+   * Simula el cálculo de la liquidación en base al ID de la solicitud sin persistir en base de datos.
    * 
-   * @param {SimularLiquidacionDto} command - Datos de la solicitud.
+   * @param {number} solicitudId - Identificador de la solicitud.
    * @returns {Observable<ApiResponse<LiquidacionSimuladaResponse>>} DTO con totales y actos calculados.
    */
-  simularLiquidacion(command: SimularLiquidacionDto): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
-    return this.api.post<ApiResponse<LiquidacionSimuladaResponse>>(`${this.baseUrl}/simular`, command, {}, 'REGISTROS');
+  simularLiquidacion(solicitudId: number): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
+    return this.api.post<ApiResponse<LiquidacionSimuladaResponse>>(`${this.baseUrl}/${solicitudId}/simular`, {}, {}, 'REGISTROS');
   }
 
   /**
@@ -73,5 +73,17 @@ export class GeneracionLiquidacionApiService {
    */
   anularLiquidacion(id: number, motivo: string): Observable<ApiResponse<boolean>> {
     return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${id}/anular`, { motivoAnulacion: motivo }, {}, 'REGISTROS');
+  }
+
+  /**
+   * @description
+   * Anula la liquidación actual y reapertura la solicitud asociada para reliquidar.
+   * 
+   * @param {number} id - Identificador de la liquidación.
+   * @param {string} motivo - Motivo de la reliquidación.
+   * @returns {Observable<ApiResponse<number>>} ID de la Solicitud habilitada para edición.
+   */
+  reliquidarLiquidacion(id: number, motivo: string): Observable<ApiResponse<number>> {
+    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/${id}/reliquidar`, { motivoReliquidacion: motivo }, {}, 'REGISTROS');
   }
 }

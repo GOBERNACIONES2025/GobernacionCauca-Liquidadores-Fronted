@@ -23,14 +23,14 @@
         </div>
         <input 
           type="text" 
-          [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
+          [value]="searchText()"
+          (input)="onSearchChange($event)"
           placeholder="Buscar naturaleza..." 
           class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
         />
-        @if (searchQuery()) {
+        @if (searchText()) {
           <button 
-            (click)="searchQuery.set('')"
+            (click)="searchText.set(''); searchSubject.next('')"
             class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -88,20 +88,21 @@
           <th class="py-3 px-4 w-32">Código</th>
           <th class="py-3 px-4">Nombre</th>
           <th class="py-3 px-4">Descripción</th>
-          <th class="py-3 px-4 w-40">Estado</th>
+          <th class="py-3 px-4 w-32">Régimen / Cuantía</th>
+          <th class="py-3 px-4 w-32">Estado</th>
           <th class="py-3 px-4 w-28 text-right">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
         @if (facade.loading()) {
           <tr>
-            <td colspan="5" class="text-center py-12">
+            <td colspan="6" class="text-center py-12">
               <span class="loading loading-spinner text-primary"></span>
             </td>
           </tr>
         } @else if (naturalezasFiltradas().length === 0) {
           <tr>
-            <td colspan="5" class="text-center py-12 text-slate-400 text-xs">
+            <td colspan="6" class="text-center py-12 text-slate-400 text-xs">
               No se encontraron naturalezas coincidentes.
             </td>
           </tr>
@@ -122,6 +123,19 @@
             <!-- Descripcion -->
             <td class="py-3.5 px-4 text-slate-500 text-xs">
               {{ item.descripcion || '-' }}
+            </td>
+
+            <!-- Es Sin Cuantía -->
+            <td class="py-3.5 px-4">
+              @if (item.esSinCuantia) {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                  Sin Cuantía (Fija)
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-50 text-blue-800 border border-blue-200 shadow-2xs">
+                  Con Cuantía
+                </span>
+              }
             </td>
             
             <!-- Estado -->
@@ -144,11 +158,16 @@
               <div class="flex items-center justify-end gap-1.5">
                 <button 
                   (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
                   title="Editar naturaleza"
-                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors">
-                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                  </svg>
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
                 </button>
                 
                 <button 
@@ -169,6 +188,14 @@
     </table>
   </div>
   
+  <!-- Paginación -->
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="counts().total"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
   <!-- Footer Counter -->
   <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
     Mostrando {{ naturalezasFiltradas().length }} de {{ counts().total }} registros
@@ -232,8 +259,19 @@
       ></textarea>
     </div>
 
+    <!-- Es Sin Cuantía Switch -->
+    <div class="form-control w-full mt-1 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+      <label class="label cursor-pointer justify-between p-0">
+        <div>
+          <span class="label-text font-bold text-xs uppercase text-slate-700">¿Es Sin Cuantía (Tarifa Fija)?</span>
+          <p class="text-[11px] text-slate-500 mt-0.5">Si se activa, los actos de esta naturaleza no exigirán valor económico ni avalúo y se liquidarán con tarifa fija.</p>
+        </div>
+        <input type="checkbox" formControlName="esSinCuantia" class="toggle toggle-warning toggle-sm" />
+      </label>
+    </div>
+
     <!-- Estado -->
-    <div class="form-control w-full mt-2">
+    <div class="form-control w-full mt-1">
       <label class="label cursor-pointer justify-start gap-4 p-0">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Estado Activo</span>
         <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />

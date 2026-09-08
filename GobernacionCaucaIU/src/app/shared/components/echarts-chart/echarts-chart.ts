@@ -4,14 +4,16 @@ import {
   Input,
   OnChanges,
   OnDestroy,
-  OnInit,
+  AfterViewInit,
   SimpleChanges,
   ViewChild,
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as echarts from 'echarts';
-import type { ECharts, EChartsOption } from 'echarts';
+
+export type EChartsOption = echarts.EChartsOption;
+export type ECharts = echarts.ECharts;
 
 @Component({
   selector: 'app-echarts-chart',
@@ -38,8 +40,8 @@ import type { ECharts, EChartsOption } from 'echarts';
     }
   `]
 })
-export class EchartsChartComponent implements OnInit, OnChanges, OnDestroy {
-  @ViewChild('chartContainer', { static: true }) chartContainer!: ElementRef<HTMLDivElement>;
+export class EchartsChartComponent implements AfterViewInit, OnChanges, OnDestroy {
+  @ViewChild('chartContainer') chartContainer!: ElementRef<HTMLDivElement>;
 
   @Input() options: EChartsOption | null = null;
   @Input() loading: boolean = false;
@@ -48,13 +50,17 @@ export class EchartsChartComponent implements OnInit, OnChanges, OnDestroy {
   private chartInstance: ECharts | null = null;
   private resizeObserver: ResizeObserver | null = null;
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.initChart();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['options'] && this.chartInstance && this.options) {
-      this.chartInstance.setOption(this.options, true);
+    if (changes['options']) {
+      if (!this.chartInstance) {
+        this.initChart();
+      } else if (this.options) {
+        this.chartInstance.setOption(this.options, true);
+      }
     }
   }
 
@@ -63,6 +69,7 @@ export class EchartsChartComponent implements OnInit, OnChanges, OnDestroy {
       this.resizeObserver.disconnect();
       this.resizeObserver = null;
     }
+    window.removeEventListener('resize', this.onWindowResize);
     if (this.chartInstance) {
       this.chartInstance.dispose();
       this.chartInstance = null;
@@ -71,6 +78,13 @@ export class EchartsChartComponent implements OnInit, OnChanges, OnDestroy {
 
   private initChart(): void {
     if (!this.chartContainer?.nativeElement) return;
+
+    if (this.chartInstance) {
+      if (this.options) {
+        this.chartInstance.setOption(this.options, true);
+      }
+      return;
+    }
 
     const el = this.chartContainer.nativeElement;
     this.chartInstance = echarts.init(el, this.theme || undefined, {

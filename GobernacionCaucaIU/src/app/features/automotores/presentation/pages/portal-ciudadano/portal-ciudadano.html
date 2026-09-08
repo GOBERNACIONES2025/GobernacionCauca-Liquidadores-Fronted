@@ -1,84 +1,84 @@
-<div class="min-h-screen bg-white text-slate-800 font-sans flex flex-col">
+@if (!isConsulted()) {
+  <app-consulta-ciudadana-shared 
+    liquidadorKey="automotores" 
+    (onConsultar)="alConsultar($event)"
+  ></app-consulta-ciudadana-shared>
+} @else {
+  <div class="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+    
+    <!-- TOP HEADER / NAVBAR -->
+    <header class="w-full bg-white border-b border-slate-200 py-3 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <!-- Left: Logo & Title -->
+      <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
+        <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-10 md:h-12 w-auto object-contain select-none" />
+        <div class="flex flex-col border-l border-slate-200 pl-3">
+          <span class="text-xs font-extrabold text-[#0f4984] tracking-tight leading-none uppercase">Portal Ciudadano</span>
+          <span class="text-[10px] text-slate-400 font-semibold leading-none mt-1">Impuesto Vehicular &middot; Cauca</span>
+        </div>
+      </a>
 
-  <!-- ========================================== -->
-  <!-- 1. TOP HEADER / NAVBAR (ESTILO BLANCO HOME) -->
-  <!-- ========================================== -->
-  <header class="w-full bg-white border-b border-slate-100 py-3.5 px-6 md:px-12 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-    <!-- Left: Logo & Institutional Title -->
-    <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
-      <img src="Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-12 md:h-14 object-contain select-none" />
-      <div class="flex flex-col border-l border-slate-200 pl-3">
-        <span class="text-xs font-extrabold text-slate-800 tracking-tight leading-none">Portal Ciudadano</span>
-        <span class="text-[10px] text-slate-400 font-semibold leading-none mt-1">Impuesto Vehicular</span>
-      </div>
-    </a>
-
-    <!-- Center / Navigation Tabs (When Citizen is loaded) -->
-    @if (isConsulted()) {
-      <nav class="hidden md:flex items-center space-x-6 h-full text-xs font-bold">
+      <!-- Center: 4 Nav Tabs (Inicio, Historial, Liquidaciones, Certificados) -->
+      <nav class="hidden md:flex items-center space-x-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+        
         <button 
           (click)="cambiarTab('inicio')"
-          [class.text-[#1E56A0]]="activeTab() === 'inicio'"
-          [class.border-b-2]="activeTab() === 'inicio'"
-          [class.border-[#1E56A0]]="activeTab() === 'inicio'"
+          [class.bg-[#0f4984]]="activeTab() === 'inicio'"
+          [class.text-white]="activeTab() === 'inicio'"
+          [class.shadow-xs]="activeTab() === 'inicio'"
           [class.text-slate-600]="activeTab() !== 'inicio'"
-          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
+          [class.hover:text-white]="activeTab() === 'inicio'"
         >
-          <i class="fa-solid fa-house text-sm"></i>
+          <i class="fa-solid fa-house text-xs"></i>
           <span>Inicio</span>
         </button>
 
         <button 
-          (click)="cambiarTab('vehiculos')"
-          [class.text-[#1E56A0]]="activeTab() === 'vehiculos'"
-          [class.border-b-2]="activeTab() === 'vehiculos'"
-          [class.border-[#1E56A0]]="activeTab() === 'vehiculos'"
-          [class.text-slate-600]="activeTab() !== 'vehiculos'"
-          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+          (click)="cambiarTab('historial')"
+          [class.bg-[#0f4984]]="activeTab() === 'historial'"
+          [class.text-white]="activeTab() === 'historial'"
+          [class.shadow-xs]="activeTab() === 'historial'"
+          [class.text-slate-600]="activeTab() !== 'historial'"
+          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
+          [class.hover:text-white]="activeTab() === 'historial'"
         >
-          <i class="fa-solid fa-car text-sm"></i>
-          <span>Mis vehículos</span>
+          <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+          <span>Historial</span>
         </button>
 
         <button 
           (click)="cambiarTab('liquidaciones')"
-          [class.text-[#1E56A0]]="activeTab() === 'liquidaciones'"
-          [class.border-b-2]="activeTab() === 'liquidaciones'"
-          [class.border-[#1E56A0]]="activeTab() === 'liquidaciones'"
+          [class.bg-[#0f4984]]="activeTab() === 'liquidaciones'"
+          [class.text-white]="activeTab() === 'liquidaciones'"
+          [class.shadow-xs]="activeTab() === 'liquidaciones'"
           [class.text-slate-600]="activeTab() !== 'liquidaciones'"
-          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
+          [class.hover:text-white]="activeTab() === 'liquidaciones'"
         >
-          <i class="fa-regular fa-credit-card text-sm"></i>
+          <i class="fa-regular fa-credit-card text-xs"></i>
           <span>Liquidaciones</span>
         </button>
 
         <button 
           (click)="cambiarTab('certificados')"
-          [class.text-[#1E56A0]]="activeTab() === 'certificados'"
-          [class.border-b-2]="activeTab() === 'certificados'"
-          [class.border-[#1E56A0]]="activeTab() === 'certificados'"
+          [class.bg-[#0f4984]]="activeTab() === 'certificados'"
+          [class.text-white]="activeTab() === 'certificados'"
+          [class.shadow-xs]="activeTab() === 'certificados'"
           [class.text-slate-600]="activeTab() !== 'certificados'"
-          class="h-full flex items-center gap-1.5 px-1 hover:text-[#1E56A0] transition-colors cursor-pointer"
+          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
+          [class.hover:text-white]="activeTab() === 'certificados'"
         >
-          <i class="fa-solid fa-award text-sm"></i>
+          <i class="fa-regular fa-file-lines text-xs"></i>
           <span>Certificados</span>
         </button>
+
       </nav>
-    }
 
-    <!-- Right: User info & Action -->
-    <div class="flex items-center space-x-3">
-      @if (isConsulted() && ciudadano(); as c) {
-        <div class="flex items-center space-x-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg text-slate-800">
-          <div class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-bold">
-            <i class="fa-solid fa-user text-[10px]"></i>
-          </div>
-          <span class="text-xs font-semibold text-slate-700 hidden sm:inline-block">{{ c.nombre }}</span>
-        </div>
-
+      <!-- Right: Header Actions -->
+      <div class="flex items-center gap-2">
         <button 
           (click)="nuevaConsulta()" 
-          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
           title="Nueva Consulta"
         >
           <i class="fa-solid fa-magnifying-glass text-xs text-slate-500"></i>
@@ -87,940 +87,615 @@
 
         <button 
           (click)="salir()" 
-          class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-3.5 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+          class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
           title="Salir"
         >
           <i class="fa-solid fa-right-from-bracket text-xs"></i>
           <span>Salir</span>
         </button>
-      } @else {
-        @if (tipoUsuario() === 'CIUDADANO') {
-          <button 
-            (click)="setTipoUsuario('ADMIN')" 
-            class="px-5 py-1.5 rounded-full border border-[#1E3A7B] text-[#1E3A7B] hover:bg-[#1E3A7B] hover:text-white transition-all text-xs font-semibold cursor-pointer mr-2 shadow-xs hover:shadow active:scale-95"
-            title="Acceso Administrador"
-          >
-            Administrador
-          </button>
-        } @else {
-          <button 
-            (click)="setTipoUsuario('CIUDADANO')" 
-            class="px-5 py-1.5 rounded-full border border-[#1E3A7B] text-[#1E3A7B] hover:bg-[#1E3A7B] hover:text-white transition-all text-xs font-semibold cursor-pointer mr-2 shadow-xs hover:shadow active:scale-95"
-            title="Acceso Ciudadano"
-          >
-            Ciudadano
-          </button>
-        }
-        <button 
-          (click)="salir()" 
-          class="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors text-xs font-semibold cursor-pointer group"
-        >
-          <span class="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors">
-            <i class="fa-solid fa-arrow-left text-xs"></i>
-          </span>
-          <span>Volver a Inicio</span>
-        </button>
-      }
-    </div>
-  </header>
-
-
-  <!-- ========================================== -->
-  <!-- 2. CONTENIDO PRINCIPAL -->
-  <!-- ========================================== -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-
-    <!-- ======================================================== -->
-    <!-- ESTADO A: FORMULARIO INICIAL DE ACCESO (CIUDADANO / ADMIN)-->
-    <!-- ======================================================== -->
-    @if (!isConsulted()) {
-      <div class="max-w-xl mx-auto my-6">
-        
-        <!-- Welcome Card & Form Container -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          
-          <!-- Top Accent Line -->
-          <div 
-            class="h-1.5 transition-colors duration-200"
-            [class.bg-[#70B238]]="tipoUsuario() === 'CIUDADANO'"
-            [class.bg-[#1E3A7B]]="tipoUsuario() === 'ADMIN'"
-          ></div>
-
-          <div class="p-6 sm:p-8">
-            
-            <!-- Error Notification Alert -->
-            @if (errorMessage()) {
-              <div class="mb-5 p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-700">
-                <i class="fa-solid fa-circle-exclamation text-rose-500 mt-0.5 shrink-0"></i>
-                <span>{{ errorMessage() }}</span>
-              </div>
-            }            <!-- ============================================== -->
-            <!-- A1. FORMULARIO CIUDADANO (CÉDULA Y PLACA) -->
-            <!-- ============================================== -->
-            @if (tipoUsuario() === 'CIUDADANO') {
-              <div>
-                <!-- Header Icon & Title -->
-                <div class="text-center mb-6">
-                  <div class="w-12 h-12 mx-auto rounded-2xl bg-emerald-50 text-[#70B238] flex items-center justify-center mb-2.5 border border-emerald-100">
-                    <i class="fa-solid fa-car-side text-xl"></i>
-                  </div>
-                  <h1 class="text-xl font-bold text-slate-900 leading-tight">Consulta Ciudadana</h1>
-                  <p class="text-xs text-slate-500 mt-0.5">Consulte su impuesto vehicular, certificados y deudas.</p>
-                </div>
-
-                <form (submit)="consultar(); $event.preventDefault()" class="space-y-4">
-                  
-                  <!-- Campo 1: Número de Cédula / Documento -->
-                  <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Número de Cédula / Documento <span class="text-rose-500">*</span>
-                    </label>
-                    <div class="flex gap-2">
-                      <select 
-                        [ngModel]="tipoDocumento()" 
-                        (ngModelChange)="tipoDocumento.set($event)"
-                        name="tipoDoc"
-                        class="w-24 px-2.5 py-2.5 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:border-[#70B238]"
-                      >
-                        @if (tiposDocumento().length > 0) {
-                          @for (td of tiposDocumento(); track td.id) {
-                            <option [value]="td.codigo">{{ td.codigo }}</option>
-                          }
-                        } @else {
-                          <option value="CC">C.C.</option>
-                          <option value="NIT">NIT</option>
-                          <option value="CE">C.E.</option>
-                          <option value="PAS">Pasaporte</option>
-                        }
-                      </select>
-                      <div class="relative flex-1">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                          <i class="fa-solid fa-id-card text-xs"></i>
-                        </div>
-                        <input 
-                          type="text" 
-                          [ngModel]="numeroCedula()" 
-                          (ngModelChange)="numeroCedula.set($event)"
-                          name="cedula"
-                          placeholder="Ej: 12345678" 
-                          class="w-full pl-9 pr-3 py-2.5 text-xs md:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#70B238] transition"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Campo 2: Placa del Vehículo -->
-                  <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Placa del Vehículo <span class="text-rose-500">*</span>
-                    </label>
-                    <div class="flex items-center gap-3">
-                      <div class="relative flex-1">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                          <i class="fa-solid fa-car text-xs"></i>
-                        </div>
-                        <input 
-                          type="text" 
-                          [ngModel]="placaVehiculo()" 
-                          (input)="formatearPlaca($event)"
-                          name="placa"
-                          maxlength="7"
-                          placeholder="Ej: QWE-123" 
-                          class="w-full pl-9 pr-3 py-2.5 text-xs md:text-sm uppercase font-mono font-bold tracking-wider bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#70B238] transition"
-                        />
-                      </div>
-
-                      <!-- Placa Badge -->
-                      @if (placaVehiculo()) {
-                        <div class="px-3.5 py-2 bg-[#FFD100] text-slate-900 font-mono font-black text-sm rounded-lg border border-amber-400 shadow-2xs tracking-widest uppercase shrink-0">
-                          {{ placaVehiculo() }}
-                        </div>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Submit Button -->
-                  <div class="pt-2">
-                    <button 
-                      type="submit" 
-                      [disabled]="isLoading()"
-                      class="w-full bg-[#1E3A7B] hover:bg-slate-900 text-white font-bold text-sm py-3 px-4 rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
-                    >
-                      @if (isLoading()) {
-                        <i class="fa-solid fa-circle-notch fa-spin text-sm"></i>
-                        <span>Consultando API...</span>
-                      } @else {
-                        <i class="fa-solid fa-magnifying-glass text-sm"></i>
-                        <span>Consultar Vehículo</span>
-                      }
-                    </button>
-                  </div>
-
-                </form>
-
-                <!-- Test Profiles Shortcut Buttons -->
-                <div class="mt-6 pt-5 border-t border-slate-100">
-                  <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2.5 text-center">
-                    O seleccione un perfil de consulta rápida:
-                  </span>
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <button 
-                      (click)="cargarEjemplo('ejemplo1')" 
-                      type="button" 
-                      class="p-3 bg-slate-50 hover:bg-emerald-50/70 border border-slate-200 hover:border-emerald-300 rounded-xl text-left transition cursor-pointer group"
-                    >
-                      <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-800 group-hover:text-[#70B238]">Consulta de Prueba 1</span>
-                        <span class="text-[10px] font-mono font-bold bg-[#FFD100] text-slate-900 px-1.5 py-0.5 rounded">AAA-000</span>
-                      </div>
-                      <span class="text-[10px] text-slate-400 block mt-0.5">CC 1234567 &middot; Popayán</span>
-                    </button>
-
-                    <button 
-                      (click)="cargarEjemplo('ejemplo2')" 
-                      type="button" 
-                      class="p-3 bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 rounded-xl text-left transition cursor-pointer group"
-                    >
-                      <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-800 group-hover:text-[#1E3A7B]">Consulta de Prueba 2</span>
-                        <span class="text-[10px] font-mono font-bold bg-[#FFD100] text-slate-900 px-1.5 py-0.5 rounded">AAA-001</span>
-                      </div>
-                      <span class="text-[10px] text-slate-400 block mt-0.5">CC 11223344 &middot; Cali</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            }
-
-            <!-- ============================================== -->
-            <!-- A2. FORMULARIO ADMINISTRADOR (USUARIO Y CLAVE) -->
-            <!-- ============================================== -->
-            @if (tipoUsuario() === 'ADMIN') {
-              <div>
-                <!-- Header Icon & Title -->
-                <div class="text-center mb-6">
-                  <div class="w-12 h-12 mx-auto rounded-2xl bg-blue-50 text-[#1E3A7B] flex items-center justify-center mb-2.5 border border-blue-100">
-                    <i class="fa-solid fa-lock text-xl"></i>
-                  </div>
-                  <h1 class="text-xl font-bold text-slate-900 leading-tight">Acceso Administrativo</h1>
-                  <p class="text-xs text-slate-500 mt-0.5">Gestores tributarios y funcionarios de la Gobernación del Cauca.</p>
-                </div>
-
-                <form (submit)="loginAdmin(); $event.preventDefault()" class="space-y-4">
-                  
-                  <!-- Campo: Usuario / Correo -->
-                  <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Usuario o Correo Institucional <span class="text-rose-500">*</span>
-                    </label>
-                    <div class="relative">
-                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-user-tie text-xs"></i>
-                      </div>
-                      <input 
-                        type="text" 
-                        [ngModel]="adminUsuario()" 
-                        (ngModelChange)="adminUsuario.set($event)"
-                        name="adminUser"
-                        placeholder="ej: sdiaz@cauca.gov.co" 
-                        class="w-full pl-9 pr-3 py-2.5 text-xs md:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A7B] transition"
-                      />
-                    </div>
-                  </div>
-
-                  <!-- Campo: Contraseña -->
-                  <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Contraseña <span class="text-rose-500">*</span>
-                    </label>
-                    <div class="relative">
-                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                        <i class="fa-solid fa-key text-xs"></i>
-                      </div>
-                      <input 
-                        [type]="adminMostrarPassword() ? 'text' : 'password'"
-                        [ngModel]="adminPassword()" 
-                        (ngModelChange)="adminPassword.set($event)"
-                        name="adminPass"
-                        placeholder="••••••••••••" 
-                        class="w-full pl-9 pr-10 py-2.5 text-xs md:text-sm bg-white border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1E3A7B] transition"
-                      />
-                      <button 
-                        type="button"
-                        (click)="toggleMostrarPassword()"
-                        class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
-                        tabindex="-1"
-                      >
-                        <i class="fa-solid" [class.fa-eye]="!adminMostrarPassword()" [class.fa-eye-slash]="adminMostrarPassword()"></i>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Recordar sesión -->
-                  <div class="flex items-center justify-between text-xs pt-1">
-                    <label class="flex items-center gap-2 text-slate-600 cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        [ngModel]="adminRecordar()" 
-                        (ngModelChange)="adminRecordar.set($event)"
-                        name="recordar"
-                        class="rounded border-slate-300 text-[#1E3A7B] focus:ring-0"
-                      />
-                      <span>Recordar en este equipo</span>
-                    </label>
-                    <a href="javascript:void(0)" class="text-[#1E3A7B] font-semibold hover:underline">¿Olvidó su clave?</a>
-                  </div>
-
-                  <!-- Submit Button -->
-                  <div class="pt-2">
-                    <button 
-                      type="submit" 
-                      [disabled]="isLoading()"
-                      class="w-full bg-[#1E3A7B] hover:bg-slate-900 text-white font-bold text-sm py-3 px-4 rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
-                    >
-                      @if (isLoading()) {
-                        <i class="fa-solid fa-circle-notch fa-spin text-sm"></i>
-                        <span>Iniciando sesión...</span>
-                      } @else {
-                        <i class="fa-solid fa-right-to-bracket text-sm"></i>
-                        <span>Ingresar al Panel Administrativo</span>
-                      }
-                    </button>
-                  </div>
-
-                </form>
-
-                <!-- Demo Admin Button -->
-                <div class="mt-6 pt-5 border-t border-slate-100">
-                  <button 
-                    (click)="cargarAdminDemo()" 
-                    type="button" 
-                    class="w-full p-3 bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 rounded-xl text-left transition cursor-pointer group"
-                  >
-                    <div class="flex items-center justify-between">
-                      <span class="text-xs font-bold text-slate-800 group-hover:text-[#1E3A7B]">Ingreso Rápido de Prueba</span>
-                      <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded">Gestor Tributario</span>
-                    </div>
-                    <span class="text-[10px] text-slate-400 block mt-0.5">Samuel Díaz &middot; sdiaz@cauca.gov.co</span>
-                  </button>
-                </div>
-              </div>
-            }
-
-          </div>
-        </div>
-
       </div>
-    }
+    </header>
 
-    <!-- ======================================================== -->
-    <!-- ESTADO B: VISTA CIUDADANA MAPEADA                         -->
-    <!-- ======================================================== -->
-    @if (isConsulted() && ciudadano(); as c) {
-      
-      <!-- ====================================================== -->
-      <!-- PESTAÑA 1: INICIO (VISTA PRINCIPAL)                    -->
-      <!-- ====================================================== -->
-      @if (activeTab() === 'inicio') {
-        <div class="space-y-6">
+    <!-- MOBILE TABS NAVBAR -->
+    <div class="md:hidden bg-white border-b border-slate-200 p-2 flex justify-around text-xs font-bold">
+      <button (click)="cambiarTab('inicio')" [class.text-[#0f4984]]="activeTab() === 'inicio'" class="px-2 py-1">Inicio</button>
+      <button (click)="cambiarTab('historial')" [class.text-[#0f4984]]="activeTab() === 'historial'" class="px-2 py-1">Historial</button>
+      <button (click)="cambiarTab('liquidaciones')" [class.text-[#0f4984]]="activeTab() === 'liquidaciones'" class="px-2 py-1">Liquidaciones</button>
+      <button (click)="cambiarTab('certificados')" [class.text-[#0f4984]]="activeTab() === 'certificados'" class="px-2 py-1">Certificados</button>
+    </div>
 
-          <!-- B1. BIENVENIDA CIUDADANO (CARD BLANCA) -->
-          <div class="bg-white rounded-xl border border-slate-200 p-6 sm:p-7 shadow-xs">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <span class="text-xs text-slate-500">Bienvenido,</span>
-                <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight mt-0.5">
-                  {{ c.nombre }}
-                </h1>
-                <div class="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                  <span>{{ c.tipoDocumento }}. {{ c.documento }}</span>
-                  <span>&bull;</span>
-                  <span>{{ c.ciudad }}</span>
-                </div>
-              </div>
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
 
-              <!-- Quick action -->
-              <div class="flex items-center gap-2">
-                <button 
-                  (click)="nuevaConsulta()"
-                  class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs px-3.5 py-2 rounded-lg transition cursor-pointer"
-                >
-                  Consultar otro vehículo
-                </button>
-              </div>
-            </div>
-          </div>
+      @if (ciudadano()) {
 
-          <!-- B2. ALERTA DE DEUDAS PENDIENTES (BANNER ÁMBAR) -->
-          @if (totalVehiculosPendientes() > 0) {
-            <div class="bg-[#FFFBEB] border border-[#FDE68A] rounded-xl p-4 sm:px-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs">
-              <div class="flex items-center gap-3">
-                <div class="w-6 h-6 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
-                  <i class="fa-solid fa-circle-exclamation text-xs"></i>
-                </div>
-                <div class="text-slate-800">
-                  <span>Tiene <strong class="font-bold text-slate-900">{{ totalVehiculosPendientes() }} vehículos</strong> con liquidaciones pendientes de pago. Vence el <strong class="font-bold text-slate-900">30 de junio de 2024</strong>.</span>
-                </div>
-              </div>
-              <button 
-                (click)="cambiarTab('liquidaciones')"
-                class="text-amber-800 hover:text-amber-950 font-bold hover:underline self-end sm:self-auto cursor-pointer shrink-0"
-              >
-                Ver deudas
-              </button>
-            </div>
-          }
-
-          <!-- B3. 4 TARJETAS DE ACCESOS RÁPIDOS -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- ======================================================== -->
+        <!-- PESTAÑA 1: INICIO (PROPUESTA BLANCA CON <HR> Y MUNICIPIO)  -->
+        <!-- ======================================================== -->
+        @if (activeTab() === 'inicio') {
+          <div class="space-y-6 animate-fadeIn">
             
-            <!-- Card 1: Mis vehículos (Icono Verde) -->
-            <div 
-              (click)="cambiarTab('vehiculos')"
-              class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div class="text-[#70B238] mb-3 group-hover:scale-105 transition-transform">
-                <i class="fa-solid fa-car text-2xl"></i>
+            <!-- TARJETA SUPERIOR: PLACA GRÁFICA Y RESUMEN TÉCNICO DE VEHÍCULO -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+              
+              <!-- Izquierda: Gráfico de Placa Amarilla Oficial -->
+              <div class="w-full md:w-auto flex justify-center">
+                <div class="relative w-64 sm:w-72 bg-[#FFD100] border-4 border-slate-950 rounded-2xl p-4 shadow-md text-slate-950 text-center select-none">
+                  <!-- Remaches superiores -->
+                  <div class="absolute top-2 left-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
+                  <div class="absolute top-2 right-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
+                  
+                  <!-- Placa Text -->
+                  <div class="font-mono font-black text-4xl sm:text-5xl tracking-widest leading-none pt-1">
+                    {{ ciudadano()?.vehiculo?.placa }}
+                  </div>
+                  
+                  <!-- Leyenda inferior (Municipio de Tránsito Formateado) -->
+                  <div class="text-[10px] sm:text-[11px] font-black tracking-widest uppercase mt-2 pt-1 border-t border-slate-950/40 text-slate-900 truncate">
+                    {{ ciudadano()?.vehiculo?.organismoTransitoNombre || 'No especificado' }}
+                  </div>
+
+                  <!-- Remaches inferiores -->
+                  <div class="absolute bottom-2 left-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
+                  <div class="absolute bottom-2 right-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
+                </div>
               </div>
-              <h3 class="font-bold text-slate-900 text-sm">Mis vehículos</h3>
-              <p class="text-xs text-slate-500 mt-1">{{ c.vehiculos.length }} registrados</p>
-            </div>
 
-            <!-- Card 2: Liquidaciones (Icono Naranja) -->
-            <div 
-              (click)="cambiarTab('liquidaciones')"
-              class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div class="text-amber-500 mb-3 group-hover:scale-105 transition-transform">
-                <i class="fa-regular fa-credit-card text-2xl"></i>
-              </div>
-              <h3 class="font-bold text-slate-900 text-sm">Liquidaciones</h3>
-              <p class="text-xs text-slate-500 mt-1">{{ totalVehiculosPendientes() }} pendientes</p>
-            </div>
+              <!-- Derecha: RESUMEN DE VEHÍCULO -->
+              <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 w-full">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider m-0">RESUMEN DE VEHÍCULO</h2>
+                  </div>
 
-            <!-- Card 3: Certificados (Icono Azul) -->
-            <div 
-              (click)="cambiarTab('certificados')"
-              class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div class="text-blue-600 mb-3 group-hover:scale-105 transition-transform">
-                <i class="fa-solid fa-award text-2xl"></i>
-              </div>
-              <h3 class="font-bold text-slate-900 text-sm">Certificados</h3>
-              <p class="text-xs text-slate-500 mt-1">{{ c.certificados.length }} generados</p>
-            </div>
+                  <span 
+                    class="px-2.5 py-0.5 rounded-md text-[11px] font-bold border"
+                    [ngClass]="ciudadano()?.vehiculo?.estadoGeneral === 'Al día' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
+                  >
+                    <i class="fa-solid font-xs mr-1" [ngClass]="ciudadano()?.vehiculo?.estadoGeneral === 'Al día' ? 'fa-circle-check text-emerald-600' : 'fa-triangle-exclamation text-amber-600'"></i>
+                    {{ ciudadano()?.vehiculo?.estadoGeneral }}
+                  </span>
+                </div>
 
-            <!-- Card 4: Mis solicitudes (Icono Púrpura) -->
-            <div 
-              class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all cursor-pointer group"
-            >
-              <div class="text-purple-600 mb-3 group-hover:scale-105 transition-transform">
-                <i class="fa-regular fa-file-lines text-2xl"></i>
-              </div>
-              <h3 class="font-bold text-slate-900 text-sm">Mis solicitudes</h3>
-              <p class="text-xs text-slate-500 mt-1">1 en revisión</p>
-            </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Marca</span>
+                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.vehiculo?.marca }}</span>
+                  </div>
 
-          </div>
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Modelo / Línea</span>
+                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.vehiculo?.linea }}</span>
+                  </div>
 
-          <!-- B4. ACTIVIDAD RECIENTE -->
-          <div class="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
-            <div class="p-4 sm:px-6 border-b border-slate-100 flex items-center justify-between">
-              <h2 class="font-bold text-slate-900 text-sm">Actividad reciente</h2>
-            </div>
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Año / Modelo</span>
+                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.vehiculo?.modelo }}</span>
+                  </div>
 
-            <div class="divide-y divide-slate-100">
-              @for (act of c.actividades; track act.titulo) {
-                <div class="p-4 sm:px-6 flex items-center justify-between hover:bg-slate-50/60 transition">
-                  <div class="flex items-center gap-3">
-                    @if (act.tipo === 'pago') {
-                      <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                    } @else if (act.tipo === 'tramite') {
-                      <span class="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
-                    } @else {
-                      <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0"></span>
-                    }
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Cilindraje</span>
+                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">
+                      {{ ciudadano()?.vehiculo?.cilindraje ? ciudadano()?.vehiculo?.cilindraje + ' cc' : '-' }}
+                    </span>
+                  </div>
+                </div>
 
-                    <span class="text-xs sm:text-sm text-slate-700">
-                      {{ act.titulo }} @if (act.placa) { &mdash; <strong class="font-medium text-slate-900">{{ act.placa }}</strong> }
+                <div class="mt-3 pt-3 border-t border-slate-200/70 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Clase / Tipo:</span>
+                    <span class="font-semibold text-slate-800 block text-xs">
+                      {{ ciudadano()?.vehiculo?.clase || ciudadano()?.vehiculo?.tipoVehiculo || '-' }}
                     </span>
                   </div>
 
-                  <span class="text-xs text-slate-400 font-medium">{{ act.fecha }}</span>
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Servicio / Combustible:</span>
+                    <span class="font-semibold text-slate-800 block text-xs">
+                      {{ ciudadano()?.vehiculo?.servicio || '-' }} &middot; {{ ciudadano()?.vehiculo?.combustible || '-' }}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Municipio / Tránsito:</span>
+                    <span class="font-semibold text-slate-800 block text-xs truncate">
+                      {{ ciudadano()?.vehiculo?.organismoTransitoNombre || 'No especificado' }}
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- SECCIÓN 1: INFORMACIÓN DEL PROPIETARIO (PROPUESTA BLANCA CON <HR>) -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+              <!-- Encabezado Blanco -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center text-base border border-blue-100 font-bold shrink-0">
+                    <i class="fa-solid fa-user-tie"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 m-0 leading-tight uppercase tracking-wide">INFORMACIÓN DEL PROPIETARIO</h3>
+                    <span class="text-[11.5px] text-slate-500 font-medium block mt-0.5">Datos registrados oficialmente ante la Gobernación del Cauca</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0">
+                  <i class="fa-solid fa-shield-check text-emerald-600"></i>
+                  <span>{{ ciudadano()?.propietario?.activo ? 'Activo' : 'Inactivo' }}</span>
+                </div>
+              </div>
+
+              <!-- Divisor horizontal -->
+              <hr class="border-t border-slate-200/80 my-4" />
+
+              <!-- Card Body Content -->
+              <div class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Nombre Completo</span>
+                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.propietario?.nombre }}</span>
+                  </div>
+
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Número de Documento</span>
+                    <span class="font-bold text-slate-800 text-sm block mt-0.5 font-mono">{{ ciudadano()?.propietario?.documento }}</span>
+                  </div>
+
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Tipo de Documento</span>
+                    <span class="font-bold text-slate-800 text-sm block mt-0.5">{{ ciudadano()?.propietario?.tipoDocumentoNombre }}</span>
+                  </div>
+
+                  <div>
+                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Vínculo con el Vehículo</span>
+                    <span class="font-bold text-slate-800 text-sm block mt-0.5">
+                      {{ ciudadano()?.relacion?.tipoVinculo }} ({{ ciudadano()?.relacion?.porcentaje }}%)
+                    </span>
+                  </div>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div class="flex items-center gap-2 text-slate-600">
+                    <i class="fa-solid fa-envelope text-slate-400"></i>
+                    <span><strong class="text-slate-700">Email:</strong> {{ ciudadano()?.propietario?.email || 'No registrado' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600">
+                    <i class="fa-solid fa-phone text-slate-400"></i>
+                    <span><strong class="text-slate-700">Teléfono:</strong> {{ ciudadano()?.propietario?.telefono || 'No registrado' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-slate-600">
+                    <i class="fa-solid fa-location-dot text-slate-400"></i>
+                    <span><strong class="text-slate-700">Dirección:</strong> {{ ciudadano()?.propietario?.direccion || 'No registrada' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 2: HISTORIAL DEL AUTOMÓVIL (PROPUESTA BLANCA CON <HR>) -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+              <!-- Encabezado Blanco -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center text-base border border-blue-100 font-bold shrink-0">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 m-0 leading-tight uppercase tracking-wide">HISTORIAL DEL AUTOMÓVIL</h3>
+                    <span class="text-[11.5px] text-slate-500 font-medium block mt-0.5">Registro cronológico de trámites y novedades vehiculares</span>
+                  </div>
+                </div>
+
+                <button 
+                  (click)="cambiarTab('historial')" 
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer shrink-0"
+                >
+                  <span>Ver Historial Completo</span>
+                  <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+              </div>
+
+              <!-- Divisor horizontal -->
+              <hr class="border-t border-slate-200/80 my-4" />
+
+              <!-- Timeline View -->
+              <div class="space-y-4">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Timeline View &middot; Trámites Registrados</span>
+
+                @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    @for (ev of ciudadano()?.vehiculo?.historial; track $index) {
+                      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl relative pl-4 border-l-4 border-l-[#0f4984]">
+                        <span class="font-extrabold text-slate-900 block text-xs">{{ ev.accion }}</span>
+                        <span class="text-[10.5px] text-slate-500 font-semibold block mt-0.5">
+                          <i class="fa-regular fa-calendar mr-1"></i>{{ ev.fecha | date:'yyyy-MM-dd HH:mm' }}
+                        </span>
+                        @if (ev.usuario) {
+                          <span class="text-[11px] text-slate-400 block mt-1 leading-snug">Registrado por: {{ ev.usuario }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+                    No se registran trámites históricos en el sistema para este automotor.
+                  </div>
+                }
+
+                <!-- Novedades / Gravámenes -->
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  @if (ciudadano()?.vehiculo?.novedades && ciudadano()!.vehiculo.novedades.length > 0) {
+                    <div class="flex items-center gap-2 text-amber-800 font-semibold bg-amber-50 px-3 py-1 rounded-lg border border-amber-200 w-full">
+                      <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                      <span>Registra novedades: {{ ciudadano()!.vehiculo.novedades.length }} novedad(es) activa(s).</span>
+                    </div>
+                  } @else {
+                    <div class="flex items-center gap-2 text-emerald-700 font-semibold bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 w-full">
+                      <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                      <span>Estado de Gravámenes y Embargos: Sin novedades ni limitaciones registradas.</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- SECCIÓN 3:  DEUDAS VIGENTES (PROPUESTA BLANCA CON <HR>) -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
+              <!-- Encabezado Blanco -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3.5">
+                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center text-base border border-blue-100 font-bold shrink-0">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 m-0 leading-tight uppercase tracking-wide">INFORMACIÓN DEUDAS VIGENTES</h3>
+                    <span class="text-[11.5px] text-slate-500 font-medium block mt-0.5">Estado de cuenta del impuesto vehicular y opciones de pago PSE</span>
+                  </div>
+                </div>
+
+                <button 
+                  (click)="cambiarTab('liquidaciones')" 
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer shrink-0"
+                >
+                  <span>Ver Liquidaciones</span>
+                  <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </button>
+              </div>
+
+              <!-- Divisor horizontal -->
+              <hr class="border-t border-slate-200/80 my-4" />
+
+              <!-- Summary Table -->
+              @if (ciudadano()?.vehiculo?.liquidaciones && ciudadano()!.vehiculo.liquidaciones.length > 0) {
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px]">
+                        <th class="py-3 px-4">Vigencia</th>
+                        <th class="py-3 px-4">Detalle</th>
+                        <th class="py-3 px-4">Estado</th>
+                        <th class="py-3 px-4">Valor ($ COP)</th>
+                        <th class="py-3 px-4 text-right">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                      @for (liq of ciudadano()?.vehiculo?.liquidaciones; track liq.id) {
+                        <tr class="hover:bg-slate-50 transition-colors">
+                          <td class="py-3.5 px-4 font-bold text-slate-900 font-mono">
+                            {{ liq.vigencia }}
+                          </td>
+
+                          <td class="py-3.5 px-4">
+                            <span class="font-semibold text-slate-800 block text-xs">{{ liq.detalle }}</span>
+                            <span class="text-[10px] text-slate-400 font-mono block">Placa: {{ liq.placa }}</span>
+                          </td>
+
+                          <td class="py-3.5 px-4">
+                            <span 
+                              class="px-2.5 py-0.5 rounded-md text-[11px] font-bold inline-flex items-center gap-1 border"
+                              [ngClass]="liq.esPagada ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
+                            >
+                              <i class="fa-solid text-[9px]" [ngClass]="liq.esPagada ? 'fa-circle-check text-emerald-600' : 'fa-clock text-amber-600'"></i>
+                              {{ liq.esPagada ? 'Satisfecho' : liq.estado }}
+                            </span>
+                          </td>
+
+                          <td class="py-3.5 px-4 font-mono font-extrabold text-slate-900 text-sm">
+                            ${{ liq.valor | number:'1.0-0' }} COP
+                          </td>
+
+                          <td class="py-3.5 px-4 text-right">
+                            @if (!liq.esPagada && liq.valor > 0) {
+                              <button 
+                                (click)="abrirPago(liq)" 
+                                type="button" 
+                                class="px-4 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer border-none"
+                              >
+                                Pagar Ahora
+                              </button>
+                            } @else {
+                              <span class="text-emerald-600 font-bold text-xs inline-flex items-center gap-1">
+                                <i class="fa-solid fa-check"></i> Al Día
+                              </span>
+                            }
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+                  No se registran liquidaciones emitidas para este automotor.
                 </div>
               }
             </div>
+
           </div>
+        }
 
-        </div>
-      }
+        <!-- ======================================================== -->
+        <!-- PESTAÑA 2: HISTORIAL COMPLETO                            -->
+        <!-- ======================================================== -->
+        <!-- ======================================================== -->
+        <!-- PESTAÑA 2: HISTORIAL DE TRÁMITES (LÍNEA DE TIEMPO OFICIAL)  -->
+        <!-- ======================================================== -->
+        @if (activeTab() === 'historial') {
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
+            
+            <!-- ENCABEZADO OFICIAL -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
+              <div>
+                <h2 class="text-base font-extrabold text-slate-900 m-0">Historial de Trámites y Movimientos</h2>
+                <p class="text-xs text-slate-500 mt-1 m-0">Registro cronológico oficial de la hoja de vida del automotor con placa <strong class="font-mono text-slate-800">{{ ciudadano()?.vehiculo?.placa }}</strong>.</p>
+              </div>
+              <span class="px-3 py-1 bg-blue-50 text-[#0f4984] font-bold text-xs rounded-lg border border-blue-100 flex items-center gap-1.5 shrink-0">
+                <i class="fa-solid fa-clock-rotate-left text-blue-600 text-xs"></i>
+                Línea de Tiempo Oficial
+              </span>
+            </div>
 
-      <!-- ====================================================== -->
-      <!-- PESTAÑA 2: MIS VEHÍCULOS                               -->
-      <!-- ====================================================== -->
-      @if (activeTab() === 'vehiculos') {
-        <div class="space-y-4">
-          
-          <!-- Header de Sección -->
-          <div class="mb-6">
-            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Mis vehículos</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Vehículos registrados a su nombre.</p>
-          </div>
-
-          <!-- Listado de Tarjetas de Vehículos -->
-          @for (v of c.vehiculos; track v.placa) {
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden p-5 transition hover:border-slate-300">
-              
-              <!-- Fila Superior -->
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <!-- CONTENEDOR LÍNEA DE TIEMPO CON CONECTORES Y NODOS CONCÉNTRICOS -->
+            @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
+              <div class="relative space-y-2 py-2">
                 
-                <div class="flex items-center gap-3.5">
-                  <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                    <i class="fa-solid fa-car text-base"></i>
-                  </div>
-                  
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="font-bold text-slate-900 text-base tracking-wide">{{ v.placa }}</span>
-                      
-                      <!-- Badge de Estado -->
-                      @if (v.estado === 'Al día') {
-                        <span class="bg-emerald-50 text-emerald-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-                          <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                          Al día
-                        </span>
-                      } @else {
-                        <span class="bg-amber-50 text-amber-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
-                          <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                          Pendiente
-                        </span>
-                      }
-                    </div>
-                    <span class="text-xs text-slate-500 font-medium block mt-0.5">{{ v.marca }} {{ v.linea }}</span>
-                  </div>
-                </div>
+                @for (ev of ciudadano()?.vehiculo?.historial; track $index) {
+                  <div class="group relative flex items-center gap-3 sm:gap-4">
+                    
+                    <!-- COLUMNA IZQUIERDA: LÍNEA DE TIEMPO CON NODO CIRCULAR CONCÉNTRICO -->
+                    <div class="relative w-12 sm:w-16 h-16 shrink-0 select-none flex items-center justify-center">
+                      <svg class="absolute inset-0 w-full h-full overflow-visible pointer-events-none" viewBox="0 0 64 64">
+                        <!-- Línea vertical continua gris de fondo -->
+                        <line x1="24" y1="0" x2="24" y2="64" stroke="#cbd5e1" stroke-width="2" />
+                        
+                        <!-- Pista azul institucional continua para la línea principal -->
+                        <line x1="24" y1="0" x2="24" y2="64" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" stroke-opacity="0.85" />
 
-                <!-- Monto de Deuda -->
-                @if (v.deuda) {
-                  <div class="text-left sm:text-right">
-                    <span class="text-[11px] text-slate-400 block font-medium">Deuda</span>
-                    <span class="text-base font-bold text-amber-600 font-mono">{{ v.deuda | currency:'COP':'$':'1.0-0' }}</span>
+                        <!-- Curva o derivación conectora si la pista es secundaria -->
+                        @if (ev.trackIndex === 1) {
+                          <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#f59e0b" stroke-width="2" />
+                        }
+                        @if (ev.trackIndex === 2) {
+                          <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#10b981" stroke-width="2" />
+                        }
+
+                        <!-- CÍRCULO NODO CONCÉNTRICO (ANILLO EXTERIOR E INTERIOR) -->
+                        <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="8" fill="white" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" />
+                        <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="3.5" [attr.fill]="ev.colorHex || '#0f4984'" />
+                      </svg>
+                    </div>
+
+                    <!-- TARJETA CONTENIDO DEL EVENTO EN ESTÉTICA OFICIAL DEL PORTAL -->
+                    <div class="flex-1 bg-slate-50/80 group-hover:bg-blue-50/40 border border-slate-200/90 group-hover:border-blue-200 rounded-xl p-3.5 sm:p-4 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                      
+                      <div class="space-y-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <!-- BADGE DE CATEGORÍA -->
+                          <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold border shrink-0" [ngClass]="ev.badgeClass || 'bg-blue-100 text-[#0f4984] border-blue-200'">
+                            {{ ev.categoriaNombre || 'Trámite' }}
+                          </span>
+
+                          <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 m-0 truncate group-hover:text-[#0f4984] transition-colors">
+                            {{ ev.accion }}
+                          </h3>
+                        </div>
+
+                        <!-- USUARIO Y REGISTRO RESPONSABLE -->
+                        @if (ev.usuario) {
+                          <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                            <i class="fa-solid fa-building-columns text-slate-400 text-[10px]"></i>
+                            <span>{{ ev.usuario }}</span>
+                          </div>
+                        }
+                      </div>
+
+                      <!-- FECHA Y HORA EN FORMATO ESPAÑOL ELEGANTE -->
+                      <div class="shrink-0 text-left sm:text-right">
+                        <div class="inline-flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs">
+                          <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1">
+                            <i class="fa-regular fa-calendar-check text-blue-600 text-xs"></i>
+                            {{ ev.fechaFormateada || ev.fecha }}
+                          </span>
+                          @if (ev.horaFormateada) {
+                            <span class="text-[10.5px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                              <i class="fa-regular fa-clock text-slate-400 mr-0.5"></i>
+                              {{ ev.horaFormateada }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+
+                    </div>
+
                   </div>
                 }
 
               </div>
-
-              <!-- Fila Inferior: Columnas MODELO, TIPO, SERVICIO, CILINDRAJE y Link Hoja de Vida -->
-              <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 pt-4 text-xs items-center">
-                
-                <div>
-                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">MODELO</span>
-                  <span class="font-bold text-slate-800 text-sm mt-0.5 block">{{ v.modelo }}</span>
-                </div>
-
-                <div>
-                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">TIPO</span>
-                  <span class="font-semibold text-slate-800 text-xs mt-0.5 block">{{ v.tipo }}</span>
-                </div>
-
-                <div>
-                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">SERVICIO</span>
-                  <span class="font-semibold text-slate-800 text-xs mt-0.5 block">{{ v.servicio }}</span>
-                </div>
-
-                <div>
-                  <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">CILINDRAJE</span>
-                  <span class="font-semibold text-slate-800 text-xs mt-0.5 block">{{ v.cilindraje }}</span>
-                </div>
-
-                <div class="text-left sm:text-right col-span-2 sm:col-span-1 pt-2 sm:pt-0">
-                  <button 
-                    (click)="verHojaDeVida(v)"
-                    class="text-[#70B238] hover:text-[#5a912c] font-bold text-xs inline-flex items-center gap-1.5 transition cursor-pointer hover:underline"
-                  >
-                    <span>Ver hoja de vida</span>
-                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                  </button>
-                </div>
-
+            } @else {
+              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center font-medium">
+                No registra trámites históricos en el sistema.
               </div>
+            }
 
-            </div>
-          }
-
-        </div>
-      }
-
-      <!-- ====================================================== -->
-      <!-- PESTAÑA 3: LIQUIDACIONES                               -->
-      <!-- ====================================================== -->
-      @if (activeTab() === 'liquidaciones') {
-        <div class="space-y-6">
-          
-          <!-- Header de Sección y Filtros -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Historial de Liquidaciones</h1>
-              <p class="text-xs text-slate-500 mt-0.5">Liquidaciones oficiales pagadas y pendientes clasificadas por vehículo.</p>
-            </div>
-
-            <!-- Filtros de Estado -->
-            <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-semibold self-start sm:self-auto">
-              <button 
-                (click)="setFiltroEstadoLiquidacion('TODAS')"
-                [class.bg-white]="filtroEstadoLiquidacion() === 'TODAS'"
-                [class.text-slate-900]="filtroEstadoLiquidacion() === 'TODAS'"
-                [class.shadow-2xs]="filtroEstadoLiquidacion() === 'TODAS'"
-                [class.text-slate-500]="filtroEstadoLiquidacion() !== 'TODAS'"
-                class="px-3 py-1.5 rounded-lg transition cursor-pointer"
-              >
-                Todas
-              </button>
-              <button 
-                (click)="setFiltroEstadoLiquidacion('PENDIENTE')"
-                [class.bg-white]="filtroEstadoLiquidacion() === 'PENDIENTE'"
-                [class.text-amber-700]="filtroEstadoLiquidacion() === 'PENDIENTE'"
-                [class.shadow-2xs]="filtroEstadoLiquidacion() === 'PENDIENTE'"
-                [class.text-slate-500]="filtroEstadoLiquidacion() !== 'PENDIENTE'"
-                class="px-3 py-1.5 rounded-lg transition cursor-pointer"
-              >
-                Pendientes
-              </button>
-              <button 
-                (click)="setFiltroEstadoLiquidacion('PAGADA')"
-                [class.bg-white]="filtroEstadoLiquidacion() === 'PAGADA'"
-                [class.text-emerald-700]="filtroEstadoLiquidacion() === 'PAGADA'"
-                [class.shadow-2xs]="filtroEstadoLiquidacion() === 'PAGADA'"
-                [class.text-slate-500]="filtroEstadoLiquidacion() !== 'PAGADA'"
-                class="px-3 py-1.5 rounded-lg transition cursor-pointer"
-              >
-                Pagadas
-              </button>
-            </div>
           </div>
+        }
 
-          <!-- VEHÍCULOS Y SUS LIQUIDACIONES -->
-          @for (v of c.vehiculos; track v.placa) {
-            
-            <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-              
-              <!-- Cabecera del Vehículo -->
-              <div class="bg-slate-50/80 p-4 sm:px-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                  <div class="px-2.5 py-1 bg-[#FFD100] text-slate-900 font-mono font-black text-xs rounded border border-amber-400 tracking-wider">
-                    {{ v.placa }}
-                  </div>
-                  <div>
-                    <h2 class="text-sm font-bold text-slate-900">{{ v.marca }} {{ v.linea }} ({{ v.modelo }})</h2>
-                    <span class="text-[11px] text-slate-500">{{ v.tipo }} &middot; {{ v.cilindraje }} &middot; {{ v.servicio }}</span>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  @if (v.deuda) {
-                    <span class="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full">
-                      Saldo pendiente: {{ v.deuda | currency:'COP':'$':'1.0-0' }}
-                    </span>
-                  } @else {
-                    <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5">
-                      <i class="fa-solid fa-check text-[10px]"></i>
-                      Paz y Salvo
-                    </span>
-                  }
-                </div>
+        <!-- ======================================================== -->
+        <!-- PESTAÑA 3: LIQUIDACIONES                                 -->
+        <!-- ======================================================== -->
+        @if (activeTab() === 'liquidaciones') {
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h2 class="text-base font-bold text-slate-900 m-0">Liquidaciones Oficiales del Impuesto Vehicular</h2>
+                <p class="text-xs text-slate-500 mt-1 m-0">Consulte el estado de sus vigencias tributarias y realice el pago seguro por PSE.</p>
               </div>
+            </div>
 
-              <!-- Tabla de Liquidaciones del Vehículo -->
+            @if (ciudadano()?.vehiculo?.liquidaciones && ciudadano()!.vehiculo.liquidaciones.length > 0) {
               <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                  <thead class="bg-white text-slate-400 uppercase text-[10px] font-bold tracking-wider border-b border-slate-100">
-                    <tr>
-                      <th class="py-3 px-4 sm:px-6">Vigencia</th>
-                      <th class="py-3 px-3">Referencia</th>
-                      <th class="py-3 px-3">Concepto Tributario</th>
-                      <th class="py-3 px-3">Fecha</th>
-                      <th class="py-3 px-3 text-right">Valor Total</th>
-                      <th class="py-3 px-3 text-center">Estado</th>
-                      <th class="py-3 px-4 sm:px-6 text-right">Acción</th>
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px]">
+                      <th class="py-3 px-4">Vigencia</th>
+                      <th class="py-3 px-4">Placa</th>
+                      <th class="py-3 px-4">Detalle / Referencia</th>
+                      <th class="py-3 px-4">Valor</th>
+                      <th class="py-3 px-4">Estado</th>
+                      <th class="py-3 px-4 text-right">Acción</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-100">
-                    @for (liq of v.liquidaciones; track liq.id) {
-                      @if (filtroEstadoLiquidacion() === 'TODAS' || filtroEstadoLiquidacion() === liq.estado) {
-                        <tr class="hover:bg-slate-50/60 transition">
-                          
-                          <td class="py-3.5 px-4 sm:px-6 font-bold text-slate-900 whitespace-nowrap">
-                            {{ liq.vigencia }}
-                          </td>
-
-                          <td class="py-3.5 px-3 font-mono text-slate-600 text-[11px] whitespace-nowrap">
-                            {{ liq.referencia }}
-                          </td>
-
-                          <td class="py-3.5 px-3 text-slate-700 max-w-xs">
-                            <span class="font-medium block truncate">{{ liq.concepto }}</span>
-                            @if (liq.fechaVencimiento) {
-                              <span class="text-[10px] text-amber-600 block">Vence: {{ liq.fechaVencimiento }}</span>
-                            }
-                          </td>
-
-                          <td class="py-3.5 px-3 text-slate-500 whitespace-nowrap">
-                            {{ liq.fecha }}
-                          </td>
-
-                          <td class="py-3.5 px-3 text-right font-mono font-bold text-slate-900 whitespace-nowrap">
-                            {{ liq.valor | currency:'COP':'$':'1.0-0' }}
-                          </td>
-
-                          <td class="py-3.5 px-3 text-center whitespace-nowrap">
-                            @if (liq.estado === 'PAGADA') {
-                              <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                                Pagada
-                              </span>
-                            } @else {
-                              <span class="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                                Pendiente
-                              </span>
-                            }
-                          </td>
-
-                          <td class="py-3.5 px-4 sm:px-6 text-right whitespace-nowrap">
-                            @if (liq.estado === 'PENDIENTE') {
-                              <button 
-                                (click)="abrirPago(liq)"
-                                class="bg-[#28a745] hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shadow-2xs cursor-pointer inline-flex items-center gap-1.5"
-                              >
-                                <i class="fa-solid fa-credit-card text-[11px]"></i>
-                                <span>Pagar PSE</span>
-                              </button>
-                            } @else {
-                              <button 
-                                class="border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 text-xs font-semibold px-2.5 py-1 rounded-lg transition cursor-pointer inline-flex items-center gap-1"
-                                title="Descargar Comprobante Oficial"
-                              >
-                                <i class="fa-solid fa-download text-[10px] text-slate-400"></i>
-                                <span>Recibo</span>
-                              </button>
-                            }
-                          </td>
-
-                        </tr>
-                      }
+                    @for (l of ciudadano()?.vehiculo?.liquidaciones; track l.id) {
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="py-3.5 px-4 font-bold text-slate-800">{{ l.vigencia }}</td>
+                        <td class="py-3.5 px-4 font-mono font-semibold text-slate-600">{{ l.placa }}</td>
+                        <td class="py-3.5 px-4 text-slate-700">{{ l.detalle }}</td>
+                        <td class="py-3.5 px-4 font-mono font-extrabold text-slate-900">${{ l.valor | number:'1.0-0' }} COP</td>
+                        <td class="py-3.5 px-4">
+                          <span 
+                            class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
+                            [ngClass]="l.esPagada ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'"
+                          >
+                            {{ l.esPagada ? 'Satisfecho' : l.estado }}
+                          </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-right">
+                          @if (!l.esPagada && l.valor > 0) {
+                            <button (click)="abrirPago(l)" class="px-3.5 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white font-bold rounded-lg cursor-pointer">
+                              Pagar PSE
+                            </button>
+                          } @else {
+                            <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>Pagado</span>
+                          }
+                        </td>
+                      </tr>
                     }
                   </tbody>
                 </table>
               </div>
-
-            </div>
-
-          }
-
-        </div>
-      }
-
-      <!-- ====================================================== -->
-      <!-- PESTAÑA 4: CERTIFICADOS                                -->
-      <!-- ====================================================== -->
-      @if (activeTab() === 'certificados') {
-        <div class="space-y-6">
-          
-          <!-- Header de Sección -->
-          <div>
-            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Certificados</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Documentos tributarios generados a su nombre.</p>
-          </div>
-
-          <!-- Grid de Certificados (3 Columnas) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            @for (cert of c.certificados; track cert.id) {
-              <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
-                
-                <div>
-                  <div class="flex items-start gap-3 mb-4">
-                    <div class="text-slate-400 text-xl mt-0.5">
-                      <i class="fa-regular fa-file-lines"></i>
-                    </div>
-                    <div>
-                      <h3 class="font-bold text-slate-900 text-sm leading-tight">{{ cert.tipo }}</h3>
-                      <span class="text-[11px] font-mono text-slate-400 block mt-0.5">{{ cert.codigo }}</span>
-                    </div>
-                  </div>
-
-                  <div class="space-y-1 text-xs text-slate-600 mb-5">
-                    <div class="flex items-center justify-between">
-                      <span class="text-slate-400">Placa</span>
-                      <span class="font-bold text-slate-800 font-mono">{{ cert.placa }}</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                      <span class="text-slate-400">Fecha</span>
-                      <span class="font-medium text-slate-700">{{ cert.fecha }}</span>
-                    </div>
-                  </div>
-
-                  <div class="flex justify-center my-3">
-                    <div class="w-16 h-16 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-600 font-mono text-xs">
-                      <i class="fa-solid fa-qrcode text-2xl text-slate-500"></i>
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  class="w-full mt-3 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs py-2.5 px-4 rounded-xl border border-slate-200 transition flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <i class="fa-solid fa-download text-xs text-slate-500"></i>
-                  <span>Descargar PDF</span>
-                </button>
-
+            } @else {
+              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
+                No registra liquidaciones en el sistema.
               </div>
             }
           </div>
+        }
 
-        </div>
+        <!-- ======================================================== -->
+        <!-- PESTAÑA 4: CERTIFICADOS                                  -->
+        <!-- ======================================================== -->
+        @if (activeTab() === 'certificados') {
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h2 class="text-base font-bold text-slate-900 m-0">Certificados y Paz y Salvo Oficiales</h2>
+                <p class="text-xs text-slate-500 mt-1 m-0">Descargue directamente los soportes en formato PDF para las vigencias satisfechas.</p>
+              </div>
+            </div>
+
+            @if (ciudadano()?.certificados && ciudadano()!.certificados.length > 0) {
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (c of ciudadano()?.certificados; track c.id) {
+                  <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                    <div>
+                      <h3 class="font-bold text-xs text-slate-900 m-0">{{ c.tipo }}</h3>
+                      <span class="text-[10px] text-slate-500 font-mono block mt-1">Código de Verificación: {{ c.codigo }}</span>
+                      <span class="text-[10px] text-slate-400 block mt-0.5">Fecha de Emisión: {{ c.fecha }}</span>
+                    </div>
+                    <button type="button" class="px-3.5 py-2 bg-[#0f4984] hover:bg-[#0c3c6d] text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1.5 shadow-2xs">
+                      <i class="fa-solid fa-download"></i>
+                      <span>Descargar PDF</span>
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center space-y-2">
+                <i class="fa-solid fa-file-circle-xmark text-2xl text-slate-400 block mb-1"></i>
+                <p class="font-semibold text-slate-700 m-0">No registra certificados o paz y salvo disponibles para descarga.</p>
+                <p class="text-slate-400 text-[11px] m-0">Los certificados de paz y salvo se emiten exclusivamente para las vigencias pagadas o cuando no registra deudas vigentes.</p>
+              </div>
+            }
+          </div>
+        }
+
       }
 
-    }
+    </main>
+  </div>
+}
 
-  </main>
+<!-- MODAL DE PASARELA DE PAGO PSE -->
+@if (liquidacionParaPagar()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="px-6 py-4 bg-[#0f4984] text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-credit-card text-lg"></i>
+          <h3 class="text-sm font-bold text-white m-0">Pasarela de Pago PSE</h3>
+        </div>
+        <button (click)="cerrarPago()" class="text-white/80 hover:text-white cursor-pointer bg-transparent border-none">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
 
-  <!-- ========================================== -->
-  <!-- 3. MODAL DE PAGO PSE / LIQUIDACIÓN         -->
-  <!-- ========================================== -->
-  @if (liquidacionParaPagar(); as liq) {
-    <div class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden border border-slate-200">
-        
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-              <i class="fa-solid fa-credit-card text-xs"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-slate-900">Pasarela de Pago PSE</h3>
-              <p class="text-[11px] text-slate-400">Gobernación del Cauca &middot; Secretaría de Hacienda</p>
-            </div>
-          </div>
-          <button (click)="cerrarPago()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
-            <i class="fa-solid fa-xmark text-base"></i>
-          </button>
+      <div class="p-6 text-xs space-y-4">
+        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
+          <span class="text-slate-400 font-bold uppercase text-[10px] block">Vigencia y Placa</span>
+          <span class="text-slate-800 font-mono font-bold text-sm block mt-0.5">
+            {{ liquidacionParaPagar()?.vigencia }} &middot; {{ liquidacionParaPagar()?.placa }}
+          </span>
+          <span class="text-slate-500 block mt-1">{{ liquidacionParaPagar()?.detalle }}</span>
         </div>
 
-        <div class="p-5 space-y-4 text-xs">
-          <div class="bg-slate-50 rounded-xl p-4 space-y-2 border border-slate-200">
-            <div class="flex justify-between">
-              <span class="text-slate-400">Referencia:</span>
-              <span class="font-mono font-bold text-slate-800">{{ liq.referencia }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-400">Vigencia Fiscal:</span>
-              <span class="font-bold text-slate-800">{{ liq.vigencia }}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-slate-400">Concepto:</span>
-              <span class="text-slate-700 font-medium text-right">{{ liq.concepto }}</span>
-            </div>
-            <div class="pt-2 border-t border-slate-200 flex justify-between items-center">
-              <span class="font-bold text-slate-900 text-sm">Total a Pagar:</span>
-              <span class="font-bold text-base text-[#28a745] font-mono">{{ liq.valor | currency:'COP':'$':'1.0-0' }}</span>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <label class="block font-bold text-slate-700 uppercase tracking-wider text-[11px]">Seleccione su Banco</label>
-            <select class="w-full px-3 py-2 border border-slate-200 rounded-xl bg-white text-xs font-semibold focus:outline-none focus:border-[#70B238]">
-              <option>Bancolombia</option>
-              <option>Banco de Bogotá</option>
-              <option>Davivienda</option>
-              <option>Banco Popular</option>
-              <option>Nequi / Daviplata</option>
-            </select>
-          </div>
+        <div class="flex items-center justify-between text-sm py-2 border-y border-slate-100">
+          <span class="font-bold text-slate-700">Total a Pagar:</span>
+          <span class="font-extrabold text-[#0f4984] font-mono text-base">${{ liquidacionParaPagar()?.valor | number:'1.0-0' }} COP</span>
         </div>
 
-        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
-          <button (click)="cerrarPago()" class="px-4 py-2 border border-slate-200 text-slate-600 hover:bg-white rounded-lg text-xs font-semibold cursor-pointer">
-            Cancelar
-          </button>
-          <button class="px-4 py-2 bg-[#28a745] hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer flex items-center gap-1.5">
-            <i class="fa-solid fa-lock text-xs"></i>
-            <span>Ir a PSE</span>
-          </button>
+        <div class="space-y-2">
+          <label class="block font-bold text-slate-700">Seleccione su Banco:</label>
+          <select class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold cursor-pointer">
+            <option>Bancolombia</option>
+            <option>Banco de Bogotá</option>
+            <option>Davivienda</option>
+            <option>Nequi / Daviplata</option>
+            <option>BBVA Colombia</option>
+          </select>
         </div>
+      </div>
 
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button (click)="cerrarPago()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer">
+          Cancelar
+        </button>
+        <button (click)="cerrarPago()" class="px-5 py-2 rounded-xl text-xs font-bold bg-[#0f4984] hover:bg-[#0c3c6d] text-white shadow-sm transition cursor-pointer border-none">
+          Pagar Ahora
+        </button>
       </div>
     </div>
-  }
-
-  <!-- ========================================== -->
-  <!-- 4. MODAL DETALLE DE HOJA DE VIDA           -->
-  <!-- ========================================== -->
-  @if (vehiculoSeleccionado(); as v) {
-    <div class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden border border-slate-200">
-        
-        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <div class="flex items-center gap-2.5">
-            <div class="px-2.5 py-1 bg-[#FFD100] text-slate-900 font-mono font-black text-xs rounded border border-amber-400">
-              {{ v.placa }}
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-slate-900">Hoja de Vida Vehicular</h3>
-              <p class="text-[11px] text-slate-400">{{ v.marca }} {{ v.linea }} ({{ v.modelo }})</p>
-            </div>
-          </div>
-          <button (click)="cerrarHojaDeVida()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer">
-            <i class="fa-solid fa-xmark text-base"></i>
-          </button>
-        </div>
-
-        <div class="p-5 space-y-4 text-xs">
-          <div class="grid grid-cols-2 gap-3">
-            <div class="bg-slate-50 p-3 rounded-xl">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">MARCA</span>
-              <span class="font-bold text-slate-800 mt-0.5 block">{{ v.marca }}</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-xl">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">LÍNEA</span>
-              <span class="font-bold text-slate-800 mt-0.5 block">{{ v.linea }}</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-xl">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">AÑO MODELO</span>
-              <span class="font-bold text-slate-800 mt-0.5 block">{{ v.modelo }}</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-xl">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">CILINDRAJE</span>
-              <span class="font-bold text-slate-800 mt-0.5 block">{{ v.cilindraje }}</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-xl">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">CLASE / TIPO</span>
-              <span class="font-bold text-slate-800 mt-0.5 block">{{ v.tipo }}</span>
-            </div>
-            <div class="bg-slate-50 p-3 rounded-xl">
-              <span class="text-[10px] uppercase font-bold text-slate-400 block">SERVICIO</span>
-              <span class="font-bold text-slate-800 mt-0.5 block">{{ v.servicio }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end">
-          <button (click)="cerrarHojaDeVida()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold cursor-pointer">
-            Cerrar
-          </button>
-        </div>
-
-      </div>
-    </div>
-  }
-
-  <!-- ========================================== -->
-  <!-- 5. FOOTER INSTITUCIONAL -->
-  <!-- ========================================== -->
-  <footer class="border-t border-slate-200 bg-white py-6 mt-12">
-    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-400 space-y-1">
-      <p class="font-medium text-slate-500">Gobernación del Cauca &middot; Secretaría de Hacienda Departamental</p>
-      <p>&copy; 2026 Portal Ciudadano &middot; Sistema Oficial de Liquidación Vehicular</p>
-    </div>
-  </footer>
-
-</div>
+  </div>
+}

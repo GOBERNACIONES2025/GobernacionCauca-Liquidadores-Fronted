@@ -1,10 +1,8 @@
 import { Routes } from '@angular/router';
 import { Home } from './features/home/presentation/pages/home/home';
-import { AutomotoresLayout } from './features/automotores/presentation/layout/automotores-layout';
-import { Vehiculos } from './features/automotores/presentation/pages/vehiculos/vehiculos';
-import { ContribuyentesIndex } from './features/automotores/presentation/pages/contribuyentes-index/contribuyentes-index';
-import { PortalCiudadano } from './features/automotores/presentation/pages/portal-ciudadano/portal-ciudadano';
-import { LiquidacionesPage } from './features/automotores/presentation/pages/liquidaciones/liquidaciones';
+import { LoginComponent } from './shared/components/login/login';
+import { ConsultaCiudadanaSharedComponent } from './shared/components/consulta-ciudadana/consulta-ciudadana-shared';
+
 export const routes: Routes = [
   {
     path: '',
@@ -12,47 +10,32 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'login',
+    component: LoginComponent,
+  },
+  {
+    path: 'deguello/portal-ciudadano',
+    component: ConsultaCiudadanaSharedComponent,
+  },
+  {
     path: 'portal-ciudadano',
-    component: PortalCiudadano,
+    redirectTo: 'automotores/portal-ciudadano',
+    pathMatch: 'full',
   },
   {
     path: 'automotores',
-    component: AutomotoresLayout,
-    children: [
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full',
-      },
-      {
-        path: 'dashboard',
-        loadComponent: () => import('./shared/dashboard/components/tax-dashboard/tax-dashboard').then(m => m.TaxDashboardComponent),
-      },
-      {
-        path: 'vehiculos',
-        component: Vehiculos,
-      },
-      {
-        path: 'contribuyentes-index',
-        component: ContribuyentesIndex,
-      },
-      {
-        path: 'liquidaciones',
-        component: LiquidacionesPage,
-      },
-      {
-        path: 'omisos',
-        loadComponent: () => import('./features/automotores/presentation/pages/omisos-emplazamiento/omisos-emplazamiento').then(m => m.OmisosEmplazamientoPage),
-      },
-      {
-        path: 'facturacion',
-        redirectTo: 'liquidaciones',
-        pathMatch: 'full',
-      },
-    ],
+    loadChildren: () => import('./features/automotores/automotores.routes').then(m => m.automotoresRoutes)
   },
   {
     path: 'registros',
     loadChildren: () => import('./features/registros/registros.routes').then(m => m.registrosRoutes)
+  },
+  {
+    path: 'pasaportes',
+    loadChildren: () => import('./features/pasaportes/pasaportes.routes').then(m => m.pasaportesRoutes)
+  },
+  {
+    path: '**',
+    redirectTo: '',
   }
 ];

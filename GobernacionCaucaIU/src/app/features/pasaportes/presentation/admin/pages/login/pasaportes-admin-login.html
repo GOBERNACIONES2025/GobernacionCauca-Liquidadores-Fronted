@@ -1,0 +1,68 @@
+<section class="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-10 sm:px-6">
+  <div class="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60">
+    <div class="h-1.5 bg-[#1b53ad]"></div>
+    <div class="p-6 sm:p-8">
+      <div class="text-center">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-xl text-[#1b53ad]">
+          <i class="fa-solid fa-user-shield" aria-hidden="true"></i>
+        </div>
+        <p class="mt-4 text-xs font-bold uppercase tracking-[0.18em] text-[#1b53ad]">Módulo de Pasaportes</p>
+        <h1 class="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">Acceso Administrativo</h1>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600">
+          Gestión administrativa del módulo de Pasaportes de la Gobernación del Cauca.
+        </p>
+      </div>
+
+      <form class="mt-7 space-y-5" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div>
+          <label for="admin-username" class="mb-1.5 block text-sm font-semibold text-slate-700">Usuario o correo institucional</label>
+          <div class="relative">
+            <i class="fa-regular fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400" aria-hidden="true"></i>
+            <input id="admin-username" type="text" formControlName="username" autocomplete="username" class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-3 text-sm outline-none transition focus:border-[#1b53ad] focus:ring-2 focus:ring-blue-100" placeholder="usuario@cauca.gov.co" />
+          </div>
+          @if (form.controls.username.touched && form.controls.username.invalid) {
+            <p class="mt-1 text-xs text-red-600">Ingrese su usuario o correo institucional.</p>
+          }
+        </div>
+
+        <div>
+          <label for="admin-password" class="mb-1.5 block text-sm font-semibold text-slate-700">Contraseña</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-slate-400" aria-hidden="true"></i>
+            <input id="admin-password" [type]="showPassword() ? 'text' : 'password'" formControlName="password" autocomplete="current-password" class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-11 text-sm outline-none transition focus:border-[#1b53ad] focus:ring-2 focus:ring-blue-100" placeholder="Ingrese su contraseña" />
+            <button type="button" (click)="showPassword.set(!showPassword())" class="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-slate-500 hover:text-[#1b53ad]" [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+              <i class="fa-regular" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <p class="mt-1 text-xs text-red-600">Ingrese su contraseña.</p>
+          }
+        </div>
+
+        <label class="flex cursor-pointer items-center gap-2.5 text-sm text-slate-600">
+          <input type="checkbox" formControlName="remember" class="h-4 w-4 rounded border-slate-300 accent-[#1b53ad]" />
+          Recordar en este equipo
+        </label>
+
+        @if (errorMessage()) {
+          <div role="alert" class="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            <i class="fa-solid fa-circle-exclamation mt-0.5" aria-hidden="true"></i>
+            <span>{{ errorMessage() }}</span>
+          </div>
+        }
+
+        <button type="submit" [disabled]="submitting()" class="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-[#1b53ad] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#16458f] disabled:cursor-not-allowed disabled:opacity-60">
+          <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+          {{ submitting() ? 'Ingresando…' : 'Ingresar al Panel Administrativo' }}
+        </button>
+      </form>
+
+      <div class="mt-6 border-t border-slate-200 pt-5 text-center">
+        <a routerLink="/pasaportes" class="inline-flex items-center gap-2 text-sm font-semibold text-[#1b53ad] hover:underline">
+          <i class="fa-solid fa-arrow-left text-xs" aria-hidden="true"></i>
+          Volver al flujo ciudadano
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
