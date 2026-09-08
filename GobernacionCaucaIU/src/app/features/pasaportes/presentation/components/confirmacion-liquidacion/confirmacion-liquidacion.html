@@ -1,0 +1,220 @@
+<div>
+  <div class="mb-8 text-center">
+    <h2 class="text-xl font-bold text-[#1b53ad] sm:text-2xl">4. Confirmación y liquidación</h2>
+    <p class="mx-auto mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
+      Verifica cuidadosamente la información antes de confirmar tu solicitud.
+    </p>
+  </div>
+
+  @if (!liquidacion()) {
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h3 class="font-bold text-slate-800">Datos personales</h3>
+          <button type="button" (click)="editarPersonal.emit()" class="text-sm font-semibold text-[#1b53ad] hover:underline">
+            Editar
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+          <div>
+            <span class="block text-xs text-slate-500">Tipo de documento</span>
+            <span class="font-medium text-slate-800">{{ tipoDocumento() }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Número</span>
+            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['numeroDocumento'].value }}</span>
+          </div>
+          <div class="sm:col-span-2">
+            <span class="block text-xs text-slate-500">Nombres y apellidos</span>
+            <span class="font-medium text-slate-800">{{ nombreCompleto() }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Fecha de nacimiento</span>
+            <span class="font-medium text-slate-800">{{ fechaVisible(formularioPersonal().controls['fechaNacimiento'].value) }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Sexo</span>
+            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['genero'].value }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Grupo étnico</span>
+            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['grupoEtnico'].value }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Discapacidad</span>
+            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['discapacidad'].value }}</span>
+          </div>
+
+          @if (formularioPersonal().controls['nombreResponsable'].value) {
+            <div class="border-t border-slate-100 pt-3 sm:col-span-2">
+              <span class="block text-xs text-slate-500">Responsable</span>
+              <span class="font-medium text-slate-800">
+                {{ formularioPersonal().controls['nombreResponsable'].value }} ·
+                {{ formularioPersonal().controls['documentoResponsable'].value }}
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h3 class="font-bold text-slate-800">Datos de contacto</h3>
+          <button type="button" (click)="editarContacto.emit()" class="text-sm font-semibold text-[#1b53ad] hover:underline">
+            Editar
+          </button>
+        </div>
+
+        <div class="space-y-3 text-sm">
+          <div>
+            <span class="block text-xs text-slate-500">Teléfono</span>
+            <span class="font-medium text-slate-800">{{ formularioContacto().controls['telefono'].value }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Correo electrónico</span>
+            <span class="font-medium text-slate-800">{{ formularioContacto().controls['correo'].value }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Ubicación</span>
+            <span class="font-medium text-slate-800">
+              {{ formularioContacto().controls['departamento'].value }} · {{ formularioContacto().controls['municipio'].value }}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-blue-100 bg-blue-50 p-5 shadow-sm lg:col-span-2">
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h3 class="font-bold text-slate-800">Datos del trámite</h3>
+          <button type="button" (click)="cambiarAgendamiento.emit()" class="text-sm font-semibold text-[#1b53ad] hover:underline">
+            Cambiar agendamiento
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <span class="block text-xs text-slate-500">Tipo de pasaporte</span>
+            <span class="font-medium text-slate-800">{{ tipoPasaporte().nombre }} · {{ tipoPasaporte().codigo }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Fecha seleccionada</span>
+            <span class="font-medium text-slate-800">{{ fechaVisible(fecha()) }}</span>
+          </div>
+          <div>
+            <span class="block text-xs text-slate-500">Horario</span>
+            <span class="font-medium text-slate-800">{{ horario() }}</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    @if (error()) {
+      <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+        {{ error() }}
+      </div>
+    }
+
+    <div class="mt-8 flex flex-col-reverse justify-end gap-3 sm:flex-row">
+      <button
+        type="button"
+        (click)="anterior.emit()"
+        [disabled]="procesando()"
+        class="rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Anterior
+      </button>
+      <button
+        type="button"
+        (click)="confirmar.emit()"
+        [disabled]="procesando()"
+        class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {{ procesando() ? 'Creando cita...' : 'Confirmar y generar liquidación' }}
+      </button>
+    </div>
+  } @else {
+    <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 sm:p-7">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 class="text-lg font-bold text-emerald-800">Cita creada correctamente</h3>
+          <p class="mt-1 text-sm text-emerald-700">Consecutivo: {{ liquidacion()!.consecutivoCita }}</p>
+        </div>
+        <span class="rounded-full bg-amber-400 px-4 py-2 text-xs font-extrabold tracking-widest text-amber-950">SIMULACIÓN</span>
+      </div>
+
+      <p class="mt-4 rounded-lg bg-white/70 px-4 py-3 text-sm font-semibold text-amber-900">
+        Documento de demostración - No válido para pago
+      </p>
+
+      <div class="mt-5 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+        <div>
+          <span class="block text-xs text-emerald-700">Tipo de pasaporte</span>
+          <span class="font-medium text-slate-800">{{ liquidacion()!.tipoPasaporte }}</span>
+        </div>
+        <div>
+          <span class="block text-xs text-emerald-700">Fecha y horario</span>
+          <span class="font-medium text-slate-800">{{ liquidacion()!.fechaCita }} · {{ liquidacion()!.horario }}</span>
+        </div>
+        <div>
+          <span class="block text-xs text-emerald-700">Referencia DEMO</span>
+          <span class="font-mono font-semibold text-slate-800">{{ liquidacion()!.referenciaPago }}</span>
+        </div>
+        <div>
+          <span class="block text-xs text-emerald-700">Valor simulado</span>
+          <span class="font-semibold text-slate-800">{{ valorVisible() }}</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="mt-5 rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+      <div class="mx-auto max-w-md" [innerHTML]="barcodeSvg()"></div>
+      <p class="mt-2 text-xs text-slate-500">Código de barras de demostración</p>
+      <p class="font-mono text-sm font-semibold text-slate-700">{{ liquidacion()!.referenciaPago }}</p>
+    </section>
+
+    @if (generandoPdf()) {
+      <div class="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-800">
+        Generando la previsualización de la liquidación...
+      </div>
+    }
+
+    @if (errorPdf()) {
+      <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" role="alert">
+        <p>{{ errorPdf() }}</p>
+        <button
+          type="button"
+          (click)="reintentarPdf.emit()"
+          [disabled]="generandoPdf()"
+          class="mt-3 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Reintentar generar PDF
+        </button>
+      </div>
+    }
+
+    @if (pdfUrl(); as url) {
+      <section class="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="border-b border-slate-200 px-4 py-3 text-sm font-bold text-slate-800">
+          Previsualización de la liquidación
+        </div>
+        <iframe
+          [src]="url"
+          title="Previsualización del PDF de liquidación"
+          class="h-[520px] w-full sm:h-[700px]"
+        ></iframe>
+      </section>
+    }
+
+    <div class="mt-5 flex justify-end">
+      <button
+        type="button"
+        (click)="descargar.emit()"
+        [disabled]="!pdfBlob() || generandoPdf()"
+        class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        Descargar liquidación
+      </button>
+    </div>
+  }
+</div>

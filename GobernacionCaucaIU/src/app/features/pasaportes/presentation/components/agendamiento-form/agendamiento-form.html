@@ -60,11 +60,8 @@
     </section>
   </div>
 
-  @if (consecutivoCita(); as consecutivo) { <div class="mt-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"><i class="fa-solid fa-circle-check mr-2" aria-hidden="true"></i>Cita creada correctamente.<span class="mt-1 block font-semibold">Consecutivo: {{ consecutivo }}</span></div> }
-  @if (errorCreacion()) { <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{{ errorCreacion() }}</div> }
-
   <div class="mt-8 flex flex-col-reverse justify-end gap-3 sm:flex-row">
     <button type="button" (click)="anterior.emit()" class="rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Anterior</button>
-    <button type="button" (click)="continuar.emit()" [disabled]="!tipoPasaporteSeleccionado() || !fechaSeleccionada() || !intervaloSeleccionado() || !intervaloSeleccionado()!.idCitaHora || creandoCita() || completado() || consecutivoCita() !== null" class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">{{ creandoCita() ? 'Creando cita...' : 'Continuar' }}</button>
+    <button type="button" (click)="continuar.emit()" [disabled]="!tipoPasaporteSeleccionado() || !fechaSeleccionada() || !intervaloSeleccionado() || !intervaloSeleccionado()!.idCitaHora" class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50">Continuar</button>
   </div>
 </div>

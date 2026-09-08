@@ -1,13 +1,16 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ViewChild, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InformacionPersonalForm } from '../../components/informacion-personal-form/informacion-personal-form';
 import { InformacionContactoForm } from '../../components/informacion-contacto-form/informacion-contacto-form';
 import { AgendamientoForm } from '../../components/agendamiento-form/agendamiento-form';
+import { ConfirmacionLiquidacion } from '../../components/confirmacion-liquidacion/confirmacion-liquidacion';
 import { IntervaloDisponible, TipoPasaporte } from '../../../domain/models/agendamiento.model';
 import { TIPO_CITA_GENERAL } from '../../../domain/constants/agendamiento.constants';
 import { CrearCitaRequest } from '../../../domain/models/crear-cita.model';
 import { PasaportesApiService } from '../../../infrastructure/api/pasaportes-api.service';
+import { LiquidacionPasaporteDemo } from '../../../domain/models/liquidacion-pasaporte-demo.model';
+import { LiquidacionPasaporteDemoService } from '../../../application/demo/liquidacion-pasaporte-demo.service';
 
 const camposCoinciden = (campo: string, confirmacion: string) => (group: AbstractControl) => {
   const valor = group.get(campo)?.value;
@@ -18,16 +21,16 @@ const camposCoinciden = (campo: string, confirmacion: string) => (group: Abstrac
 @Component({
   selector: 'app-inicio-pasaportes',
   standalone: true,
-  imports: [ReactiveFormsModule, InformacionPersonalForm, InformacionContactoForm, AgendamientoForm],
+  imports: [ReactiveFormsModule, InformacionPersonalForm, InformacionContactoForm, AgendamientoForm, ConfirmacionLiquidacion],
   templateUrl: './inicio-pasaportes.html',
 })
 export class InicioPasaportes {
   private readonly api = inject(PasaportesApiService);
+  private readonly liquidacionDemo = inject(LiquidacionPasaporteDemoService);
 
-  @ViewChild(AgendamientoForm) private agendamientoForm?: AgendamientoForm;
 
   readonly tipoCita = TIPO_CITA_GENERAL;
-  readonly pasoActual = signal<1 | 2 | 3>(1);
+  readonly pasoActual = signal<1 | 2 | 3 | 4>(1);
   readonly datosCompletos = signal(false);
   readonly tipoPasaporteSeleccionado = signal<TipoPasaporte | null>(null);
   readonly fechaSeleccionada = signal<string | null>(null);
@@ -35,6 +38,10 @@ export class InicioPasaportes {
   readonly creandoCita = signal(false);
   readonly consecutivoCita = signal<number | null>(null);
   readonly errorCreacionCita = signal<string | null>(null);
+  readonly liquidacion = signal<LiquidacionPasaporteDemo | null>(null);
+  readonly pdfBlob = signal<Blob | null>(null);
+  readonly generandoPdf = signal(false);
+  readonly errorPdf = signal<string | null>(null);
 
   readonly formularioPersonal = new FormGroup(
     {
@@ -102,6 +109,7 @@ export class InicioPasaportes {
   }
 
   actualizarTipoPasaporte(tipo: TipoPasaporte | null): void {
+    this.errorCreacionCita.set(null);
     this.tipoPasaporteSeleccionado.set(tipo);
     this.fechaSeleccionada.set(null);
     this.intervaloSeleccionado.set(null);
@@ -109,20 +117,32 @@ export class InicioPasaportes {
   }
 
   actualizarFecha(fecha: string | null): void {
+    this.errorCreacionCita.set(null);
     this.fechaSeleccionada.set(fecha);
     this.intervaloSeleccionado.set(null);
     this.datosCompletos.set(false);
   }
 
   actualizarIntervalo(intervalo: IntervaloDisponible | null): void {
+    this.errorCreacionCita.set(null);
     this.intervaloSeleccionado.set(intervalo);
     this.datosCompletos.set(false);
   }
 
-  completarAgendamiento(): void {
+  avanzarAConfirmacion(): void {
+    if (!this.tipoPasaporteSeleccionado() || !this.fechaSeleccionada() || !this.intervaloSeleccionado()?.idCitaHora) {
+      this.errorCreacionCita.set('Seleccione el tipo de pasaporte, la fecha y un horario válido antes de continuar.');
+      return;
+    }
+    this.errorCreacionCita.set(null);
+    this.pasoActual.set(4);
+  }
+
+  confirmarYGenerar(): void {
     if (this.creandoCita() || this.consecutivoCita()) return;
 
     this.errorCreacionCita.set(null);
+    const personal = this.formularioPersonal.getRawValue();
     const intervalo = this.intervaloSeleccionado();
     const tipoPasaporte = this.tipoPasaporteSeleccionado();
     const fecha = this.fechaSeleccionada();
@@ -146,6 +166,17 @@ export class InicioPasaportes {
       next: ({ consecutivo }) => {
         this.consecutivoCita.set(consecutivo);
         this.datosCompletos.set(true);
+        const liquidacion = this.liquidacionDemo.crearLiquidacion({
+          consecutivo,
+          tipoPasaporte,
+          ciudadano: this.nombreCompleto(personal),
+          documento: personal.numeroDocumento,
+          fechaCita: fecha,
+          horario: `${intervalo.horaInicio.slice(0, 5)} - ${intervalo.horaFin.slice(0, 5)}`,
+        });
+        this.liquidacion.set(liquidacion);
+        this.creandoCita.set(false);
+        this.generarPdfDemo(liquidacion);
       },
       error: (error: HttpErrorResponse) => {
         const mensaje = this.obtenerMensajeError(error);
@@ -153,11 +184,65 @@ export class InicioPasaportes {
         this.creandoCita.set(false);
         if (this.esErrorDisponibilidad(mensaje)) {
           this.intervaloSeleccionado.set(null);
-          this.agendamientoForm?.cargarIntervalos(fecha);
+          this.pasoActual.set(3);
         }
       },
-      complete: () => this.creandoCita.set(false),
     });
+  }
+
+  editarPersonal(): void {
+    this.errorCreacionCita.set(null);
+    this.pasoActual.set(1);
+  }
+
+  editarContacto(): void {
+    this.errorCreacionCita.set(null);
+    this.pasoActual.set(2);
+  }
+
+  cambiarAgendamiento(): void {
+    this.errorCreacionCita.set(null);
+    this.pasoActual.set(3);
+  }
+  descargarLiquidacion(): void {
+    const liquidacion = this.liquidacion();
+    if (!liquidacion) return;
+    const blob = this.pdfBlob();
+    if (blob) {
+      this.descargarBlobPdf(liquidacion, blob);
+      return;
+    }
+
+    this.generarPdfDemo(liquidacion, true);
+  }
+
+  reintentarPdf(): void {
+    const liquidacion = this.liquidacion();
+    if (!liquidacion) return;
+    this.generarPdfDemo(liquidacion);
+  }
+
+  private generarPdfDemo(liquidacion: LiquidacionPasaporteDemo, descargarAlFinal = false): void {
+    if (this.generandoPdf()) return;
+
+    this.generandoPdf.set(true);
+    this.errorPdf.set(null);
+    void this.liquidacionDemo.generarPdf(liquidacion).then((blob) => {
+      this.pdfBlob.set(blob);
+      if (descargarAlFinal) this.descargarBlobPdf(liquidacion, blob);
+    }).catch(() => {
+      this.pdfBlob.set(null);
+      this.errorPdf.set('La cita fue creada correctamente, pero no fue posible generar el PDF de demostración.');
+    }).finally(() => this.generandoPdf.set(false));
+  }
+
+  private descargarBlobPdf(liquidacion: LiquidacionPasaporteDemo, blob: Blob): void {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `liquidacion-pasaporte-${liquidacion.consecutivoCita}.pdf`;
+    anchor.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   private construirCrearCitaRequest(
@@ -192,6 +277,10 @@ export class InicioPasaportes {
 
   private unirNombres(...partes: string[]): string {
     return partes.map((parte) => parte.trim()).filter(Boolean).join(' ');
+  }
+
+  private nombreCompleto(personal: ReturnType<typeof this.formularioPersonal.getRawValue>): string {
+    return this.unirNombres(personal.primerNombre, personal.segundoNombre, personal.primerApellido, personal.segundoApellido);
   }
 
   private formatearFecha(fecha: string): string {
