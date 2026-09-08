@@ -41,6 +41,10 @@ export const routes: Routes = [
         component: LiquidacionesPage,
       },
       {
+        path: 'omisos',
+        loadComponent: () => import('./features/automotores/presentation/pages/omisos-emplazamiento/omisos-emplazamiento').then(m => m.OmisosEmplazamientoPage),
+      },
+      {
         path: 'facturacion',
         redirectTo: 'liquidaciones',
         pathMatch: 'full',
