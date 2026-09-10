@@ -1,0 +1,519 @@
+<main class="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 sm:py-5 min-w-0 bg-slate-50 relative h-full">
+  <div class="flex flex-col gap-4 max-w-[1600px] mx-auto min-w-0">
+    
+    <!-- ── BREADCRUMB & ENCABEZADO ─────────────────────────────────── -->
+    <div>
+      <div class="flex items-center gap-1.5 text-[11.5px] text-slate-400 mb-2 overflow-x-auto whitespace-nowrap">
+        <span class="hover:text-slate-600 cursor-pointer" routerLink="/automotores">Inicio</span>
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        <span class="hover:text-slate-600 cursor-pointer" routerLink="/automotores">Módulo Vehicular</span>
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        <span class="text-slate-900 font-semibold">Reportes e Informes</span>
+      </div>
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-file-excel text-lg"></i>
+            </div>
+            <div>
+              <h1 class="text-[17px] sm:text-[19px] font-bold text-slate-900 m-0 leading-tight">Centro de Reportes y Descargas</h1>
+              <p class="text-[12px] text-slate-500 mt-0.5 m-0">Previsualiza y exporta la información oficial en formato Excel (.xlsx) respetando los filtros activos.</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Botón Prominente de Descarga Excel -->
+        <div class="flex flex-col sm:items-end gap-1 shrink-0">
+          <button 
+            type="button" 
+            (click)="descargarExcel()"
+            [disabled]="facade.descargandoExcel() || facade.loading() || facade.totalRegistros() === 0"
+            class="inline-flex items-center justify-center gap-2 h-[42px] px-5 rounded-lg text-[13.5px] font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-700 hover:bg-emerald-800 active:scale-[0.99] text-white border-none">
+            @if (facade.descargandoExcel()) {
+              <svg class="animate-spin -ml-0.5 mr-1 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+              </svg>
+              <span>Generando Informe Filtrado...</span>
+            } @else {
+              <i class="fa-solid fa-file-excel text-base text-emerald-200"></i>
+              <span>Descargar Informe Completo (.xlsx)</span>
+            }
+          </button>
+          <span class="text-[11px] text-slate-400 font-medium">
+            Exporta el 100% de las columnas técnicas desglosadas
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FEEDBACK ALERTS ─────────────────────────────────────────── -->
+    @if (facade.mensajeFeedback(); as msg) {
+      <div 
+        class="flex items-center justify-between p-3.5 rounded-lg border text-[13px] animate-fadeIn"
+        [ngClass]="{
+          'bg-emerald-50 text-emerald-800 border-emerald-200': msg.tipo === 'success',
+          'bg-rose-50 text-rose-800 border-rose-200': msg.tipo === 'error',
+          'bg-blue-50 text-blue-800 border-blue-200': msg.tipo === 'info'
+        }">
+        <div class="flex items-center gap-2.5">
+          @if (msg.tipo === 'success') {
+            <i class="fa-solid fa-circle-check text-emerald-600 text-sm"></i>
+          } @else if (msg.tipo === 'error') {
+            <i class="fa-solid fa-circle-exclamation text-rose-600 text-sm"></i>
+          } @else {
+            <i class="fa-solid fa-circle-info text-blue-600 text-sm"></i>
+          }
+          <span class="font-medium">{{ msg.texto }}</span>
+        </div>
+        <button 
+          type="button" 
+          (click)="facade.mensajeFeedback.set(null)"
+          class="text-slate-400 hover:text-slate-600 cursor-pointer p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    }
+
+    <!-- ── PESTAÑAS (TABS) DE REPORTES ─────────────────────────────── -->
+    <div class="bg-white border border-slate-200 rounded-xl p-1 shadow-xs">
+      <div class="flex border-b border-slate-200 px-3 gap-2">
+        <button 
+          type="button" 
+          (click)="seleccionarTab('VEHICULOS')"
+          class="flex items-center gap-2 py-3 px-4 text-[13.5px] font-semibold border-b-2 transition-colors cursor-pointer"
+          [ngClass]="facade.activeTab() === 'VEHICULOS' 
+            ? 'border-[#1e3a7b] text-[#1e3a7b] font-bold bg-blue-50/40 rounded-t-md' 
+            : 'border-transparent text-slate-500 hover:text-slate-700'">
+          <i class="fa-solid fa-car text-sm" [ngClass]="facade.activeTab() === 'VEHICULOS' ? 'text-[#1e3a7b]' : 'text-slate-400'"></i>
+          <span>Parque Automotor (Vehículos)</span>
+          <span class="ml-1 text-[11px] px-2 py-0.5 rounded-full font-bold"
+            [ngClass]="facade.activeTab() === 'VEHICULOS' ? 'bg-[#1e3a7b] text-white' : 'bg-slate-100 text-slate-600'">
+            {{ facade.totalVehiculos() }}
+          </span>
+        </button>
+
+        <button 
+          type="button" 
+          (click)="seleccionarTab('CONTRIBUYENTES')"
+          class="flex items-center gap-2 py-3 px-4 text-[13.5px] font-semibold border-b-2 transition-colors cursor-pointer"
+          [ngClass]="facade.activeTab() === 'CONTRIBUYENTES' 
+            ? 'border-[#1e3a7b] text-[#1e3a7b] font-bold bg-blue-50/40 rounded-t-md' 
+            : 'border-transparent text-slate-500 hover:text-slate-700'">
+          <i class="fa-solid fa-users text-sm" [ngClass]="facade.activeTab() === 'CONTRIBUYENTES' ? 'text-[#1e3a7b]' : 'text-slate-400'"></i>
+          <span>Directorio de Contribuyentes</span>
+          <span class="ml-1 text-[11px] px-2 py-0.5 rounded-full font-bold"
+            [ngClass]="facade.activeTab() === 'CONTRIBUYENTES' ? 'bg-[#1e3a7b] text-white' : 'bg-slate-100 text-slate-600'">
+            {{ facade.totalContribuyentes() }}
+          </span>
+        </button>
+      </div>
+
+      <!-- ── BARRA DE FILTROS ──────────────────────────────────────── -->
+      <div class="p-4 bg-white">
+        
+        <!-- Filtros para Vehículos -->
+        @if (facade.activeTab() === 'VEHICULOS') {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 items-end">
+            <!-- Buscar -->
+            <div>
+              <label class="block text-[12px] font-bold text-slate-700 mb-1.5">Buscar Vehículo / Propietario</label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  [ngModel]="facade.filtroVehiculoTexto()" 
+                  (ngModelChange)="facade.filtroVehiculoTexto.set($event)"
+                  (keyup.enter)="aplicarFiltros()"
+                  placeholder="Placa, documento o nombre..." 
+                  class="filtro-control filtro-input" />
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+              </div>
+            </div>
+
+            <!-- Estado Matrícula -->
+            <div>
+              <label class="block text-[12px] font-bold text-slate-700 mb-1.5">Estado de Matrícula</label>
+              <select 
+                [ngModel]="facade.filtroVehiculoEstado()" 
+                (ngModelChange)="facade.filtroVehiculoEstado.set($event); aplicarFiltros()"
+                class="filtro-control filtro-select">
+                @for (est of estadosMatricula; track est) {
+                  <option [value]="est">{{ est }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Tipo Vehículo -->
+            <div>
+              <label class="block text-[12px] font-bold text-slate-700 mb-1.5">Tipo de Vehículo</label>
+              <select 
+                [ngModel]="facade.filtroVehiculoTipo()" 
+                (ngModelChange)="facade.filtroVehiculoTipo.set($event); aplicarFiltros()"
+                class="filtro-control filtro-select">
+                @for (tipo of tiposVehiculo; track tipo) {
+                  <option [value]="tipo">{{ tipo }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center gap-2">
+              <button 
+                type="button" 
+                (click)="aplicarFiltros()"
+                class="flex-1 h-[38px] px-3.5 rounded-lg text-[13px] font-bold bg-[#1e3a7b] hover:bg-[#152a58] text-white transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs">
+                <i class="fa-solid fa-filter text-xs"></i>
+                <span>Filtrar</span>
+              </button>
+              <button 
+                type="button" 
+                (click)="limpiarFiltros()"
+                title="Restablecer filtros"
+                class="h-[38px] px-3.5 rounded-lg text-[13px] font-semibold border-1.5 border-slate-300 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-rotate-left text-xs"></i>
+                <span class="hidden xl:inline">Limpiar</span>
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Filtros para Contribuyentes -->
+        @if (facade.activeTab() === 'CONTRIBUYENTES') {
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end">
+            <!-- Buscar -->
+            <div>
+              <label class="block text-[12px] font-bold text-slate-700 mb-1.5">Buscar Contribuyente</label>
+              <div class="relative">
+                <input 
+                  type="text" 
+                  [ngModel]="facade.filtroContribuyenteTexto()" 
+                  (ngModelChange)="facade.filtroContribuyenteTexto.set($event)"
+                  (keyup.enter)="aplicarFiltros()"
+                  placeholder="Documento o nombre..." 
+                  class="filtro-control filtro-input" />
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+              </div>
+            </div>
+
+            <!-- Tipo Persona -->
+            <div>
+              <label class="block text-[12px] font-bold text-slate-700 mb-1.5">Naturaleza Jurídica</label>
+              <select 
+                [ngModel]="facade.filtroContribuyenteNaturaleza()" 
+                (ngModelChange)="facade.filtroContribuyenteNaturaleza.set($event); aplicarFiltros()"
+                class="filtro-control filtro-select">
+                <option [value]="0">Todas las personas</option>
+                <option [value]="1">Persona Natural</option>
+                <option [value]="2">Persona Jurídica</option>
+              </select>
+            </div>
+
+            <!-- Estado -->
+            <div>
+              <label class="block text-[12px] font-bold text-slate-700 mb-1.5">Estado de Registro</label>
+              <select 
+                [ngModel]="facade.filtroContribuyenteEstado()" 
+                (ngModelChange)="facade.filtroContribuyenteEstado.set($event); aplicarFiltros()"
+                class="filtro-control filtro-select">
+                @for (est of estadosContribuyente; track est) {
+                  <option [value]="est">{{ est }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Situación Tributaria -->
+            <div>
+              <label class="block text-[12px] font-bold text-slate-700 mb-1.5">Situación Tributaria</label>
+              <select 
+                [ngModel]="facade.filtroContribuyenteSituacion()" 
+                (ngModelChange)="facade.filtroContribuyenteSituacion.set($event); aplicarFiltros()"
+                class="filtro-control filtro-select">
+                @for (sit of situacionesContribuyente; track sit) {
+                  <option [value]="sit">{{ sit }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center gap-2">
+              <button 
+                type="button" 
+                (click)="aplicarFiltros()"
+                class="flex-1 h-[38px] px-3.5 rounded-lg text-[13px] font-bold bg-[#1e3a7b] hover:bg-[#152a58] text-white transition-colors cursor-pointer flex items-center justify-center gap-2 shadow-xs">
+                <i class="fa-solid fa-filter text-xs"></i>
+                <span>Filtrar</span>
+              </button>
+              <button 
+                type="button" 
+                (click)="limpiarFiltros()"
+                title="Restablecer filtros"
+                class="h-[38px] px-3.5 rounded-lg text-[13px] font-semibold border-1.5 border-slate-300 hover:bg-slate-100 text-slate-700 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-rotate-left text-xs"></i>
+                <span class="hidden xl:inline">Limpiar</span>
+              </button>
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+
+    <!-- ── TABLA DE PREVISUALIZACIÓN COMPACTA (0 SCROLL HORIZONTAL) ── -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden flex flex-col">
+      
+      <!-- Barra superior de la tabla -->
+      <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-[13.5px] font-bold text-slate-800">
+            Previsualización en Pantalla
+          </span>
+          <span class="text-[12px] text-slate-500 font-normal">
+            (10 registros por vista · Vista previa compacta)
+          </span>
+        </div>
+        <div class="flex items-center gap-2 text-[12.5px] text-slate-600">
+          <span class="font-medium">Total Coincidencias Filtradas:</span>
+          <span class="px-2.5 py-0.5 rounded-full font-bold bg-[#1e3a7b] text-white text-[11.5px]">
+            {{ facade.totalRegistros() }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Contenedor fluido sin scroll horizontal forzado -->
+      <div class="overflow-x-auto min-h-[340px] relative w-full border-t border-slate-200">
+        @if (facade.loading()) {
+          <div class="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex flex-col items-center justify-center z-10 gap-2.5">
+            <div class="w-9 h-9 border-3 border-[#1e3a7b] border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-[13px] font-semibold text-[#1e3a7b]">Cargando previsualización...</span>
+          </div>
+        }
+
+        <!-- TABLA PARQUE AUTOMOTOR (OPCIÓN 1: 5 COLUMNAS COMPACTAS Y ELEGANTES) -->
+        @if (facade.activeTab() === 'VEHICULOS') {
+          <table class="w-full text-left border-collapse text-[13px]">
+            <thead>
+              <tr class="bg-[#1e3a7b] text-white uppercase text-[11px] font-bold tracking-wider select-none">
+                <th class="py-3.5 px-4 text-center w-[120px] whitespace-nowrap">Placa</th>
+                <th class="py-3.5 px-3.5 text-center w-[140px] whitespace-nowrap">Estado</th>
+                <th class="py-3.5 px-4">Vehículo & Ficha Técnica</th>
+                <th class="py-3.5 px-4">Propietario Actual</th>
+                <th class="py-3.5 px-4 w-[180px] whitespace-nowrap">Tránsito</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (v of facade.vehiculos(); track v.id) {
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <!-- Placa -->
+                  <td class="py-3 px-4 text-center w-[120px] whitespace-nowrap">
+                    <span class="co-plate">
+                      {{ v.placa }}
+                    </span>
+                  </td>
+
+                  <!-- Estado -->
+                  <td class="py-3 px-3.5 text-center w-[140px] whitespace-nowrap">
+                    <span class="inline-block px-2.5 py-1 rounded-full text-[11.5px] font-semibold border"
+                      [ngClass]="getEstadoVehiculoBadgeClass(v.estadoMatricula)">
+                      {{ v.estadoMatricula || 'Desconocido' }}
+                    </span>
+                  </td>
+
+                  <!-- Vehículo & Ficha Técnica Agrupada -->
+                  <td class="py-3 px-4">
+                    <div class="font-bold text-slate-900 leading-snug text-[13.5px]">
+                      {{ v.marca || 'N/A' }} {{ v.linea || '' }}
+                    </div>
+                    <div class="text-[12px] text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
+                      <span class="font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">Mod. {{ v.modelo || '—' }}</span>
+                      <span class="text-slate-300">·</span>
+                      <span>{{ v.cilindraje ? (v.cilindraje + ' cc') : '—' }}</span>
+                      <span class="text-slate-300">·</span>
+                      <span>{{ v.combustible || 'Sin combustible' }}</span>
+                      <span class="text-slate-300">·</span>
+                      <span class="text-slate-700 font-medium">{{ v.tipoVehiculo || 'Automóvil' }}</span>
+                      @if (v.exencion && v.exencion !== 'Sin exención') {
+                        <span class="text-slate-300">·</span>
+                        <span class="text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded text-[10.5px] font-semibold">Exento</span>
+                      }
+                    </div>
+                  </td>
+
+                  <!-- Propietario Actual -->
+                  <td class="py-3 px-4">
+                    <div class="font-bold text-slate-900 leading-snug">
+                      {{ v.propietarioNombre || 'Sin propietario asignado' }}
+                    </div>
+                    <div class="text-[11.5px] text-slate-500 font-mono mt-0.5">
+                      {{ v.propietarioDocumento || 'Sin documento registrado' }}
+                    </div>
+                  </td>
+
+                  <!-- Tránsito / Municipio -->
+                  <td class="py-3 px-4 text-slate-600 w-[180px] whitespace-nowrap">
+                    <div class="font-medium text-slate-800">{{ v.organismoTransito || 'Cauca' }}</div>
+                    <div class="text-[11px] text-slate-400">Tránsito Departamental</div>
+                  </td>
+                </tr>
+              } @empty {
+                @if (!facade.loading()) {
+                  <tr>
+                    <td colspan="5" class="py-14 text-center text-slate-400">
+                      <div class="flex flex-col items-center justify-center gap-2">
+                        <i class="fa-solid fa-car-side text-3xl text-slate-300"></i>
+                        <span class="font-bold text-[13.5px] text-slate-700">No se encontraron vehículos</span>
+                        <span class="text-[12px] text-slate-500">Intenta modificar los filtros de búsqueda aplicados.</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
+
+        <!-- TABLA DIRECTORIO CONTRIBUYENTES (OPCIÓN 1: 5 COLUMNAS COMPACTAS Y ELEGANTES) -->
+        @if (facade.activeTab() === 'CONTRIBUYENTES') {
+          <table class="w-full text-left border-collapse text-[13px]">
+            <thead>
+              <tr class="bg-[#1e3a7b] text-white uppercase text-[11px] font-bold tracking-wider select-none">
+                <th class="py-3.5 px-4 w-[150px] whitespace-nowrap">Documento</th>
+                <th class="py-3.5 px-4">Contribuyente / Razón Social</th>
+                <th class="py-3.5 px-3 text-center w-[160px] whitespace-nowrap">Estado & Situación</th>
+                <th class="py-3.5 px-4">Vehículos & Placas</th>
+                <th class="py-3.5 px-4 w-[180px] whitespace-nowrap">Contacto & Ciudad</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (c of facade.contribuyentes(); track c.id) {
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <!-- Documento -->
+                  <td class="py-3 px-4 w-[150px] whitespace-nowrap">
+                    <span class="font-mono font-bold text-slate-900 bg-slate-100 px-2.5 py-1 rounded text-[12px] border border-slate-200">
+                      {{ getDocumentoFormateado(c) }}
+                    </span>
+                  </td>
+
+                  <!-- Nombre / Razón Social -->
+                  <td class="py-3 px-4">
+                    <div class="font-bold text-slate-900 leading-snug text-[13.5px]">{{ getNombreCompletoContribuyente(c) }}</div>
+                    <div class="text-[12px] text-slate-500 mt-0.5 flex items-center gap-1.5">
+                      <span class="font-medium" [ngClass]="c.naturalezaJuridicaId === 2 ? 'text-purple-700' : 'text-blue-700'">
+                        {{ c.naturalezaJuridicaId === 2 ? 'Persona Jurídica' : 'Persona Natural' }}
+                      </span>
+                      <span class="text-slate-300">·</span>
+                      <span class="truncate max-w-[280px]">{{ c.direccion || 'Sin dirección registrada' }}</span>
+                    </div>
+                  </td>
+
+                  <!-- Estado & Situación -->
+                  <td class="py-3 px-3 text-center w-[160px] whitespace-nowrap">
+                    <div class="flex items-center justify-center gap-1.5">
+                      <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold border"
+                        [ngClass]="c.activo ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'">
+                        {{ c.activo ? 'Activo' : 'Inactivo' }}
+                      </span>
+                      <span class="inline-block px-2 py-0.5 rounded-full text-[11px] font-semibold border"
+                        [ngClass]="(c.cantidadDeudas || 0) > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'">
+                        {{ (c.cantidadDeudas || 0) > 0 ? ('Deuda (' + c.cantidadDeudas + ')') : 'Al Día' }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Vehículos & Placas Asociadas -->
+                  <td class="py-3 px-4">
+                    <div class="flex items-center gap-2">
+                      <span class="inline-flex items-center justify-center w-7 h-7 rounded-full font-bold text-[12px] bg-slate-100 text-slate-800 border border-slate-200 shrink-0" title="Total vehículos">
+                        {{ c.cantidadVehiculos }}
+                      </span>
+                      @if (c.placas && c.placas.length > 0) {
+                        <div class="flex flex-wrap gap-1.5">
+                          @for (p of c.placas; track p) {
+                            <span class="co-plate !text-[11px] !py-0.5 !px-2 !min-w-[65px]">
+                              {{ p }}
+                            </span>
+                          }
+                        </div>
+                      } @else if (c.placasAsociadas && c.placasAsociadas !== 'Ninguno') {
+                        <span class="font-mono text-[11.5px] font-bold text-slate-700">{{ c.placasAsociadas }}</span>
+                      } @else {
+                        <span class="text-slate-400 text-[11.5px] italic">Sin vehículos asociados</span>
+                      }
+                    </div>
+                  </td>
+
+                  <!-- Contacto & Ciudad -->
+                  <td class="py-3 px-4 text-slate-600 w-[180px] whitespace-nowrap">
+                    <div class="font-bold text-slate-800">{{ c.ciudad || 'Popayán' }}</div>
+                    <div class="text-[11px] text-slate-500 truncate max-w-[170px] mt-0.5">
+                      {{ c.telefono || c.correoElectronico || 'Sin contacto' }}
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                @if (!facade.loading()) {
+                  <tr>
+                    <td colspan="5" class="py-14 text-center text-slate-400">
+                      <div class="flex flex-col items-center justify-center gap-2">
+                        <i class="fa-solid fa-users text-3xl text-slate-300"></i>
+                        <span class="font-bold text-[13.5px] text-slate-700">No se encontraron contribuyentes</span>
+                        <span class="text-[12px] text-slate-500">Intenta modificar los filtros de búsqueda aplicados.</span>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <!-- ── BARRA DE PAGINACIÓN DE 10 REGISTROS ───────────────────────── -->
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-[12.5px] text-slate-600">
+        <div>
+          Mostrando página 
+          <span class="font-bold text-slate-900">{{ facade.paginaActual() }}</span> 
+          de 
+          <span class="font-bold text-slate-900">{{ facade.totalPaginas() }}</span> 
+          ({{ facade.totalRegistros() }} registros totales)
+        </div>
+
+        <div class="flex items-center gap-1">
+          <!-- Anterior -->
+          <button 
+            type="button" 
+            (click)="cambiarPagina(facade.paginaActual() - 1)"
+            [disabled]="facade.paginaActual() <= 1"
+            class="h-[30px] px-2.5 rounded border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer transition-colors">
+            Anterior
+          </button>
+
+          <!-- Números de Página -->
+          @for (p of facade.paginasDisponibles(); track p) {
+            <button 
+              type="button" 
+              (click)="cambiarPagina(p)"
+              class="h-[30px] w-[30px] rounded border text-xs font-bold transition-colors cursor-pointer"
+              [ngClass]="p === facade.paginaActual() 
+                ? 'bg-[#1e3a7b] text-white border-[#1e3a7b]' 
+                : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-100'">
+              {{ p }}
+            </button>
+          }
+
+          <!-- Siguiente -->
+          <button 
+            type="button" 
+            (click)="cambiarPagina(facade.paginaActual() + 1)"
+            [disabled]="facade.paginaActual() >= facade.totalPaginas()"
+            class="h-[30px] px-2.5 rounded border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold cursor-pointer transition-colors">
+            Siguiente
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</main>

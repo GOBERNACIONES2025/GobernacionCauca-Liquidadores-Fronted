@@ -52,9 +52,10 @@
         </div>
       </div>
 
-      <!-- KPI CARDS (Responsive Grid: 1 col on mobile, 2 on tablet, 4 on desktop) -->
+      <!-- KPI CARDS (Responsive Grid: 1 col on mobile, 2 on tablet, 4 on desktop)
+           [Comentado temporalmente según requerimiento de interfaz] -->
+      <!--
       <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 mb-4 sm:mb-4.5">
-        <!-- Vigencia Fiscal -->
         <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2.5 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#70b2381a] flex items-center justify-center text-[#70b238]">
@@ -72,7 +73,6 @@
           <div class="text-[11px] text-slate-400">general.VigenciasFiscales</div>
         </div>
 
-        <!-- Valor UVT -->
         <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2.5 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#1e3a7b14] flex items-center justify-center text-[#1e3a7b]">
@@ -90,7 +90,6 @@
           <div class="text-[11.5px] text-slate-600">{{ facade.kpis().uvtNorma }}</div>
         </div>
 
-        <!-- Sanción Mínima -->
         <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2.5 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#ea580c14] flex items-center justify-center text-[#ea580c]">
@@ -104,7 +103,6 @@
           <div class="text-[11.5px] text-slate-600">{{ facade.kpis().sancionDescripcion }}</div>
         </div>
 
-        <!-- Total Vehículos Registrados (Con desglose completo) -->
         <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm flex flex-col gap-2 min-w-0">
           <div class="flex items-center justify-between">
             <div class="w-9 h-9 rounded-md bg-[#1e3a7b14] flex items-center justify-center text-[#1e3a7b]">
@@ -123,7 +121,6 @@
             </div>
           </div>
 
-          <!-- Desglose de estados: Activos, Pendientes, Inactivos -->
           <div class="grid grid-cols-3 gap-1.5 pt-1.5 border-t border-slate-100 text-[10.5px]">
             <div class="bg-emerald-50 border border-emerald-200/60 rounded-md p-1 text-center">
               <span class="block text-[8.5px] font-bold text-emerald-700 uppercase">Activos</span>
@@ -140,6 +137,7 @@
           </div>
         </div>
       </div>
+      -->
 
       <!-- FILTER TOOLBAR & MAIN TABLE -->
       <div class="bg-white border border-slate-200 rounded-lg shadow-sm flex-1 flex flex-col overflow-hidden min-h-0">
@@ -167,7 +165,9 @@
               <option value="Todos">Todos los estados</option>
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
-              <option value="Traslado">Traslado</option>
+              <option value="Cancelada">Cancelada</option>
+              <option value="Trasladada">Trasladada</option>
+              <option value="Radicada">Radicada</option>
             </select>
 
             <select 
@@ -175,11 +175,14 @@
               (ngModelChange)="facade.setFiltroTipo($event)"
               class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b] flex-1 sm:flex-none">
               <option value="Todos">Todos los tipos</option>
-              <option value="Automóvil">Automóvil</option>
-              <option value="Camioneta">Camioneta</option>
-              <option value="Motocicleta">Motocicleta</option>
-              <option value="Bus">Bus</option>
-              <option value="Camión">Camión</option>
+              <option value="AUTOMOVILES">Automóviles</option>
+              <option value="CAMIONETAS">Camionetas</option>
+              <option value="CAMPEROS">Camperos</option>
+              <option value="MOTOCICLETAS">Motocicletas</option>
+              <option value="MOTOCARROS">Motocarros</option>
+              <option value="BUSES Y BUSETAS">Buses y Busetas</option>
+              <option value="CAMIONES">Camiones</option>
+              <option value="TRACTOCAMIONES">Tractocamiones</option>
             </select>
 
             <span class="tooltip-wrap inline-flex shrink-0">
@@ -204,12 +207,7 @@
           <div class="hidden md:block md:flex-1"></div>
 
           <div class="flex items-center gap-2.5 ml-auto sm:ml-0 shrink-0">
-            <button type="button" class="inline-flex items-center justify-center gap-1.5 h-[30px] px-2.5 rounded-md text-[12px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              Exportar
-            </button>
-
-            <div class="text-[12px] text-slate-400 font-medium whitespace-nowrap">{{ facade.filteredVehiculos().length }} registros</div>
+            <div class="text-[12px] text-slate-400 font-medium whitespace-nowrap">{{ facade.totalVehiculos() }} registros</div>
           </div>
         </div>
 
@@ -218,9 +216,6 @@
           <table class="w-full border-collapse text-[13px] min-w-[780px]">
             <thead class="sticky top-0 z-10">
               <tr>
-                <th class="bg-[#1e3a7b] py-2.5 px-3 w-9 text-center">
-                  <input type="checkbox" class="accent-[#70b238] cursor-pointer">
-                </th>
                 <th class="bg-[#1e3a7b] py-2.5 px-4 text-left text-[10.5px] font-semibold text-white/90 tracking-wider uppercase whitespace-nowrap">
                   <span class="inline-flex items-center gap-1">Placa <span class="opacity-40"><svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg></span></span>
                 </th>
@@ -244,7 +239,7 @@
             <tbody>
               @if (facade.loading()) {
                 <tr>
-                  <td colspan="7" class="py-16 text-center">
+                  <td colspan="6" class="py-16 text-center">
                     <div class="flex flex-col items-center justify-center gap-3">
                       <div class="relative w-12 h-12 flex items-center justify-center">
                         <div class="absolute inset-0 rounded-full border-[3px] border-[#1e3a7b1a] border-t-[#1e3a7b] animate-spin"></div>
@@ -264,7 +259,7 @@
                 </tr>
               } @else if (facade.filteredVehiculos().length === 0) {
                 <tr>
-                  <td colspan="7" class="py-12 text-center text-slate-400">
+                  <td colspan="6" class="py-12 text-center text-slate-400">
                     <div class="flex flex-col items-center justify-center gap-2">
                       <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -282,11 +277,6 @@
                     (click)="facade.seleccionarVehiculo(v)"
                     [class]="'border-b border-slate-100 cursor-pointer transition-colors ' + (v.seleccionado ? 'bg-blue-50/70 hover:bg-blue-50' : 'bg-white hover:bg-slate-50/80')">
                     
-                    <!-- Checkbox -->
-                    <td class="py-3 px-3 align-middle text-center" (click)="$event.stopPropagation()">
-                      <input type="checkbox" [checked]="v.seleccionado" class="accent-[#70b238] cursor-pointer">
-                    </td>
-
                     <!-- Placa -->
                     <td class="py-3 px-4 align-middle whitespace-nowrap">
                       <span class="co-plate">{{ v.placa }}</span>
@@ -375,23 +365,43 @@
         <!-- Table Footer / Pagination -->
         <div class="p-2.5 px-4.5 border-t border-slate-200 flex flex-col sm:flex-row gap-2 justify-between items-center shrink-0 bg-white">
           <span class="text-[12px] text-slate-500 font-medium">
-            Página {{ facade.paginaActual() }} de {{ facade.totalPaginas() }} · {{ facade.totalVehiculos() }} registros
+            @if (facade.totalPaginas() > 1) {
+              Página {{ facade.paginaActual() }} de {{ facade.totalPaginas() }} · {{ facade.totalVehiculos() }} registros
+            } @else {
+              Total: {{ facade.totalVehiculos() }} {{ facade.totalVehiculos() === 1 ? 'registro' : 'registros' }}
+            }
           </span>
           <div class="flex gap-1 items-center">
             <button 
               type="button"
-              (click)="facade.cargarVehiculos(facade.paginaActual() - 1)"
+              (click)="facade.cargarVehiculos(facade.paginaActual() - 1, facade.pageSize())"
               [disabled]="facade.paginaActual() <= 1 || facade.loading()"
+              title="Página anterior"
               class="h-7 px-2 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-50 flex items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
             </button>
-            <span class="h-7 px-3 rounded-md bg-[#1e3a7b] text-white text-[12px] font-bold flex items-center">
-              {{ facade.paginaActual() }}
-            </span>
+
+            @for (pag of facade.paginasDisponibles(); track pag) {
+              @if (pag === facade.paginaActual()) {
+                <span class="h-7 px-3 rounded-md bg-[#1e3a7b] text-white text-[12px] font-bold flex items-center shadow-xs">
+                  {{ pag }}
+                </span>
+              } @else {
+                <button 
+                  type="button"
+                  (click)="facade.cargarVehiculos(pag, facade.pageSize())"
+                  [disabled]="facade.loading()"
+                  class="h-7 px-2.5 rounded-md border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 text-[12px] font-medium flex items-center cursor-pointer transition-colors">
+                  {{ pag }}
+                </button>
+              }
+            }
+
             <button 
               type="button"
-              (click)="facade.cargarVehiculos(facade.paginaActual() + 1)"
+              (click)="facade.cargarVehiculos(facade.paginaActual() + 1, facade.pageSize())"
               [disabled]="facade.paginaActual() >= facade.totalPaginas() || facade.loading()"
+              title="Página siguiente"
               class="h-7 px-2 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-50 flex items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>

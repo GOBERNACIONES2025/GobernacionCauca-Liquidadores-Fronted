@@ -17,6 +17,8 @@ export interface PropietarioDto {
   departamentoId?: number;
   cantidadVehiculos: number;
   cantidadDeudas: number;
+  placas?: string[];
+  placasAsociadas?: string;
   activo: boolean;
   createdAt: string;
   updatedAt?: string;

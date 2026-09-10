@@ -1,17 +1,18 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Contribuyente, Expediente } from '../../../domain/models/contribuyente.model';
 import { ContribuyenteFormComponent } from '../../components/contribuyente-form/contribuyente-form.component';
 import { ContribuyentesFacade } from '../../../application/facades/contribuyentes.facade';
 
 /**
  * Componente principal para la Gestión de Contribuyentes.
- * Visualiza la grilla de contribuyentes, los KPIs y permite abrir un panel lateral (Expediente).
+ * Visualiza la tabla de contribuyentes, filtros reactivos y drawer de Expediente.
  */
 @Component({
   selector: 'app-contribuyentes-index',
   standalone: true,
-  imports: [CommonModule, ContribuyenteFormComponent],
+  imports: [CommonModule, FormsModule, ContribuyenteFormComponent],
   templateUrl: './contribuyentes-index.html',
   styleUrls: ['./styles-contribuyentes.css']
 })
@@ -29,7 +30,7 @@ export class ContribuyentesIndex implements OnInit {
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.facade.cargarContribuyentes(1, 20);
+    this.facade.cargarContribuyentes(1, 10);
   }
 
   openDrawer(contribuyente: Contribuyente): void {
@@ -51,10 +52,22 @@ export class ContribuyentesIndex implements OnInit {
     this.activeTab = tab;
   }
 
+  cambiarPagina(page: number): void {
+    if (page < 1 || page > this.facade.totalPaginas() || this.facade.loading()) return;
+    this.facade.cargarContribuyentes(page, this.facade.pageSize());
+  }
+
+  refrescar(): void {
+    this.facade.refrescar();
+  }
+
   // Helper para clases CSS según tipo de persona
   getBgColor(tipoPersonaId: number): string {
     return tipoPersonaId === 1 ? 'bg-[#70b238]' : 'bg-[#1e3a7b]'; 
-    // Suponiendo 1 = Natural, 2 = Jurídica (Ajustar según BD)
+  }
+
+  getTipoPersonaLabel(tipoPersonaId: number): string {
+    return tipoPersonaId === 1 ? 'Persona Natural' : 'Persona Jurídica';
   }
 
   getIniciales(c: Contribuyente): string {

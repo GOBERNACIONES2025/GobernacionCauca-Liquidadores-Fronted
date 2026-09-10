@@ -109,6 +109,24 @@ export class VehiculosFacade {
   readonly pageSize = signal<number>(10);
   readonly totalPaginas = signal<number>(1);
 
+  readonly paginasDisponibles = computed(() => {
+    const total = this.totalPaginas();
+    const actual = this.paginaActual();
+    if (total <= 1) return [1];
+
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages: number[] = [];
+    const start = Math.max(1, actual - 2);
+    const end = Math.min(total, actual + 2);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  });
+
   readonly kpis = signal<VehiculoKpis>({
     vigenciaFiscal: 2026,
     vigenciaEstado: 'ACTIVA',
@@ -194,6 +212,20 @@ export class VehiculosFacade {
     const estado = this.filtroEstado();
     const tipo = this.filtroTipo();
 
+    const normalize = (str?: string | null) => {
+      if (!str) return '';
+      return str
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    };
+
+    const normTipo = normalize(tipo);
+    const raizTipo = normTipo.length > 4 && normTipo.endsWith('es') 
+      ? normTipo.slice(0, -2) 
+      : (normTipo.length > 4 && normTipo.endsWith('s') ? normTipo.slice(0, -1) : normTipo);
+
     return this.vehiculos().filter(v => {
       const matchTexto = !texto || 
         (v.placa && v.placa.toLowerCase().includes(texto)) ||
@@ -203,12 +235,21 @@ export class VehiculosFacade {
         (v.linea && v.linea.toLowerCase().includes(texto)) ||
         (v.tituloFichaTecnica && v.tituloFichaTecnica.toLowerCase().includes(texto));
 
+      const vEstadoNorm = normalize(v.estadoMatricula);
+      const isActivo = v.estadoMatriculaId === 1 || v.estadoMatriculaId === 0 || (vEstadoNorm.includes('activ') && !vEstadoNorm.includes('inactiv'));
       const matchEstado = estado === 'Todos' || 
-        (estado === 'Activo' && (v.estadoMatricula === 'Matrícula Activa' || v.estadoMatricula === 'Activo')) ||
-        (estado === 'Inactivo' && v.estadoMatricula === 'Inactivo') ||
-        v.estadoMatricula === estado;
+        (estado === 'Activo' && isActivo) ||
+        (estado === 'Inactivo' && !isActivo) ||
+        (vEstadoNorm === normalize(estado));
 
-      const matchTipo = tipo === 'Todos' || v.clase === tipo || v.tipoVehiculo === tipo;
+      const vClaseNorm = normalize(v.clase);
+      const vTipoNorm = normalize(v.tipoVehiculo);
+      const matchTipo = tipo === 'Todos' || 
+        (normTipo.length > 0 && (
+          vClaseNorm.includes(normTipo) || vTipoNorm.includes(normTipo) || 
+          vClaseNorm.includes(raizTipo) || vTipoNorm.includes(raizTipo) ||
+          normTipo.includes(vClaseNorm) || normTipo.includes(vTipoNorm)
+        ));
 
       return matchTexto && matchEstado && matchTipo;
     });
@@ -249,7 +290,7 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   // CARGA DE VEHÍCULOS DESDE LA BASE DE DATOS (GET /api/vehiculos)
   // --------------------------------------------------------------------------
-  cargarVehiculos(page: number = 1, pageSize: number = 20): void {
+  cargarVehiculos(page: number = 1, pageSize: number = 10): void {
     this.loading.set(true);
     this.error.set(null);
 
@@ -274,51 +315,7 @@ export class VehiculosFacade {
         const total = res.data.totalCount ?? rawItems.length;
         const totalPags = res.data.totalPages ?? Math.ceil(total / pageSize);
 
-        const mapped: VehiculoItem[] = rawItems.map((item: any, idx: number) => {
-          let propietarioNombre = item.propietarioNombre || item.propietario?.nombre || 'Sin propietario asignado';
-          let propietarioDoc = item.propietarioDocumento || item.propietario?.numeroDocumento || '';
-          let tipoDoc = item.propietario?.tipoDocumento || 'CC';
-          let tipoPersona = item.propietario?.tipoPersona || (propietarioDoc.includes('NIT') ? 'Jurídica' : 'Natural');
-
-          if (item.propietarioDocumento && !item.propietario) {
-            const partesDoc = item.propietarioDocumento.split('·');
-            propietarioDoc = partesDoc[0]?.trim() || item.propietarioDocumento;
-            if (partesDoc[1]) {
-              tipoPersona = partesDoc[1].trim();
-            }
-          }
-
-          return {
-            id: item.id || idx + 1,
-            placa: item.placa || '',
-            marca: item.marca || '',
-            linea: item.linea || '',
-            modelo: Number(item.modelo) || 2024,
-            cilindraje: Number(item.cilindraje) || 1600,
-            tipoCombustible: item.combustible || item.tipoCombustible || 'Gasolina',
-            combustible: item.combustible || item.tipoCombustible || 'Gasolina',
-            clase: item.clase || item.tipoVehiculo || 'Automóvil',
-            tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
-            color: item.color || 'Blanco',
-            servicio: item.servicio || 'Particular',
-            pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
-            organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
-            organismoTransitoId: item.organismoTransitoId || undefined,
-            fechaMatricula: item.fechaMatricula || undefined,
-            estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
-            estadoMatriculaId: item.estadoMatriculaId || 1,
-            exencion: item.exencion || undefined,
-            seleccionado: false,
-            tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
-            subtituloFichaTecnica: item.subtituloFichaTecnica,
-            propietario: {
-              nombre: propietarioNombre,
-              tipoDocumento: tipoDoc,
-              numeroDocumento: propietarioDoc,
-              tipoPersona: tipoPersona
-            }
-          };
-        });
+        const mapped: VehiculoItem[] = this.mapearItemsVehiculo(rawItems);
 
         if (mapped.length > 0) {
           this.vehiculos.set(mapped);
@@ -334,6 +331,121 @@ export class VehiculosFacade {
         this.totalPaginas.set(totalPags);
       }
     });
+  }
+
+  /**
+   * Mapea un listado de registros crudos del backend en entidades VehiculoItem fuertemente tipadas,
+   * normalizando información de ficha técnica, clases, combustibles y propietario/documentos.
+   */
+  private mapearItemsVehiculo(rawItems: any[]): VehiculoItem[] {
+    return rawItems.map((item: any, idx: number) => {
+      let propietarioNombre = item.propietarioNombre || item.propietario?.nombre || 'Sin propietario asignado';
+      let tipoDoc = 'CC';
+      let numDoc = '';
+      let tipoPersona = 'Natural';
+
+      if (item.propietarioDocumento) {
+        const partesDoc = String(item.propietarioDocumento).split('·').map((s: string) => s.trim());
+        const docRaw = partesDoc[0] || '';
+        if (partesDoc[1]) {
+          tipoPersona = partesDoc[1];
+        } else if (docRaw.toUpperCase().includes('NIT')) {
+          tipoPersona = 'Jurídica';
+        }
+
+        // Extraer posibles tipos repetidos al inicio (ej: "CC NIT 1111111" o "CC 1234567")
+        const tokens = docRaw.split(/\s+/).filter(Boolean);
+        const knownTypes = ['CC', 'NIT', 'CE', 'TI', 'PA', 'PAS', 'RC'];
+        const typesFound: string[] = [];
+        const numbersFound: string[] = [];
+
+        for (const token of tokens) {
+          if (knownTypes.includes(token.toUpperCase())) {
+            typesFound.push(token.toUpperCase());
+          } else {
+            numbersFound.push(token);
+          }
+        }
+
+        if (typesFound.length > 0) {
+          // Si vino por ejemplo "CC NIT", tomar "NIT" (el último tipo específico)
+          tipoDoc = typesFound[typesFound.length - 1];
+        } else {
+          tipoDoc = item.propietario?.tipoDocumento || (tipoPersona === 'Jurídica' ? 'NIT' : 'CC');
+        }
+
+        numDoc = numbersFound.join(' ');
+        if (!numDoc && tokens.length > 0) {
+          numDoc = tokens[tokens.length - 1];
+        }
+      } else if (item.propietario) {
+        tipoDoc = item.propietario.tipoDocumento || 'CC';
+        numDoc = item.propietario.numeroDocumento || '';
+        tipoPersona = item.propietario.tipoPersona || (tipoDoc === 'NIT' ? 'Jurídica' : 'Natural');
+      }
+
+      const docCompleto = numDoc ? `${tipoDoc} ${numDoc}`.trim() : (propietarioNombre !== 'Sin propietario asignado' ? 'Sin documento' : '');
+
+      return {
+        id: item.id || idx + 1,
+        placa: item.placa || '',
+        marca: item.marca || '',
+        linea: item.linea || '',
+        modelo: Number(item.modelo) || 2024,
+        cilindraje: Number(item.cilindraje) || 1600,
+        tipoCombustible: item.combustible || item.tipoCombustible || 'Gasolina',
+        combustible: item.combustible || item.tipoCombustible || 'Gasolina',
+        clase: item.clase || item.tipoVehiculo || 'Automóvil',
+        tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
+        color: item.color || 'Blanco',
+        servicio: item.servicio || 'Particular',
+        pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
+        organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
+        organismoTransitoId: item.organismoTransitoId || undefined,
+        fechaMatricula: item.fechaMatricula || undefined,
+        estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
+        estadoMatriculaId: item.estadoMatriculaId || 1,
+        exencion: item.exencion || undefined,
+        seleccionado: false,
+        tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
+        subtituloFichaTecnica: item.subtituloFichaTecnica,
+        propietarioId: item.propietarioId,
+        propietarioNombre: propietarioNombre,
+        propietarioDocumento: docCompleto,
+        propietario: {
+          nombre: propietarioNombre,
+          tipoDocumento: tipoDoc,
+          numeroDocumento: numDoc,
+          tipoPersona: tipoPersona
+        }
+      };
+    });
+  }
+
+  /**
+   * Obtiene la totalidad de vehículos para exportación a nivel general (universo completo filtrado),
+   * consultando la API con pageSize: 10000 para no limitarse a la paginación visible de la tabla.
+   */
+  obtenerTodosParaExportar(): Observable<VehiculoItem[]> {
+    const filtros = {
+      page: 1,
+      pageSize: 10000,
+      buscar: this.filtroTexto().trim() || undefined,
+      estado: this.filtroEstado(),
+      tipoVehiculo: this.filtroTipo()
+    };
+
+    return this.vehiculosApi.getVehiculos(filtros).pipe(
+      map((res: any) => {
+        if (!res || !res.data) return [];
+        const rawItems = Array.isArray(res.data) ? res.data : (res.data.items || []);
+        return this.mapearItemsVehiculo(rawItems);
+      }),
+      catchError((err: any) => {
+        console.warn('Error al obtener vehículos generales para exportación:', err);
+        return of(this.filteredVehiculos());
+      })
+    );
   }
 
   refrescarDashboard(): void {
@@ -353,28 +465,45 @@ export class VehiculosFacade {
     ).subscribe((res: ApiResponse<any[]> | null) => {
       this.cargandoPendientes.set(false);
       if (res && res.data) {
-        const mapped: VehiculoItem[] = res.data.map((item: any) => ({
-          id: item.id,
-          placa: item.placa || '',
-          marca: item.marca || '',
-          linea: item.linea || '',
-          modelo: item.modelo || 2024,
-          cilindraje: item.cilindraje || 1600,
-          combustible: item.combustible || 'Gasolina',
-          tipoVehiculo: item.tipoVehiculo || 'Automóvil',
-          clase: item.clase || 'Automóvil',
-          servicio: item.servicio || 'Particular',
-          estadoMatricula: item.estadoMatricula || 'Pendiente',
-          estadoMatriculaId: item.estadoMatriculaId || 2,
-          estadoAprobacion: item.estadoAprobacion || 'PENDIENTE',
-          propietario: {
-            nombre: item.propietarioNombre || 'Propietario Pendiente',
-            tipoDocumento: 'CC',
-            numeroDocumento: item.propietarioDocumento || 'Pendiente'
-          },
-          propietarioNombre: item.propietarioNombre,
-          propietarioDocumento: item.propietarioDocumento
-        }));
+        const mapped: VehiculoItem[] = res.data.map((item: any) => {
+          let propDoc = item.propietarioDocumento || '';
+          let tipoDoc = 'CC';
+          let numDoc = propDoc;
+
+          if (propDoc) {
+            const tokens = String(propDoc).split(/\s+/).filter(Boolean);
+            const known = ['CC', 'NIT', 'CE', 'TI', 'PA', 'PAS', 'RC'];
+            const types = tokens.filter(t => known.includes(t.toUpperCase()));
+            const nums = tokens.filter(t => !known.includes(t.toUpperCase()));
+            if (types.length > 0) tipoDoc = types[types.length - 1].toUpperCase();
+            if (nums.length > 0) numDoc = nums.join(' ');
+          }
+
+          const docCompleto = numDoc ? `${tipoDoc} ${numDoc}`.trim() : (propDoc || 'Pendiente');
+
+          return {
+            id: item.id,
+            placa: item.placa || '',
+            marca: item.marca || '',
+            linea: item.linea || '',
+            modelo: item.modelo || 2024,
+            cilindraje: item.cilindraje || 1600,
+            combustible: item.combustible || 'Gasolina',
+            tipoVehiculo: item.tipoVehiculo || 'Automóvil',
+            clase: item.clase || 'Automóvil',
+            servicio: item.servicio || 'Particular',
+            estadoMatricula: item.estadoMatricula || 'Pendiente',
+            estadoMatriculaId: item.estadoMatriculaId || 2,
+            estadoAprobacion: item.estadoAprobacion || 'PENDIENTE',
+            propietario: {
+              nombre: item.propietarioNombre || 'Propietario Pendiente',
+              tipoDocumento: tipoDoc,
+              numeroDocumento: numDoc || 'Pendiente'
+            },
+            propietarioNombre: item.propietarioNombre,
+            propietarioDocumento: docCompleto
+          };
+        });
         this.vehiculosPendientesAprobacion.set(mapped);
         this.kpis.update(k => ({ ...k, totalPendientesAprobacion: mapped.length }));
       }

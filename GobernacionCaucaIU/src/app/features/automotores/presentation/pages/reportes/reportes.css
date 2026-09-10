@@ -1,0 +1,96 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── PLACA COLOMBIANA CON ESTILO AUTÉNTICO Y ESPACIO GENEROSO ── */
+.co-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffd900;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 5px;
+  border: 1.5px solid #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  min-width: 90px;
+  text-transform: uppercase;
+}
+
+/* ── FILTROS: SELECTS & INPUTS DE ALTO CONTRASTE ── */
+.filtro-control {
+  width: 100%;
+  height: 38px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+}
+
+.filtro-control:hover {
+  border-color: #94a3b8 !important;
+}
+
+.filtro-control:focus {
+  border-color: #1e3a7b !important;
+  box-shadow: 0 0 0 3px rgba(30, 58, 123, 0.15) !important;
+}
+
+.filtro-select {
+  padding-left: 12px;
+  padding-right: 32px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23334155' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  background-size: 16px 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Opciones del menú desplegable: Forzar fondo blanco y texto oscuro nítido */
+.filtro-select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
+}
+
+.filtro-select option:hover,
+.filtro-select option:focus,
+.filtro-select option:checked {
+  background-color: #1e3a7b !important;
+  color: #ffffff !important;
+}
+
+.filtro-input {
+  padding-left: 36px;
+  padding-right: 12px;
+}
+
+.filtro-input::placeholder {
+  color: #64748b !important;
+  font-size: 12.5px;
+  font-weight: 400;
+}

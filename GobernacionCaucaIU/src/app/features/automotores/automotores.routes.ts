@@ -6,6 +6,7 @@ import { LiquidacionesPage } from './presentation/pages/liquidaciones/liquidacio
 import { ValoresEstatalesPage } from './presentation/pages/valores-estatales/valores-estatales';
 import { AutomotoresConfiguracionLayout } from './presentation/layout/configuracion-layout/configuracion-layout';
 import { PortalCiudadano } from './presentation/pages/portal-ciudadano/portal-ciudadano';
+import { ReportesPage } from './presentation/pages/reportes/reportes';
 
 // Catálogos & Configuración
 import { DepartamentosPage } from './presentation/pages/configuracion/territorio/departamentos';
@@ -65,6 +66,10 @@ export const automotoresRoutes: Routes = [
       {
         path: 'valores-estatales',
         component: ValoresEstatalesPage
+      },
+      {
+        path: 'reportes',
+        component: ReportesPage
       },
       {
         path: 'configuracion',
