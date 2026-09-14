@@ -1,8 +1,8 @@
 import { Component, forwardRef, Input, OnInit, signal, effect, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
-import { Subject, Observable, of } from 'rxjs';
-import { debounceTime, distinctUntilChanged, switchMap, tap, catchError } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-searchable-select',
@@ -32,7 +32,6 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
   isOpen = signal<boolean>(false);
   
   searchTerm = '';
-  searchSubject = new Subject<string>();
 
   value: any = null;
   displayValue: string = '';
@@ -40,19 +39,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
   onChange: any = () => {};
   onTouch: any = () => {};
 
-  constructor(private eRef: ElementRef) {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      tap(() => this.isLoading.set(true)),
-      switchMap(term => this.searchFn(term).pipe(
-        catchError(() => of([]))
-      )),
-      tap(() => this.isLoading.set(false))
-    ).subscribe(results => {
-      this.options.set(results);
-    });
-  }
+  constructor(private eRef: ElementRef) {}
 
   ngOnInit(): void {
     // Initial load
@@ -64,7 +51,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
     this.searchFn(term).pipe(
       catchError(() => of([]))
     ).subscribe(results => {
-      this.options.set(results);
+      this.options.set(results || []);
       this.isLoading.set(false);
       this.resolveDisplayValueFromOptions();
     });
@@ -97,8 +84,9 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
     if (this.disabled) return;
     this.isOpen.set(!this.isOpen());
     if (this.isOpen()) {
-      this.searchTerm = '';
-      this.loadOptions('');
+      if (this.options().length === 0) {
+        this.loadOptions('');
+      }
       setTimeout(() => {
         if (this.searchInput) {
           this.searchInput.nativeElement.focus();
@@ -109,10 +97,30 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
     }
   }
 
-  onSearch(event: any) {
-    const val = event.target.value;
-    this.searchTerm = val;
-    this.searchSubject.next(val);
+  onSearchInput(event: any) {
+    this.searchTerm = event?.target ? event.target.value : (event || '');
+  }
+
+  onSearchSubmit(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.loadOptions(this.searchTerm.trim());
+  }
+
+  clearSearch(event?: Event) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.searchTerm = '';
+    this.loadOptions('');
+    setTimeout(() => {
+      if (this.searchInput) {
+        this.searchInput.nativeElement.focus();
+      }
+    });
   }
 
   selectOption(option: any, event?: Event) {
