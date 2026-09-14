@@ -38,12 +38,13 @@ export class EntidadesTipoActoPermitidoFacade {
     pageNumber: number = 1, 
     pageSize: number = 10, 
     entidadRegistroId?: number, 
-    tipoActoRegistroId?: number
+    tipoActoRegistroId?: number,
+    search?: string
   ): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos({ pageNumber, pageSize, entidadRegistroId, tipoActoRegistroId }).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, entidadRegistroId, tipoActoRegistroId, search }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.entidadesTipoActoPermitido.set(response.data.items || []);

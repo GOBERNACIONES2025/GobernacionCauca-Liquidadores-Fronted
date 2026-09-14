@@ -1,11 +1,10 @@
 import { Component, inject, OnInit, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { ContribuyentesFacade } from '../../../../../application/facades/Contribuyentes/contribuyentes.facade';
 import { TiposPersonaFacade } from '../../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
@@ -20,7 +19,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-contribuyentes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent],
   templateUrl: './contribuyentes.html',
   styleUrl: './contribuyentes.css'
 })
@@ -38,7 +37,6 @@ export class Contribuyentes implements OnInit {
   breadcrumbs = ['Configuración', 'Contribuyentes', 'Directorio de Contribuyentes'];
 
   searchText = signal<string>('');
-  searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
@@ -72,20 +70,16 @@ export class Contribuyentes implements OnInit {
   // Filtered list (client side for tipoPersona si no es backend filter, backend for search)
   contribuyentesFiltrados = computed(() => this.facade.contribuyentes());
 
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarDatos();
-    });
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarDatos();
   }
 
-  onSearchChange(event: any) {
-    const value = event?.target ? event.target.value : event;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarDatos();
   }
 
   cargarDatos() {

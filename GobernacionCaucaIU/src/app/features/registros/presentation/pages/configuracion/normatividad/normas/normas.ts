@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { NormasFacade } from '../../../../../application/facades/Normatividad/normas.facade';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
@@ -24,7 +25,7 @@ import { DocumentItem } from '../../../../../../../shared/components/document-vi
 @Component({
   selector: 'app-normas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './normas.html',
   styleUrl: './normas.css'
 })
@@ -47,17 +48,6 @@ export class Normas implements OnInit {
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   loadingEditId = signal<number | null>(null);
-
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarItems();
-    });
-  }
-  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -108,7 +98,7 @@ export class Normas implements OnInit {
     let activo: boolean | undefined = undefined;
     if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
     if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
-    this.facade.cargarNormas(undefined, this.pageNumber(), this.pageSize());;
+    this.facade.cargarNormas(undefined, this.pageNumber(), this.pageSize(), this.searchText());
   }
 
   onPageChange(page: number) {
@@ -122,10 +112,16 @@ export class Normas implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {

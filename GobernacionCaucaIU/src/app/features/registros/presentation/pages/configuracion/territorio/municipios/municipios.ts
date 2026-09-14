@@ -4,6 +4,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { MunicipiosFacade } from '../../../../../application/facades/Territorios/municipios.facade';
@@ -18,7 +19,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-municipios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
   templateUrl: './municipios.html',
   styleUrl: './municipios.css'
 })
@@ -33,7 +34,6 @@ export class Municipios implements OnInit {
   breadcrumbs = ['Configuración', 'Territorio', 'Municipio'];
 
   searchText = signal<string>('');
-  searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
@@ -66,20 +66,16 @@ export class Municipios implements OnInit {
   // Otherwise, we just return all from facade.
   municipiosFiltrados = computed(() => this.facade.municipios());
 
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarDatos();
-    });
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarDatos();
   }
 
-  onSearchChange(event: any) {
-    const value = event?.target ? event.target.value : event;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarDatos();
   }
 
   cargarDatos() {
