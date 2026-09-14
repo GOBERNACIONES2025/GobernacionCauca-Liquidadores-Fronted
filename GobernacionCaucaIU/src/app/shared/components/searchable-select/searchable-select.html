@@ -1,7 +1,14 @@
 <div class="relative w-full">
   <!-- Trigger Button / Display -->
   <div 
-    class="flex items-center justify-between w-full border border-gray-300 rounded-md px-3 py-2 bg-white cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:border-primary transition-all shadow-sm"
+    class="flex items-center justify-between w-full border rounded-md px-3 py-2 bg-white cursor-pointer transition-all shadow-sm"
+    [class.border-gray-300]="!isInvalid"
+    [class.border-red-500]="isInvalid"
+    [class.focus-within:ring-2]="true"
+    [class.focus-within:ring-primary]="!isInvalid"
+    [class.focus-within:border-primary]="!isInvalid"
+    [class.focus-within:ring-red-500]="isInvalid"
+    [class.focus-within:border-red-500]="isInvalid"
     [class.bg-gray-100]="disabled"
     [class.cursor-not-allowed]="disabled"
     (click)="toggleDropdown()"

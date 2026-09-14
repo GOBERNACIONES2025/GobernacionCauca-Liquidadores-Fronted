@@ -168,10 +168,8 @@
       </label>
       <input type="text" formControlName="codigo" placeholder="Ej. TBE-01"
         class="input input-sm input-bordered w-full text-slate-800"
-        [class.input-error]="tipoBeneficiarioForm.get('codigo')?.invalid && tipoBeneficiarioForm.get('codigo')?.touched" />
-      @if (tipoBeneficiarioForm.get('codigo')?.hasError('required') && tipoBeneficiarioForm.get('codigo')?.touched) {
-      <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+        [class.input-error]="tipoBeneficiarioForm.get('codigo')?.invalid && (tipoBeneficiarioForm.get('codigo')?.touched || tipoBeneficiarioForm.get('codigo')?.dirty)" />
+      <app-form-error [control]="tipoBeneficiarioForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -181,10 +179,8 @@
       </label>
       <input type="text" formControlName="nombre" placeholder="Ej. Entidad Pública / Beneficencia"
         class="input input-sm input-bordered w-full text-slate-800"
-        [class.input-error]="tipoBeneficiarioForm.get('nombre')?.invalid && tipoBeneficiarioForm.get('nombre')?.touched" />
-      @if (tipoBeneficiarioForm.get('nombre')?.hasError('required') && tipoBeneficiarioForm.get('nombre')?.touched) {
-      <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+        [class.input-error]="tipoBeneficiarioForm.get('nombre')?.invalid && (tipoBeneficiarioForm.get('nombre')?.touched || tipoBeneficiarioForm.get('nombre')?.dirty)" />
+      <app-form-error [control]="tipoBeneficiarioForm.get('nombre')" fieldName="Nombre"></app-form-error>
     </div>
 
     <!-- Estado -->

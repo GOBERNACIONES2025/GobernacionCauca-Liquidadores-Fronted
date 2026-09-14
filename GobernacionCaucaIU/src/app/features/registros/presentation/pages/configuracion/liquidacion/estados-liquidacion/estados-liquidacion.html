@@ -186,11 +186,9 @@
         formControlName="codigo" 
         placeholder="Ej. LIQ" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="estadoLiquidacionForm.get('codigo')?.invalid && estadoLiquidacionForm.get('codigo')?.touched" 
+        [class.input-error]="estadoLiquidacionForm.get('codigo')?.invalid && (estadoLiquidacionForm.get('codigo')?.touched || estadoLiquidacionForm.get('codigo')?.dirty)" 
       />
-      @if (estadoLiquidacionForm.get('codigo')?.hasError('required') && estadoLiquidacionForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="estadoLiquidacionForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -203,11 +201,9 @@
         formControlName="nombre" 
         placeholder="Ej. Liquidado" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="estadoLiquidacionForm.get('nombre')?.invalid && estadoLiquidacionForm.get('nombre')?.touched" 
+        [class.input-error]="estadoLiquidacionForm.get('nombre')?.invalid && (estadoLiquidacionForm.get('nombre')?.touched || estadoLiquidacionForm.get('nombre')?.dirty)" 
       />
-      @if (estadoLiquidacionForm.get('nombre')?.hasError('required') && estadoLiquidacionForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="estadoLiquidacionForm.get('nombre')" fieldName="Nombre del Estado"></app-form-error>
     </div>
 
     <!-- Estado -->

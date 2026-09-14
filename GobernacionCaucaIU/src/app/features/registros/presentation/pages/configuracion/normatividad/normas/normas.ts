@@ -18,6 +18,7 @@ import { DepartamentosApiService } from '../../../../../infrastructure/api/Terri
 import { TiposNormaApiService } from '../../../../../infrastructure/api/Normatividad/tipos-norma-api.service';
 import { EstadosNormaApiService } from '../../../../../infrastructure/api/Normatividad/estados-norma-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 import { DocumentViewerComponent } from '../../../../../../../shared/components/document-viewer/document-viewer';
 import { DocumentItem } from '../../../../../../../shared/components/document-viewer/document-viewer.model';
@@ -25,7 +26,7 @@ import { DocumentItem } from '../../../../../../../shared/components/document-vi
 @Component({
   selector: 'app-normas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
   templateUrl: './normas.html',
   styleUrl: './normas.css'
 })

@@ -228,11 +228,9 @@
         formControlName="numero" 
         placeholder="Ej. ORD-2024-001" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="normaForm.get('numero')?.invalid && normaForm.get('numero')?.touched" 
+        [class.input-error]="normaForm.get('numero')?.invalid && (normaForm.get('numero')?.touched || normaForm.get('numero')?.dirty)" 
       />
-      @if (normaForm.get('numero')?.hasError('required') && normaForm.get('numero')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="normaForm.get('numero')" fieldName="Número de Norma"></app-form-error>
     </div>
 
     <!-- Departamento Select -->
@@ -244,13 +242,16 @@
         formControlName="departamentoId"
         [searchFn]="searchDepartamentosFn"
         [resolveIdFn]="resolveDepartamentoFn"
+        [isInvalid]="normaForm.get('departamentoId')?.invalid && (normaForm.get('departamentoId')?.touched || normaForm.get('departamentoId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar departamento..."
       ></app-searchable-select>
-      @if (normaForm.get('departamentoId')?.hasError('required') && normaForm.get('departamentoId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un departamento</span></label>
-      }
+      <app-form-error 
+        [control]="normaForm.get('departamentoId')" 
+        fieldName="Departamento"
+        [customMessages]="{ required: 'Debe seleccionar un departamento' }">
+      </app-form-error>
     </div>
 
     <!-- Tipo de Norma Select -->
@@ -262,13 +263,16 @@
         formControlName="tipoNormaId"
         [searchFn]="searchTiposNormaFn"
         [resolveIdFn]="resolveTipoNormaFn"
+        [isInvalid]="normaForm.get('tipoNormaId')?.invalid && (normaForm.get('tipoNormaId')?.touched || normaForm.get('tipoNormaId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar tipo de norma..."
       ></app-searchable-select>
-      @if (normaForm.get('tipoNormaId')?.hasError('required') && normaForm.get('tipoNormaId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un tipo de norma</span></label>
-      }
+      <app-form-error 
+        [control]="normaForm.get('tipoNormaId')" 
+        fieldName="Tipo de Norma"
+        [customMessages]="{ required: 'Debe seleccionar un tipo de norma' }">
+      </app-form-error>
     </div>
 
     <!-- Estado de Norma Select -->
@@ -280,13 +284,16 @@
         formControlName="estadoNormaId"
         [searchFn]="searchEstadosNormaFn"
         [resolveIdFn]="resolveEstadoNormaFn"
+        [isInvalid]="normaForm.get('estadoNormaId')?.invalid && (normaForm.get('estadoNormaId')?.touched || normaForm.get('estadoNormaId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar estado..."
       ></app-searchable-select>
-      @if (normaForm.get('estadoNormaId')?.hasError('required') && normaForm.get('estadoNormaId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un estado</span></label>
-      }
+      <app-form-error 
+        [control]="normaForm.get('estadoNormaId')" 
+        fieldName="Estado de Norma"
+        [customMessages]="{ required: 'Debe seleccionar un estado' }">
+      </app-form-error>
     </div>
 
     <!-- Grid Año y Fecha Expedición -->
@@ -299,8 +306,9 @@
           type="number" 
           formControlName="anio" 
           class="input input-sm input-bordered w-full text-slate-800" 
-          [class.input-error]="normaForm.get('anio')?.invalid && normaForm.get('anio')?.touched" 
+          [class.input-error]="normaForm.get('anio')?.invalid && (normaForm.get('anio')?.touched || normaForm.get('anio')?.dirty)" 
         />
+        <app-form-error [control]="normaForm.get('anio')" fieldName="Año"></app-form-error>
       </div>
       <div class="form-control w-full">
         <label class="label pt-0 pb-1">
@@ -310,8 +318,9 @@
           type="date" 
           formControlName="fechaExpedicion" 
           class="input input-sm input-bordered w-full text-slate-800" 
-          [class.input-error]="normaForm.get('fechaExpedicion')?.invalid && normaForm.get('fechaExpedicion')?.touched" 
+          [class.input-error]="normaForm.get('fechaExpedicion')?.invalid && (normaForm.get('fechaExpedicion')?.touched || normaForm.get('fechaExpedicion')?.dirty)" 
         />
+        <app-form-error [control]="normaForm.get('fechaExpedicion')" fieldName="Fecha de Expedición"></app-form-error>
       </div>
     </div>
 

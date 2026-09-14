@@ -212,13 +212,16 @@
         formControlName="tipoEntidadRegistroId"
         [searchFn]="searchTiposEntidadFn"
         [resolveIdFn]="resolveTipoEntidadFn"
+        [isInvalid]="entidadForm.get('tipoEntidadRegistroId')?.invalid && (entidadForm.get('tipoEntidadRegistroId')?.touched || entidadForm.get('tipoEntidadRegistroId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar tipo de entidad..."
       ></app-searchable-select>
-      @if (entidadForm.get('tipoEntidadRegistroId')?.hasError('required') && entidadForm.get('tipoEntidadRegistroId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un tipo de entidad</span></label>
-      }
+      <app-form-error 
+        [control]="entidadForm.get('tipoEntidadRegistroId')" 
+        fieldName="Tipo de Entidad"
+        [customMessages]="{ required: 'Debe seleccionar un tipo de entidad' }">
+      </app-form-error>
     </div>
 
     <!-- Grid Código y NIT -->
@@ -232,11 +235,9 @@
           formControlName="codigo" 
           placeholder="Ej. NOT-01" 
           class="input input-sm input-bordered w-full text-slate-800" 
-          [class.input-error]="entidadForm.get('codigo')?.invalid && entidadForm.get('codigo')?.touched" 
+          [class.input-error]="entidadForm.get('codigo')?.invalid && (entidadForm.get('codigo')?.touched || entidadForm.get('codigo')?.dirty)" 
         />
-        @if (entidadForm.get('codigo')?.hasError('required') && entidadForm.get('codigo')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Requerido</span></label>
-        }
+        <app-form-error [control]="entidadForm.get('codigo')" fieldName="Código"></app-form-error>
       </div>
 
       <div class="form-control w-full">
@@ -248,11 +249,9 @@
           formControlName="nit" 
           placeholder="Ej. 891500123-1" 
           class="input input-sm input-bordered w-full text-slate-800" 
-          [class.input-error]="entidadForm.get('nit')?.invalid && entidadForm.get('nit')?.touched" 
+          [class.input-error]="entidadForm.get('nit')?.invalid && (entidadForm.get('nit')?.touched || entidadForm.get('nit')?.dirty)" 
         />
-        @if (entidadForm.get('nit')?.hasError('required') && entidadForm.get('nit')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Requerido</span></label>
-        }
+        <app-form-error [control]="entidadForm.get('nit')" fieldName="NIT"></app-form-error>
       </div>
     </div>
 
@@ -266,11 +265,9 @@
         formControlName="nombre" 
         placeholder="Ej. Notaría Primera de Popayán" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="entidadForm.get('nombre')?.invalid && entidadForm.get('nombre')?.touched" 
+        [class.input-error]="entidadForm.get('nombre')?.invalid && (entidadForm.get('nombre')?.touched || entidadForm.get('nombre')?.dirty)" 
       />
-      @if (entidadForm.get('nombre')?.hasError('required') && entidadForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="entidadForm.get('nombre')" fieldName="Nombre de la Entidad"></app-form-error>
     </div>
 
     <!-- Grid Departamento y Municipio -->
@@ -284,10 +281,16 @@
           formControlName="departamentoId"
           [searchFn]="searchDepartamentosFn"
           [resolveIdFn]="resolveDepartamentoFn"
+          [isInvalid]="entidadForm.get('departamentoId')?.invalid && (entidadForm.get('departamentoId')?.touched || entidadForm.get('departamentoId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Buscar departamento..."
         ></app-searchable-select>
+        <app-form-error 
+          [control]="entidadForm.get('departamentoId')" 
+          fieldName="Departamento"
+          [customMessages]="{ required: 'Debe seleccionar un departamento' }">
+        </app-form-error>
       </div>
 
       <!-- Municipio Select -->
@@ -299,11 +302,17 @@
           formControlName="municipioId"
           [searchFn]="searchMunicipiosFn"
           [resolveIdFn]="resolveMunicipioFn"
+          [isInvalid]="entidadForm.get('municipioId')?.invalid && (entidadForm.get('municipioId')?.touched || entidadForm.get('municipioId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Buscar municipio..."
           [disabled]="!entidadForm.get('departamentoId')?.value"
         ></app-searchable-select>
+        <app-form-error 
+          [control]="entidadForm.get('municipioId')" 
+          fieldName="Municipio"
+          [customMessages]="{ required: 'Debe seleccionar un municipio' }">
+        </app-form-error>
       </div>
     </div>
 
@@ -317,7 +326,9 @@
         formControlName="emailContacto" 
         placeholder="ejemplo@notaria1popayan.com.co" 
         class="input input-sm input-bordered w-full text-slate-800" 
+        [class.input-error]="entidadForm.get('emailContacto')?.invalid && (entidadForm.get('emailContacto')?.touched || entidadForm.get('emailContacto')?.dirty)"
       />
+      <app-form-error [control]="entidadForm.get('emailContacto')" fieldName="Correo Electrónico"></app-form-error>
     </div>
 
     <!-- Estado -->

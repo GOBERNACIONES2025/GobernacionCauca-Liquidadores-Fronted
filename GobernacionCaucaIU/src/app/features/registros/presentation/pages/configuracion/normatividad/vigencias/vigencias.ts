@@ -12,10 +12,12 @@ import { Vigencia } from '../../../../../domain/models/Normatividad/vigencia.mod
 import { VigenciasApiService } from '../../../../../infrastructure/api/Normatividad/vigencias-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-vigencias',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
   templateUrl: './vigencias.html',
   styleUrl: './vigencias.css'
 })
@@ -45,6 +47,15 @@ export class Vigencias implements OnInit {
     fechaInicio: [`${new Date().getFullYear()}-01-01`, Validators.required],
     fechaFin: [`${new Date().getFullYear()}-12-31`, Validators.required],
     activo: [true]
+  }, {
+    validators: (g) => {
+      const inicio = g.get('fechaInicio')?.value;
+      const fin = g.get('fechaFin')?.value;
+      if (inicio && fin && new Date(fin) < new Date(inicio)) {
+        return { fechaFinMenor: true };
+      }
+      return null;
+    }
   });
 
   // Filtered list

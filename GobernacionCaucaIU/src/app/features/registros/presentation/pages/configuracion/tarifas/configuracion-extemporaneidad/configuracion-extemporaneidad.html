@@ -266,13 +266,16 @@
         formControlName="departamentoId"
         [searchFn]="searchDepartamentosFn"
         [resolveIdFn]="resolveDepartamentoFn"
+        [isInvalid]="extemporaneidadForm.get('departamentoId')?.invalid && (extemporaneidadForm.get('departamentoId')?.touched || extemporaneidadForm.get('departamentoId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar departamento..."
       ></app-searchable-select>
-      @if (extemporaneidadForm.get('departamentoId')?.touched && extemporaneidadForm.get('departamentoId')?.errors?.['required']) {
-        <span class="text-error text-[11px] mt-1">El departamento es obligatorio.</span>
-      }
+      <app-form-error 
+        [control]="extemporaneidadForm.get('departamentoId')" 
+        fieldName="Departamento" 
+        [customMessages]="{ required: 'El departamento es obligatorio.' }">
+      </app-form-error>
     </div>
 
     <!-- Grid Vigencia y Norma -->
@@ -286,13 +289,16 @@
           formControlName="vigenciaId"
           [searchFn]="searchVigenciasFn"
           [resolveIdFn]="resolveVigenciaFn"
+          [isInvalid]="extemporaneidadForm.get('vigenciaId')?.invalid && (extemporaneidadForm.get('vigenciaId')?.touched || extemporaneidadForm.get('vigenciaId')?.dirty)"
           labelKey="anio"
           valueKey="id"
           placeholder="Buscar vigencia..."
         ></app-searchable-select>
-        @if (extemporaneidadForm.get('vigenciaId')?.touched && extemporaneidadForm.get('vigenciaId')?.errors?.['required']) {
-          <span class="text-error text-[11px] mt-1">La vigencia es obligatoria.</span>
-        }
+        <app-form-error 
+          [control]="extemporaneidadForm.get('vigenciaId')" 
+          fieldName="Vigencia" 
+          [customMessages]="{ required: 'La vigencia es obligatoria.' }">
+        </app-form-error>
       </div>
 
       <!-- Norma -->
@@ -304,13 +310,16 @@
           formControlName="normaId"
           [searchFn]="searchNormasFn"
           [resolveIdFn]="resolveNormaFn"
+          [isInvalid]="extemporaneidadForm.get('normaId')?.invalid && (extemporaneidadForm.get('normaId')?.touched || extemporaneidadForm.get('normaId')?.dirty)"
           labelKey="numero"
           valueKey="id"
           placeholder="Buscar norma..."
         ></app-searchable-select>
-        @if (extemporaneidadForm.get('normaId')?.touched && extemporaneidadForm.get('normaId')?.errors?.['required']) {
-          <span class="text-error text-[11px] mt-1">La norma es obligatoria.</span>
-        }
+        <app-form-error 
+          [control]="extemporaneidadForm.get('normaId')" 
+          fieldName="Norma" 
+          [customMessages]="{ required: 'La norma es obligatoria.' }">
+        </app-form-error>
       </div>
     </div>
 
@@ -323,13 +332,16 @@
         formControlName="tipoCalculoTarifaId"
         [searchFn]="searchTiposCalculoFn"
         [resolveIdFn]="resolveTipoCalculoFn"
+        [isInvalid]="extemporaneidadForm.get('tipoCalculoTarifaId')?.invalid && (extemporaneidadForm.get('tipoCalculoTarifaId')?.touched || extemporaneidadForm.get('tipoCalculoTarifaId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar tipo de cálculo..."
       ></app-searchable-select>
-      @if (extemporaneidadForm.get('tipoCalculoTarifaId')?.touched && extemporaneidadForm.get('tipoCalculoTarifaId')?.errors?.['required']) {
-        <span class="text-error text-[11px] mt-1">El tipo de cálculo es obligatorio.</span>
-      }
+      <app-form-error 
+        [control]="extemporaneidadForm.get('tipoCalculoTarifaId')" 
+        fieldName="Tipo de Cálculo" 
+        [customMessages]="{ required: 'El tipo de cálculo es obligatorio.' }">
+      </app-form-error>
     </div>
 
     <!-- Días de Plazo -->
@@ -343,11 +355,10 @@
         min="0"
         placeholder="Ej. 60" 
         class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+        [class.input-error]="extemporaneidadForm.get('diasPlazo')?.invalid && (extemporaneidadForm.get('diasPlazo')?.touched || extemporaneidadForm.get('diasPlazo')?.dirty)"
       />
       <p class="text-[10px] text-slate-400 mt-1">Número de días transcurridos desde el otorgamiento del acto sin causar sanción (generalmente 60 días).</p>
-      @if (extemporaneidadForm.get('diasPlazo')?.touched && extemporaneidadForm.get('diasPlazo')?.errors) {
-        <span class="text-error text-[11px] mt-1">Los días de plazo deben ser un valor mayor o igual a 0.</span>
-      }
+      <app-form-error [control]="extemporaneidadForm.get('diasPlazo')" fieldName="Días de Plazo"></app-form-error>
     </div>
 
     <!-- Grid Sanción: Porcentaje y Valor Fijo -->
@@ -374,7 +385,9 @@
             placeholder="Ej. 5.00" 
             class="input input-sm input-bordered w-full text-slate-800 font-mono" 
             [class.border-blue-500]="extemporaneidadForm.get('tipoCalculoTarifaId')?.value === 1"
+            [class.input-error]="extemporaneidadForm.get('porcentajeSancion')?.invalid && (extemporaneidadForm.get('porcentajeSancion')?.touched || extemporaneidadForm.get('porcentajeSancion')?.dirty)"
           />
+          <app-form-error [control]="extemporaneidadForm.get('porcentajeSancion')" fieldName="Porcentaje Sanción"></app-form-error>
         </div>
 
         <div class="form-control w-full">
@@ -392,7 +405,9 @@
             placeholder="Ej. 50000" 
             class="input input-sm input-bordered w-full text-slate-800 font-mono" 
             [class.border-blue-500]="extemporaneidadForm.get('tipoCalculoTarifaId')?.value === 2"
+            [class.input-error]="extemporaneidadForm.get('valorFijoSancion')?.invalid && (extemporaneidadForm.get('valorFijoSancion')?.touched || extemporaneidadForm.get('valorFijoSancion')?.dirty)"
           />
+          <app-form-error [control]="extemporaneidadForm.get('valorFijoSancion')" fieldName="Valor Fijo Sanción"></app-form-error>
         </div>
       </div>
 
@@ -430,6 +445,7 @@
             type="date" 
             formControlName="fechaInicio" 
             class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+            [class.input-error]="extemporaneidadForm.get('fechaInicio')?.invalid && (extemporaneidadForm.get('fechaInicio')?.touched || extemporaneidadForm.get('fechaInicio')?.dirty)"
           />
         </div>
 
@@ -441,6 +457,7 @@
             type="date" 
             formControlName="fechaFin" 
             class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+            [class.input-error]="extemporaneidadForm.get('fechaFin')?.invalid && (extemporaneidadForm.get('fechaFin')?.touched || extemporaneidadForm.get('fechaFin')?.dirty)"
           />
         </div>
       </div>

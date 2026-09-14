@@ -14,12 +14,13 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 import { TiposPersonaApiService } from '../../../../../infrastructure/api/Contribuyentes/tipos-persona-api.service';
 import { TiposIdentificacionApiService } from '../../../../../infrastructure/api/Contribuyentes/tipos-identificacion-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-contribuyentes',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './contribuyentes.html',
   styleUrl: './contribuyentes.css'
 })

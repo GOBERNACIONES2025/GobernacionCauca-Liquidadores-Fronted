@@ -196,13 +196,16 @@
         formControlName="entidadRegistroId"
         [searchFn]="searchEntidadesFn"
         [resolveIdFn]="resolveEntidadFn"
+        [isInvalid]="relacionForm.get('entidadRegistroId')?.invalid && (relacionForm.get('entidadRegistroId')?.touched || relacionForm.get('entidadRegistroId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar entidad..."
       ></app-searchable-select>
-      @if (relacionForm.get('entidadRegistroId')?.hasError('required') && relacionForm.get('entidadRegistroId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error 
+        [control]="relacionForm.get('entidadRegistroId')" 
+        fieldName="Entidad de Registro"
+        [customMessages]="{ required: 'Debe seleccionar una entidad de registro' }">
+      </app-form-error>
     </div>
 
     <!-- Tipo de Acto de Registro -->
@@ -214,13 +217,16 @@
         formControlName="tipoActoRegistroId"
         [searchFn]="searchTiposActoFn"
         [resolveIdFn]="resolveTipoActoFn"
+        [isInvalid]="relacionForm.get('tipoActoRegistroId')?.invalid && (relacionForm.get('tipoActoRegistroId')?.touched || relacionForm.get('tipoActoRegistroId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar tipo de acto..."
       ></app-searchable-select>
-      @if (relacionForm.get('tipoActoRegistroId')?.hasError('required') && relacionForm.get('tipoActoRegistroId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error 
+        [control]="relacionForm.get('tipoActoRegistroId')" 
+        fieldName="Tipo de Acto Registral"
+        [customMessages]="{ required: 'Debe seleccionar un tipo de acto' }">
+      </app-form-error>
     </div>
 
     <!-- Estado -->

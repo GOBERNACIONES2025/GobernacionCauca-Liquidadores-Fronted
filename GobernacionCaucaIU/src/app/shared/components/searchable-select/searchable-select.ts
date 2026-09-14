@@ -24,6 +24,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
   @Input() valueKey: string = 'id';
   @Input() placeholder: string = 'Seleccione...';
   @Input() disabled: boolean = false;
+  @Input() isInvalid: boolean | undefined | null = false;
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 

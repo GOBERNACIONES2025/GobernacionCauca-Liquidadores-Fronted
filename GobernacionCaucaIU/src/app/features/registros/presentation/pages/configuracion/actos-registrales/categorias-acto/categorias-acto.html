@@ -192,11 +192,9 @@
         formControlName="codigo" 
         placeholder="Ej. CAT-01" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="categoriaForm.get('codigo')?.invalid && categoriaForm.get('codigo')?.touched" 
+        [class.input-error]="categoriaForm.get('codigo')?.invalid && (categoriaForm.get('codigo')?.touched || categoriaForm.get('codigo')?.dirty)" 
       />
-      @if (categoriaForm.get('codigo')?.hasError('required') && categoriaForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="categoriaForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -209,11 +207,9 @@
         formControlName="nombre" 
         placeholder="Ej. Actos con cuantía" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="categoriaForm.get('nombre')?.invalid && categoriaForm.get('nombre')?.touched" 
+        [class.input-error]="categoriaForm.get('nombre')?.invalid && (categoriaForm.get('nombre')?.touched || categoriaForm.get('nombre')?.dirty)" 
       />
-      @if (categoriaForm.get('nombre')?.hasError('required') && categoriaForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="categoriaForm.get('nombre')" fieldName="Nombre"></app-form-error>
     </div>
 
     <!-- Descripción -->

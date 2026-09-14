@@ -186,11 +186,9 @@
         formControlName="codigo" 
         placeholder="Ej. PAG" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="estadoPagoForm.get('codigo')?.invalid && estadoPagoForm.get('codigo')?.touched" 
+        [class.input-error]="estadoPagoForm.get('codigo')?.invalid && (estadoPagoForm.get('codigo')?.touched || estadoPagoForm.get('codigo')?.dirty)" 
       />
-      @if (estadoPagoForm.get('codigo')?.hasError('required') && estadoPagoForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="estadoPagoForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -203,11 +201,9 @@
         formControlName="nombre" 
         placeholder="Ej. Pagado" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="estadoPagoForm.get('nombre')?.invalid && estadoPagoForm.get('nombre')?.touched" 
+        [class.input-error]="estadoPagoForm.get('nombre')?.invalid && (estadoPagoForm.get('nombre')?.touched || estadoPagoForm.get('nombre')?.dirty)" 
       />
-      @if (estadoPagoForm.get('nombre')?.hasError('required') && estadoPagoForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="estadoPagoForm.get('nombre')" fieldName="Nombre del Estado"></app-form-error>
     </div>
 
     <!-- Estado -->

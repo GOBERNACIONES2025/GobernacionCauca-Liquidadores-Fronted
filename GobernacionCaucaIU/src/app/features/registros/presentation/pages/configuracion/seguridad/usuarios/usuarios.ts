@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
@@ -11,10 +11,12 @@ import { Usuario } from '../../../../../domain/models/Seguridad/usuario.model';
 import { UsuariosApiService } from '../../../../../infrastructure/api/Seguridad/usuarios-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'
 })
@@ -44,7 +46,7 @@ export class UsuariosComponent implements OnInit {
     nombre: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: [''],
-    rolesIds: [[] as number[], Validators.required],
+    rolesIds: this.fb.control<number[]>([], [(c: AbstractControl) => (c.value && c.value.length > 0 ? null : { required: true })]),
     activo: [true]
   });
 
@@ -199,7 +201,7 @@ export class UsuariosComponent implements OnInit {
           nombre: val.nombre!,
           email: val.email!,
           activo: val.activo ?? true,
-          rolesIds: val.rolesIds || [],
+          rolesIds: (val.rolesIds ?? []) as number[],
           password: val.password || null
         }).subscribe({
           next: () => {
@@ -217,7 +219,7 @@ export class UsuariosComponent implements OnInit {
           nombre: val.nombre!,
           email: val.email!,
           password: val.password!,
-          rolesIds: val.rolesIds || []
+          rolesIds: (val.rolesIds ?? []) as number[]
         }).subscribe({
           next: () => {
             this.toast.success(`Usuario ${actionName} exitosamente`);

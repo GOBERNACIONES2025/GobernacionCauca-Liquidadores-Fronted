@@ -6,6 +6,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { TasasInteresMoraFacade } from '../../../../../application/facades/Tarifas/tasas-interes-mora.facade';
 import { TasasInteresMoraApiService } from '../../../../../infrastructure/api/Tarifas/tasas-interes-mora-api.service';
@@ -25,7 +26,8 @@ import { TasaInteresMora } from '../../../../../domain/models/Tarifas/tasa-inter
     SlideOverComponent,
     PaginationComponent,
     SearchableSelectComponent,
-    TableSearchComponent
+    TableSearchComponent,
+    FormFieldErrorComponent
   ],
   templateUrl: './tasas-interes-mora.html',
   styleUrl: './tasas-interes-mora.css'

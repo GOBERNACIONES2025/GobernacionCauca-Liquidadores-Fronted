@@ -165,13 +165,16 @@
         formControlName="municipioId"
         [searchFn]="searchMunicipiosFn"
         [resolveIdFn]="resolveMunicipioFn"
+        [isInvalid]="inmuebleForm.get('municipioId')?.invalid && (inmuebleForm.get('municipioId')?.touched || inmuebleForm.get('municipioId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar municipio..."
       ></app-searchable-select>
-      @if (inmuebleForm.get('municipioId')?.hasError('required') && inmuebleForm.get('municipioId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error 
+        [control]="inmuebleForm.get('municipioId')" 
+        fieldName="Municipio"
+        [customMessages]="{ required: 'Debe seleccionar un municipio' }">
+      </app-form-error>
     </div>
 
     <!-- Matrícula Inmobiliaria -->
@@ -184,11 +187,9 @@
         formControlName="matriculaInmobiliaria" 
         placeholder="Ej. 120-123456" 
         class="input input-sm input-bordered w-full text-slate-800 font-mono" 
-        [class.input-error]="inmuebleForm.get('matriculaInmobiliaria')?.invalid && inmuebleForm.get('matriculaInmobiliaria')?.touched" 
+        [class.input-error]="inmuebleForm.get('matriculaInmobiliaria')?.invalid && (inmuebleForm.get('matriculaInmobiliaria')?.touched || inmuebleForm.get('matriculaInmobiliaria')?.dirty)" 
       />
-      @if (inmuebleForm.get('matriculaInmobiliaria')?.hasError('required') && inmuebleForm.get('matriculaInmobiliaria')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="inmuebleForm.get('matriculaInmobiliaria')" fieldName="Matrícula Inmobiliaria"></app-form-error>
     </div>
 
     <!-- Dirección -->

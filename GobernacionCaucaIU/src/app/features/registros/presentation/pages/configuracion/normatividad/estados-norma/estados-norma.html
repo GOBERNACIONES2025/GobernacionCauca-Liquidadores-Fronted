@@ -186,11 +186,9 @@
         formControlName="codigo" 
         placeholder="Ej. ACT" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="estadoNormaForm.get('codigo')?.invalid && estadoNormaForm.get('codigo')?.touched" 
+        [class.input-error]="estadoNormaForm.get('codigo')?.invalid && (estadoNormaForm.get('codigo')?.touched || estadoNormaForm.get('codigo')?.dirty)" 
       />
-      @if (estadoNormaForm.get('codigo')?.hasError('required') && estadoNormaForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="estadoNormaForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -203,11 +201,9 @@
         formControlName="nombre" 
         placeholder="Ej. Activa / Vigente" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="estadoNormaForm.get('nombre')?.invalid && estadoNormaForm.get('nombre')?.touched" 
+        [class.input-error]="estadoNormaForm.get('nombre')?.invalid && (estadoNormaForm.get('nombre')?.touched || estadoNormaForm.get('nombre')?.dirty)" 
       />
-      @if (estadoNormaForm.get('nombre')?.hasError('required') && estadoNormaForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="estadoNormaForm.get('nombre')" fieldName="Nombre del Estado"></app-form-error>
     </div>
 
     <!-- Estado -->

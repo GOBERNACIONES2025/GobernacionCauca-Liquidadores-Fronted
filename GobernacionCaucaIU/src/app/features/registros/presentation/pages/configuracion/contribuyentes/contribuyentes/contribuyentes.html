@@ -181,13 +181,16 @@
           formControlName="tipoPersonaId"
           [searchFn]="searchTiposPersonaFn"
           [resolveIdFn]="resolveTipoPersonaFn"
+          [isInvalid]="contribuyenteForm.get('tipoPersonaId')?.invalid && (contribuyenteForm.get('tipoPersonaId')?.touched || contribuyenteForm.get('tipoPersonaId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Selecciona tipo..."
         ></app-searchable-select>
-        @if (contribuyenteForm.get('tipoPersonaId')?.hasError('required') && contribuyenteForm.get('tipoPersonaId')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Requerido</span></label>
-        }
+        <app-form-error 
+          [control]="contribuyenteForm.get('tipoPersonaId')" 
+          fieldName="Tipo de Persona"
+          [customMessages]="{ required: 'Debe seleccionar un tipo de persona' }">
+        </app-form-error>
       </div>
 
       <div class="form-control w-full">
@@ -198,13 +201,16 @@
           formControlName="tipoIdentificacionId"
           [searchFn]="searchTiposIdentificacionFn"
           [resolveIdFn]="resolveTipoIdentificacionFn"
+          [isInvalid]="contribuyenteForm.get('tipoIdentificacionId')?.invalid && (contribuyenteForm.get('tipoIdentificacionId')?.touched || contribuyenteForm.get('tipoIdentificacionId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Selecciona doc..."
         ></app-searchable-select>
-        @if (contribuyenteForm.get('tipoIdentificacionId')?.hasError('required') && contribuyenteForm.get('tipoIdentificacionId')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Requerido</span></label>
-        }
+        <app-form-error 
+          [control]="contribuyenteForm.get('tipoIdentificacionId')" 
+          fieldName="Tipo de Documento"
+          [customMessages]="{ required: 'Debe seleccionar un tipo de documento' }">
+        </app-form-error>
       </div>
     </div>
 
@@ -218,11 +224,9 @@
         formControlName="numeroIdentificacion" 
         placeholder="Ej. 1061789456 o 900123456-1" 
         class="input input-sm input-bordered w-full text-slate-800 font-mono" 
-        [class.input-error]="contribuyenteForm.get('numeroIdentificacion')?.invalid && contribuyenteForm.get('numeroIdentificacion')?.touched" 
+        [class.input-error]="contribuyenteForm.get('numeroIdentificacion')?.invalid && (contribuyenteForm.get('numeroIdentificacion')?.touched || contribuyenteForm.get('numeroIdentificacion')?.dirty)" 
       />
-      @if (contribuyenteForm.get('numeroIdentificacion')?.hasError('required') && contribuyenteForm.get('numeroIdentificacion')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="contribuyenteForm.get('numeroIdentificacion')" fieldName="Número de Identificación"></app-form-error>
     </div>
 
     <!-- Nombre o Razón Social -->
@@ -235,11 +239,9 @@
         formControlName="nombre" 
         placeholder="Ej. Juan Pérez o Inversiones Cauca S.A.S." 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="contribuyenteForm.get('nombre')?.invalid && contribuyenteForm.get('nombre')?.touched" 
+        [class.input-error]="contribuyenteForm.get('nombre')?.invalid && (contribuyenteForm.get('nombre')?.touched || contribuyenteForm.get('nombre')?.dirty)" 
       />
-      @if (contribuyenteForm.get('nombre')?.hasError('required') && contribuyenteForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="contribuyenteForm.get('nombre')" fieldName="Nombre o Razón Social"></app-form-error>
     </div>
 
     <!-- Dirección -->
@@ -278,11 +280,9 @@
           formControlName="email" 
           placeholder="correo@ejemplo.com" 
           class="input input-sm input-bordered w-full text-slate-800" 
-          [class.input-error]="contribuyenteForm.get('email')?.invalid && contribuyenteForm.get('email')?.touched"
+          [class.input-error]="contribuyenteForm.get('email')?.invalid && (contribuyenteForm.get('email')?.touched || contribuyenteForm.get('email')?.dirty)"
         />
-        @if (contribuyenteForm.get('email')?.hasError('email') && contribuyenteForm.get('email')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Email inválido</span></label>
-        }
+        <app-form-error [control]="contribuyenteForm.get('email')" fieldName="Correo Electrónico"></app-form-error>
       </div>
     </div>
   </form>

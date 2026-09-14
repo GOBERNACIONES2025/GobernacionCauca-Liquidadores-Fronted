@@ -18,12 +18,13 @@ import { TiposEntidadRegistroApiService } from '../../../../../infrastructure/ap
 import { DepartamentosApiService } from '../../../../../infrastructure/api/Territorios/departamentos-api.service';
 import { MunicipiosApiService } from '../../../../../infrastructure/api/Territorios/municipios-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-entidades-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
   templateUrl: './entidades-registro.html',
   styleUrl: './entidades-registro.css'
 })

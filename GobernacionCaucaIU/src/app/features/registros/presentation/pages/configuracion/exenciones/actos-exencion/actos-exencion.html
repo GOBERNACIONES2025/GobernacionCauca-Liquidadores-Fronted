@@ -160,13 +160,16 @@
         formControlName="exencionId"
         [searchFn]="searchExencionesFn"
         [resolveIdFn]="resolveExencionFn"
+        [isInvalid]="vinculacionForm.get('exencionId')?.invalid && (vinculacionForm.get('exencionId')?.touched || vinculacionForm.get('exencionId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar exención..."
       ></app-searchable-select>
-      @if (vinculacionForm.get('exencionId')?.hasError('required') && vinculacionForm.get('exencionId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error 
+        [control]="vinculacionForm.get('exencionId')" 
+        fieldName="Exención Normativa"
+        [customMessages]="{ required: 'Debe seleccionar una exención' }">
+      </app-form-error>
     </div>
 
     <!-- Multi-select Actos -->

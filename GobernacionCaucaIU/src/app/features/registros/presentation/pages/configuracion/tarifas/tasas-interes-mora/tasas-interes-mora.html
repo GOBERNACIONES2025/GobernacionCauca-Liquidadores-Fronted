@@ -206,13 +206,16 @@
         formControlName="vigenciaId"
         [searchFn]="searchVigenciasFn"
         [resolveIdFn]="resolveVigenciaFn"
+        [isInvalid]="tasaForm.get('vigenciaId')?.invalid && (tasaForm.get('vigenciaId')?.touched || tasaForm.get('vigenciaId')?.dirty)"
         labelKey="anio"
         valueKey="id"
         placeholder="Buscar vigencia fiscal..."
       ></app-searchable-select>
-      @if (tasaForm.get('vigenciaId')?.touched && tasaForm.get('vigenciaId')?.errors?.['required']) {
-        <span class="text-error text-[11px] mt-1">La vigencia fiscal es obligatoria.</span>
-      }
+      <app-form-error 
+        [control]="tasaForm.get('vigenciaId')" 
+        fieldName="Vigencia Fiscal"
+        [customMessages]="{ required: 'La vigencia fiscal es obligatoria.' }">
+      </app-form-error>
     </div>
 
     <!-- Rango de Fechas -->
@@ -225,10 +228,9 @@
           type="date" 
           formControlName="fechaInicio" 
           class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+          [class.input-error]="tasaForm.get('fechaInicio')?.invalid && (tasaForm.get('fechaInicio')?.touched || tasaForm.get('fechaInicio')?.dirty)"
         />
-        @if (tasaForm.get('fechaInicio')?.touched && tasaForm.get('fechaInicio')?.errors) {
-          <span class="text-error text-[11px] mt-1">La fecha de inicio es requerida.</span>
-        }
+        <app-form-error [control]="tasaForm.get('fechaInicio')" fieldName="Fecha Inicio"></app-form-error>
       </div>
 
       <div class="form-control w-full">
@@ -239,18 +241,13 @@
           type="date" 
           formControlName="fechaFin" 
           class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+          [class.input-error]="tasaForm.get('fechaFin')?.invalid && (tasaForm.get('fechaFin')?.touched || tasaForm.get('fechaFin')?.dirty)"
         />
-        @if (tasaForm.get('fechaFin')?.touched && tasaForm.get('fechaFin')?.errors) {
-          <span class="text-error text-[11px] mt-1">La fecha de fin es requerida.</span>
-        }
+        <app-form-error [control]="tasaForm.get('fechaFin')" fieldName="Fecha Fin"></app-form-error>
       </div>
     </div>
 
-    @if (tasaForm.touched && tasaForm.hasError('fechaFinMenor')) {
-      <div class="alert alert-error text-xs py-2 px-3">
-        <span>La fecha de fin debe ser igual o posterior a la fecha de inicio.</span>
-      </div>
-    }
+    <app-form-error [control]="tasaForm" errorKey="fechaFinMenor"></app-form-error>
 
     <!-- Grid Tasas: Mensual y Diaria -->
     <div class="p-3 bg-slate-50/80 rounded-lg border border-slate-200/80">
@@ -275,10 +272,9 @@
             formControlName="tasaMensual" 
             placeholder="Ej. 2.15" 
             class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+            [class.input-error]="tasaForm.get('tasaMensual')?.invalid && (tasaForm.get('tasaMensual')?.touched || tasaForm.get('tasaMensual')?.dirty)"
           />
-          @if (tasaForm.get('tasaMensual')?.touched && tasaForm.get('tasaMensual')?.errors) {
-            <span class="text-error text-[11px] mt-1">Debe ser mayor a 0.</span>
-          }
+          <app-form-error [control]="tasaForm.get('tasaMensual')" fieldName="Tasa Mensual"></app-form-error>
         </div>
 
         <div class="form-control w-full">
@@ -291,10 +287,9 @@
             formControlName="tasaDiaria" 
             placeholder="Ej. 0.071667" 
             class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+            [class.input-error]="tasaForm.get('tasaDiaria')?.invalid && (tasaForm.get('tasaDiaria')?.touched || tasaForm.get('tasaDiaria')?.dirty)"
           />
-          @if (tasaForm.get('tasaDiaria')?.touched && tasaForm.get('tasaDiaria')?.errors) {
-            <span class="text-error text-[11px] mt-1">Debe ser mayor a 0.</span>
-          }
+          <app-form-error [control]="tasaForm.get('tasaDiaria')" fieldName="Tasa Diaria"></app-form-error>
         </div>
       </div>
     </div>

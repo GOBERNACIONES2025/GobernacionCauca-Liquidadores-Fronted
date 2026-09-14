@@ -16,12 +16,13 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 import { MunicipiosApiService } from '../../../../../infrastructure/api/Territorios/municipios-api.service';
 import { VigenciasApiService } from '../../../../../infrastructure/api/Normatividad/vigencias-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-inmuebles',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
   templateUrl: './inmuebles.html',
   styleUrl: './inmuebles.css'
 })

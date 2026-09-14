@@ -10,10 +10,12 @@ import { EstadoPago } from '../../../../../domain/models/Pagos/estado-pago.model
 import { EstadosPagoApiService } from '../../../../../infrastructure/api/Pagos/estados-pago-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-estados-pago',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './estados-pago.html',
   styleUrl: './estados-pago.css'
 })

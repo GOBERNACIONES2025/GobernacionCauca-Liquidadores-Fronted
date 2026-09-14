@@ -10,10 +10,12 @@ import { EstadoSolicitud } from '../../../../../domain/models/Radicacion/estado-
 import { EstadosSolicitudApiService } from '../../../../../infrastructure/api/Radicacion/estados-solicitud-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-estados-solicitud',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './estados-solicitud.html',
   styleUrl: './estados-solicitud.css'
 })

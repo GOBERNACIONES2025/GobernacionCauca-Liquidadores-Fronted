@@ -215,13 +215,16 @@
         formControlName="categoriaActoId"
         [searchFn]="searchCategoriasFn"
         [resolveIdFn]="resolveCategoriaFn"
+        [isInvalid]="tipoActoForm.get('categoriaActoId')?.invalid && (tipoActoForm.get('categoriaActoId')?.touched || tipoActoForm.get('categoriaActoId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar categoría..."
       ></app-searchable-select>
-      @if (tipoActoForm.get('categoriaActoId')?.hasError('required') && tipoActoForm.get('categoriaActoId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar una categoría</span></label>
-      }
+      <app-form-error 
+        [control]="tipoActoForm.get('categoriaActoId')" 
+        fieldName="Categoría de Acto"
+        [customMessages]="{ required: 'Debe seleccionar una categoría' }">
+      </app-form-error>
     </div>
 
     <!-- Naturaleza Select -->
@@ -233,13 +236,16 @@
         formControlName="naturalezaActoId"
         [searchFn]="searchNaturalezasFn"
         [resolveIdFn]="resolveNaturalezaFn"
+        [isInvalid]="tipoActoForm.get('naturalezaActoId')?.invalid && (tipoActoForm.get('naturalezaActoId')?.touched || tipoActoForm.get('naturalezaActoId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar naturaleza..."
       ></app-searchable-select>
-      @if (tipoActoForm.get('naturalezaActoId')?.hasError('required') && tipoActoForm.get('naturalezaActoId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar una naturaleza</span></label>
-      }
+      <app-form-error 
+        [control]="tipoActoForm.get('naturalezaActoId')" 
+        fieldName="Naturaleza de Acto"
+        [customMessages]="{ required: 'Debe seleccionar una naturaleza' }">
+      </app-form-error>
     </div>
 
     <!-- Código -->
@@ -252,11 +258,9 @@
         formControlName="codigo" 
         placeholder="Ej. ACT-0101" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="tipoActoForm.get('codigo')?.invalid && tipoActoForm.get('codigo')?.touched" 
+        [class.input-error]="tipoActoForm.get('codigo')?.invalid && (tipoActoForm.get('codigo')?.touched || tipoActoForm.get('codigo')?.dirty)" 
       />
-      @if (tipoActoForm.get('codigo')?.hasError('required') && tipoActoForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="tipoActoForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -269,11 +273,9 @@
         formControlName="nombre" 
         placeholder="Ej. Compraventa con Hipoteca" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="tipoActoForm.get('nombre')?.invalid && tipoActoForm.get('nombre')?.touched" 
+        [class.input-error]="tipoActoForm.get('nombre')?.invalid && (tipoActoForm.get('nombre')?.touched || tipoActoForm.get('nombre')?.dirty)" 
       />
-      @if (tipoActoForm.get('nombre')?.hasError('required') && tipoActoForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="tipoActoForm.get('nombre')" fieldName="Nombre"></app-form-error>
     </div>
 
     <!-- Requiere Avalúo / Inmueble Switch -->

@@ -6,6 +6,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { ConfiguracionExtemporaneidadFacade } from '../../../../../application/facades/Tarifas/configuracion-extemporaneidad.facade';
 import { ConfiguracionExtemporaneidadApiService } from '../../../../../infrastructure/api/Tarifas/configuracion-extemporaneidad-api.service';
@@ -31,7 +32,8 @@ import { ConfiguracionExtemporaneidad } from '../../../../../domain/models/Tarif
     SlideOverComponent,
     PaginationComponent,
     SearchableSelectComponent,
-    TableSearchComponent
+    TableSearchComponent,
+    FormFieldErrorComponent
   ],
   templateUrl: './configuracion-extemporaneidad.html',
   styleUrl: './configuracion-extemporaneidad.css'

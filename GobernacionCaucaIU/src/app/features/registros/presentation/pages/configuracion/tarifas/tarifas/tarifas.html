@@ -215,10 +215,16 @@
         formControlName="tipoActoRegistroId"
         [searchFn]="searchTiposActoFn"
         [resolveIdFn]="resolveTipoActoFn"
+        [isInvalid]="tarifaForm.get('tipoActoRegistroId')?.invalid && (tarifaForm.get('tipoActoRegistroId')?.touched || tarifaForm.get('tipoActoRegistroId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar tipo de acto..."
       ></app-searchable-select>
+      <app-form-error 
+        [control]="tarifaForm.get('tipoActoRegistroId')" 
+        fieldName="Tipo de Acto de Registro"
+        [customMessages]="{ required: 'Debe seleccionar un tipo de acto de registro' }">
+      </app-form-error>
     </div>
 
     <!-- Tipo de Cálculo Select -->
@@ -230,10 +236,16 @@
         formControlName="tipoCalculoTarifaId"
         [searchFn]="searchTiposCalculoFn"
         [resolveIdFn]="resolveTipoCalculoFn"
+        [isInvalid]="tarifaForm.get('tipoCalculoTarifaId')?.invalid && (tarifaForm.get('tipoCalculoTarifaId')?.touched || tarifaForm.get('tipoCalculoTarifaId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar tipo de cálculo..."
       ></app-searchable-select>
+      <app-form-error 
+        [control]="tarifaForm.get('tipoCalculoTarifaId')" 
+        fieldName="Tipo de Cálculo"
+        [customMessages]="{ required: 'Debe seleccionar un tipo de cálculo' }">
+      </app-form-error>
     </div>
 
     <!-- Grid Departamento y Vigencia -->
@@ -247,10 +259,16 @@
           formControlName="departamentoId"
           [searchFn]="searchDepartamentosFn"
           [resolveIdFn]="resolveDepartamentoFn"
+          [isInvalid]="tarifaForm.get('departamentoId')?.invalid && (tarifaForm.get('departamentoId')?.touched || tarifaForm.get('departamentoId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Buscar departamento..."
         ></app-searchable-select>
+        <app-form-error 
+          [control]="tarifaForm.get('departamentoId')" 
+          fieldName="Departamento"
+          [customMessages]="{ required: 'Debe seleccionar un departamento' }">
+        </app-form-error>
       </div>
 
       <!-- Vigencia Select -->
@@ -262,10 +280,16 @@
           formControlName="vigenciaId"
           [searchFn]="searchVigenciasFn"
           [resolveIdFn]="resolveVigenciaFn"
+          [isInvalid]="tarifaForm.get('vigenciaId')?.invalid && (tarifaForm.get('vigenciaId')?.touched || tarifaForm.get('vigenciaId')?.dirty)"
           labelKey="anio"
           valueKey="id"
           placeholder="Buscar vigencia..."
         ></app-searchable-select>
+        <app-form-error 
+          [control]="tarifaForm.get('vigenciaId')" 
+          fieldName="Vigencia"
+          [customMessages]="{ required: 'Debe seleccionar una vigencia' }">
+        </app-form-error>
       </div>
     </div>
 
@@ -278,10 +302,16 @@
         formControlName="normaId"
         [searchFn]="searchNormasFn"
         [resolveIdFn]="resolveNormaFn"
+        [isInvalid]="tarifaForm.get('normaId')?.invalid && (tarifaForm.get('normaId')?.touched || tarifaForm.get('normaId')?.dirty)"
         labelKey="numero"
         valueKey="id"
         placeholder="Buscar norma..."
       ></app-searchable-select>
+      <app-form-error 
+        [control]="tarifaForm.get('normaId')" 
+        fieldName="Norma"
+        [customMessages]="{ required: 'Debe seleccionar una norma' }">
+      </app-form-error>
     </div>
 
     <!-- Grid Porcentaje y Valor Fijo -->
@@ -296,7 +326,9 @@
           formControlName="porcentaje" 
           placeholder="Ej. 1.00" 
           class="input input-sm input-bordered w-full text-slate-800" 
+          [class.input-error]="tarifaForm.get('porcentaje')?.invalid && (tarifaForm.get('porcentaje')?.touched || tarifaForm.get('porcentaje')?.dirty)"
         />
+        <app-form-error [control]="tarifaForm.get('porcentaje')" fieldName="Porcentaje"></app-form-error>
       </div>
 
       <div class="form-control w-full">
@@ -308,7 +340,9 @@
           formControlName="valorFijo" 
           placeholder="Ej. 50000" 
           class="input input-sm input-bordered w-full text-slate-800" 
+          [class.input-error]="tarifaForm.get('valorFijo')?.invalid && (tarifaForm.get('valorFijo')?.touched || tarifaForm.get('valorFijo')?.dirty)"
         />
+        <app-form-error [control]="tarifaForm.get('valorFijo')" fieldName="Valor Fijo"></app-form-error>
       </div>
     </div>
 
@@ -323,7 +357,9 @@
           formControlName="baseMinima" 
           placeholder="Ej. 0" 
           class="input input-sm input-bordered w-full text-slate-800" 
+          [class.input-error]="tarifaForm.get('baseMinima')?.invalid && (tarifaForm.get('baseMinima')?.touched || tarifaForm.get('baseMinima')?.dirty)"
         />
+        <app-form-error [control]="tarifaForm.get('baseMinima')" fieldName="Base Mínima"></app-form-error>
       </div>
 
       <div class="form-control w-full">
@@ -335,7 +371,9 @@
           formControlName="baseMaxima" 
           placeholder="Ej. 999999999" 
           class="input input-sm input-bordered w-full text-slate-800" 
+          [class.input-error]="tarifaForm.get('baseMaxima')?.invalid && (tarifaForm.get('baseMaxima')?.touched || tarifaForm.get('baseMaxima')?.dirty)"
         />
+        <app-form-error [control]="tarifaForm.get('baseMaxima')" fieldName="Base Máxima"></app-form-error>
       </div>
     </div>
 

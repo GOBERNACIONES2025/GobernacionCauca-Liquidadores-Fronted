@@ -186,11 +186,9 @@
         formControlName="codigo" 
         placeholder="Ej. NOT" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="tipoEntidadForm.get('codigo')?.invalid && tipoEntidadForm.get('codigo')?.touched" 
+        [class.input-error]="tipoEntidadForm.get('codigo')?.invalid && (tipoEntidadForm.get('codigo')?.touched || tipoEntidadForm.get('codigo')?.dirty)" 
       />
-      @if (tipoEntidadForm.get('codigo')?.hasError('required') && tipoEntidadForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="tipoEntidadForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -203,11 +201,9 @@
         formControlName="nombre" 
         placeholder="Ej. Notaría" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="tipoEntidadForm.get('nombre')?.invalid && tipoEntidadForm.get('nombre')?.touched" 
+        [class.input-error]="tipoEntidadForm.get('nombre')?.invalid && (tipoEntidadForm.get('nombre')?.touched || tipoEntidadForm.get('nombre')?.dirty)" 
       />
-      @if (tipoEntidadForm.get('nombre')?.hasError('required') && tipoEntidadForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="tipoEntidadForm.get('nombre')" fieldName="Nombre"></app-form-error>
     </div>
 
     <!-- Estado -->

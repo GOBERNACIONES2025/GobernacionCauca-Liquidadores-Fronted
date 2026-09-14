@@ -13,12 +13,13 @@ import { ActosExencionApiService } from '../../../../../infrastructure/api/Exenc
 import { ToastService } from '../../../../../../../core/services/toast.service';
 import { ExencionesApiService } from '../../../../../infrastructure/api/Exenciones/exenciones-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-actos-exencion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './actos-exencion.html',
   styleUrl: './actos-exencion.css'
 })

@@ -7,6 +7,7 @@ import { PageHeaderComponent } from '../../../../shared/components/page-header/p
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { MunicipiosFacade } from '../../../../../application/facades/Territorios/municipios.facade';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
 import { Municipio } from '../../../../../domain/models/Territorios/municipio.model';
@@ -19,7 +20,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-municipios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
   templateUrl: './municipios.html',
   styleUrl: './municipios.css'
 })

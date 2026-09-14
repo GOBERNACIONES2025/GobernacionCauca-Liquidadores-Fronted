@@ -186,11 +186,9 @@
         formControlName="codigo" 
         placeholder="Ej. ADMIN" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="rolForm.get('codigo')?.invalid && rolForm.get('codigo')?.touched" 
+        [class.input-error]="rolForm.get('codigo')?.invalid && (rolForm.get('codigo')?.touched || rolForm.get('codigo')?.dirty)" 
       />
-      @if (rolForm.get('codigo')?.hasError('required') && rolForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="rolForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -203,11 +201,9 @@
         formControlName="nombre" 
         placeholder="Ej. Administrador del Sistema" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="rolForm.get('nombre')?.invalid && rolForm.get('nombre')?.touched" 
+        [class.input-error]="rolForm.get('nombre')?.invalid && (rolForm.get('nombre')?.touched || rolForm.get('nombre')?.dirty)" 
       />
-      @if (rolForm.get('nombre')?.hasError('required') && rolForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="rolForm.get('nombre')" fieldName="Nombre del Rol"></app-form-error>
     </div>
 
     <!-- Estado -->

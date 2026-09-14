@@ -169,11 +169,9 @@
         formControlName="codigoDane" 
         placeholder="Ej. 19001" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="municipioForm.get('codigoDane')?.invalid && municipioForm.get('codigoDane')?.touched" 
+        [class.input-error]="municipioForm.get('codigoDane')?.invalid && (municipioForm.get('codigoDane')?.touched || municipioForm.get('codigoDane')?.dirty)" 
       />
-      @if (municipioForm.get('codigoDane')?.hasError('required') && municipioForm.get('codigoDane')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="municipioForm.get('codigoDane')" fieldName="Código DANE"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -186,11 +184,9 @@
         formControlName="nombre" 
         placeholder="Ej. Popayán" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="municipioForm.get('nombre')?.invalid && municipioForm.get('nombre')?.touched" 
+        [class.input-error]="municipioForm.get('nombre')?.invalid && (municipioForm.get('nombre')?.touched || municipioForm.get('nombre')?.dirty)" 
       />
-      @if (municipioForm.get('nombre')?.hasError('required') && municipioForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="municipioForm.get('nombre')" fieldName="Nombre"></app-form-error>
     </div>
 
     <!-- Departamento Select -->
@@ -202,14 +198,16 @@
         formControlName="departamentoId"
         [searchFn]="searchDepartamentosFn"
         [resolveIdFn]="resolveDepartamentoFn"
+        [isInvalid]="municipioForm.get('departamentoId')?.invalid && (municipioForm.get('departamentoId')?.touched || municipioForm.get('departamentoId')?.dirty)"
         labelKey="nombre"
         valueKey="id"
         placeholder="Buscar departamento..."
       ></app-searchable-select>
-
-      @if (municipioForm.get('departamentoId')?.hasError('required') && municipioForm.get('departamentoId')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Debe seleccionar un departamento</span></label>
-      }
+      <app-form-error 
+        [control]="municipioForm.get('departamentoId')" 
+        fieldName="Departamento"
+        [customMessages]="{ required: 'Debe seleccionar un departamento' }">
+      </app-form-error>
     </div>
 
 

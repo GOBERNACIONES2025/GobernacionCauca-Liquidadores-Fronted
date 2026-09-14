@@ -233,10 +233,16 @@
           formControlName="departamentoId"
           [searchFn]="searchDepartamentosFn"
           [resolveIdFn]="resolveDepartamentoFn"
+          [isInvalid]="exencionForm.get('departamentoId')?.invalid && (exencionForm.get('departamentoId')?.touched || exencionForm.get('departamentoId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Buscar departamento..."
         ></app-searchable-select>
+        <app-form-error 
+          [control]="exencionForm.get('departamentoId')" 
+          fieldName="Departamento"
+          [customMessages]="{ required: 'Debe seleccionar un departamento' }">
+        </app-form-error>
       </div>
 
       <!-- Norma Select -->
@@ -248,10 +254,16 @@
           formControlName="normaId"
           [searchFn]="searchNormasFn"
           [resolveIdFn]="resolveNormaFn"
+          [isInvalid]="exencionForm.get('normaId')?.invalid && (exencionForm.get('normaId')?.touched || exencionForm.get('normaId')?.dirty)"
           labelKey="numero"
           valueKey="id"
           placeholder="Buscar norma..."
         ></app-searchable-select>
+        <app-form-error 
+          [control]="exencionForm.get('normaId')" 
+          fieldName="Norma Aplicable"
+          [customMessages]="{ required: 'Debe seleccionar una norma' }">
+        </app-form-error>
       </div>
     </div>
 
@@ -298,11 +310,9 @@
         formControlName="codigo" 
         placeholder="Ej. EX-ENT-PUB" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="exencionForm.get('codigo')?.invalid && exencionForm.get('codigo')?.touched" 
+        [class.input-error]="exencionForm.get('codigo')?.invalid && (exencionForm.get('codigo')?.touched || exencionForm.get('codigo')?.dirty)" 
       />
-      @if (exencionForm.get('codigo')?.hasError('required') && exencionForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="exencionForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -315,11 +325,9 @@
         formControlName="nombre" 
         placeholder="Ej. Exención para Entidades Territoriales" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="exencionForm.get('nombre')?.invalid && exencionForm.get('nombre')?.touched" 
+        [class.input-error]="exencionForm.get('nombre')?.invalid && (exencionForm.get('nombre')?.touched || exencionForm.get('nombre')?.dirty)" 
       />
-      @if (exencionForm.get('nombre')?.hasError('required') && exencionForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="exencionForm.get('nombre')" fieldName="Nombre de la Exención"></app-form-error>
     </div>
 
     <!-- Descripción -->
@@ -346,8 +354,10 @@
           formControlName="porcentaje" 
           placeholder="Ej. 100" 
           class="input input-sm input-bordered w-full text-slate-800"
+          [class.input-error]="exencionForm.get('porcentaje')?.invalid && (exencionForm.get('porcentaje')?.touched || exencionForm.get('porcentaje')?.dirty)"
           min="0" max="100" 
         />
+        <app-form-error [control]="exencionForm.get('porcentaje')" fieldName="Porcentaje"></app-form-error>
       </div>
 
       <div class="form-control w-full">
@@ -359,8 +369,10 @@
           formControlName="valorFijo" 
           placeholder="Ej. 50000" 
           class="input input-sm input-bordered w-full text-slate-800"
+          [class.input-error]="exencionForm.get('valorFijo')?.invalid && (exencionForm.get('valorFijo')?.touched || exencionForm.get('valorFijo')?.dirty)"
           min="0" 
         />
+        <app-form-error [control]="exencionForm.get('valorFijo')" fieldName="Valor Fijo"></app-form-error>
       </div>
     </div>
 
