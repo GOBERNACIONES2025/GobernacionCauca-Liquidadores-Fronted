@@ -13,10 +13,12 @@ import { CategoriasActoFacade } from '../../../../../../application/facades/Regi
 import { combineLatest } from 'rxjs';
 import { startWith, distinctUntilChanged } from 'rxjs/operators';
 
+import { FormFieldErrorComponent } from '../../../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-step-documento',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldErrorComponent],
   templateUrl: './step-documento.html'
 })
 export class StepDocumentoComponent implements OnInit {

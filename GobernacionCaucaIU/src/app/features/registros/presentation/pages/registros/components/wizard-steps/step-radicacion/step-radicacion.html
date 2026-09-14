@@ -1,4 +1,4 @@
-﻿<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
   
   <!-- DATOS DEL CONTRIBUYENTE (Como en la imagen) -->
   <div class="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
@@ -20,8 +20,9 @@
           <input formControlName="numeroIdentificacion" type="text" placeholder="Ej: 1061..." 
                  (keyup.enter)="buscarContribuyente()" 
                  (input)="onNumeroIdentificacionChange()"
-                 [class.border-red-500]="wizardService.paso1Form.get('numeroIdentificacion')?.invalid && wizardService.paso1Form.get('numeroIdentificacion')?.touched"
+                 [class.border-red-500]="wizardService.paso1Form.get('numeroIdentificacion')?.invalid && (wizardService.paso1Form.get('numeroIdentificacion')?.touched || wizardService.paso1Form.get('numeroIdentificacion')?.dirty)"
                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+          <app-form-error [control]="wizardService.paso1Form.get('numeroIdentificacion')" fieldName="Número de documento"></app-form-error>
         </div>
         
         @if (!busquedaRealizada || modoCreacion) {
@@ -50,40 +51,46 @@
       <!-- Fila de datos -->
       <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
         <div class="col-span-2 md:col-span-1">
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Persona</div>
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Persona *</div>
           <select formControlName="tipoPersonaId" 
-                  [class.border-red-500]="wizardService.paso1Form.get('tipoPersonaId')?.invalid && wizardService.paso1Form.get('tipoPersonaId')?.touched"
+                  [class.border-red-500]="wizardService.paso1Form.get('tipoPersonaId')?.invalid && (wizardService.paso1Form.get('tipoPersonaId')?.touched || wizardService.paso1Form.get('tipoPersonaId')?.dirty)"
                   class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
             <option [ngValue]="null">Seleccione...</option>
             @for (t of tiposPersonaFacade.tiposPersona(); track t.id) {
               <option [value]="t.id">{{ t.nombre }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso1Form.get('tipoPersonaId')" fieldName="Tipo de Persona"></app-form-error>
         </div>
         <div class="col-span-2 md:col-span-1">
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Documento</div>
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tipo de Documento *</div>
           <select formControlName="tipoIdentificacionId" 
-                  [class.border-red-500]="wizardService.paso1Form.get('tipoIdentificacionId')?.invalid && wizardService.paso1Form.get('tipoIdentificacionId')?.touched"
+                  [class.border-red-500]="wizardService.paso1Form.get('tipoIdentificacionId')?.invalid && (wizardService.paso1Form.get('tipoIdentificacionId')?.touched || wizardService.paso1Form.get('tipoIdentificacionId')?.dirty)"
                   class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
             <option [ngValue]="null">Seleccione...</option>
             @for (t of tiposIdentificacionFacade.tiposIdentificacion(); track t.id) {
               <option [value]="t.id">{{ t.codigo }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso1Form.get('tipoIdentificacionId')" fieldName="Tipo de Documento"></app-form-error>
         </div>
         <div class="col-span-2 md:col-span-2">
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nombre / Razón Social</div>
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Nombre / Razón Social *</div>
           <input formControlName="nombre" type="text" 
-                 [class.border-red-500]="wizardService.paso1Form.get('nombre')?.invalid && wizardService.paso1Form.get('nombre')?.touched"
+                 [class.border-red-500]="wizardService.paso1Form.get('nombre')?.invalid && (wizardService.paso1Form.get('nombre')?.touched || wizardService.paso1Form.get('nombre')?.dirty)"
                  class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+          <app-form-error [control]="wizardService.paso1Form.get('nombre')" fieldName="Nombre / Razón Social"></app-form-error>
         </div>
         <div class="col-span-2 md:col-span-2">
-          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">DirecciÃ³n de NotificaciÃ³n</div>
+          <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Dirección de Notificación</div>
           <input formControlName="direccion" type="text" placeholder="Ej. Cra 6 # 3-20" class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Email</div>
-          <input formControlName="email" type="email" class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+          <input formControlName="email" type="email" 
+                 [class.border-red-500]="wizardService.paso1Form.get('email')?.invalid && (wizardService.paso1Form.get('email')?.touched || wizardService.paso1Form.get('email')?.dirty)"
+                 class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+          <app-form-error [control]="wizardService.paso1Form.get('email')" fieldName="Email"></app-form-error>
         </div>
         <div class="col-span-2 md:col-span-1">
           <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Teléfono</div>
@@ -117,36 +124,40 @@
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">Número de radicado *</label>
           <input formControlName="numeroRadicado" type="text" 
-                 [class.border-red-500]="wizardService.paso1Form.get('numeroRadicado')?.invalid && wizardService.paso1Form.get('numeroRadicado')?.touched"
+                 [class.border-red-500]="wizardService.paso1Form.get('numeroRadicado')?.invalid && (wizardService.paso1Form.get('numeroRadicado')?.touched || wizardService.paso1Form.get('numeroRadicado')?.dirty)"
                  class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-mono text-slate-700" />
+          <app-form-error [control]="wizardService.paso1Form.get('numeroRadicado')" fieldName="Número de radicado"></app-form-error>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">Fecha de radicación *</label>
           <input formControlName="fechaRadicado" type="date" 
-                 [class.border-red-500]="wizardService.paso1Form.get('fechaRadicado')?.invalid && wizardService.paso1Form.get('fechaRadicado')?.touched"
+                 [class.border-red-500]="wizardService.paso1Form.get('fechaRadicado')?.invalid && (wizardService.paso1Form.get('fechaRadicado')?.touched || wizardService.paso1Form.get('fechaRadicado')?.dirty)"
                  class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700" />
+          <app-form-error [control]="wizardService.paso1Form.get('fechaRadicado')" fieldName="Fecha de radicación"></app-form-error>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">Vigencia fiscal *</label>
           <select formControlName="vigenciaFiscal" 
-                  [class.border-red-500]="wizardService.paso1Form.get('vigenciaFiscal')?.invalid && wizardService.paso1Form.get('vigenciaFiscal')?.touched"
+                  [class.border-red-500]="wizardService.paso1Form.get('vigenciaFiscal')?.invalid && (wizardService.paso1Form.get('vigenciaFiscal')?.touched || wizardService.paso1Form.get('vigenciaFiscal')?.dirty)"
                   class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
             <option [ngValue]="null">Seleccione...</option>
             @for (v of vigenciasFacade.vigencias(); track v.id) {
               <option [value]="v.id">{{ v.anio }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso1Form.get('vigenciaFiscal')" fieldName="Vigencia fiscal"></app-form-error>
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-700 mb-1.5">Departamento *</label>
           <select formControlName="departamentoId" 
-                  [class.border-red-500]="wizardService.paso1Form.get('departamentoId')?.invalid && wizardService.paso1Form.get('departamentoId')?.touched"
+                  [class.border-red-500]="wizardService.paso1Form.get('departamentoId')?.invalid && (wizardService.paso1Form.get('departamentoId')?.touched || wizardService.paso1Form.get('departamentoId')?.dirty)"
                   class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-slate-700">
             <option [ngValue]="null">Seleccione...</option>
             @for (d of deptFacade.departamentos(); track d.id) {
               <option [value]="d.id">{{ d.nombre }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso1Form.get('departamentoId')" fieldName="Departamento"></app-form-error>
         </div>
       </div>
       

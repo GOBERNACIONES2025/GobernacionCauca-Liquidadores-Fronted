@@ -12,11 +12,12 @@ import { VigenciasFacade } from '../../../../../../application/facades/Normativi
 import { SolicitudesLiquidacionFacade } from '../../../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
 import { ContribuyentesApiService } from '../../../../../../infrastructure/api/Contribuyentes/contribuyentes-api.service';
 import { ToastService } from '../../../../../../../../core/services/toast.service';
+import { FormFieldErrorComponent } from '../../../../../../../../shared/components/form-error/form-error.component';
 
 @Component({
   selector: 'app-step-radicacion',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldErrorComponent],
   templateUrl: './step-radicacion.html'
 })
 export class StepRadicacionComponent implements OnInit {
