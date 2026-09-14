@@ -2,17 +2,16 @@ import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SolicitudesLiquidacionFacade } from '../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { SolicitudListadoDto } from '../../../../domain/models/Radicacion/solicitud-wizard.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
+import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
 
 @Component({
   selector: 'app-solicitudes-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, PaginationComponent, TableSearchComponent],
   templateUrl: './solicitudes-list.html'
 })
 export class SolicitudesListComponent implements OnInit {
@@ -27,30 +26,25 @@ export class SolicitudesListComponent implements OnInit {
   filterStatus = signal<string>('Todas');
   
   searchText = signal<string>('');
-  private searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   isLoading = signal<boolean>(false);
 
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarSolicitudes();
-    });
-  }
-
   ngOnInit() {
     this.cargarSolicitudes();
   }
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarSolicitudes();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarSolicitudes();
   }
 
   cargarSolicitudes() {
