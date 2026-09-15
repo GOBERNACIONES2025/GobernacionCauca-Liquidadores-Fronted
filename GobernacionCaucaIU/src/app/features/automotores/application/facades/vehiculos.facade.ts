@@ -203,12 +203,15 @@ export class VehiculosFacade {
         (v.linea && v.linea.toLowerCase().includes(texto)) ||
         (v.tituloFichaTecnica && v.tituloFichaTecnica.toLowerCase().includes(texto));
 
-      const matchEstado = estado === 'Todos' || 
-        (estado === 'Activo' && (v.estadoMatricula === 'Matrícula Activa' || v.estadoMatricula === 'Activo')) ||
-        (estado === 'Inactivo' && v.estadoMatricula === 'Inactivo') ||
-        v.estadoMatricula === estado;
+      const matchEstado = !estado || estado === 'Todos' || 
+        (estado === 'Activo' && /activ/i.test(v.estadoMatricula || '')) ||
+        (estado === 'Inactivo' && /inactiv|cancel/i.test(v.estadoMatricula || '')) ||
+        (estado === 'Traslado' && /traslad/i.test(v.estadoMatricula || '')) ||
+        (v.estadoMatricula && v.estadoMatricula.toLowerCase() === estado.toLowerCase());
 
-      const matchTipo = tipo === 'Todos' || v.clase === tipo || v.tipoVehiculo === tipo;
+      const matchTipo = !tipo || tipo === 'Todos' || 
+        (v.clase && v.clase.toLowerCase() === tipo.toLowerCase()) || 
+        (v.tipoVehiculo && v.tipoVehiculo.toLowerCase() === tipo.toLowerCase());
 
       return matchTexto && matchEstado && matchTipo;
     });
@@ -249,13 +252,15 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   // CARGA DE VEHÍCULOS DESDE LA BASE DE DATOS (GET /api/vehiculos)
   // --------------------------------------------------------------------------
-  cargarVehiculos(page: number = 1, pageSize: number = 20): void {
+  cargarVehiculos(page: number = 1, pageSize?: number): void {
     this.loading.set(true);
     this.error.set(null);
 
+    const size = pageSize ?? this.pageSize();
+
     const filtros = {
       page,
-      pageSize,
+      pageSize: size,
       buscar: this.filtroTexto().trim() || undefined,
       estado: this.filtroEstado(),
       tipoVehiculo: this.filtroTipo()
@@ -270,9 +275,12 @@ export class VehiculosFacade {
     ).subscribe((res: any) => {
       this.loading.set(false);
       if (res && res.data) {
-        const rawItems = Array.isArray(res.data) ? res.data : (res.data.items || []);
-        const total = res.data.totalCount ?? rawItems.length;
-        const totalPags = res.data.totalPages ?? Math.ceil(total / pageSize);
+        const isPaged = !Array.isArray(res.data) && res.data.items !== undefined;
+        const rawItems: any[] = isPaged ? (res.data.items || []) : (Array.isArray(res.data) ? res.data : []);
+        const total = isPaged ? (res.data.totalCount ?? rawItems.length) : rawItems.length;
+        const totalPags = (isPaged && res.data.totalPages)
+          ? res.data.totalPages
+          : Math.max(1, Math.ceil(total / size));
 
         const mapped: VehiculoItem[] = rawItems.map((item: any, idx: number) => {
           let propietarioNombre = item.propietarioNombre || item.propietario?.nombre || 'Sin propietario asignado';
@@ -320,20 +328,21 @@ export class VehiculosFacade {
           };
         });
 
-        if (mapped.length > 0) {
-          this.vehiculos.set(mapped);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(total);
-        } else {
-          this.vehiculos.set([]);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(0);
-        }
+        this.vehiculos.set(mapped);
+        this.selectedVehiculo.set(null);
+        this.totalVehiculos.set(total);
         this.paginaActual.set(page);
-        this.pageSize.set(pageSize);
+        this.pageSize.set(size);
         this.totalPaginas.set(totalPags);
       }
     });
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (this.loading()) return;
+    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
+    if (this.totalVehiculos() === 0) return;
+    this.cargarVehiculos(nuevaPagina, this.pageSize());
   }
 
   refrescarDashboard(): void {

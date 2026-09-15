@@ -1,6 +1,8 @@
-import { Component, inject, OnInit, HostListener, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 import { VehiculoItem } from '../../../domain/models/vehiculo.model';
@@ -14,12 +16,15 @@ import { FieldError } from '../../../application/validators/validation-result';
   imports: [CommonModule, FormsModule, ReactiveFormsModule, VehiculoWizardComponent],
   templateUrl: './vehiculos.html'
 })
-export class Vehiculos implements OnInit {
+export class Vehiculos implements OnInit, OnDestroy {
   readonly facade = inject(VehiculosFacade);
   readonly liqFacade = inject(LiquidacionesFacade);
   readonly auditoriaValidator = inject(AuditoriaVehiculoValidator);
   /** fb solo se usa para editFormAuditoria — el wizard tiene su propio FormBuilder */
   private fb = inject(FormBuilder);
+
+  private searchSubject = new Subject<string>();
+  private searchSub?: Subscription;
 
   // El formulario del wizard ahora vive en VehiculoWizardComponent.
   // Aquí solo mantenemos estado de la lista, modales de auditoría e inactivación.
@@ -299,7 +304,22 @@ export class Vehiculos implements OnInit {
 
 
   ngOnInit(): void {
+    this.searchSub = this.searchSubject.pipe(
+      debounceTime(350),
+      distinctUntilChanged()
+    ).subscribe(text => {
+      this.facade.setFiltroTexto(text);
+    });
     this.facade.refrescarDashboard();
+  }
+
+  ngOnDestroy(): void {
+    this.searchSub?.unsubscribe();
+  }
+
+  onFiltroTextoChange(val: string): void {
+    this.facade.filtroTexto.set(val);
+    this.searchSubject.next(val);
   }
 
   // ─── Métodos delegados al wizard ──────────────────────────────────────────
