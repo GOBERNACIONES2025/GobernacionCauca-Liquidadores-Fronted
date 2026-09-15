@@ -5,16 +5,19 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { TiposCalculoTarifaFacade } from '../../../../../application/facades/Tarifas/tipos-calculo-tarifa.facade';
 import { TipoCalculoTarifa } from '../../../../../domain/models/Tarifas/tipo-calculo-tarifa.model';
 import { TiposCalculoTarifaApiService } from '../../../../../infrastructure/api/Tarifas/tipos-calculo-tarifa-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-tipos-calculo-tarifa',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
   templateUrl: './tipos-calculo-tarifa.html',
   styleUrl: './tipos-calculo-tarifa.css'
 })
@@ -30,17 +33,6 @@ export class TiposCalculoTarifa implements OnInit {
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   loadingEditId = signal<number | null>(null);
-
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarItems();
-    });
-  }
-  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -88,10 +80,16 @@ export class TiposCalculoTarifa implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {

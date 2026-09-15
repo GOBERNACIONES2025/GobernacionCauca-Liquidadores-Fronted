@@ -1,12 +1,13 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { TasasInteresMoraFacade } from '../../../../../application/facades/Tarifas/tasas-interes-mora.facade';
 import { TasasInteresMoraApiService } from '../../../../../infrastructure/api/Tarifas/tasas-interes-mora-api.service';
 import { VigenciasFacade } from '../../../../../application/facades/Normatividad/vigencias.facade';
@@ -24,7 +25,9 @@ import { TasaInteresMora } from '../../../../../domain/models/Tarifas/tasa-inter
     PageHeaderComponent,
     SlideOverComponent,
     PaginationComponent,
-    SearchableSelectComponent
+    SearchableSelectComponent,
+    TableSearchComponent,
+    FormFieldErrorComponent
   ],
   templateUrl: './tasas-interes-mora.html',
   styleUrl: './tasas-interes-mora.css'
@@ -40,7 +43,6 @@ export class TasasInteresMoraComponent implements OnInit {
   breadcrumbs = ['Configuración', 'Tarifas', 'Tasas de Interés de Mora'];
 
   searchText = signal<string>('');
-  searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
@@ -91,14 +93,7 @@ export class TasasInteresMoraComponent implements OnInit {
     total: this.facade.totalTasas()
   }));
 
-  constructor() {
-    this.searchSubject
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe(() => {
-        this.pageNumber.set(1);
-        this.cargarItems();
-      });
-  }
+
 
   ngOnInit(): void {
     if (this.vigenciasFacade.vigencias().length === 0) {
@@ -131,10 +126,16 @@ export class TasasInteresMoraComponent implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any): void {
-    const value = event?.target ? event.target.value : event;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string): void {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch(): void {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos'): void {

@@ -1,21 +1,22 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { UsuariosFacade } from '../../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesFacade } from '../../../../../application/facades/Seguridad/roles.facade';
 import { Usuario } from '../../../../../domain/models/Seguridad/usuario.model';
 import { UsuariosApiService } from '../../../../../infrastructure/api/Seguridad/usuarios-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'
 })
@@ -32,17 +33,6 @@ export class UsuariosComponent implements OnInit {
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   loadingEditId = signal<number | null>(null);
-
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarItems();
-    });
-  }
-  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -56,7 +46,7 @@ export class UsuariosComponent implements OnInit {
     nombre: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: [''],
-    rolesIds: [[] as number[], Validators.required],
+    rolesIds: this.fb.control<number[]>([], [(c: AbstractControl) => (c.value && c.value.length > 0 ? null : { required: true })]),
     activo: [true]
   });
 
@@ -92,10 +82,16 @@ export class UsuariosComponent implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
@@ -205,7 +201,7 @@ export class UsuariosComponent implements OnInit {
           nombre: val.nombre!,
           email: val.email!,
           activo: val.activo ?? true,
-          rolesIds: val.rolesIds || [],
+          rolesIds: (val.rolesIds ?? []) as number[],
           password: val.password || null
         }).subscribe({
           next: () => {
@@ -223,7 +219,7 @@ export class UsuariosComponent implements OnInit {
           nombre: val.nombre!,
           email: val.email!,
           password: val.password!,
-          rolesIds: val.rolesIds || []
+          rolesIds: (val.rolesIds ?? []) as number[]
         }).subscribe({
           next: () => {
             this.toast.success(`Usuario ${actionName} exitosamente`);

@@ -15,29 +15,13 @@
     <div class="flex flex-wrap items-center gap-3">
       
       <!-- Search in Table -->
-      <div class="relative w-full sm:w-56 md:w-64">
-        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
-        </div>
-        <input 
-          type="text" 
-          [value]="searchText()"
-          (input)="onSearchChange($event)"
-          placeholder="Buscar en tabla..." 
-          class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
-        />
-        @if (searchText()) {
-          <button 
-            (click)="searchText.set(''); searchSubject.next('')"
-            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        }
-      </div>
+      <app-table-search
+        placeholder="Buscar en tabla..."
+        [value]="searchText()"
+        [loading]="facade.loading()"
+        (search)="onSearch($event)"
+        (clear)="onClearSearch()"
+      ></app-table-search>
 
       <!-- Filter Tabs Segmented Control -->
       <div class="inline-flex p-0.5 bg-slate-100/90 border border-slate-200/80 rounded-lg">
@@ -208,11 +192,9 @@
         formControlName="anio" 
         placeholder="Ej. 2026" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="vigenciaForm.get('anio')?.invalid && vigenciaForm.get('anio')?.touched" 
+        [class.input-error]="vigenciaForm.get('anio')?.invalid && (vigenciaForm.get('anio')?.touched || vigenciaForm.get('anio')?.dirty)" 
       />
-      @if (vigenciaForm.get('anio')?.hasError('required') && vigenciaForm.get('anio')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="vigenciaForm.get('anio')" fieldName="Año de Vigencia"></app-form-error>
     </div>
 
     <!-- Fecha Inicio -->
@@ -224,11 +206,9 @@
         type="date" 
         formControlName="fechaInicio" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="vigenciaForm.get('fechaInicio')?.invalid && vigenciaForm.get('fechaInicio')?.touched" 
+        [class.input-error]="vigenciaForm.get('fechaInicio')?.invalid && (vigenciaForm.get('fechaInicio')?.touched || vigenciaForm.get('fechaInicio')?.dirty)" 
       />
-      @if (vigenciaForm.get('fechaInicio')?.hasError('required') && vigenciaForm.get('fechaInicio')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="vigenciaForm.get('fechaInicio')" fieldName="Fecha de Inicio"></app-form-error>
     </div>
 
     <!-- Fecha Fin -->
@@ -240,11 +220,10 @@
         type="date" 
         formControlName="fechaFin" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="vigenciaForm.get('fechaFin')?.invalid && vigenciaForm.get('fechaFin')?.touched" 
+        [class.input-error]="vigenciaForm.get('fechaFin')?.invalid && (vigenciaForm.get('fechaFin')?.touched || vigenciaForm.get('fechaFin')?.dirty)" 
       />
-      @if (vigenciaForm.get('fechaFin')?.hasError('required') && vigenciaForm.get('fechaFin')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="vigenciaForm.get('fechaFin')" fieldName="Fecha de Fin"></app-form-error>
+      <app-form-error [control]="vigenciaForm" errorKey="fechaFinMenor"></app-form-error>
     </div>
 
     <!-- Estado -->

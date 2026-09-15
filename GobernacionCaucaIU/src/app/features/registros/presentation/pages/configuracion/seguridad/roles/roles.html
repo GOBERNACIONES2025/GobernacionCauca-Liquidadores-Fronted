@@ -15,29 +15,13 @@
     <div class="flex flex-wrap items-center gap-3">
       
       <!-- Search in Table -->
-      <div class="relative w-full sm:w-56 md:w-64">
-        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
-        </div>
-        <input 
-          type="text" 
-          [value]="searchText()"
-          (input)="onSearchChange($event)"
-          placeholder="Buscar rol..." 
-          class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
-        />
-        @if (searchText()) {
-          <button 
-            (click)="searchText.set(''); searchSubject.next('')"
-            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        }
-      </div>
+      <app-table-search
+        placeholder="Buscar rol..."
+        [value]="searchText()"
+        [loading]="facade.loading()"
+        (search)="onSearch($event)"
+        (clear)="onClearSearch()"
+      ></app-table-search>
 
       <!-- Filter Tabs Segmented Control -->
       <div class="inline-flex p-0.5 bg-slate-100/90 border border-slate-200/80 rounded-lg">
@@ -202,11 +186,9 @@
         formControlName="codigo" 
         placeholder="Ej. ADMIN" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="rolForm.get('codigo')?.invalid && rolForm.get('codigo')?.touched" 
+        [class.input-error]="rolForm.get('codigo')?.invalid && (rolForm.get('codigo')?.touched || rolForm.get('codigo')?.dirty)" 
       />
-      @if (rolForm.get('codigo')?.hasError('required') && rolForm.get('codigo')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="rolForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
@@ -219,11 +201,9 @@
         formControlName="nombre" 
         placeholder="Ej. Administrador del Sistema" 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="rolForm.get('nombre')?.invalid && rolForm.get('nombre')?.touched" 
+        [class.input-error]="rolForm.get('nombre')?.invalid && (rolForm.get('nombre')?.touched || rolForm.get('nombre')?.dirty)" 
       />
-      @if (rolForm.get('nombre')?.hasError('required') && rolForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="rolForm.get('nombre')" fieldName="Nombre del Rol"></app-form-error>
     </div>
 
     <!-- Estado -->

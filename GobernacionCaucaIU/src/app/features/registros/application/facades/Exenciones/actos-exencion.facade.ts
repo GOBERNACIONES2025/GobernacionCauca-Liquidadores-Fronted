@@ -29,11 +29,11 @@ export class ActosExencionFacade {
   /**
    * Carga la lista paginada de vinculaciones Acto-Exención.
    */
-  cargarActosExencion(pageNumber: number = 1, pageSize: number = 10, exencionId?: number): void {
+  cargarActosExencion(pageNumber: number = 1, pageSize: number = 10, exencionId?: number, search?: string): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos({ pageNumber, pageSize, exencionId }).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, exencionId, search }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.actosExencion.set(response.data.items || []);

@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { EntidadesTipoActoPermitidoFacade } from '../../../../../application/facades/Registro/entidades-tipo-acto-permitido.facade';
 import { EntidadesRegistroFacade } from '../../../../../application/facades/Registro/entidades-registro.facade';
@@ -15,12 +16,13 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 import { EntidadesRegistroApiService } from '../../../../../infrastructure/api/Registro/entidades-registro-api.service';
 import { TiposActoRegistroApiService } from '../../../../../infrastructure/api/Registro/tipos-acto-registro-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-entidades-tipo-acto-permitido',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
   templateUrl: './entidades-tipo-acto-permitido.html',
   styleUrl: './entidades-tipo-acto-permitido.css'
 })
@@ -41,17 +43,6 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   loadingEditId = signal<number | null>(null);
-
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarItems();
-    });
-  }
-  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
   selectedEntidadFilter = signal<number | 'todas'>('todas');
 
@@ -91,7 +82,13 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
     let activo: boolean | undefined = undefined;
     if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
     if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
-    this.facade.cargarEntidadesTipoActoPermitido(this.pageNumber(), this.pageSize());
+    this.facade.cargarEntidadesTipoActoPermitido(
+      this.pageNumber(),
+      this.pageSize(),
+      this.selectedEntidadFilter() !== 'todas' ? (this.selectedEntidadFilter() as number) : undefined,
+      undefined,
+      this.searchText()
+    );
   }
 
   onPageChange(page: number) {
@@ -105,10 +102,16 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {

@@ -12,49 +12,67 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Nº de Documento / Escritura *</label>
-          <input formControlName="numeroDocumento" type="text" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-mono" />
+          <input formControlName="numeroDocumento" type="text"
+                 [class.border-red-500]="wizardService.paso2Form.get('numeroDocumento')?.invalid && (wizardService.paso2Form.get('numeroDocumento')?.touched || wizardService.paso2Form.get('numeroDocumento')?.dirty)"
+                 class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all font-mono" />
+          <app-form-error [control]="wizardService.paso2Form.get('numeroDocumento')" fieldName="Nº de Documento / Escritura"></app-form-error>
         </div>
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Fecha del Documento *</label>
-          <input formControlName="fechaDocumento" type="date" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+          <input formControlName="fechaDocumento" type="date"
+                 [class.border-red-500]="wizardService.paso2Form.get('fechaDocumento')?.invalid && (wizardService.paso2Form.get('fechaDocumento')?.touched || wizardService.paso2Form.get('fechaDocumento')?.dirty)"
+                 class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+          <app-form-error [control]="wizardService.paso2Form.get('fechaDocumento')" fieldName="Fecha del Documento"></app-form-error>
         </div>
 
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Tipo de Entidad *</label>
-          <select formControlName="tipoEntidadRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <select formControlName="tipoEntidadRegistroId"
+                  [class.border-red-500]="wizardService.paso2Form.get('tipoEntidadRegistroId')?.invalid && (wizardService.paso2Form.get('tipoEntidadRegistroId')?.touched || wizardService.paso2Form.get('tipoEntidadRegistroId')?.dirty)"
+                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <option [ngValue]="null">Seleccione...</option>
             @for (t of tiposEntidadFacade.tiposEntidadRegistro(); track t.id) {
               <option [value]="t.id">{{ t.nombre }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso2Form.get('tipoEntidadRegistroId')" fieldName="Tipo de Entidad"></app-form-error>
         </div>
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Municipio de Jurisdicción *</label>
-          <select formControlName="municipioJurisdiccionId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <select formControlName="municipioJurisdiccionId"
+                  [class.border-red-500]="wizardService.paso2Form.get('municipioJurisdiccionId')?.invalid && (wizardService.paso2Form.get('municipioJurisdiccionId')?.touched || wizardService.paso2Form.get('municipioJurisdiccionId')?.dirty)"
+                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <option [ngValue]="null">Seleccione...</option>
             @for (m of municipiosFacade.municipios(); track m.id) {
               <option [value]="m.id">{{ m.nombre }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso2Form.get('municipioJurisdiccionId')" fieldName="Municipio de Jurisdicción"></app-form-error>
         </div>
 
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Entidad de Registro / Notaría *</label>
-          <select formControlName="entidadRegistroId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <select formControlName="entidadRegistroId"
+                  [class.border-red-500]="wizardService.paso2Form.get('entidadRegistroId')?.invalid && (wizardService.paso2Form.get('entidadRegistroId')?.touched || wizardService.paso2Form.get('entidadRegistroId')?.dirty)"
+                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <option [ngValue]="null">Seleccione...</option>
             @for (e of entidadesFacade.entidadesRegistro(); track e.id) {
               <option [value]="e.id">{{ e.nombre }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso2Form.get('entidadRegistroId')" fieldName="Entidad de Registro / Notaría"></app-form-error>
         </div>
         <div>
           <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Categoría del Acto *</label>
-          <select formControlName="categoriaActoId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <select formControlName="categoriaActoId"
+                  [class.border-red-500]="wizardService.paso2Form.get('categoriaActoId')?.invalid && (wizardService.paso2Form.get('categoriaActoId')?.touched || wizardService.paso2Form.get('categoriaActoId')?.dirty)"
+                  class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             <option [ngValue]="null">Seleccione...</option>
             @for (c of categoriasActoFacade.categoriasActo(); track c.id) {
               <option [value]="c.id">{{ c.nombre }}</option>
             }
           </select>
+          <app-form-error [control]="wizardService.paso2Form.get('categoriaActoId')" fieldName="Categoría del Acto"></app-form-error>
         </div>
       </div>
       
@@ -70,6 +88,7 @@
             type="file" 
             accept=".pdf,.doc,.docx" 
             (change)="onFileSelected($event)"
+            [class.border-red-500]="!wizardService.documentoSoporteFile && !wizardService.documentoSoporteNombre() && wizardService.etapaGuardada() < 2 && wizardService.paso2Form.touched"
             class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all border border-slate-200 rounded-lg bg-slate-50 cursor-pointer focus:outline-none" />
           
           <div *ngIf="wizardService.documentoSoporteFile" class="flex items-center gap-2 text-emerald-600 text-xs font-semibold shrink-0 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
@@ -86,6 +105,14 @@
             Adjunto: {{ wizardService.documentoSoporteNombre() }}
           </div>
         </div>
+        @if (!wizardService.documentoSoporteFile && !wizardService.documentoSoporteNombre() && wizardService.etapaGuardada() < 2 && wizardService.paso2Form.touched) {
+          <p class="text-xs text-red-500 mt-1 flex items-center gap-1 font-medium animate-in fade-in duration-200">
+            <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+            </svg>
+            El archivo de soporte es obligatorio.
+          </p>
+        }
       </div>
     </div>
   </div>

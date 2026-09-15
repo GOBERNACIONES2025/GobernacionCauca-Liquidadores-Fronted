@@ -1,6 +1,7 @@
 import { Component, computed, signal, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 
 export interface ExpedienteLiquidacion {
   id: number;
@@ -22,7 +23,7 @@ export interface ExpedienteLiquidacion {
 @Component({
   selector: 'app-registros-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TableSearchComponent],
   templateUrl: './registros-list.html'
 })
 export class RegistrosListComponent {
@@ -72,8 +73,12 @@ export class RegistrosListComponent {
     return filtered;
   });
 
-  onSearchChange(event: any) {
-    this.searchText.set(event.target.value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
   }
 
   setFilter(status: string) {

@@ -1,11 +1,11 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { TiposBeneficiarioExencionFacade } from '../../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
 import { TipoBeneficiarioExencion } from '../../../../../domain/models/Exenciones/tipo-beneficiario-exencion.model';
 import { TiposBeneficiarioExencionApiService } from '../../../../../infrastructure/api/Exenciones/tipos-beneficiario-exencion-api.service';
@@ -14,7 +14,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-tipos-beneficiario-exencion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './tipos-beneficiario-exencion.html',
   styleUrl: './tipos-beneficiario-exencion.css'
 })
@@ -30,17 +30,6 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   loadingEditId = signal<number | null>(null);
-
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarItems();
-    });
-  }
-  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -88,10 +77,16 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {

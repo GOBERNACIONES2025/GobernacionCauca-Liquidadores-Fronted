@@ -16,10 +16,12 @@ import { ActoRegistradoDto } from '../../../../../../domain/models/Radicacion/so
 import { TipoActoRegistro } from '../../../../../../domain/models/Registro/tipo-acto-registro.model';
 import { Inmueble, CrearInmuebleRequest, ActualizarInmuebleRequest } from '../../../../../../domain/models/Inmuebles/inmueble.model';
 
+import { FormFieldErrorComponent } from '../../../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-step-actos',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, FormFieldErrorComponent],
   templateUrl: './step-actos.html'
 })
 export class StepActosComponent implements OnInit, OnDestroy {

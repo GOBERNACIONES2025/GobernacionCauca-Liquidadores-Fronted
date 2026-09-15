@@ -1,11 +1,10 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { ExencionesFacade } from '../../../../../application/facades/Exenciones/exenciones.facade';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
 import { NormasFacade } from '../../../../../application/facades/Normatividad/normas.facade';
@@ -19,12 +18,13 @@ import { NormasApiService } from '../../../../../infrastructure/api/Normatividad
 import { TiposBeneficiarioExencionApiService } from '../../../../../infrastructure/api/Exenciones/tipos-beneficiario-exencion-api.service';
 import { RolesIntervinienteApiService } from '../../../../../infrastructure/api/Intervinientes/roles-interviniente-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-exenciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './exenciones.html',
   styleUrl: './exenciones.css'
 })
@@ -49,17 +49,6 @@ export class Exenciones implements OnInit {
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   loadingEditId = signal<number | null>(null);
-
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarItems();
-    });
-  }
-  searchSubject = new Subject<string>();
   selectedFilter = signal<'todos' | 'activos' | 'inactivos'>('todos');
 
   isSlideOverOpen = false;
@@ -109,10 +98,7 @@ export class Exenciones implements OnInit {
   }
 
   cargarItems() {
-    let activo: boolean | undefined = undefined;
-    if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
-    if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
-    this.facade.cargarExenciones(this.pageNumber(), this.pageSize());
+    this.facade.cargarExenciones(this.pageNumber(), this.pageSize(), undefined, this.searchText() || undefined);
   }
 
   onPageChange(page: number) {
@@ -126,10 +112,16 @@ export class Exenciones implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos') {
