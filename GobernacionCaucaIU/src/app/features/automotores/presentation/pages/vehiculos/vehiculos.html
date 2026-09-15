@@ -4,19 +4,7 @@
       
       <!-- BREADCRUMB & HEADER -->
       <div class="mb-4 sm:mb-5">
-        <div class="flex items-center gap-1.5 text-[11.5px] text-slate-400 mb-2 overflow-x-auto whitespace-nowrap">
-          <span class="flex items-center gap-1.5">
-            <span class="font-normal hover:text-slate-600 cursor-pointer">Inicio</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            <span class="font-normal hover:text-slate-600 cursor-pointer">Módulo Vehicular</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            <span class="text-slate-900 font-semibold">Expediente Vehicular</span>
-          </span>
-        </div>
+        <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-2" />
 
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>

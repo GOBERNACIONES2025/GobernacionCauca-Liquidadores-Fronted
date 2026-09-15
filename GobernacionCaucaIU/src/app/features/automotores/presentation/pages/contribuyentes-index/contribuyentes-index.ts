@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Contribuyente, Expediente } from '../../../domain/models/contribuyente.model';
 import { ContribuyenteFormComponent } from '../../components/contribuyente-form/contribuyente-form.component';
 import { ContribuyentesFacade } from '../../../application/facades/contribuyentes.facade';
+import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 /**
  * Componente principal para la Gestión de Contribuyentes.
@@ -11,7 +12,7 @@ import { ContribuyentesFacade } from '../../../application/facades/contribuyente
 @Component({
   selector: 'app-contribuyentes-index',
   standalone: true,
-  imports: [CommonModule, ContribuyenteFormComponent],
+  imports: [CommonModule, ContribuyenteFormComponent, BreadcrumbComponent],
   templateUrl: './contribuyentes-index.html',
   styleUrls: ['./styles-contribuyentes.css']
 })

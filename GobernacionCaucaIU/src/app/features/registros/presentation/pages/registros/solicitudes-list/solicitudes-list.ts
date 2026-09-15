@@ -1,17 +1,18 @@
 import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { SolicitudesLiquidacionFacade } from '../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { SolicitudListadoDto } from '../../../../domain/models/Radicacion/solicitud-wizard.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
+import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-solicitudes-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, TableSearchComponent, BreadcrumbComponent],
   templateUrl: './solicitudes-list.html'
 })
 export class SolicitudesListComponent implements OnInit {

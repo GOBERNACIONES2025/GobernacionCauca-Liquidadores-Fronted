@@ -10,11 +10,12 @@ import {
   TasasInteresDto,
   SalarioMinimoDto,
 } from '../../../domain/interfaces/valores-estatales.interface';
+import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-valores-estatales',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, BreadcrumbComponent],
   templateUrl: './valores-estatales.html',
 })
 export class ValoresEstatalesPage implements OnInit {

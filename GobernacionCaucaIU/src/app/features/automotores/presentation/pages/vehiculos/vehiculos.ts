@@ -9,11 +9,12 @@ import { VehiculoItem } from '../../../domain/models/vehiculo.model';
 import { VehiculoWizardComponent } from '../../../presentation/components/vehiculo-wizard/vehiculo-wizard';
 import { AuditoriaVehiculoValidator } from '../../../application/validators/vehiculos/auditoria-vehiculo.validator';
 import { FieldError } from '../../../application/validators/validation-result';
+import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-vehiculos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, VehiculoWizardComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, VehiculoWizardComponent, BreadcrumbComponent],
   templateUrl: './vehiculos.html'
 })
 export class Vehiculos implements OnInit, OnDestroy {

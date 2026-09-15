@@ -1,17 +1,18 @@
 import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { LiquidacionListadoDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
+import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-liquidaciones-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, TableSearchComponent, BreadcrumbComponent],
   templateUrl: './liquidaciones-list.html'
 })
 export class LiquidacionesListComponent implements OnInit {

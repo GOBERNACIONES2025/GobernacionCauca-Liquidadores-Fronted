@@ -1,6 +1,8 @@
-import { Component, input, output, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, signal, computed, inject } from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { BreadcrumbComponent } from '../../../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 export interface TableColumn {
   key: string;
@@ -11,11 +13,13 @@ export interface TableColumn {
 @Component({
   selector: 'app-catalogo-table-view',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule, BreadcrumbComponent],
   templateUrl: './catalogo-table-view.html',
   styleUrl: './catalogo-table-view.css'
 })
 export class CatalogoTableViewComponent {
+  private router = inject(Router);
+  private location = inject(Location);
   title = input.required<string>();
   subtitle = input<string>('Catálogo maestro del sistema tributario vehicular');
   category = input<string>('Configuración');
@@ -72,5 +76,24 @@ export class CatalogoTableViewComponent {
 
   onReload() {
     this.reload.emit();
+  }
+
+  onCategoryClick(): void {
+    const cat = this.category().toLowerCase().trim();
+    if (cat === 'territorio') {
+      this.router.navigateByUrl('/automotores/configuracion/territorio/departamentos');
+    } else if (cat === 'vehicular') {
+      this.router.navigateByUrl('/automotores/configuracion/vehicular/clases');
+    } else if (cat === 'tránsito' || cat === 'transito') {
+      this.router.navigateByUrl('/automotores/configuracion/transito/estados-matricula');
+    } else if (cat === 'contribuyentes') {
+      this.router.navigateByUrl('/automotores/configuracion/contribuyentes/tipos-documento');
+    } else if (cat === 'control') {
+      this.router.navigateByUrl('/automotores/configuracion/control/pendientes-aprobacion');
+    } else if (cat === 'valores estatales') {
+      this.router.navigateByUrl('/automotores/configuracion/valores-estatales');
+    } else {
+      this.router.navigateByUrl('/automotores/configuracion');
+    }
   }
 }

@@ -23,11 +23,9 @@
       </div>
     </a>
 
-    <!-- Quick Breadcrumbs / Page Title in Header -->
-    <div class="hidden lg:flex items-center space-x-2 pl-4 ml-4 border-l border-white/20 text-xs text-slate-300">
-      <a routerLink="/" class="text-slate-300 hover:text-white transition cursor-pointer">Inicio</a>
-      <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
-      <span class="font-semibold text-white">{{ pageTitle() }}</span>
+    <!-- Dynamic Breadcrumbs in Header -->
+    <div class="hidden lg:flex items-center pl-4 ml-4 border-l border-white/20">
+      <app-breadcrumb theme="dark" />
     </div>
   </div>
 
