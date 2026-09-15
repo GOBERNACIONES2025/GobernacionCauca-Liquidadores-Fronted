@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { PropietariosApiService } from '../../infrastructure/api/propietarios-api.service';
 import { CatalogoApiService } from '../../infrastructure/api/catalogo-api.service';
 import { DepartamentosApiService } from '../../infrastructure/api/departamentos-api.service';
@@ -14,7 +14,7 @@ import {
 } from '../../domain/models/contribuyente.model';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable, forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -28,6 +28,88 @@ export class ContribuyentesFacade {
   readonly contribuyentes = signal<Contribuyente[]>([]);
   readonly totalContribuyentes = signal<number>(0);
   
+  // Filtros de búsqueda
+  readonly filtroTexto = signal<string>('');
+  readonly filtroEstado = signal<string>('Todos');
+  readonly filtroSituacion = signal<string>('Todos');
+
+  // Paginación
+  readonly paginaActual = signal<number>(1);
+  readonly pageSize = signal<number>(10);
+  readonly totalPaginas = computed(() => {
+    return Math.max(1, Math.ceil(this.totalContribuyentes() / this.pageSize()));
+  });
+
+  readonly paginasDisponibles = computed(() => {
+    const total = this.totalPaginas();
+    const actual = this.paginaActual();
+    if (total <= 1) return [1];
+
+    if (total <= 7) {
+      return Array.from({ length: total }, (_, i) => i + 1);
+    }
+
+    const pages: number[] = [];
+    const start = Math.max(1, actual - 2);
+    const end = Math.min(total, actual + 2);
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  });
+
+  // Lista Filtrada Computada
+  readonly filteredContribuyentes = computed(() => {
+    const texto = this.filtroTexto().trim();
+    const estado = this.filtroEstado();
+    const situacion = this.filtroSituacion();
+
+    const normalize = (str?: string | null) => {
+      if (!str) return '';
+      return str
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim();
+    };
+
+    const query = normalize(texto);
+
+    return this.contribuyentes().filter(c => {
+      // Filtro por texto
+      if (query) {
+        const nombreCompleto = normalize(`${c.primerNombre || ''} ${c.segundoNombre || ''} ${c.primerApellido || ''} ${c.segundoApellido || ''}`);
+        const razonSocial = normalize(c.razonSocial);
+        const doc = normalize(c.numeroDocumento);
+        const email = normalize(c.correoElectronico);
+        const tel = normalize(c.telefono);
+        const dir = normalize(c.direccion);
+        const ciudad = normalize(c.ciudad);
+
+        const match = nombreCompleto.includes(query) ||
+                      razonSocial.includes(query) ||
+                      doc.includes(query) ||
+                      email.includes(query) ||
+                      tel.includes(query) ||
+                      dir.includes(query) ||
+                      ciudad.includes(query);
+        if (!match) return false;
+      }
+
+      // Filtro por estado activo / inactivo
+      if (estado === 'Activo' && !c.activo) return false;
+      if (estado === 'Inactivo' && c.activo) return false;
+
+      // Filtro por situación / tipo de persona
+      if (situacion === 'AlDia' && (c.cantidadDeudas || 0) > 0) return false;
+      if (situacion === 'Moroso' && (c.cantidadDeudas || 0) === 0) return false;
+      if (situacion === 'Natural' && c.naturalezaJuridicaId !== 1) return false;
+      if (situacion === 'Juridica' && c.naturalezaJuridicaId !== 2) return false;
+
+      return true;
+    });
+  });
+
   // KPIs locales
   readonly totalAlDia = signal<number>(0);
   readonly totalMorosos = signal<number>(0);
@@ -131,11 +213,21 @@ export class ContribuyentesFacade {
   /**
    * Carga la lista de contribuyentes llamando al API y actualizando el estado
    */
-  cargarContribuyentes(page: number = 1, pageSize: number = 20, buscar?: string, soloActivos: boolean = true) {
+  cargarContribuyentes(page: number = 1, pageSize: number = 10, buscar?: string, soloActivos?: boolean) {
     this.loading.set(true);
     this.error.set(null);
+    this.paginaActual.set(page);
+    this.pageSize.set(pageSize);
 
-    this.propietariosApi.getPropietarios({ page, pageSize, buscar, soloActivos }).subscribe({
+    const textParam = buscar !== undefined ? buscar : (this.filtroTexto().trim() || undefined);
+    let activeParam: boolean | undefined = soloActivos;
+    if (activeParam === undefined) {
+      const estado = this.filtroEstado();
+      if (estado === 'Activo') activeParam = true;
+      else if (estado === 'Inactivo') activeParam = false;
+    }
+
+    this.propietariosApi.getPropietarios({ page, pageSize, buscar: textParam, soloActivos: activeParam }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           const items = response.data.items || [];
@@ -157,6 +249,65 @@ export class ContribuyentesFacade {
         this.loading.set(false);
       }
     });
+  }
+
+  setFiltroTexto(val: string) {
+    this.filtroTexto.set(val);
+    this.cargarContribuyentes(1, this.pageSize());
+  }
+
+  setFiltroEstado(val: string) {
+    this.filtroEstado.set(val);
+    this.cargarContribuyentes(1, this.pageSize());
+  }
+
+  setFiltroSituacion(val: string) {
+    this.filtroSituacion.set(val);
+    this.cargarContribuyentes(1, this.pageSize());
+  }
+
+  refrescar() {
+    this.cargarContribuyentes(this.paginaActual(), this.pageSize());
+  }
+
+  /**
+   * Obtiene la totalidad de los contribuyentes para exportación a nivel general (universo completo filtrado),
+   * consultando la API con pageSize: 10000 para no limitarse a la paginación visible de la tabla.
+   */
+  obtenerTodosParaExportar(): Observable<Contribuyente[]> {
+    const estado = this.filtroEstado();
+    let soloActivos: boolean | undefined = undefined;
+    if (estado === 'Activo') soloActivos = true;
+    else if (estado === 'Inactivo') soloActivos = false;
+
+    return this.propietariosApi.getPropietarios({
+      page: 1,
+      pageSize: 10000,
+      buscar: this.filtroTexto().trim() || undefined,
+      soloActivos
+    }).pipe(
+      map(response => {
+        if (response.success && response.data) {
+          const items = response.data.items || [];
+          const situacion = this.filtroSituacion();
+          if (situacion && situacion !== 'Todos') {
+            return items.filter(c => {
+              if (situacion === 'AlDia' && (c.cantidadDeudas || 0) > 0) return false;
+              if (situacion === 'Moroso' && (c.cantidadDeudas || 0) === 0) return false;
+              if (situacion === 'Natural' && c.naturalezaJuridicaId !== 1) return false;
+              if (situacion === 'Juridica' && c.naturalezaJuridicaId !== 2) return false;
+              return true;
+            });
+          }
+          return items;
+        }
+        return this.filteredContribuyentes();
+      }),
+      catchError(err => {
+        console.warn('Error al obtener todos los contribuyentes para exportación:', err);
+        return of(this.filteredContribuyentes());
+      })
+    );
   }
 
   /**

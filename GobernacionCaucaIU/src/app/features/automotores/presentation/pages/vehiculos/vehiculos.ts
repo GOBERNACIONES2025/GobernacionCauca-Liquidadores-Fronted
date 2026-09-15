@@ -345,7 +345,7 @@ export class Vehiculos implements OnInit, OnDestroy {
   }
 
   /**
-   * Abre el modal de detalle/expediente de un veh\u00edculo de la lista de pendientes.
+   * Abre el modal de detalle/expediente de un vehículo de la lista de pendientes.
    */
   onAbrirExpedienteModal(v: VehiculoItem): void {
     this.facade.seleccionarVehiculo(v);
