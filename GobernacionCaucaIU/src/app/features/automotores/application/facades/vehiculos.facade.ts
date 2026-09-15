@@ -290,7 +290,7 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   // CARGA DE VEHÍCULOS DESDE LA BASE DE DATOS (GET /api/vehiculos)
   // --------------------------------------------------------------------------
-  cargarVehiculos(page: number = 1, pageSize: number = 10): void {
+  cargarVehiculos(page: number = 1, pageSize?: number): void {
     this.loading.set(true);
     this.error.set(null);
 
@@ -313,26 +313,30 @@ export class VehiculosFacade {
     ).subscribe((res: any) => {
       this.loading.set(false);
       if (res && res.data) {
-        const rawItems = Array.isArray(res.data) ? res.data : (res.data.items || []);
-        const total = res.data.totalCount ?? rawItems.length;
-        const totalPags = res.data.totalPages ?? Math.ceil(total / pageSize);
+        const isPaged = !Array.isArray(res.data) && res.data.items !== undefined;
+        const rawItems: any[] = isPaged ? (res.data.items || []) : (Array.isArray(res.data) ? res.data : []);
+        const total = isPaged ? (res.data.totalCount ?? rawItems.length) : rawItems.length;
+        const totalPags = (isPaged && res.data.totalPages)
+          ? res.data.totalPages
+          : Math.max(1, Math.ceil(total / size));
 
         const mapped: VehiculoItem[] = this.mapearItemsVehiculo(rawItems);
 
-        if (mapped.length > 0) {
-          this.vehiculos.set(mapped);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(total);
-        } else {
-          this.vehiculos.set([]);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(0);
-        }
+        this.vehiculos.set(mapped);
+        this.selectedVehiculo.set(null);
+        this.totalVehiculos.set(total);
         this.paginaActual.set(page);
-        this.pageSize.set(pageSize);
+        this.pageSize.set(size);
         this.totalPaginas.set(totalPags);
       }
     });
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (this.loading()) return;
+    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
+    if (this.totalVehiculos() === 0) return;
+    this.cargarVehiculos(nuevaPagina, this.pageSize());
   }
 
   /**

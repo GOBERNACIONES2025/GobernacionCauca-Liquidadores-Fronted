@@ -270,6 +270,13 @@ export class ContribuyentesFacade {
     this.cargarContribuyentes(this.paginaActual(), this.pageSize());
   }
 
+  cambiarPagina(nuevaPagina: number): void {
+    if (this.loading()) return;
+    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
+    if (this.totalContribuyentes() === 0) return;
+    this.cargarContribuyentes(nuevaPagina, this.pageSize());
+  }
+
   /**
    * Obtiene la totalidad de los contribuyentes para exportación a nivel general (universo completo filtrado),
    * consultando la API con pageSize: 10000 para no limitarse a la paginación visible de la tabla.
