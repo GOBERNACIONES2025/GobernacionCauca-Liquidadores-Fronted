@@ -1,0 +1,263 @@
+<div class="space-y-6">
+  
+  <!-- Page Header Title -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        Panel de Control y Fiscalización de Sobretasa
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Monitoreo consolidado de consumo de combustibles, distribución municipal y recaudo departamental (Ley 2093 de 2021)
+      </p>
+    </div>
+
+    <!-- Switch al portal mayorista -->
+    <div class="flex items-center gap-2">
+      <a
+        routerLink="/sobretasa/fiscalizacion"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs transition-colors"
+      >
+        <i class="fa-solid fa-satellite-dish"></i>
+        <span>Bandeja SICOM ({{ kpis().declaracionesPendientesRevision }})</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 4 KPI Cards Principales de Control -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- KPI 1: Galones Totales Consumidos -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Consumo Total Jurisdicción</span>
+        <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <i class="fa-solid fa-gas-pump text-base"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-slate-900 font-mono tracking-tight">
+          {{ formatGal(kpis().totalGalonesJurisdiccion) }}
+        </p>
+        <p class="text-[11px] text-slate-500 mt-1 flex items-center gap-1">
+          <span class="text-blue-600 font-bold">100%</span>
+          <span>galones a 60 °F distribuidos</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- KPI 2: Recaudo Municipal Consolidado -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Porción Municipal Cauca</span>
+        <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center">
+          <i class="fa-solid fa-city text-base"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-amber-800 font-mono tracking-tight">
+          {{ formatCop(kpis().recaudoMunicipalTotal) }}
+        </p>
+        <p class="text-[11px] text-slate-500 mt-1">
+          GMC: $1.420/Gl • GME: $1.850/Gl
+        </p>
+      </div>
+    </div>
+
+    <!-- KPI 3: Recaudo Departamental Cedido -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Porción Departamental</span>
+        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
+          <i class="fa-solid fa-building-columns text-base"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-emerald-800 font-mono tracking-tight">
+          {{ formatCop(kpis().recaudoDepartamentalTotal) }}
+        </p>
+        <p class="text-[11px] text-slate-500 mt-1">
+          GMC: $480 • GME: $620 • ACPM: $395
+        </p>
+      </div>
+    </div>
+
+    <!-- KPI 4: Declaraciones Pendientes de Revisión -->
+    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Bandeja de Fiscalización</span>
+        <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+          <i class="fa-solid fa-clipboard-check text-base"></i>
+        </div>
+      </div>
+      <div>
+        <p class="text-2xl font-black text-rose-600 font-mono tracking-tight">
+          {{ kpis().declaracionesPendientesRevision }}
+        </p>
+        <p class="text-[11px] text-slate-500 mt-1">
+          Pendientes de validación con SICOM
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sección Intermedia: Distribución de Volumen por Tipo de Combustible & Recaudo Efectivo -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Card de Consumo por Tipo de Combustible -->
+    <div class="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-5">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-bold text-slate-900">Composición del Volumen por Combustible</h2>
+          <p class="text-xs text-slate-500">Distribución de galones reportados por agentes mayoristas</p>
+        </div>
+        <span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 text-slate-700">
+          Total: {{ formatGal(kpis().totalGalonesJurisdiccion) }}
+        </span>
+      </div>
+
+      <!-- Barra Segmentada Visual -->
+      <div class="w-full h-4 bg-slate-100 rounded-full overflow-hidden flex">
+        <div class="bg-blue-600 h-full" [style.width.%]="porcentajeGMC()" title="Gasolina Corriente"></div>
+        <div class="bg-purple-600 h-full" [style.width.%]="porcentajeGME()" title="Gasolina Extra"></div>
+        <div class="bg-amber-500 h-full" [style.width.%]="porcentajeACPM()" title="ACPM / Diésel"></div>
+      </div>
+
+      <!-- Detalle por Tipo -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+        <!-- GMC -->
+        <div class="p-3.5 rounded-xl border border-slate-200 bg-blue-50/30 space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+              GMC (Corriente)
+            </span>
+            <span class="font-mono text-blue-700">{{ porcentajeGMC() }}%</span>
+          </div>
+          <p class="text-sm font-mono font-black text-slate-900">{{ formatGal(kpis().totalGalonesGMC) }}</p>
+          <p class="text-[10px] text-slate-500">Tarifa Total: ${{ tarifas.GMC_TOTAL | number }} / Gl</p>
+        </div>
+
+        <!-- GME -->
+        <div class="p-3.5 rounded-xl border border-slate-200 bg-purple-50/30 space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-purple-600"></span>
+              GME (Extra)
+            </span>
+            <span class="font-mono text-purple-700">{{ porcentajeGME() }}%</span>
+          </div>
+          <p class="text-sm font-mono font-black text-slate-900">{{ formatGal(kpis().totalGalonesGME) }}</p>
+          <p class="text-[10px] text-slate-500">Tarifa Total: ${{ tarifas.GME_TOTAL | number }} / Gl</p>
+        </div>
+
+        <!-- ACPM -->
+        <div class="p-3.5 rounded-xl border border-slate-200 bg-amber-50/30 space-y-1">
+          <div class="flex items-center justify-between text-xs font-bold text-slate-800">
+            <span class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              ACPM / Diésel
+            </span>
+            <span class="font-mono text-amber-700">{{ porcentajeACPM() }}%</span>
+          </div>
+          <p class="text-sm font-mono font-black text-slate-900">{{ formatGal(kpis().totalGalonesACPM) }}</p>
+          <p class="text-[10px] text-slate-500">Tarifa Deptal: ${{ tarifas.ACPM_TOTAL | number }} / Gl</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card de Recaudo Efectivo y Estados -->
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4 flex flex-col justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-slate-900">Estado del Recaudo Bancario</h2>
+        <p class="text-xs text-slate-500">Ingresos consolidados en cuentas de Hacienda</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-slate-900 text-white space-y-2">
+        <span class="text-[10px] text-slate-400 uppercase font-semibold">Recaudo Efectivo Pagado</span>
+        <p class="text-2xl font-black font-mono text-emerald-400">{{ formatCop(kpis().recaudoGeneralEfectivo) }}</p>
+        <p class="text-[10px] text-slate-300">Acreditado mediante pasarela PSE y ventanilla</p>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div class="flex justify-between items-center text-slate-600">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-emerald-500 text-[8px]"></i> Pagadas & Aprobadas:</span>
+          <span class="font-bold text-slate-900">{{ kpis().declaracionesPagadas }}</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-600">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-amber-500 text-[8px]"></i> Pendientes de Pago:</span>
+          <span class="font-bold text-slate-900">{{ kpis().declaracionesPendientesPago }}</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-600">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-blue-500 text-[8px]"></i> En Revisión Fiscal:</span>
+          <span class="font-bold text-slate-900">{{ kpis().declaracionesPendientesRevision }}</span>
+        </div>
+        <div class="flex justify-between items-center text-slate-600">
+          <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle text-rose-500 text-[8px]"></i> Con Requerimiento (Observadas):</span>
+          <span class="font-bold text-slate-900">{{ kpis().declaracionesObservadas }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tabla de Declaraciones Recientes -->
+  <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-sm font-bold text-slate-900">Últimas Declaraciones Radicadas</h2>
+        <p class="text-xs text-slate-500">Expediente reciente de liquidaciones de combustible</p>
+      </div>
+      <a routerLink="/sobretasa/declaraciones" class="text-xs font-bold text-[#0f4984] hover:underline">
+        Ver Todas ({{ kpis().totalDeclaraciones }}) →
+      </a>
+    </div>
+
+    <div class="border border-slate-200 rounded-xl overflow-x-auto">
+      <table class="w-full text-xs text-left border-collapse">
+        <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+          <tr>
+            <th class="py-3 px-4">Radicado</th>
+            <th class="py-3 px-4">Mayorista</th>
+            <th class="py-3 px-4">Periodo</th>
+            <th class="py-3 px-4 text-right">Galones</th>
+            <th class="py-3 px-4 text-right">Total Liquidado</th>
+            <th class="py-3 px-4 text-center">Estado</th>
+            <th class="py-3 px-4 text-center">Acción</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngFor="let d of declaracionesRecientes()" class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-4 font-mono font-bold text-slate-900">{{ d.numeroRadicado }}</td>
+            <td class="py-3 px-4 font-medium text-slate-800">{{ d.mayorista.nombreComercial }}</td>
+            <td class="py-3 px-4 text-slate-600">Mes {{ d.periodoMes }}/{{ d.periodoAnio }}</td>
+            <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">{{ formatGal(d.totalGalonesGeneral) }}</td>
+            <td class="py-3 px-4 text-right font-mono font-black text-slate-900">{{ formatCop(d.totalPagar) }}</td>
+            <td class="py-3 px-4 text-center">
+              <span
+                class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase"
+                [ngClass]="{
+                  'bg-emerald-100 text-emerald-800': d.estado === 'PAGADO_APROBADO',
+                  'bg-amber-100 text-amber-800': d.estado === 'PENDIENTE_PAGO',
+                  'bg-blue-100 text-blue-800': d.estado === 'EN_REVISION',
+                  'bg-rose-100 text-rose-800': d.estado === 'OBSERVADO'
+                }"
+              >
+                {{ d.estado }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <a
+                routerLink="/sobretasa/fiscalizacion"
+                class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px]"
+              >
+                Auditar
+              </a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

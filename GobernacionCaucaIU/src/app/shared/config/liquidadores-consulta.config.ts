@@ -7,7 +7,7 @@ export interface LiquidadorConsultaExample {
 }
 
 export interface LiquidadorConsultaConfig {
-  id: 'automotores' | 'pasaportes' | 'registros' | 'deguello';
+  id: 'automotores' | 'pasaportes' | 'registros' | 'deguello' | 'licores';
   brandingTitle: string;            // Ej: "IMPUESTO VEHICULAR"
   headerTitle: string;              // Ej: "CONSULTA CIUDADANA"
   headerSubtitle: string;           // Ej: "Consulte su impuesto vehicular y estado de cuenta."
@@ -45,6 +45,28 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     quickExamples: [
       { label: 'Vehículo Prueba Real', tipoDocId: 1, doc: '11223344', secondary: 'AAA001', tag: 'DS 3' },
       { label: 'Consulta Alterna', tipoDocId: 1, doc: '1234567', secondary: 'AAA000', tag: 'Prueba' }
+    ]
+  },
+  licores: {
+    id: 'licores',
+    brandingTitle: 'IMPUESTO AL CONSUMO DE LICORES',
+    headerTitle: 'CONSULTA Y SOLICITUD DE LICORES',
+    headerSubtitle: 'Consulte el estado de su radicado o tornaguía electrónica y declare nuevos despachos hacia el Cauca.',
+    secondaryFieldKey: 'radicado',
+    secondaryFieldLabel: 'NÚMERO DE RADICADO O TORNAGUÍA:',
+    secondaryFieldPlaceholder: 'Ej: RAD-2026-0001 ó TGN-2026-0045',
+    secondaryFieldIcon: 'fa-barcode',
+    buttonText: 'Consultar Radicado / Tornaguía',
+    buttonIcon: 'fa-magnifying-glass',
+    iconSvg: '/licores.svg',
+    headerBgColor: 'bg-[#0f4984]',
+    brandingTextColor: 'text-[#0f4984]',
+    buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
+    iconBadgeColor: 'bg-blue-50 text-[#0f4984] border-blue-100',
+    quickExamples: [
+      { label: 'Declaración Pagada (Tornaguía FLA)', tipoDocId: 2, doc: '890900123', secondary: 'RAD-2026-0001', tag: 'Tornaguía' },
+      { label: 'Declaración En Revisión', tipoDocId: 2, doc: '890900123', secondary: 'RAD-2026-0002', tag: 'Auditoría' },
+      { label: 'Declaración Requerida', tipoDocId: 2, doc: '890900123', secondary: 'RAD-2026-0003', tag: 'Requerimiento' }
     ]
   },
   pasaportes: {

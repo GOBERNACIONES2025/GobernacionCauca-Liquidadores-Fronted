@@ -81,6 +81,8 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
       this.activeKey.set('registros');
     } else if (url.includes('deguello')) {
       this.activeKey.set('deguello');
+    } else if (url.includes('licores')) {
+      this.activeKey.set('licores');
     } else {
       this.activeKey.set('automotores');
     }

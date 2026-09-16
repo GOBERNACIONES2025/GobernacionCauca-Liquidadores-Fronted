@@ -1,0 +1,339 @@
+<div class="space-y-6">
+  
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        Configuración, Catálogos y Tarifas Ley 2093
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Parámetros tributarios territoriales, registro de agentes mayoristas y estaciones de servicio autorizadas
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        (click)="restablecerSemilla()"
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+        title="Reiniciar a los datos semilla en localStorage"
+      >
+        <i class="fa-solid fa-rotate-left text-slate-500"></i>
+        <span>Restablecer Semilla Mock</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs Selector -->
+  <div class="flex items-center gap-2 border-b border-slate-200 pb-3">
+    <button
+      type="button"
+      (click)="tabActiva = 'TARIFAS'"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+      [ngClass]="tabActiva === 'TARIFAS' ? 'bg-[#0f4984] text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
+    >
+      <i class="fa-solid fa-scale-balanced mr-1.5"></i>
+      Tarifas Oficiales Ley 2093
+    </button>
+
+    <button
+      type="button"
+      (click)="tabActiva = 'MAYORISTAS'"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+      [ngClass]="tabActiva === 'MAYORISTAS' ? 'bg-[#0f4984] text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
+    >
+      <i class="fa-solid fa-building mr-1.5"></i>
+      Distribuidores Mayoristas ({{ sobretasaService.mayoristas().length }})
+    </button>
+
+    <button
+      type="button"
+      (click)="tabActiva = 'EDS'"
+      class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+      [ngClass]="tabActiva === 'EDS' ? 'bg-[#0f4984] text-white shadow-xs' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'"
+    >
+      <i class="fa-solid fa-gas-pump mr-1.5"></i>
+      Estaciones de Servicio EDS ({{ sobretasaService.edsCatalog().length }})
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 1: TARIFAS OFICIALES -->
+  <!-- ========================================================================= -->
+  <div *ngIf="tabActiva === 'TARIFAS'" class="space-y-6 animate-in fade-in">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Tarifas Paramétricas Vigentes de Sobretasa</h2>
+        <p class="text-xs text-slate-500">Valores fijos por galón americano a 60 °F liquidados en cada periodo fiscal</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <!-- Card GMC -->
+        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span class="font-bold text-slate-900 text-sm">Gasolina Motor Corriente</span>
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 text-blue-800">GMC</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>Porción Municipal:</span>
+              <span class="font-mono font-bold text-slate-900">${{ tarifas.GMC_MUNICIPAL | number }} COP / Gl</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Porción Departamental:</span>
+              <span class="font-mono font-bold text-slate-900">${{ tarifas.GMC_DEPARTAMENTAL | number }} COP / Gl</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 flex justify-between font-black text-sm text-[#0f4984]">
+              <span>TOTAL SOBRETASA:</span>
+              <span class="font-mono">${{ tarifas.GMC_TOTAL | number }} COP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card GME -->
+        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span class="font-bold text-slate-900 text-sm">Gasolina Motor Extra</span>
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-purple-100 text-purple-800">GME</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>Porción Municipal:</span>
+              <span class="font-mono font-bold text-slate-900">${{ tarifas.GME_MUNICIPAL | number }} COP / Gl</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Porción Departamental:</span>
+              <span class="font-mono font-bold text-slate-900">${{ tarifas.GME_DEPARTAMENTAL | number }} COP / Gl</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 flex justify-between font-black text-sm text-[#0f4984]">
+              <span>TOTAL SOBRETASA:</span>
+              <span class="font-mono">${{ tarifas.GME_TOTAL | number }} COP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card ACPM -->
+        <div class="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+            <span class="font-bold text-slate-900 text-sm">ACPM / Diésel</span>
+            <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-800">ACPM</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between text-slate-600">
+              <span>Porción Municipal:</span>
+              <span class="font-mono text-slate-400">$0 COP (No aplica)</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span>Porción Departamental:</span>
+              <span class="font-mono font-bold text-slate-900">${{ tarifas.ACPM_DEPARTAMENTAL | number }} COP / Gl</span>
+            </div>
+            <div class="pt-2 border-t border-slate-200 flex justify-between font-black text-sm text-emerald-700">
+              <span>TOTAL SOBRETASA:</span>
+              <span class="font-mono">${{ tarifas.ACPM_TOTAL | number }} COP</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regla de vencimiento -->
+      <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-xs text-blue-900 space-y-1">
+        <span class="font-bold block">Regla Paramétrica de Extemporaneidad:</span>
+        <p>
+          Las declaraciones deben radicarse y pagarse a más tardar el <strong>día {{ tarifas.DIA_LIMITE_PAGO_MES_SIGUIENTE }}</strong> del mes calendario siguiente al periodo gravable. A partir del día 19 se liquida una sanción del <strong>5% por mes o fracción de mes de retraso</strong> sobre el total del impuesto.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 2: DISTRIBUIDORES MAYORISTAS -->
+  <!-- ========================================================================= -->
+  <div *ngIf="tabActiva === 'MAYORISTAS'" class="space-y-6 animate-in fade-in">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Catálogo de Distribuidores Mayoristas</h2>
+          <p class="text-xs text-slate-500">Empresas con plantas autorizadas para despacho de combustibles en el Cauca</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="mostrarModalMayorista.set(true)"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs cursor-pointer"
+        >
+          <i class="fa-solid fa-plus"></i>
+          <span>Agregar Mayorista</span>
+        </button>
+      </div>
+
+      <div class="border border-slate-200 rounded-xl overflow-x-auto">
+        <table class="w-full text-xs text-left border-collapse">
+          <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4">Razón Social</th>
+              <th class="py-3 px-4">NIT</th>
+              <th class="py-3 px-4">Código SICOM Planta</th>
+              <th class="py-3 px-4">Municipio Planta</th>
+              <th class="py-3 px-4">Contacto</th>
+              <th class="py-3 px-4 text-center">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let m of sobretasaService.mayoristas()" class="hover:bg-slate-50">
+              <td class="py-3 px-4 font-bold text-slate-900">{{ m.razonSocial }}</td>
+              <td class="py-3 px-4 font-mono text-slate-700">{{ m.nit }}</td>
+              <td class="py-3 px-4 font-mono font-semibold text-blue-700">{{ m.codigoSicomPlanta }}</td>
+              <td class="py-3 px-4 text-slate-600">{{ m.municipioPlanta }}</td>
+              <td class="py-3 px-4 text-slate-600">{{ m.email }}</td>
+              <td class="py-3 px-4 text-center">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                  {{ m.estado }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 3: ESTACIONES DE SERVICIO EDS -->
+  <!-- ========================================================================= -->
+  <div *ngIf="tabActiva === 'EDS'" class="space-y-6 animate-in fade-in">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Catálogo de Estaciones de Servicio (EDS Cauca)</h2>
+          <p class="text-xs text-slate-500">Puntos de venta y destino autorizados en la jurisdicción territorial</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="mostrarModalEds.set(true)"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs cursor-pointer"
+        >
+          <i class="fa-solid fa-plus"></i>
+          <span>Agregar EDS</span>
+        </button>
+      </div>
+
+      <div class="border border-slate-200 rounded-xl overflow-x-auto">
+        <table class="w-full text-xs text-left border-collapse">
+          <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+            <tr>
+              <th class="py-3 px-4">Código SICOM EDS</th>
+              <th class="py-3 px-4">Nombre Comercial</th>
+              <th class="py-3 px-4">Razón Social</th>
+              <th class="py-3 px-4">Municipio</th>
+              <th class="py-3 px-4">Dirección</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let eds of sobretasaService.edsCatalog()" class="hover:bg-slate-50">
+              <td class="py-3 px-4 font-mono font-bold text-[#0f4984]">{{ eds.codigoSicomEds }}</td>
+              <td class="py-3 px-4 font-bold text-slate-900">{{ eds.nombreComercial }}</td>
+              <td class="py-3 px-4 text-slate-700">{{ eds.razonSocial }}</td>
+              <td class="py-3 px-4 text-slate-800 font-semibold">{{ eds.municipio }}</td>
+              <td class="py-3 px-4 text-slate-500">{{ eds.direccion }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Agregar Mayorista -->
+  <div *ngIf="mostrarModalMayorista()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 space-y-4 animate-in fade-in zoom-in">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <h3 class="text-sm font-bold text-slate-900">Registrar Distribuidor Mayorista</h3>
+        <button type="button" (click)="mostrarModalMayorista.set(false)" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Razón Social</label>
+          <input type="text" [(ngModel)]="nuevoMayorista.razonSocial" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 uppercase" placeholder="Ej: ORGANIZACIÓN PETRO S.A." />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">NIT</label>
+            <input type="text" [(ngModel)]="nuevoMayorista.nit" class="w-full px-3 py-1.5 rounded-lg border border-slate-300" placeholder="800123456-1" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Código SICOM Planta</label>
+            <input type="text" [(ngModel)]="nuevoMayorista.codigoSicomPlanta" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 uppercase" placeholder="PL-XXX-001" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Municipio Planta</label>
+            <input type="text" [(ngModel)]="nuevoMayorista.municipioPlanta" class="w-full px-3 py-1.5 rounded-lg border border-slate-300" placeholder="Yumbo / Popayán" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Correo Electrónico</label>
+            <input type="email" [(ngModel)]="nuevoMayorista.email" class="w-full px-3 py-1.5 rounded-lg border border-slate-300" placeholder="impuestos@empresa.com" />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+        <button type="button" (click)="mostrarModalMayorista.set(false)" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100">
+          Cancelar
+        </button>
+        <button type="button" (click)="guardarNuevoMayorista()" class="px-5 py-2 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs cursor-pointer">
+          Guardar Mayorista
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Agregar EDS -->
+  <div *ngIf="mostrarModalEds()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 space-y-4 animate-in fade-in zoom-in">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <h3 class="text-sm font-bold text-slate-900">Registrar Estación de Servicio (EDS)</h3>
+        <button type="button" (click)="mostrarModalEds.set(false)" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Código SICOM EDS</label>
+            <input type="text" [(ngModel)]="nuevaEds.codigoSicomEds" class="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono" placeholder="110209" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Municipio</label>
+            <input type="text" [(ngModel)]="nuevaEds.municipio" class="w-full px-3 py-1.5 rounded-lg border border-slate-300" placeholder="Popayán / Santander" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Nombre Comercial</label>
+          <input type="text" [(ngModel)]="nuevaEds.nombreComercial" class="w-full px-3 py-1.5 rounded-lg border border-slate-300" placeholder="EDS Los Robles Popayán" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Dirección</label>
+          <input type="text" [(ngModel)]="nuevaEds.direccion" class="w-full px-3 py-1.5 rounded-lg border border-slate-300" placeholder="Carrera 6 # 15-30" />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+        <button type="button" (click)="mostrarModalEds.set(false)" class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100">
+          Cancelar
+        </button>
+        <button type="button" (click)="guardarNuevaEds()" class="px-5 py-2 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs cursor-pointer">
+          Guardar EDS
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,158 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto">
+  <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh]">
+    
+    <!-- HEADER -->
+    <div class="bg-amber-600 text-white px-6 py-4 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-200">
+          <i class="fa-solid fa-pen-to-square text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold tracking-tight">Subsanar Requerimiento de Declaración</h2>
+          <p class="text-[11px] text-amber-100">Radicado {{ liquidacion.numeroRadicado }} &middot; Corrección y Reenvío a Rentas</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="cerrar.emit()"
+        class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition-colors"
+      >
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- BODY -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-4 text-xs text-slate-800">
+      
+      <!-- OBSERVACION DEL FUNCIONARIO -->
+      <div class="bg-amber-50 border border-amber-300 rounded-xl p-4">
+        <h4 class="font-bold text-amber-950 uppercase text-[10.5px] flex items-center gap-1.5 mb-1">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+          Observación Emitida por el Funcionario Fiscal:
+        </h4>
+        <p class="text-xs text-amber-900 leading-relaxed font-medium">
+          "{{ liquidacion.observacionesFuncionario }}"
+        </p>
+      </div>
+
+      <!-- FORMULARIO DE SUBSANACION -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-4">
+        <h4 class="font-bold text-[#0f3b73] uppercase text-[11px]">1. Modificar / Ajustar Datos de Transporte</h4>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Empresa Transportadora</label>
+            <input
+              type="text"
+              [(ngModel)]="transporteCopia.empresaTransportadora"
+              class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Placa Vehículo</label>
+            <input
+              type="text"
+              [(ngModel)]="transporteCopia.placaVehiculo"
+              class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg uppercase font-mono font-bold text-amber-700 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Conductor y Cédula</label>
+            <input
+              type="text"
+              [(ngModel)]="transporteCopia.nombreConductor"
+              class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Tipo de Vehículo</label>
+            <input
+              type="text"
+              [(ngModel)]="transporteCopia.tipoVehiculo"
+              class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1 text-[11px]">Ruta Autorizada</label>
+            <input
+              type="text"
+              [(ngModel)]="transporteCopia.rutaAutorizada"
+              class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- ITEMS EDITABLES -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-3">
+        <h4 class="font-bold text-[#0f3b73] uppercase text-[11px]">2. Cantidades de Botellas Declaradas</h4>
+        
+        <div class="divide-y divide-slate-100">
+          @for (item of itemsEditables; track $index; let idx = $index) {
+            <div class="py-2.5 flex items-center justify-between gap-3">
+              <div>
+                <span class="font-bold text-slate-900 block">{{ item.producto.nombre }}</span>
+                <span class="text-[10px] text-slate-400 font-mono">{{ item.producto.tipoBebida }} &middot; {{ item.producto.gradosAlcohol }}° &middot; {{ item.producto.volumenCm3 }} cm³</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="cambiarCantidad(idx, -50)"
+                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                >
+                  -
+                </button>
+                <input
+                  type="number"
+                  [(ngModel)]="item.cantidad"
+                  min="1"
+                  class="w-20 text-center font-mono font-bold text-xs p-1.5 border border-slate-300 rounded-lg"
+                />
+                <button
+                  type="button"
+                  (click)="cambiarCantidad(idx, 50)"
+                  class="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- TEXTO DE SUBSANACION -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+        <h4 class="font-bold text-[#0f3b73] uppercase text-[11px]">3. Respuesta de Subsanación / Explicación Formal *</h4>
+        <textarea
+          [(ngModel)]="motivoSubsanacion"
+          rows="3"
+          placeholder="Describa cómo se atendió el requerimiento (ej: Se corrigieron las cantidades del lote y se actualizó la placa del vehículo conforme al manifiesto de carga)..."
+          class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+        ></textarea>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="bg-slate-100 border-t border-slate-200 px-6 py-3.5 flex items-center justify-end gap-3 shrink-0">
+      <button
+        type="button"
+        (click)="cerrar.emit()"
+        class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="guardarYReenviar()"
+        [disabled]="!motivoSubsanacion.trim()"
+        class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
+      >
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>Guardar y Reenviar a Revisión</span>
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,549 @@
+<div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+  
+  <!-- Wizard Header & Steps Stepper -->
+  <div class="border-b border-slate-200 bg-slate-50/80 px-6 py-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-bold text-slate-900">Nueva Declaración de Sobretasa</h2>
+        <p class="text-xs text-slate-500">Liquidación Mensual de Combustibles (Ley 2093 de 2021)</p>
+      </div>
+
+      <!-- Stepper Pills -->
+      <div class="flex items-center gap-2">
+        <!-- Paso 1 -->
+        <button
+          type="button"
+          (click)="avanzarPaso(1)"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          [ngClass]="pasoActual === 1 ? 'bg-[#0f4984] text-white shadow-xs' : 'bg-slate-200/80 text-slate-600 hover:bg-slate-300'"
+        >
+          <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold"
+                [ngClass]="pasoActual === 1 ? 'bg-white/20' : 'bg-slate-300 text-slate-700'">1</span>
+          <span>Periodo & Mayorista</span>
+        </button>
+
+        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+
+        <!-- Paso 2 -->
+        <button
+          type="button"
+          (click)="avanzarPaso(2)"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          [ngClass]="pasoActual === 2 ? 'bg-[#0f4984] text-white shadow-xs' : 'bg-slate-200/80 text-slate-600 hover:bg-slate-300'"
+        >
+          <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold"
+                [ngClass]="pasoActual === 2 ? 'bg-white/20' : 'bg-slate-300 text-slate-700'">2</span>
+          <span>Despachos & SICOM</span>
+        </button>
+
+        <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+
+        <!-- Paso 3 -->
+        <button
+          type="button"
+          (click)="avanzarPaso(3)"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer"
+          [ngClass]="pasoActual === 3 ? 'bg-[#0f4984] text-white shadow-xs' : 'bg-slate-200/80 text-slate-600 hover:bg-slate-300'"
+        >
+          <span class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold"
+                [ngClass]="pasoActual === 3 ? 'bg-white/20' : 'bg-slate-300 text-slate-700'">3</span>
+          <span>Liquidación & Radicación</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Global Alert Message -->
+  <div *ngIf="alertaMensaje" class="mx-6 mt-4 p-3.5 rounded-xl border text-xs flex items-center justify-between gap-3 animate-in fade-in"
+       [ngClass]="{
+         'bg-emerald-50 border-emerald-200 text-emerald-800': alertaTipo === 'success',
+         'bg-amber-50 border-amber-200 text-amber-800': alertaTipo === 'warning',
+         'bg-blue-50 border-blue-200 text-blue-800': alertaTipo === 'info',
+         'bg-rose-50 border-rose-200 text-rose-800': alertaTipo === 'error'
+       }">
+    <div class="flex items-center gap-2.5">
+      <i class="fa-solid" [ngClass]="{
+        'fa-circle-check text-emerald-600': alertaTipo === 'success',
+        'fa-triangle-exclamation text-amber-600': alertaTipo === 'warning',
+        'fa-circle-info text-blue-600': alertaTipo === 'info',
+        'fa-circle-xmark text-rose-600': alertaTipo === 'error'
+      }"></i>
+      <span>{{ alertaMensaje }}</span>
+    </div>
+    <button type="button" (click)="alertaMensaje = null" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PASO 1: PERIODO GRAVABLE Y DISTRIBUIDOR MAYORISTA -->
+  <!-- ========================================================================= -->
+  <div *ngIf="pasoActual === 1" class="p-6 sm:p-8 space-y-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- Distribuidor Mayorista -->
+      <div class="space-y-4 bg-slate-50/70 p-5 rounded-xl border border-slate-200">
+        <div class="flex items-center gap-2 text-slate-900 font-bold text-sm">
+          <i class="fa-solid fa-building text-[#0f4984]"></i>
+          <span>Agente Distribuidor Mayorista</span>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Seleccione la Entidad / Planta Mayorista</label>
+          <select
+            [(ngModel)]="mayoristaSeleccionadoId"
+            class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0f4984] focus:ring-1 focus:ring-[#0f4984]"
+          >
+            <option *ngFor="let m of mayoristas" [value]="m.id">
+              {{ m.razonSocial }} (NIT: {{ m.nit }} - SICOM: {{ m.codigoSicomPlanta }})
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="mayoristaActual" class="p-3 bg-white rounded-lg border border-slate-200 space-y-1 text-xs text-slate-600">
+          <p><strong class="text-slate-800">Planta / Origen:</strong> {{ mayoristaActual.municipioPlanta }}, {{ mayoristaActual.departamentoPlanta }}</p>
+          <p><strong class="text-slate-800">Dirección:</strong> {{ mayoristaActual.direccion }}</p>
+          <p><strong class="text-slate-800">Contacto:</strong> {{ mayoristaActual.telefono }} | {{ mayoristaActual.email }}</p>
+        </div>
+      </div>
+
+      <!-- Periodo Gravable -->
+      <div class="space-y-4 bg-slate-50/70 p-5 rounded-xl border border-slate-200">
+        <div class="flex items-center gap-2 text-slate-900 font-bold text-sm">
+          <i class="fa-solid fa-calendar-days text-[#0f4984]"></i>
+          <span>Periodo Gravable a Declarar</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Mes Gravable</label>
+            <select
+              [(ngModel)]="periodoMes"
+              class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0f4984]"
+            >
+              <option *ngFor="let m of meses" [value]="m.num">{{ m.nombre }}</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1.5">Año Gravable</label>
+            <select
+              [(ngModel)]="periodoAnio"
+              class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-xs font-medium text-slate-800 focus:outline-hidden focus:border-[#0f4984]"
+            >
+              <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Info Normativa y Vencimiento -->
+        <div class="p-3 bg-blue-50/60 rounded-lg border border-blue-200 text-xs text-blue-900 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-clock"></i>
+            <span>Vencimiento Oportuno: Día 18 del mes siguiente</span>
+          </div>
+          <p class="text-[11px] text-blue-800">
+            Conforme al Art. 5 de la Ley 2093 de 2021, las declaraciones presentadas con posterioridad al día 18 causan sanción del 5% por mes o fracción de retraso.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones Paso 1 -->
+    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+      <button
+        type="button"
+        (click)="cancelada.emit()"
+        class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="avanzarPaso(2)"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+      >
+        <span>Continuar al Paso 2 (Despachos)</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PASO 2: CAPTURA O CARGA DE DESPACHOS (MASIVO / SICOM / MANUAL) -->
+  <!-- ========================================================================= -->
+  <div *ngIf="pasoActual === 2" class="p-6 sm:p-8 space-y-6">
+    
+    <!-- Barra superior de acciones de carga masiva -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 rounded-xl bg-gradient-to-r from-blue-50/80 to-slate-50 border border-blue-200">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-[#0f4984] text-white flex items-center justify-center font-bold shadow-xs">
+          <i class="fa-solid fa-gas-pump text-base"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-900">Registro y Carga de Guías de Transporte SICOM</h3>
+          <p class="text-xs text-slate-500">
+            Despachos a Estaciones de Servicio (EDS) ubicadas en el Departamento del Cauca
+          </p>
+        </div>
+      </div>
+
+      <!-- Botón de importación automática de archivo plano -->
+      <button
+        type="button"
+        (click)="simularImportacionPlano()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-all cursor-pointer whitespace-nowrap"
+      >
+        <i class="fa-solid fa-file-arrow-up text-sm"></i>
+        <span>Simular Importación Archivo Plano SICOM</span>
+      </button>
+    </div>
+
+    <!-- Formulario Rápido de Registro Manual de Despacho Individual -->
+    <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-3">
+      <p class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+        <i class="fa-solid fa-plus-circle text-[#0f4984]"></i>
+        <span>Agregar Despacho Individual Manual</span>
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">No. Guía SICOM</label>
+          <input
+            type="text"
+            [(ngModel)]="nuevoGuia"
+            placeholder="SIC-2026-XXXXX"
+            class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-mono font-medium focus:border-[#0f4984] focus:outline-hidden"
+          />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Fecha Despacho</label>
+          <input
+            type="date"
+            [(ngModel)]="nuevoFecha"
+            class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium focus:border-[#0f4984] focus:outline-hidden"
+          />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Placa Vehículo</label>
+          <input
+            type="text"
+            [(ngModel)]="nuevoPlaca"
+            placeholder="ABC-123"
+            class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-mono font-bold uppercase focus:border-[#0f4984] focus:outline-hidden"
+          />
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">EDS Destino</label>
+          <select
+            [(ngModel)]="nuevoEdsId"
+            class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-medium focus:border-[#0f4984] focus:outline-hidden"
+          >
+            <option *ngFor="let e of edsCatalog" [value]="e.codigoSicomEds">
+              {{ e.nombreComercial }} ({{ e.municipio }})
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Combustible</label>
+          <select
+            [(ngModel)]="nuevoTipo"
+            class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold focus:border-[#0f4984] focus:outline-hidden"
+          >
+            <option value="GMC">GMC (Corriente - $1.900/Gl)</option>
+            <option value="GME">GME (Extra - $2.470/Gl)</option>
+            <option value="ACPM">ACPM (Diésel - $395/Gl)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-600 mb-1">Galones Despachados</label>
+          <div class="flex gap-2">
+            <input
+              type="number"
+              [(ngModel)]="nuevoGalones"
+              step="500"
+              min="100"
+              class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-bold font-mono focus:border-[#0f4984] focus:outline-hidden"
+            />
+            <button
+              type="button"
+              (click)="agregarDespachoManual()"
+              class="px-3 py-1.5 rounded-lg bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs cursor-pointer whitespace-nowrap"
+            >
+              <i class="fa-solid fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla en Vivo de Despachos Cargados -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-800">Despachos Cargados ({{ despachos.length }})</span>
+          <span *ngIf="despachos.length > 0" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-[#0f4984]">
+            Total: {{ formatGal(liquidacionConsolidada.totalGalonesGeneral) }}
+          </span>
+        </div>
+        <button
+          *ngIf="despachos.length > 0"
+          type="button"
+          (click)="limpiarTodosDespachos()"
+          class="text-xs text-rose-600 hover:text-rose-800 font-semibold cursor-pointer"
+        >
+          <i class="fa-solid fa-trash-can mr-1"></i>
+          Vaciar lista
+        </button>
+      </div>
+
+      <div class="border border-slate-200 rounded-xl overflow-x-auto bg-white max-h-72 overflow-y-auto">
+        <table class="w-full text-xs text-left border-collapse">
+          <thead class="sticky top-0 bg-slate-100 text-slate-700 font-bold border-b border-slate-200 z-10">
+            <tr>
+              <th class="py-2.5 px-3">No. Guía</th>
+              <th class="py-2.5 px-3">Fecha</th>
+              <th class="py-2.5 px-3">Placa</th>
+              <th class="py-2.5 px-3">EDS Destino (Municipio)</th>
+              <th class="py-2.5 px-3">Tipo</th>
+              <th class="py-2.5 px-3 text-right">Galones</th>
+              <th class="py-2.5 px-3 text-right">Porción Municipal</th>
+              <th class="py-2.5 px-3 text-right">Porción Deptal</th>
+              <th class="py-2.5 px-3 text-right">Total Item</th>
+              <th class="py-2.5 px-3 text-center w-12">Acción</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngIf="despachos.length === 0">
+              <td colspan="10" class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-gas-pump text-2xl mb-2 text-slate-300 block"></i>
+                No hay despachos agregados. Utiliza la simulación de archivo plano o agrega registros manualmente.
+              </td>
+            </tr>
+            <tr *ngFor="let d of despachos; let i = index" class="hover:bg-slate-50 transition-colors">
+              <td class="py-2 px-3 font-mono font-bold text-slate-800">{{ d.codigoGuiaSicom }}</td>
+              <td class="py-2 px-3 text-slate-600">{{ d.fechaDespacho }}</td>
+              <td class="py-2 px-3 font-mono font-semibold text-slate-700">{{ d.placaVehiculo }}</td>
+              <td class="py-2 px-3 text-slate-700">
+                {{ d.estacionServicio?.nombreComercial || d.codigoSicomEds }} 
+                <span class="text-[10px] text-slate-400">({{ d.estacionServicio?.municipio || 'Cauca' }})</span>
+              </td>
+              <td class="py-2 px-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                      [ngClass]="{
+                        'bg-blue-100 text-blue-800': d.tipoCombustible === 'GMC',
+                        'bg-purple-100 text-purple-800': d.tipoCombustible === 'GME',
+                        'bg-amber-100 text-amber-800': d.tipoCombustible === 'ACPM'
+                      }">
+                  {{ d.tipoCombustible }}
+                </span>
+              </td>
+              <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">{{ formatGal(d.galonesDespachados) }}</td>
+              <td class="py-2 px-3 text-right font-mono text-slate-600">{{ formatCop(d.subtotalMunicipal) }}</td>
+              <td class="py-2 px-3 text-right font-mono text-slate-600">{{ formatCop(d.subtotalDepartamental) }}</td>
+              <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">{{ formatCop(d.totalItem) }}</td>
+              <td class="py-2 px-3 text-center">
+                <button
+                  type="button"
+                  (click)="eliminarDespacho(i)"
+                  class="text-rose-500 hover:text-rose-700 p-1 cursor-pointer"
+                  title="Eliminar"
+                >
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Resumen Acumulado en Vivo de Galones y Montos -->
+    <div *ngIf="despachos.length > 0" class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-900 text-white text-xs">
+      <div>
+        <p class="text-slate-400 text-[10px] uppercase font-semibold">Total Galones</p>
+        <p class="text-sm font-mono font-bold text-blue-300">{{ formatGal(liquidacionConsolidada.totalGalonesGeneral) }}</p>
+      </div>
+      <div>
+        <p class="text-slate-400 text-[10px] uppercase font-semibold">Porción Municipal</p>
+        <p class="text-sm font-mono font-bold text-amber-300">{{ formatCop(liquidacionConsolidada.totalMunicipal) }}</p>
+      </div>
+      <div>
+        <p class="text-slate-400 text-[10px] uppercase font-semibold">Porción Departamental</p>
+        <p class="text-sm font-mono font-bold text-emerald-300">{{ formatCop(liquidacionConsolidada.totalDepartamental) }}</p>
+      </div>
+      <div>
+        <p class="text-slate-400 text-[10px] uppercase font-semibold">Total Liquidado</p>
+        <p class="text-base font-mono font-black text-white">{{ formatCop(liquidacionConsolidada.subtotalImpuesto) }}</p>
+      </div>
+    </div>
+
+    <!-- Acciones Paso 2 -->
+    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+      <button
+        type="button"
+        (click)="avanzarPaso(1)"
+        class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+      >
+        <i class="fa-solid fa-arrow-left mr-1"></i>
+        Volver al Paso 1
+      </button>
+      <button
+        type="button"
+        (click)="avanzarPaso(3)"
+        [disabled]="despachos.length === 0"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] disabled:opacity-50 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+      >
+        <span>Continuar a Liquidación Final</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- PASO 3: LIQUIDACIÓN CONSOLIDADA, VALIDACIÓN MORA Y FIRMA / RADICACIÓN -->
+  <!-- ========================================================================= -->
+  <div *ngIf="pasoActual === 3" class="p-6 sm:p-8 space-y-6">
+    
+    <!-- Alerta de Extemporaneidad si aplica -->
+    <div *ngIf="liquidacionConsolidada.esExtemporanea" class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1">
+      <div class="flex items-center gap-2 font-bold text-xs text-rose-800">
+        <i class="fa-solid fa-triangle-exclamation text-base text-rose-600"></i>
+        <span>DECLARACIÓN EXTEMPORÁNEA DETECTADA</span>
+      </div>
+      <p class="text-xs text-rose-700">
+        Esta declaración se está radicando después del día 18 del mes siguiente. Se aplica un recargo sancionatorio de 
+        <strong>{{ formatCop(liquidacionConsolidada.sancionExtemporaneidad) }}</strong> (5% por mes o fracción de retraso con {{ liquidacionConsolidada.diasRetraso }} días).
+      </p>
+    </div>
+
+    <!-- Card de Consolidación Tributaria -->
+    <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+      <div class="bg-slate-800 text-white px-5 py-3 flex items-center justify-between">
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-wider">Resumen de Liquidación Tributaria</h4>
+          <p class="text-[11px] text-slate-300">{{ mayoristaActual?.razonSocial }} • Periodo: Mes {{ periodoMes }}/{{ periodoAnio }}</p>
+        </div>
+        <span class="text-xs bg-slate-700 px-3 py-1 rounded-full font-mono font-bold text-slate-200">
+          {{ despachos.length }} Despachos Consolidados
+        </span>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- Tabla de desglose por combustible -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- GMC -->
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+              <span>Gasolina Corriente (GMC)</span>
+              <span class="text-blue-700 font-mono">{{ formatGal(liquidacionConsolidada.totalGalonesGMC) }}</span>
+            </div>
+            <div class="text-[11px] text-slate-600 space-y-1 pt-1 border-t border-slate-200">
+              <div class="flex justify-between">
+                <span>Porción Municipal ($1.420):</span>
+                <span class="font-mono font-semibold">{{ formatCop(liquidacionConsolidada.totalMunicipalGMC) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Porción Departamental ($480):</span>
+                <span class="font-mono font-semibold">{{ formatCop(liquidacionConsolidada.totalDepartamentalGMC) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- GME -->
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+              <span>Gasolina Extra (GME)</span>
+              <span class="text-purple-700 font-mono">{{ formatGal(liquidacionConsolidada.totalGalonesGME) }}</span>
+            </div>
+            <div class="text-[11px] text-slate-600 space-y-1 pt-1 border-t border-slate-200">
+              <div class="flex justify-between">
+                <span>Porción Municipal ($1.850):</span>
+                <span class="font-mono font-semibold">{{ formatCop(liquidacionConsolidada.totalMunicipalGME) }}</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Porción Departamental ($620):</span>
+                <span class="font-mono font-semibold">{{ formatCop(liquidacionConsolidada.totalDepartamentalGME) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACPM -->
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold text-slate-800">
+              <span>ACPM / Diésel</span>
+              <span class="text-amber-700 font-mono">{{ formatGal(liquidacionConsolidada.totalGalonesACPM) }}</span>
+            </div>
+            <div class="text-[11px] text-slate-600 space-y-1 pt-1 border-t border-slate-200">
+              <div class="flex justify-between">
+                <span>Porción Municipal:</span>
+                <span class="font-mono text-slate-400">$0</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Porción Departamental ($395):</span>
+                <span class="font-mono font-semibold">{{ formatCop(liquidacionConsolidada.totalDepartamentalACPM) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Totales Finales Destacados -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+          <div class="flex justify-between text-slate-700">
+            <span>Subtotal Sobretasa Municipal Consolidada:</span>
+            <span class="font-mono font-bold text-slate-900">{{ formatCop(liquidacionConsolidada.totalMunicipal) }}</span>
+          </div>
+          <div class="flex justify-between text-slate-700">
+            <span>Subtotal Sobretasa Departamental (Gobernación del Cauca):</span>
+            <span class="font-mono font-bold text-slate-900">{{ formatCop(liquidacionConsolidada.totalDepartamental) }}</span>
+          </div>
+          <div *ngIf="liquidacionConsolidada.sancionExtemporaneidad > 0" class="flex justify-between text-rose-600 font-semibold">
+            <span>Sanción por Extemporaneidad:</span>
+            <span class="font-mono font-bold">{{ formatCop(liquidacionConsolidada.sancionExtemporaneidad) }}</span>
+          </div>
+          <div class="pt-2 border-t border-slate-300 flex justify-between items-center text-sm font-black text-slate-900">
+            <span class="uppercase">Total a Pagar Declaración:</span>
+            <span class="text-lg font-mono text-[#0f4984]">{{ formatCop(liquidacionConsolidada.totalPagar) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Declaración Juramentada y Firma Digital -->
+    <div class="p-4 rounded-xl border border-slate-200 bg-blue-50/30 text-xs text-slate-700 space-y-2">
+      <div class="flex items-center gap-2 font-bold text-slate-900">
+        <i class="fa-solid fa-signature text-[#0f4984]"></i>
+        <span>Certificación de Veracidad y Firma Electrónica</span>
+      </div>
+      <p class="text-[11px] leading-relaxed text-slate-600">
+        El declarante certifica bajo la gravedad de juramento que la información aquí consignada y los despachos reportados corresponden fielmente a los registros de planta y al sistema SICOM del Ministerio de Minas y Energía. Al hacer clic en <strong>"Radicar Declaración"</strong>, la solicitud ingresará a la bandeja de fiscalización en estado <code>EN_REVISION</code>.
+      </p>
+    </div>
+
+    <!-- Acciones Paso 3 -->
+    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+      <button
+        type="button"
+        (click)="avanzarPaso(2)"
+        class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+      >
+        <i class="fa-solid fa-arrow-left mr-1"></i>
+        Volver a Despachos
+      </button>
+      <button
+        type="button"
+        (click)="radicar()"
+        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-black shadow-md transition-all cursor-pointer"
+      >
+        <i class="fa-solid fa-stamp text-sm"></i>
+        <span>RADICAR DECLARACIÓN OFICIAL</span>
+      </button>
+    </div>
+  </div>
+
+</div>

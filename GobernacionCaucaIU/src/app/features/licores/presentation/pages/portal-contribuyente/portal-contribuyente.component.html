@@ -1,0 +1,417 @@
+<div class="space-y-6">
+
+  <!-- NOTIFICACION TOAST BANNER -->
+  @if (mensajeExito()) {
+    <div class="bg-emerald-500 text-white px-5 py-3.5 rounded-2xl shadow-lg flex items-center justify-between animate-fade-in">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-lg"></i>
+        <span class="text-xs sm:text-sm font-semibold">{{ mensajeExito() }}</span>
+      </div>
+      <button (click)="mensajeExito.set(null)" class="text-white/80 hover:text-white cursor-pointer">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+  }
+
+  <!-- ENTITY SELECTION & HERO BANNER -->
+  <div class="bg-white border border-slate-200/80 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-[#0f3b73] text-white flex items-center justify-center text-xl shrink-0 shadow-sm">
+        <i class="fa-solid fa-industry"></i>
+      </div>
+      <div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[10.5px] uppercase font-bold text-slate-400 tracking-wider">Entidad Contribuyente</span>
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+            Habilitada para Declarar
+          </span>
+        </div>
+        <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
+          {{ licoresService.entidadActiva()?.razonSocial }}
+        </h1>
+        <p class="text-xs text-slate-500 mt-0.5">
+          NIT: <strong class="text-slate-700 font-mono">{{ licoresService.entidadActiva()?.nit }}</strong> &middot; Registro INVIMA: <span class="font-mono">{{ licoresService.entidadActiva()?.registroInvimaPrincipal }}</span> &middot; Origen: {{ licoresService.entidadActiva()?.municipioOrigen }} ({{ licoresService.entidadActiva()?.departamentoOrigen }})
+        </p>
+      </div>
+    </div>
+
+    <!-- SWITCH ENTIDAD & CTA BUTTONS -->
+    <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+      <!-- Selector de Empresa para pruebas -->
+      <div class="relative">
+        <select
+          [ngModel]="licoresService.entidadActiva()?.id"
+          (ngModelChange)="seleccionarEntidad($event)"
+          class="text-xs bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-800 font-bold px-3 py-2 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer"
+          title="Cambiar sujeto pasivo declarante"
+        >
+          @for (ent of licoresService.entidades(); track ent.id) {
+            <option [value]="ent.id">{{ ent.nombreComercial }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- BOTON CONSULTAR RADICADO -->
+      <button
+        type="button"
+        (click)="mostrarConsultaModal.set(true)"
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold text-[#0f3b73] bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+      >
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <span>Consultar Radicado</span>
+      </button>
+
+      <!-- BOTON HACER SOLICITUD / NUEVA DECLARACION -->
+      <button
+        type="button"
+        (click)="abrirWizard()"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black text-white bg-[#70b238] hover:bg-[#5f972f] shadow-sm transition-all transform hover:-translate-y-0.5 cursor-pointer"
+      >
+        <i class="fa-solid fa-plus-circle text-sm"></i>
+        <span>Hacer Solicitud (Nueva Declaración)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SUMMARY STATS STRIP FOR TAXPAYER -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+      <div class="flex items-center justify-between text-slate-400 mb-1">
+        <span class="text-[10px] uppercase font-bold tracking-wider">Total Declaraciones</span>
+        <i class="fa-solid fa-folder-open text-slate-400"></i>
+      </div>
+      <span class="text-2xl font-black text-slate-900 font-mono">{{ licoresService.liquidacionesFiltradas().length }}</span>
+      <span class="block text-[10.5px] text-slate-400 mt-0.5">Expedientes registrados</span>
+    </div>
+
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+      <div class="flex items-center justify-between text-amber-500 mb-1">
+        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">En Revisión</span>
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <span class="text-2xl font-black text-amber-600 font-mono">
+        {{ licoresService.kpis().pendientesAuditoria }}
+      </span>
+      <span class="block text-[10.5px] text-slate-400 mt-0.5">Pendiente por Rentas</span>
+    </div>
+
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+      <div class="flex items-center justify-between text-blue-500 mb-1">
+        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Listas para Pago</span>
+        <i class="fa-solid fa-credit-card"></i>
+      </div>
+      <span class="text-2xl font-black text-[#0f3b73] font-mono">
+        {{ licoresService.kpis().pendientesPago }}
+      </span>
+      <span class="block text-[10.5px] text-slate-400 mt-0.5">Aprobadas para recaudo</span>
+    </div>
+
+    <div class="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+      <div class="flex items-center justify-between text-emerald-500 mb-1">
+        <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Tornaguías Emitidas</span>
+        <i class="fa-solid fa-file-shield"></i>
+      </div>
+      <span class="text-2xl font-black text-emerald-700 font-mono">
+        {{ licoresService.kpis().tornaguiasActivas + licoresService.kpis().tornaguiasLegalizadas }}
+      </span>
+      <span class="block text-[10.5px] text-slate-400 mt-0.5">Amparo de movilización</span>
+    </div>
+  </div>
+
+  <!-- TABLE CONTAINER: FILTERS & DATA -->
+  <div class="bg-white border border-slate-200/80 rounded-2xl shadow-xs overflow-hidden">
+    
+    <!-- TOOLBAR & FILTERS -->
+    <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      
+      <!-- STATUS TABS -->
+      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+        <button
+          type="button"
+          (click)="setFiltro('TODOS')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="licoresService.filtroEstado() === 'TODOS' ? 'bg-[#0f3b73] text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Todos
+        </button>
+
+        <button
+          type="button"
+          (click)="setFiltro('EN_REVISION')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="licoresService.filtroEstado() === 'EN_REVISION' ? 'bg-amber-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          En Revisión
+        </button>
+
+        <button
+          type="button"
+          (click)="setFiltro('REQUERIDO')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer relative"
+          [ngClass]="licoresService.filtroEstado() === 'REQUERIDO' ? 'bg-rose-500 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Requeridos
+          @if (licoresService.kpis().requeridosSubsanacion > 0) {
+            <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-rose-700 text-white font-mono">
+              {{ licoresService.kpis().requeridosSubsanacion }}
+            </span>
+          }
+        </button>
+
+        <button
+          type="button"
+          (click)="setFiltro('PENDIENTE_PAGO')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="licoresService.filtroEstado() === 'PENDIENTE_PAGO' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Pendientes de Pago
+        </button>
+
+        <button
+          type="button"
+          (click)="setFiltro('PAGADO_EMITIDO')"
+          class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          [ngClass]="licoresService.filtroEstado() === 'PAGADO_EMITIDO' ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+        >
+          Tornaguías Emitidas
+        </button>
+      </div>
+
+      <!-- SEARCH INPUT -->
+      <div class="relative w-full md:w-72">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </div>
+        <input
+          type="text"
+          [ngModel]="licoresService.terminoBusqueda()"
+          (ngModelChange)="setBusqueda($event)"
+          placeholder="Buscar radicado, placa, destino..."
+          class="w-full pl-9 pr-4 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+    </div>
+
+    <!-- RADICADOS DATA TABLE -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-700">
+        <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+          <tr>
+            <th class="py-3.5 px-4">No. Radicado</th>
+            <th class="py-3.5 px-4">Fecha Solicitud</th>
+            <th class="py-3.5 px-4">Destino Cauca</th>
+            <th class="py-3.5 px-4">Transporte & Placa</th>
+            <th class="py-3.5 px-4 text-center">Botellas</th>
+            <th class="py-3.5 px-4 text-right">Impuesto ICL</th>
+            <th class="py-3.5 px-4 text-center">Estado</th>
+            <th class="py-3.5 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (liq of licoresService.liquidacionesFiltradas(); track liq.id) {
+            <tr class="hover:bg-slate-50/80 transition-colors">
+              
+              <!-- Radicado -->
+              <td class="py-3.5 px-4 font-mono font-bold text-[#0f3b73]">
+                {{ liq.numeroRadicado }}
+                @if (liq.tornaguiaNumero) {
+                  <span class="block text-[10px] font-mono text-emerald-700">
+                    <i class="fa-solid fa-shield-halved text-[9px] mr-0.5"></i>
+                    {{ liq.tornaguiaNumero }}
+                  </span>
+                }
+              </td>
+
+              <!-- Fecha -->
+              <td class="py-3.5 px-4 text-slate-500 text-[11px] whitespace-nowrap">
+                {{ liq.fechaRadicacion | date:'dd/MM/yyyy' }}
+                <span class="block text-[10px] text-slate-400">{{ liq.fechaRadicacion | date:'h:mm a' }}</span>
+              </td>
+
+              <!-- Destino -->
+              <td class="py-3.5 px-4">
+                <strong class="text-slate-800">{{ liq.transporte.municipioDestino }}</strong>
+                <span class="block text-[10.5px] text-slate-400 truncate max-w-[150px]">{{ liq.transporte.direccionDestino }}</span>
+              </td>
+
+              <!-- Transporte -->
+              <td class="py-3.5 px-4 text-[11px]">
+                <span class="font-mono font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                  {{ liq.transporte.placaVehiculo }}
+                </span>
+                <span class="block text-[10px] text-slate-500 mt-0.5">{{ liq.transporte.nombreConductor }}</span>
+              </td>
+
+              <!-- Botellas -->
+              <td class="py-3.5 px-4 text-center font-mono font-bold text-slate-800">
+                {{ liq.totalBotellas | number }}
+              </td>
+
+              <!-- Total ICL -->
+              <td class="py-3.5 px-4 text-right font-mono font-bold text-emerald-800">
+                {{ formatMoney(liq.totalPagar) }}
+              </td>
+
+              <!-- Estado Badge -->
+              <td class="py-3.5 px-4 text-center">
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold"
+                  [ngClass]="{
+                    'bg-amber-100 text-amber-900 border border-amber-300': liq.estado === 'EN_REVISION',
+                    'bg-rose-100 text-rose-900 border border-rose-300': liq.estado === 'REQUERIDO' || liq.estado === 'RECHAZADO',
+                    'bg-blue-100 text-blue-900 border border-blue-300': liq.estado === 'PENDIENTE_PAGO',
+                    'bg-emerald-100 text-emerald-900 border border-emerald-300': liq.estado === 'PAGADO_EMITIDO' || liq.estado === 'LEGALIZADO'
+                  }"
+                >
+                  <span class="w-1.5 h-1.5 rounded-full"
+                    [ngClass]="{
+                      'bg-amber-600': liq.estado === 'EN_REVISION',
+                      'bg-rose-600': liq.estado === 'REQUERIDO' || liq.estado === 'RECHAZADO',
+                      'bg-blue-600': liq.estado === 'PENDIENTE_PAGO',
+                      'bg-emerald-600': liq.estado === 'PAGADO_EMITIDO' || liq.estado === 'LEGALIZADO'
+                    }"
+                  ></span>
+                  {{ liq.estado }}
+                </span>
+              </td>
+
+              <!-- Contextual Action Buttons -->
+              <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                <div class="inline-flex items-center gap-1.5">
+                  
+                  <!-- BOTÓN PAGAR PSE SI ESTÁ PENDIENTE DE PAGO -->
+                  @if (liq.estado === 'PENDIENTE_PAGO') {
+                    <button
+                      type="button"
+                      (click)="abrirPse(liq)"
+                      class="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#0f4984] hover:bg-[#0a274d] text-white shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                      title="Pagar en línea por PSE"
+                    >
+                      <i class="fa-solid fa-credit-card text-[11px]"></i>
+                      <span>Pagar PSE</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      (click)="abrirAsobancario(liq)"
+                      class="px-2 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors cursor-pointer"
+                      title="Relacionar pago por ventanilla bancaria"
+                    >
+                      <i class="fa-solid fa-building-columns text-[11px]"></i>
+                    </button>
+                  }
+
+                  <!-- BOTÓN SUBSANAR SI ESTÁ REQUERIDO -->
+                  @if (liq.estado === 'REQUERIDO') {
+                    <button
+                      type="button"
+                      (click)="abrirSubsanar(liq)"
+                      class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                      title="Subsanar requerimiento del funcionario"
+                    >
+                      <i class="fa-solid fa-pen-to-square text-[11px]"></i>
+                      <span>Subsanar</span>
+                    </button>
+                  }
+
+                  <!-- BOTÓN DESCARGAR TORNAGUÍA SI ESTÁ PAGADO O LEGALIZADO -->
+                  @if (liq.estado === 'PAGADO_EMITIDO' || liq.estado === 'LEGALIZADO') {
+                    <button
+                      type="button"
+                      (click)="abrirTornaguia(liq)"
+                      class="px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-xs transition-colors flex items-center gap-1 cursor-pointer"
+                      title="Ver y descargar Tornaguía Oficial"
+                    >
+                      <i class="fa-solid fa-file-shield text-[11px]"></i>
+                      <span>Tornaguía</span>
+                    </button>
+                  }
+
+                  <!-- BOTÓN VER DETALLE -->
+                  <button
+                    type="button"
+                    (click)="abrirDetalle(liq)"
+                    class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                    title="Ver detalle del radicado"
+                  >
+                    <i class="fa-solid fa-eye text-xs"></i>
+                  </button>
+
+                </div>
+              </td>
+
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="py-12 text-center text-slate-400">
+                <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300"></i>
+                <p class="font-bold text-slate-700 text-sm">No se encontraron declaraciones con los filtros aplicados</p>
+                <p class="text-xs text-slate-400 mt-1">Haz clic en "Hacer Solicitud" para iniciar una nueva declaración de licores.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODALES INCLUIDOS -->
+@if (mostrarWizard()) {
+  <app-declaracion-wizard
+    [entidad]="licoresService.entidadActiva()!"
+    [catalogo]="licoresService.catalogo()"
+    (radicadoCreado)="onRadicadoCreado($event)"
+    (cerrar)="cerrarWizard()"
+  />
+}
+
+@if (mostrarConsultaModal()) {
+  <app-consulta-radicado-modal
+    (verTornaguia)="abrirTornaguia($event)"
+    (pagarPse)="abrirPse($event)"
+    (cerrar)="mostrarConsultaModal.set(false)"
+  />
+}
+
+@if (modalActivo() === 'TORNAGUIA' && liquidacionSeleccionada()) {
+  <app-tornaguia-viewer
+    [liquidacion]="liquidacionSeleccionada()!"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'PSE' && liquidacionSeleccionada()) {
+  <app-pse-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    (pagoExitoso)="onPagoPseExitoso($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'ASOBANCARIO' && liquidacionSeleccionada()) {
+  <app-asobancario-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    (pagoRegistrado)="onPagoAsobancario($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'SUBSANAR' && liquidacionSeleccionada()) {
+  <app-subsanar-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    [catalogo]="licoresService.catalogo()"
+    (subsanar)="onSubsanarGuardado($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'DETALLE' && liquidacionSeleccionada()) {
+  <app-auditoria-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    [esFuncionario]="false"
+    (cerrar)="cerrarModales()"
+  />
+}

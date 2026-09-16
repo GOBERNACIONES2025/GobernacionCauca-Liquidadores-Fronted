@@ -1,0 +1,577 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto">
+  <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh]">
+    
+    <!-- WIZARD TOP HEADER -->
+    <div class="bg-[#0f3b73] text-white px-6 py-4 flex items-center justify-between shrink-0 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-300">
+          <i class="fa-solid fa-file-invoice text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold tracking-tight">Nueva Declaración de Embarque e Impuesto al Consumo (ICL)</h2>
+          <p class="text-[11px] text-blue-200">
+            Contribuyente: <strong>{{ entidad.nombreComercial }}</strong> (NIT: {{ entidad.nit }})
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="cerrar.emit()"
+        class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition-colors"
+      >
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- STEP PROGRESS BAR -->
+    <div class="bg-slate-100 border-b border-slate-200 px-6 py-3 flex items-center justify-between text-xs font-semibold shrink-0">
+      <div class="flex items-center gap-2" [ngClass]="pasoActual() === 1 ? 'text-[#0f3b73] font-bold' : 'text-slate-500'">
+        <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px]"
+          [ngClass]="pasoActual() >= 1 ? 'bg-[#0f3b73] text-white' : 'bg-slate-300 text-slate-700'">1</span>
+        <span>1. Logística y Destino</span>
+      </div>
+      <div class="h-0.5 flex-1 mx-4 bg-slate-300">
+        <div class="h-full bg-[#0f3b73] transition-all" [style.width]="pasoActual() === 1 ? '0%' : pasoActual() === 2 ? '50%' : '100%'"></div>
+      </div>
+      <div class="flex items-center gap-2" [ngClass]="pasoActual() === 2 ? 'text-[#0f3b73] font-bold' : 'text-slate-500'">
+        <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px]"
+          [ngClass]="pasoActual() >= 2 ? 'bg-[#0f3b73] text-white' : 'bg-slate-300 text-slate-700'">2</span>
+        <span>2. Detalle del Lote (ICL)</span>
+      </div>
+      <div class="h-0.5 flex-1 mx-4 bg-slate-300">
+        <div class="h-full bg-[#0f3b73] transition-all" [style.width]="pasoActual() === 3 ? '100%' : '0%'"></div>
+      </div>
+      <div class="flex items-center gap-2" [ngClass]="pasoActual() === 3 ? 'text-[#0f3b73] font-bold' : 'text-slate-500'">
+        <span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px]"
+          [ngClass]="pasoActual() === 3 ? 'bg-[#0f3b73] text-white' : 'bg-slate-300 text-slate-700'">3</span>
+        <span>3. Resumen y Radicación</span>
+      </div>
+    </div>
+
+    <!-- WIZARD BODY CONTENT -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-50 text-xs text-slate-800 space-y-4">
+      
+      <!-- PASO 1: DATOS DE TRANSPORTE Y DESTINO -->
+      @if (pasoActual() === 1) {
+        <div class="space-y-4">
+          <!-- Entidad Resumen -->
+          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+            <div>
+              <span class="text-slate-500 block text-[10px]">Declarante / Remitente:</span>
+              <strong class="text-slate-900">{{ entidad.razonSocial }}</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Registro INVIMA:</span>
+              <strong class="text-slate-900 font-mono">{{ entidad.registroInvimaPrincipal }}</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Origen de Fábrica:</span>
+              <strong class="text-slate-900">{{ entidad.municipioOrigen }} ({{ entidad.departamentoOrigen }})</strong>
+            </div>
+          </div>
+
+          <!-- Formulario de Transporte -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 space-y-4">
+            <h3 class="font-bold text-[#0f3b73] text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
+              <i class="fa-solid fa-map-location-dot"></i>
+              Destino en el Departamento del Cauca
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Municipio de Destino *</label>
+                <select
+                  [(ngModel)]="transporte.municipioDestino"
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                  @for (m of municipiosCauca; track m) {
+                    <option [value]="m">{{ m }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Dirección de Bodega de Descargue *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="transporte.direccionDestino"
+                  placeholder="Ej: Zona Industrial Popayán, Lote 4"
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <!-- Destino y Empresa -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Empresa Transportadora Autorizada *</label>
+                <input
+                  type="text"
+                  [(ngModel)]="transporte.empresaTransportadora"
+                  placeholder="Ej: Transportes del Sur S.A.S."
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">NIT Transportador</label>
+                <input
+                  type="text"
+                  [(ngModel)]="transporte.nitTransportador"
+                  placeholder="Ej: 890123456-7"
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">Ruta Oficial Autorizada de Tránsito</label>
+                <input
+                  type="text"
+                  [(ngModel)]="transporte.rutaAutorizada"
+                  placeholder="Ej: Medellín - Pereira - Cali - Santander de Quilichao - Popayán (Vía Panamericana)"
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <!-- SECCIÓN: FLOTA DE VEHÍCULOS ASIGNADOS -->
+            <div class="pt-2 border-t border-slate-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="font-bold text-[#0f3b73] text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-truck-moving"></i>
+                    <span>Flota de Vehículos y Conductores del Lote</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-500">
+                    Permite autorizar múltiples vehículos y transportadores para el despacho del cargamento
+                  </p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-[#0f3b73] font-mono">
+                  {{ vehiculos.length }} {{ vehiculos.length === 1 ? 'Vehículo' : 'Vehículos' }}
+                </span>
+              </div>
+
+              <!-- Formulario para agregar vehículo a la flota -->
+              <div class="p-3.5 bg-slate-100/80 rounded-xl border border-slate-200 space-y-3">
+                <span class="text-[11px] font-bold text-slate-700 uppercase tracking-wider block">
+                  + Registrar Vehículo Adicional a la Flota
+                </span>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div>
+                    <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Placa Cabezote *</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="nuevoVehiculoPlaca"
+                      placeholder="ABC-123"
+                      class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg uppercase font-mono font-bold text-amber-900 focus:outline-none focus:border-[#0f3b73]"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Placa Remolque / Semirremolque</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="nuevoVehiculoRemolque"
+                      placeholder="R-12345"
+                      class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg uppercase font-mono focus:outline-none focus:border-[#0f3b73]"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Tipo de Vehículo</label>
+                    <select
+                      [(ngModel)]="nuevoVehiculoTipo"
+                      class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f3b73]"
+                    >
+                      @for (t of tiposVehiculoDisponibles; track t) {
+                        <option [value]="t">{{ t }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Nombre del Conductor *</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="nuevoVehiculoConductor"
+                      placeholder="Nombre y Apellidos"
+                      class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f3b73]"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Cédula Conductor</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="nuevoVehiculoCedula"
+                      placeholder="12.345.678"
+                      class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg font-mono focus:outline-none focus:border-[#0f3b73]"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Teléfono Móvil</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="nuevoVehiculoTelefono"
+                      placeholder="310 000 0000"
+                      class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f3b73]"
+                    />
+                  </div>
+
+                  <div>
+                    <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Precinto de Seguridad</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="nuevoVehiculoPrecinto"
+                      placeholder="PRC-2026-XXXX"
+                      class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg uppercase font-mono focus:outline-none focus:border-[#0f3b73]"
+                    />
+                  </div>
+
+                  <div class="flex items-end gap-2">
+                    <div class="flex-1">
+                      <label class="block text-[10.5px] font-semibold text-slate-600 mb-1">Botellas Asignadas</label>
+                      <input
+                        type="number"
+                        [(ngModel)]="nuevoVehiculoBotellas"
+                        step="50"
+                        min="1"
+                        class="w-full text-xs p-2 bg-white border border-slate-300 rounded-lg font-mono font-bold focus:outline-none focus:border-[#0f3b73]"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      (click)="agregarVehiculo()"
+                      class="px-3.5 py-2 bg-[#0f3b73] hover:bg-[#0a274d] text-white font-bold text-xs rounded-lg cursor-pointer shadow-xs whitespace-nowrap"
+                    >
+                      <i class="fa-solid fa-plus mr-1"></i>
+                      Agregar
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de vehículos registrados en la flota -->
+              <div class="border border-slate-200 rounded-xl overflow-hidden bg-white">
+                <table class="w-full text-xs text-left">
+                  <thead class="bg-slate-100 text-slate-700 font-bold border-b border-slate-200 text-[10px] uppercase">
+                    <tr>
+                      <th class="p-2.5">Placa Cabezote / Remolque</th>
+                      <th class="p-2.5">Tipo Vehículo</th>
+                      <th class="p-2.5">Conductor Responsable</th>
+                      <th class="p-2.5">Cédula / Teléfono</th>
+                      <th class="p-2.5">Precinto</th>
+                      <th class="p-2.5 text-right">Botellas</th>
+                      <th class="p-2.5 text-center w-12">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    @for (veh of vehiculos; track veh.id; let i = $index) {
+                      <tr class="hover:bg-slate-50">
+                        <td class="p-2.5">
+                          <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-mono font-black text-xs border border-amber-300">
+                            {{ veh.placaVehiculo }}
+                          </span>
+                          @if (veh.placaRemolque) {
+                            <span class="ml-1 text-[10px] font-mono text-slate-500 bg-slate-100 px-1 py-0.5 rounded border border-slate-200">
+                              Rem: {{ veh.placaRemolque }}
+                            </span>
+                          }
+                        </td>
+                        <td class="p-2.5 text-slate-700 font-medium">{{ veh.tipoVehiculo }}</td>
+                        <td class="p-2.5 text-slate-900 font-semibold">{{ veh.nombreConductor }}</td>
+                        <td class="p-2.5 text-slate-600 font-mono text-[11px]">
+                          {{ veh.cedulaConductor }} &middot; {{ veh.telefonoConductor || 'N/A' }}
+                        </td>
+                        <td class="p-2.5 font-mono text-slate-700">{{ veh.numeroPrecintoSeguridad || 'N/A' }}</td>
+                        <td class="p-2.5 text-right font-mono font-bold text-[#0f3b73]">{{ veh.botellasAsignadas | number }}</td>
+                        <td class="p-2.5 text-center">
+                          <button
+                            type="button"
+                            (click)="eliminarVehiculo(i)"
+                            [disabled]="vehiculos.length <= 1"
+                            class="text-rose-500 hover:text-rose-700 disabled:opacity-30 p-1 cursor-pointer"
+                            title="Eliminar vehículo"
+                          >
+                            <i class="fa-solid fa-trash text-xs"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- PASO 2: DETALLE DEL LOTE (MOTOR TRIBUTARIO EN TIEMPO REAL) -->
+      @if (pasoActual() === 2) {
+        <div class="space-y-4">
+          <!-- Form para agregar producto al lote -->
+          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
+            <h3 class="font-bold text-[#0f3b73] text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+              <i class="fa-solid fa-plus-circle"></i>
+              Agregar Bebida / Producto del Catálogo DANE
+            </h3>
+
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+              <div class="sm:col-span-2">
+                <label class="block font-bold text-slate-700 mb-1">Producto / Referencia DANE</label>
+                <select
+                  [(ngModel)]="productoSeleccionadoId"
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                  @for (prod of catalogo; track prod.id) {
+                    <option [value]="prod.id">
+                      {{ prod.nombre }} ({{ prod.tipoBebida }} - {{ prod.gradosAlcohol }}° - {{ prod.volumenCm3 }} cm³ - PVP: {{ formatMoney(prod.pvpDaneOficial) }})
+                    </option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 mb-1">Cantidad de Botellas</label>
+                <input
+                  type="number"
+                  [(ngModel)]="cantidadBotellasInput"
+                  min="1"
+                  step="10"
+                  class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-xl font-mono font-bold text-center focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  (click)="agregarProductoAlLote()"
+                  class="w-full py-2.5 rounded-xl bg-[#0f4984] hover:bg-[#0a274d] text-white font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <i class="fa-solid fa-cart-plus"></i>
+                  <span>Agregar al Lote</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- TABLA REACTIVA DEL LOTE -->
+          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-wine-bottle text-[#0f3b73]"></i>
+                Composición del Lote y Cálculo Tributario en Vivo
+              </h3>
+              <span class="text-[11px] font-bold text-slate-500">
+                Total Botellas: <strong class="text-[#0f3b73] font-mono">{{ totalBotellas | number }}</strong>
+              </span>
+            </div>
+
+            @if (itemsLote.length > 0) {
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="bg-slate-100 text-slate-700 uppercase font-bold text-[10px]">
+                    <tr>
+                      <th class="p-2.5">Bebida / SKU</th>
+                      <th class="p-2.5 text-center">Tipo / Grados</th>
+                      <th class="p-2.5 text-right">PVP DANE</th>
+                      <th class="p-2.5 text-center">Cantidad</th>
+                      <th class="p-2.5 text-right">Específico</th>
+                      <th class="p-2.5 text-right">Ad Valorem</th>
+                      <th class="p-2.5 text-right">IVA Cedido</th>
+                      <th class="p-2.5 text-right">Total ICL</th>
+                      <th class="p-2.5 text-center">Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    @for (item of itemsLote; track $index; let idx = $index) {
+                      <tr class="hover:bg-slate-50/80">
+                        <td class="p-2.5 font-semibold text-slate-900">
+                          {{ item.producto.nombre }}
+                          <span class="block text-[9.5px] text-slate-400 font-mono">{{ item.producto.registroInvima }}</span>
+                        </td>
+                        <td class="p-2.5 text-center">
+                          <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 text-slate-700">
+                            {{ item.producto.tipoBebida }} &middot; {{ item.producto.gradosAlcohol }}°
+                          </span>
+                        </td>
+                        <td class="p-2.5 text-right font-mono text-slate-700">
+                          {{ formatMoney(item.producto.pvpDaneOficial) }}
+                        </td>
+                        <td class="p-2.5 text-center">
+                          <div class="inline-flex items-center gap-1 bg-slate-100 rounded-lg p-0.5">
+                            <button
+                              (click)="cambiarCantidadItem(idx, -50)"
+                              class="w-5 h-5 rounded bg-white font-bold text-slate-700 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+                            >-</button>
+                            <span class="px-2 font-mono font-bold text-[#0f3b73]">{{ item.cantidad | number }}</span>
+                            <button
+                              (click)="cambiarCantidadItem(idx, 50)"
+                              class="w-5 h-5 rounded bg-white font-bold text-slate-700 hover:bg-slate-200 flex items-center justify-center cursor-pointer"
+                            >+</button>
+                          </div>
+                        </td>
+                        <td class="p-2.5 text-right font-mono text-slate-600">
+                          {{ formatMoney(item.calculo.subtotalEspecifico) }}
+                        </td>
+                        <td class="p-2.5 text-right font-mono text-slate-600">
+                          {{ formatMoney(item.calculo.subtotalAdValorem) }}
+                        </td>
+                        <td class="p-2.5 text-right font-mono text-slate-600">
+                          {{ formatMoney(item.calculo.subtotalIva) }}
+                        </td>
+                        <td class="p-2.5 text-right font-mono font-bold text-slate-900">
+                          {{ formatMoney(item.calculo.totalItem) }}
+                        </td>
+                        <td class="p-2.5 text-center">
+                          <button
+                            (click)="eliminarItem(idx)"
+                            class="text-rose-500 hover:text-rose-700 p-1 cursor-pointer"
+                            title="Quitar ítem"
+                          >
+                            <i class="fa-solid fa-trash text-xs"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot class="bg-slate-100 border-t-2 border-slate-300 font-bold text-[11.5px]">
+                    <tr>
+                      <td colspan="3" class="p-2.5 text-right uppercase text-slate-600">Totales Generales:</td>
+                      <td class="p-2.5 text-center font-mono font-black text-[#0f3b73]">{{ totalBotellas | number }} Botellas</td>
+                      <td class="p-2.5 text-right font-mono text-slate-700">{{ formatMoney(subtotalEspecifico) }}</td>
+                      <td class="p-2.5 text-right font-mono text-slate-700">{{ formatMoney(subtotalAdValorem) }}</td>
+                      <td class="p-2.5 text-right font-mono text-slate-700">{{ formatMoney(subtotalIva) }}</td>
+                      <td class="p-2.5 text-right font-mono font-black text-emerald-800">{{ formatMoney(totalPagar) }}</td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            } @else {
+              <div class="py-8 text-center text-slate-400">
+                <i class="fa-solid fa-box-open text-2xl mb-1"></i>
+                <p>No hay productos en el lote. Agrega al menos un producto para continuar.</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- PASO 3: RESUMEN TRIBUTARIO Y CONFIRMACIÓN -->
+      @if (pasoActual() === 3) {
+        <div class="space-y-4">
+          
+          <!-- TARJETA GRAN RESUMEN TRIBUTARIO -->
+          <div class="bg-gradient-to-br from-slate-900 via-[#0f3b73] to-slate-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
+            <div class="relative z-10">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/20 pb-4">
+                <div>
+                  <span class="text-amber-300 text-[10px] font-bold uppercase tracking-widest block">Liquidación Oficial Proyectada</span>
+                  <h3 class="text-xl font-black tracking-tight">Impuesto al Consumo de Licores (ICL)</h3>
+                  <p class="text-xs text-blue-200 mt-0.5">Destino: {{ transporte.municipioDestino }} &middot; Sujeto Pasivo: {{ entidad.nombreComercial }}</p>
+                </div>
+                <div class="text-right">
+                  <span class="text-slate-300 text-[10px] uppercase block">Total a Pagar</span>
+                  <span class="text-2xl sm:text-3xl font-black text-emerald-400 font-mono tracking-tight">{{ formatMoney(totalPagar) }}</span>
+                </div>
+              </div>
+
+              <!-- DESGLOSE DE LOS 3 COMPONENTES DE LEY 1816 -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-5">
+                <div class="bg-white/10 backdrop-blur-xs rounded-xl p-3.5 border border-white/10">
+                  <span class="text-blue-200 text-[10px] uppercase font-bold block">1. Componente Específico</span>
+                  <span class="text-base font-bold text-white font-mono block mt-1">{{ formatMoney(subtotalEspecifico) }}</span>
+                  <span class="text-[9.5px] text-slate-300 block mt-0.5">$360/$243 por grado / 750cm³</span>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-xs rounded-xl p-3.5 border border-white/10">
+                  <span class="text-blue-200 text-[10px] uppercase font-bold block">2. Componente Ad Valorem</span>
+                  <span class="text-base font-bold text-white font-mono block mt-1">{{ formatMoney(subtotalAdValorem) }}</span>
+                  <span class="text-[9.5px] text-slate-300 block mt-0.5">25% Destilados / 20% Vinos (PVP DANE)</span>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-xs rounded-xl p-3.5 border border-white/10">
+                  <span class="text-blue-200 text-[10px] uppercase font-bold block">3. IVA Cedido Departamental</span>
+                  <span class="text-base font-bold text-white font-mono block mt-1">{{ formatMoney(subtotalIva) }}</span>
+                  <span class="text-[9.5px] text-slate-300 block mt-0.5">5% sobre PVP DANE Oficial</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DETALLES DEL EMBARQUE -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-1.5">
+              <h4 class="font-bold text-[#0f3b73] uppercase text-[11px] border-b border-slate-100 pb-1.5">Datos de Despacho</h4>
+              <div><span class="text-slate-400">Origen:</span> <strong class="text-slate-800 ml-1">{{ entidad.municipioOrigen }} ({{ entidad.departamentoOrigen }})</strong></div>
+              <div><span class="text-slate-400">Destino:</span> <strong class="text-slate-800 ml-1">{{ transporte.municipioDestino }} (Cauca)</strong> &middot; {{ transporte.direccionDestino }}</div>
+              <div><span class="text-slate-400">Vehículo:</span> <span class="font-mono font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded ml-1">{{ transporte.placaVehiculo }}</span> ({{ transporte.tipoVehiculo }})</div>
+              <div><span class="text-slate-400">Conductor:</span> <span class="text-slate-800 ml-1">{{ transporte.nombreConductor }} (C.C. {{ transporte.cedulaConductor }})</span></div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-1.5">
+              <h4 class="font-bold text-[#0f3b73] uppercase text-[11px] border-b border-slate-100 pb-1.5">Cargamento a Amparar</h4>
+              <div><span class="text-slate-400">Total Unidades:</span> <strong class="text-[#0f3b73] ml-1 font-mono">{{ totalBotellas | number }} Botellas</strong></div>
+              <div><span class="text-slate-400">Productos en Lote:</span> <span class="text-slate-800 ml-1">{{ itemsLote.length }} referencias</span></div>
+              <div><span class="text-slate-400">Rango Estampillas a emitir tras pago:</span> <span class="text-emerald-700 font-bold ml-1 font-mono">{{ entidad.prefijoEstampilla }}-XXXXXX</span></div>
+              <p class="text-[10px] text-slate-400 mt-2">
+                Al radicar, el expediente pasará a la bandeja de fiscalización de Rentas Departamentales para revisión y emisión de la orden de pago.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      }
+
+    </div>
+
+    <!-- WIZARD FOOTER CONTROLS -->
+    <div class="bg-slate-100 border-t border-slate-200 px-6 py-3.5 flex items-center justify-between shrink-0">
+      <div>
+        @if (pasoActual() > 1) {
+          <button
+            type="button"
+            (click)="irAlPaso(pasoActual() - 1)"
+            class="px-4 py-2 rounded-xl text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            <i class="fa-solid fa-arrow-left mr-1"></i>
+            Anterior
+          </button>
+        }
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          (click)="cerrar.emit()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+
+        @if (pasoActual() < 3) {
+          <button
+            type="button"
+            (click)="irAlPaso(pasoActual() + 1)"
+            [disabled]="pasoActual() === 2 && itemsLote.length === 0"
+            class="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#0f4984] hover:bg-[#0a274d] disabled:opacity-50 text-white shadow-xs transition-colors flex items-center gap-2 cursor-pointer"
+          >
+            <span>Siguiente</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        } @else {
+          <button
+            type="button"
+            (click)="radicar()"
+            class="px-6 py-2.5 rounded-xl text-xs font-black bg-emerald-700 hover:bg-emerald-800 text-white shadow-md transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Radicar Declaración</span>
+          </button>
+        }
+      </div>
+    </div>
+
+  </div>
+</div>

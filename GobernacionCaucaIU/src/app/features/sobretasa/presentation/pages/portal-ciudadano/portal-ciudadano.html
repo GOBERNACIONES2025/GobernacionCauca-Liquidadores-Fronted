@@ -1,0 +1,446 @@
+<div class="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+  
+  <!-- Header Principal Portal Ciudadano / Mayorista -->
+  <header class="bg-[#0f4984] text-white border-b border-slate-700/60 shadow-sm sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand -->
+      <div class="flex items-center space-x-3">
+        <a routerLink="/" class="flex items-center space-x-2.5 cursor-pointer group" title="Ir al Portal Principal">
+          <div class="h-9 px-2 py-0.5 bg-white rounded-lg flex items-center justify-center shadow-xs">
+            <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-7 w-auto object-contain" />
+          </div>
+          <div class="flex flex-col">
+            <span class="text-xs font-bold tracking-widest text-white uppercase leading-none">Sobretasa Combustibles</span>
+            <span class="text-[10px] text-slate-200 leading-none mt-0.5">Portal de Declaración y Pago Mayorista</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Switch de Rol & Acceso a Funcionario -->
+      <div class="flex items-center space-x-3">
+        <!-- Selector de Empresa Mayorista en Sesión -->
+        <div class="hidden sm:flex items-center gap-2 bg-slate-800/60 px-3 py-1.5 rounded-lg border border-slate-600">
+          <i class="fa-solid fa-building text-amber-400 text-xs"></i>
+          <span class="text-xs text-slate-300">Empresa:</span>
+          <select
+            [ngModel]="sobretasaService.selectedMayoristaId()"
+            (ngModelChange)="cambiarMayorista($event)"
+            class="bg-transparent text-xs font-bold text-white focus:outline-hidden cursor-pointer"
+          >
+            <option *ngFor="let m of sobretasaService.mayoristas()" [value]="m.id" class="bg-slate-800 text-white">
+              {{ m.nombreComercial }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Acceso Funcionario de Hacienda -->
+        <a
+          routerLink="/sobretasa/dashboard"
+          class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all cursor-pointer"
+          title="Ingresar como Funcionario de Rentas / Fiscalizador"
+        >
+          <i class="fa-solid fa-shield-halved text-amber-300"></i>
+          <span class="hidden md:inline">Panel Funcionario Fiscal</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenedor Central -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    
+    <!-- Hero Banner Informativo -->
+    <div class="bg-gradient-to-r from-[#0f4984] to-blue-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+      <div class="absolute right-0 top-0 bottom-0 w-1/3 bg-white/5 transform skew-x-12 pointer-events-none"></div>
+      
+      <div class="max-w-3xl space-y-4 relative z-10">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-xs text-xs font-semibold text-amber-300 border border-white/10">
+          <i class="fa-solid fa-gas-pump"></i>
+          <span>Ley 2093 de 2021 • Estatuto Tributario Territorial del Cauca</span>
+        </div>
+        
+        <h1 class="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+          Declaración Electrónica de Sobretasa a la Gasolina y ACPM
+        </h1>
+        
+        <p class="text-xs sm:text-sm text-blue-100 leading-relaxed">
+          Plataforma oficial para distribuidores mayoristas. Permite radicar liquidaciones mensuales, importar archivos planos de carrotanques desde SICOM MinMinas y realizar el pago mediante pasarela PSE o ventanilla bancaria.
+        </p>
+
+        <!-- Tarjetas de Tarifas Legales Vigentes -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          <div class="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15">
+            <span class="text-[10px] uppercase font-bold text-slate-300 block">Gasolina Corriente (GMC)</span>
+            <span class="text-base font-black text-amber-300 font-mono">${{ tarifas.GMC_TOTAL | number }} / Gl</span>
+            <span class="text-[10px] text-slate-300 block mt-0.5">Mun: ${{ tarifas.GMC_MUNICIPAL | number }} | Dept: ${{ tarifas.GMC_DEPARTAMENTAL | number }}</span>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15">
+            <span class="text-[10px] uppercase font-bold text-slate-300 block">Gasolina Extra (GME)</span>
+            <span class="text-base font-black text-amber-300 font-mono">${{ tarifas.GME_TOTAL | number }} / Gl</span>
+            <span class="text-[10px] text-slate-300 block mt-0.5">Mun: ${{ tarifas.GME_MUNICIPAL | number }} | Dept: ${{ tarifas.GME_DEPARTAMENTAL | number }}</span>
+          </div>
+
+          <div class="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15">
+            <span class="text-[10px] uppercase font-bold text-slate-300 block">ACPM / Diésel</span>
+            <span class="text-base font-black text-emerald-300 font-mono">${{ tarifas.ACPM_TOTAL | number }} / Gl</span>
+            <span class="text-[10px] text-slate-300 block mt-0.5">Tarifa Única Departamental</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Si el Wizard está abierto, lo mostramos -->
+    <div *ngIf="mostrarWizard()">
+      <app-declaracion-wizard
+        [mayoristas]="sobretasaService.mayoristas()"
+        [edsCatalog]="sobretasaService.edsCatalog()"
+        (cancelada)="mostrarWizard.set(false)"
+        (radicada)="mostrarWizard.set(false)"
+      />
+    </div>
+
+    <!-- Si el Wizard no está abierto, mostramos las dos cards de inicio + Dashboard Mayorista -->
+    <div *ngIf="!mostrarWizard()" class="space-y-8">
+      
+      <!-- Action Cards (Radicar vs Consultar) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Card 1: Radicar Nueva Declaración -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center font-bold text-xl">
+              <i class="fa-solid fa-file-circle-plus"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Radicar Declaración Mensual</h2>
+              <p class="text-xs text-slate-500">Carga de guías SICOM y liquidación tributaria</p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Inicia el asistente guiado para reportar los despachos de combustible del mes gravable, calcular automáticamente las porciones municipal y departamental y emitir el radicado oficial.
+          </p>
+          <div>
+            <button
+              type="button"
+              (click)="mostrarWizard.set(true)"
+              class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#0f4984] hover:bg-[#0c3a6b] text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            >
+              <i class="fa-solid fa-plus"></i>
+              <span>Iniciar Radicación Mensual</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Consultar Radicado o Certificado -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-bold text-xl">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Consultar Estado de Declaración</h2>
+              <p class="text-xs text-slate-500">Búsqueda rápida por número de radicado</p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Ingresa el número de radicado oficial (ej. <code>SOB-2026-0801</code>) para verificar el estado de fiscalización, pagar en línea o descargar el Formulario Oficial.
+          </p>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              [(ngModel)]="busquedaRadicado"
+              (keyup.enter)="consultarRadicado()"
+              placeholder="Ej: SOB-2026-0801"
+              class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:border-[#0f4984] focus:outline-hidden uppercase"
+            />
+            <button
+              type="button"
+              (click)="consultarRadicado()"
+              class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-colors cursor-pointer"
+            >
+              Consultar
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Resultado de Consulta Rápida si existe -->
+      <div *ngIf="busquedaRealizada" class="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div *ngIf="declaracionConsultada(); let dec; else noEncontrado" class="space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-black text-slate-900 font-mono">{{ dec.numeroRadicado }}</span>
+                <span
+                  class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                  [ngClass]="{
+                    'bg-emerald-100 text-emerald-800': dec.estado === 'PAGADO_APROBADO',
+                    'bg-amber-100 text-amber-800': dec.estado === 'PENDIENTE_PAGO',
+                    'bg-blue-100 text-blue-800': dec.estado === 'EN_REVISION',
+                    'bg-rose-100 text-rose-800': dec.estado === 'OBSERVADO'
+                  }"
+                >
+                  {{ dec.estado }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {{ dec.mayorista.razonSocial }} • Periodo: {{ getNombreMes(dec.periodoMes) }} / {{ dec.periodoAnio }}
+              </p>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                (click)="declaracionSeleccionadaParaFormulario.set(dec)"
+                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold cursor-pointer"
+              >
+                <i class="fa-solid fa-file-pdf mr-1 text-rose-600"></i>
+                Ver Formulario
+              </button>
+              <button
+                *ngIf="dec.estado === 'PENDIENTE_PAGO'"
+                type="button"
+                (click)="declaracionSeleccionadaParaPagar.set(dec)"
+                class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold cursor-pointer"
+              >
+                <i class="fa-solid fa-credit-card mr-1"></i>
+                Pagar PSE
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs bg-slate-50 p-3 rounded-xl">
+            <div>
+              <span class="text-slate-500 text-[10px] block">Galones Consolidados</span>
+              <span class="font-bold text-slate-800">{{ formatGal(dec.totalGalonesGeneral) }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 text-[10px] block">Porción Municipal</span>
+              <span class="font-bold text-slate-800">{{ formatCop(dec.totalMunicipal) }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 text-[10px] block">Porción Departamental</span>
+              <span class="font-bold text-slate-800">{{ formatCop(dec.totalDepartamental) }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 text-[10px] block">Total Liquidado</span>
+              <span class="font-black text-[#0f4984] text-sm">{{ formatCop(dec.totalPagar) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noEncontrado>
+          <div class="text-center py-4 text-xs text-rose-600 font-semibold">
+            No se encontró ninguna declaración con el radicado ingresado. Verifica el código e intenta nuevamente.
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Dashboard de Declaraciones del Agente Mayorista -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-4 p-6">
+        
+        <!-- Header de la tabla con filtros -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">
+              Historial de Declaraciones — {{ sobretasaService.currentMayorista().razonSocial }}
+            </h2>
+            <p class="text-xs text-slate-500">
+              NIT: {{ sobretasaService.currentMayorista().nit }} | Código Planta SICOM: {{ sobretasaService.currentMayorista().codigoSicomPlanta }}
+            </p>
+          </div>
+
+          <!-- Filtros de estado y periodo -->
+          <div class="flex items-center gap-2">
+            <select
+              [(ngModel)]="filtroMes"
+              class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white text-slate-700 font-medium focus:border-[#0f4984] focus:outline-hidden"
+            >
+              <option value="TODOS">Todos los Meses</option>
+              <option *ngFor="let m of meses" [value]="m.num">{{ m.nombre }}</option>
+            </select>
+
+            <select
+              [(ngModel)]="filtroEstado"
+              class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs bg-white text-slate-700 font-medium focus:border-[#0f4984] focus:outline-hidden"
+            >
+              <option value="TODOS">Todos los Estados</option>
+              <option value="EN_REVISION">En Revisión</option>
+              <option value="PENDIENTE_PAGO">Pendiente de Pago</option>
+              <option value="PAGADO_APROBADO">Pagado y Aprobado</option>
+              <option value="OBSERVADO">Observado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabla de Declaraciones -->
+        <div class="border border-slate-200 rounded-xl overflow-x-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+              <tr>
+                <th class="py-3 px-4">Radicado</th>
+                <th class="py-3 px-4">Periodo Gravable</th>
+                <th class="py-3 px-4">Fecha Radicación</th>
+                <th class="py-3 px-4 text-right">Galones</th>
+                <th class="py-3 px-4 text-right">Total Liquidado</th>
+                <th class="py-3 px-4 text-center">Estado</th>
+                <th class="py-3 px-4 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr *ngIf="declaracionesFiltradas().length === 0">
+                <td colspan="7" class="py-8 text-center text-slate-400">
+                  No hay declaraciones registradas para este mayorista con los filtros seleccionados.
+                </td>
+              </tr>
+              <tr *ngFor="let d of declaracionesFiltradas()" class="hover:bg-slate-50 transition-colors">
+                <td class="py-3 px-4 font-mono font-bold text-slate-900">
+                  {{ d.numeroRadicado }}
+                  <span *ngIf="d.esExtemporanea" class="block text-[10px] text-rose-600 font-normal">Extemporánea (+5%)</span>
+                </td>
+                <td class="py-3 px-4 font-semibold text-slate-800">
+                  {{ getNombreMes(d.periodoMes) }} / {{ d.periodoAnio }}
+                </td>
+                <td class="py-3 px-4 text-slate-600">
+                  {{ d.fechaRadicacion | date:'dd/MM/yyyy HH:mm' }}
+                </td>
+                <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">
+                  {{ formatGal(d.totalGalonesGeneral) }}
+                </td>
+                <td class="py-3 px-4 text-right font-mono font-black text-slate-900">
+                  {{ formatCop(d.totalPagar) }}
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <span
+                    class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                    [ngClass]="{
+                      'bg-emerald-100 text-emerald-800 border border-emerald-300': d.estado === 'PAGADO_APROBADO',
+                      'bg-amber-100 text-amber-800 border border-amber-300': d.estado === 'PENDIENTE_PAGO',
+                      'bg-blue-100 text-blue-800 border border-blue-300': d.estado === 'EN_REVISION',
+                      'bg-rose-100 text-rose-800 border border-rose-300': d.estado === 'OBSERVADO'
+                    }"
+                  >
+                    {{ d.estado }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-center">
+                  <div class="flex items-center justify-center gap-1.5">
+                    
+                    <!-- Botón Formulario Oficial -->
+                    <button
+                      type="button"
+                      (click)="declaracionSeleccionadaParaFormulario.set(d)"
+                      class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition-colors cursor-pointer"
+                      title="Ver Formulario Oficial Ley 2093"
+                    >
+                      <i class="fa-solid fa-file-lines text-sm"></i>
+                    </button>
+
+                    <!-- Botón Pagar PSE -->
+                    <button
+                      *ngIf="d.estado === 'PENDIENTE_PAGO'"
+                      type="button"
+                      (click)="declaracionSeleccionadaParaPagar.set(d)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] shadow-xs cursor-pointer"
+                      title="Pagar con PSE"
+                    >
+                      <i class="fa-solid fa-credit-card"></i>
+                      <span>Pagar</span>
+                    </button>
+
+                    <!-- Botón Subsanar / Corregir Observación -->
+                    <button
+                      *ngIf="d.estado === 'OBSERVADO'"
+                      type="button"
+                      (click)="abrirSubsanacion(d)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold text-[11px] shadow-xs cursor-pointer"
+                      title="Corregir y Subsanar Observaciones"
+                    >
+                      <i class="fa-solid fa-wrench"></i>
+                      <span>Subsanar</span>
+                    </button>
+
+                    <!-- Estado Pagado Check -->
+                    <span *ngIf="d.estado === 'PAGADO_APROBADO'" class="text-emerald-600 font-bold text-xs" title="Declaración Pagada y Certificada">
+                      <i class="fa-solid fa-circle-check text-base"></i>
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modales -->
+  <!-- 1. Formulario Oficial 8 Renglones -->
+  <app-formulario-oficial-modal
+    *ngIf="declaracionSeleccionadaParaFormulario()"
+    [declaracion]="declaracionSeleccionadaParaFormulario()!"
+    (cerrar)="declaracionSeleccionadaParaFormulario.set(null)"
+  />
+
+  <!-- 2. Modal PSE -->
+  <app-pse-modal
+    *ngIf="declaracionSeleccionadaParaPagar()"
+    [declaracion]="declaracionSeleccionadaParaPagar()!"
+    (cerrar)="declaracionSeleccionadaParaPagar.set(null)"
+    (pagoCompletado)="declaracionSeleccionadaParaPagar.set(null)"
+  />
+
+  <!-- 3. Modal Subsanación de Observaciones -->
+  <div *ngIf="declaracionSeleccionadaParaSubsanar()" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-lg p-6 space-y-4 animate-in fade-in zoom-in">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-wrench text-rose-600 text-lg"></i>
+          <h3 class="text-sm font-bold text-slate-900">Subsanar Requerimiento Fiscal</h3>
+        </div>
+        <button type="button" (click)="declaracionSeleccionadaParaSubsanar.set(null)" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="bg-rose-50 p-3 rounded-xl border border-rose-200 text-xs text-rose-900 space-y-1">
+        <span class="font-bold block">Observación Realizada por Fiscalización:</span>
+        <p class="text-rose-800">{{ declaracionSeleccionadaParaSubsanar()?.observacionesFiscalizacion }}</p>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-700 mb-1">Detalle de la Subsanación y Aclaración</label>
+        <textarea
+          [(ngModel)]="observacionSubsanacionTexto"
+          rows="4"
+          placeholder="Describa los soportes aportados o la corrección en los galones de la guía..."
+          class="w-full px-3 py-2 rounded-lg border border-slate-300 text-xs focus:border-[#0f4984] focus:outline-hidden resize-none"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+        <button
+          type="button"
+          (click)="declaracionSeleccionadaParaSubsanar.set(null)"
+          class="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarSubsanacion()"
+          class="px-5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs cursor-pointer"
+        >
+          Enviar Subsanación a Fiscalización
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

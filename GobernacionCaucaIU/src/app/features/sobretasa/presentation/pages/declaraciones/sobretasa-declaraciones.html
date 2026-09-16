@@ -1,0 +1,158 @@
+<div class="space-y-6">
+  
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        Expediente de Declaraciones Mensuales
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Histórico consolidado de liquidaciones y radicaciones de sobretasa a nivel departamental
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        (click)="exportarCsv()"
+        class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+      >
+        <i class="fa-solid fa-file-csv text-emerald-400"></i>
+        <span>Exportar Reporte CSV</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros Multifactor -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+    
+    <!-- Filtro Mayorista -->
+    <div>
+      <label class="block font-semibold text-slate-600 mb-1">Distribuidor Mayorista</label>
+      <select
+        [(ngModel)]="filtroMayorista"
+        class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:border-[#0f4984] focus:outline-hidden"
+      >
+        <option value="TODOS">Todos los Mayoristas</option>
+        <option *ngFor="let m of sobretasaService.mayoristas()" [value]="m.id">{{ m.nombreComercial }}</option>
+      </select>
+    </div>
+
+    <!-- Filtro Mes -->
+    <div>
+      <label class="block font-semibold text-slate-600 mb-1">Mes Gravable</label>
+      <select
+        [(ngModel)]="filtroMes"
+        class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:border-[#0f4984] focus:outline-hidden"
+      >
+        <option value="TODOS">Todos los Meses</option>
+        <option *ngFor="let m of meses" [value]="m.num">{{ m.nombre }}</option>
+      </select>
+    </div>
+
+    <!-- Filtro Estado -->
+    <div>
+      <label class="block font-semibold text-slate-600 mb-1">Estado de Declaración</label>
+      <select
+        [(ngModel)]="filtroEstado"
+        class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-800 focus:border-[#0f4984] focus:outline-hidden"
+      >
+        <option value="TODOS">Todos los Estados</option>
+        <option value="EN_REVISION">En Revisión</option>
+        <option value="PENDIENTE_PAGO">Pendiente de Pago</option>
+        <option value="PAGADO_APROBADO">Pagado y Aprobado</option>
+        <option value="OBSERVADO">Observado</option>
+      </select>
+    </div>
+
+    <!-- Búsqueda Radicado -->
+    <div>
+      <label class="block font-semibold text-slate-600 mb-1">Buscar por No. Radicado</label>
+      <input
+        type="text"
+        [(ngModel)]="busquedaRadicado"
+        placeholder="Ej: SOB-2026-..."
+        class="w-full px-3 py-1.5 rounded-lg border border-slate-300 font-mono text-xs focus:border-[#0f4984] focus:outline-hidden uppercase"
+      />
+    </div>
+
+  </div>
+
+  <!-- Tabla General de Declaraciones -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden space-y-3 p-5">
+    <div class="flex items-center justify-between text-xs">
+      <span class="font-bold text-slate-700">Registros Encontrados: {{ declaracionesFiltradas().length }}</span>
+      <span class="text-slate-400">Mostrando registros guardados en sistema y memoria local</span>
+    </div>
+
+    <div class="border border-slate-200 rounded-xl overflow-x-auto">
+      <table class="w-full text-xs text-left border-collapse">
+        <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
+          <tr>
+            <th class="py-3 px-4">Radicado</th>
+            <th class="py-3 px-4">Mayorista</th>
+            <th class="py-3 px-4">Periodo</th>
+            <th class="py-3 px-4">Fecha Radicación</th>
+            <th class="py-3 px-4 text-right">Galones</th>
+            <th class="py-3 px-4 text-right">Municipal</th>
+            <th class="py-3 px-4 text-right">Departamental</th>
+            <th class="py-3 px-4 text-right">Total Liquidado</th>
+            <th class="py-3 px-4 text-center">Estado</th>
+            <th class="py-3 px-4 text-center">Formulario</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr *ngIf="declaracionesFiltradas().length === 0">
+            <td colspan="10" class="py-8 text-center text-slate-400">
+              No se encontraron declaraciones con los filtros aplicados.
+            </td>
+          </tr>
+          <tr *ngFor="let d of declaracionesFiltradas()" class="hover:bg-slate-50 transition-colors">
+            <td class="py-3 px-4 font-mono font-bold text-slate-900">
+              {{ d.numeroRadicado }}
+              <span *ngIf="d.esExtemporanea" class="block text-[10px] text-rose-600 font-normal">Extemporánea</span>
+            </td>
+            <td class="py-3 px-4 font-medium text-slate-800">{{ d.mayorista.nombreComercial }}</td>
+            <td class="py-3 px-4 text-slate-600">{{ getNombreMes(d.periodoMes) }} / {{ d.periodoAnio }}</td>
+            <td class="py-3 px-4 text-slate-600">{{ d.fechaRadicacion | date:'dd/MM/yyyy' }}</td>
+            <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">{{ formatGal(d.totalGalonesGeneral) }}</td>
+            <td class="py-3 px-4 text-right font-mono text-slate-700">{{ formatCop(d.totalMunicipal) }}</td>
+            <td class="py-3 px-4 text-right font-mono text-slate-700">{{ formatCop(d.totalDepartamental) }}</td>
+            <td class="py-3 px-4 text-right font-mono font-black text-slate-900">{{ formatCop(d.totalPagar) }}</td>
+            <td class="py-3 px-4 text-center">
+              <span
+                class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                [ngClass]="{
+                  'bg-emerald-100 text-emerald-800 border border-emerald-300': d.estado === 'PAGADO_APROBADO',
+                  'bg-amber-100 text-amber-800 border border-amber-300': d.estado === 'PENDIENTE_PAGO',
+                  'bg-blue-100 text-blue-800 border border-blue-300': d.estado === 'EN_REVISION',
+                  'bg-rose-100 text-rose-800 border border-rose-300': d.estado === 'OBSERVADO'
+                }"
+              >
+                {{ d.estado }}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-center">
+              <button
+                type="button"
+                (click)="declaracionSeleccionadaParaFormulario.set(d)"
+                class="p-1.5 rounded-lg text-[#0f4984] hover:bg-blue-50 transition-colors cursor-pointer"
+                title="Ver Formulario Oficial Ley 2093 de 2021"
+              >
+                <i class="fa-solid fa-file-invoice text-base"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal Formulario Oficial -->
+  <app-formulario-oficial-modal
+    *ngIf="declaracionSeleccionadaParaFormulario()"
+    [declaracion]="declaracionSeleccionadaParaFormulario()!"
+    (cerrar)="declaracionSeleccionadaParaFormulario.set(null)"
+  />
+
+</div>

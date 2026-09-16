@@ -1,0 +1,235 @@
+<main class="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 sm:py-5 min-w-0 bg-slate-50 relative h-full space-y-5">
+  
+  <!-- PAGE HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2">
+    <div>
+      <h1 class="text-[17px] sm:text-[18px] font-bold text-slate-900 m-0 leading-snug">
+        Módulo Licores — Dashboard General & Fiscalización
+      </h1>
+      <p class="text-[12px] text-slate-400 mt-0.5">
+        licores.Declaraciones · licores.Tornaguias · licores.EstampilladoDepartamental (Ley 1816 de 2016)
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <!-- Botón Pendientes de Aprobación con Badge -->
+      <a
+        routerLink="/licores/auditoria"
+        class="relative inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-all bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 shadow-xs"
+      >
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Pendientes de Auditoría
+        @if (licoresService.kpis().pendientesAuditoria > 0) {
+          <span class="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-bold leading-none text-white bg-amber-600 rounded-full shadow-xs">
+            {{ licoresService.kpis().pendientesAuditoria }}
+          </span>
+        }
+      </a>
+
+      <a
+        routerLink="/licores/liquidaciones"
+        class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-[#0f4984] hover:bg-[#0a274d] text-white shadow-xs"
+      >
+        <i class="fa-solid fa-folder-open text-xs"></i>
+        <span>Ver Todas las Liquidaciones</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI CARDS GRID (IGUAL A LA LÍNEA GRÁFICA DE VEHÍCULOS / REGISTROS) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
+    
+    <!-- CARD 1: VIGENCIA & RECAUDO -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between gap-2.5">
+      <div class="flex items-center justify-between">
+        <div class="w-9 h-9 rounded-lg bg-emerald-50 text-[#70b238] flex items-center justify-center font-bold">
+          <i class="fa-solid fa-sack-dollar text-base"></i>
+        </div>
+        <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-[#70b238]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#70b238] animate-pulse"></span>
+          Recaudado 100%
+        </span>
+      </div>
+      <div>
+        <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Recaudado ICL</div>
+        <div class="text-2xl font-bold text-slate-900 leading-none font-mono">{{ formatMoney(licoresService.kpis().totalRecaudado) }}</div>
+      </div>
+      <div class="text-[11px] text-slate-400">licores.RecaudoEfectivo</div>
+    </div>
+
+    <!-- CARD 2: BOTELLAS DECLARADAS -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between gap-2.5">
+      <div class="flex items-center justify-between">
+        <div class="w-9 h-9 rounded-lg bg-blue-50 text-[#0f4984] flex items-center justify-center font-bold">
+          <i class="fa-solid fa-wine-bottle text-base"></i>
+        </div>
+        <span class="text-[11px] font-bold text-slate-400 font-mono">
+          {{ licoresService.catalogo().length }} Referencias DANE
+        </span>
+      </div>
+      <div>
+        <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-widest mb-1">Botellas Declaradas</div>
+        <div class="text-2xl font-bold text-slate-900 leading-none font-mono">{{ licoresService.kpis().totalBotellasDeclaradas | number }}</div>
+      </div>
+      <div class="text-[11px] text-slate-400">licores.VolumenEstampillado</div>
+    </div>
+
+    <!-- CARD 3: PENDIENTES AUDITORÍA -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between gap-2.5">
+      <div class="flex items-center justify-between">
+        <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+          <i class="fa-solid fa-clock-rotate-left text-base"></i>
+        </div>
+        <span class="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+          Requiere dictamen
+        </span>
+      </div>
+      <div>
+        <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-widest mb-1">Pre-liquidaciones en Revisión</div>
+        <div class="text-2xl font-bold text-amber-600 leading-none font-mono">{{ licoresService.kpis().pendientesAuditoria }}</div>
+      </div>
+      <div class="text-[11px] text-slate-400">licores.BandejaFiscal</div>
+    </div>
+
+    <!-- CARD 4: TORNAGUÍAS ACTIVAS -->
+    <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs flex flex-col justify-between gap-2.5">
+      <div class="flex items-center justify-between">
+        <div class="w-9 h-9 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+          <i class="fa-solid fa-truck-fast text-base"></i>
+        </div>
+        <span class="text-[11px] font-semibold text-emerald-600">
+          {{ licoresService.kpis().tornaguiasLegalizadas }} legalizadas
+        </span>
+      </div>
+      <div>
+        <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tornaguías en Tránsito</div>
+        <div class="text-2xl font-bold text-teal-800 leading-none font-mono">{{ licoresService.kpis().tornaguiasActivas }}</div>
+      </div>
+      <div class="text-[11px] text-slate-400">licores.ControlDestinoCauca</div>
+    </div>
+
+  </div>
+
+  <!-- RECENT ACTIVITY & MOVEMENTS -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    
+    <!-- BANDEJA DE EXPEDIENTES EN REVISIÓN RÁPIDA -->
+    <div class="lg:col-span-2 bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+      <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-inbox text-[#0f4984]"></i>
+          <h3 class="font-bold text-slate-900 text-xs sm:text-sm">Expedientes Recientes de Declaración</h3>
+        </div>
+        <a routerLink="/licores/auditoria" class="text-xs font-bold text-[#0f4984] hover:underline">
+          Ver bandeja completa &rarr;
+        </a>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-700">
+          <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200/80">
+            <tr>
+              <th class="py-3 px-4">Radicado</th>
+              <th class="py-3 px-4">Contribuyente</th>
+              <th class="py-3 px-4">Destino</th>
+              <th class="py-3 px-4 text-center">Botellas</th>
+              <th class="py-3 px-4 text-right">Impuesto</th>
+              <th class="py-3 px-4 text-center">Estado</th>
+              <th class="py-3 px-4 text-right">Acción</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (liq of licoresService.liquidaciones().slice(0, 5); track liq.id) {
+              <tr class="hover:bg-slate-50">
+                <td class="py-3 px-4 font-mono font-bold text-[#0f3b73]">{{ liq.numeroRadicado }}</td>
+                <td class="py-3 px-4 font-semibold text-slate-800">{{ liq.entidadProductora.nombreComercial }}</td>
+                <td class="py-3 px-4 text-slate-600">{{ liq.transporte.municipioDestino }}</td>
+                <td class="py-3 px-4 text-center font-mono font-bold">{{ liq.totalBotellas | number }}</td>
+                <td class="py-3 px-4 text-right font-mono font-bold text-emerald-800">{{ formatMoney(liq.totalPagar) }}</td>
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold"
+                    [ngClass]="{
+                      'bg-amber-100 text-amber-900 border border-amber-300': liq.estado === 'EN_REVISION',
+                      'bg-rose-100 text-rose-900 border border-rose-300': liq.estado === 'REQUERIDO' || liq.estado === 'RECHAZADO',
+                      'bg-blue-100 text-blue-900 border border-blue-300': liq.estado === 'PENDIENTE_PAGO',
+                      'bg-emerald-100 text-emerald-900 border border-emerald-300': liq.estado === 'PAGADO_EMITIDO' || liq.estado === 'LEGALIZADO'
+                    }"
+                  >
+                    {{ liq.estado }}
+                  </span>
+                </td>
+                <td class="py-3 px-4 text-right">
+                  <button
+                    type="button"
+                    (click)="abrirAuditoria(liq)"
+                    class="px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer"
+                  >
+                    Auditar
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REGLAS & TARIFAS VIGENTES BOX -->
+    <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs space-y-4">
+      <h3 class="font-bold text-slate-900 text-xs sm:text-sm flex items-center gap-2 border-b border-slate-100 pb-2">
+        <i class="fa-solid fa-scale-balanced text-[#0f4984]"></i>
+        Marco Tributario Ley 1816 de 2016
+      </h3>
+
+      <div class="space-y-2.5 text-xs text-slate-600">
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block">Tarifa Componente Específico:</span>
+          <strong class="text-slate-900 font-mono block mt-0.5">$360 COP / Grado</strong>
+          <span class="text-[10px] text-slate-400">Licores y destilados (base 750 cm³)</span>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block">Tarifa Vinos y Vínicos:</span>
+          <strong class="text-slate-900 font-mono block mt-0.5">$243 COP / Grado</strong>
+          <span class="text-[10px] text-slate-400">Vinos y aperitivos vínicos (base 750 cm³)</span>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block">Componente Ad Valorem:</span>
+          <strong class="text-slate-900 font-mono block mt-0.5">25% Licores &middot; 20% Vinos</strong>
+          <span class="text-[10px] text-slate-400">Sobre PVP certificado por el DANE</span>
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block">IVA Cedido Departamental:</span>
+          <strong class="text-slate-900 font-mono block mt-0.5">5% Fijo</strong>
+          <span class="text-[10px] text-slate-400">Destinado al Departamento del Cauca</span>
+        </div>
+      </div>
+
+      <a routerLink="/licores/configuracion" class="block text-center text-xs font-bold text-[#0f4984] hover:underline pt-2">
+        Ver catálogo y configuración completa &rarr;
+      </a>
+    </div>
+
+  </div>
+
+</main>
+
+@if (modalActivo() === 'AUDITORIA' && liquidacionSeleccionada()) {
+  <app-auditoria-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    [esFuncionario]="true"
+    (aprobar)="licoresService.aprobarDeclaracion($event.id, $event.observacion); cerrarModales()"
+    (requerir)="licoresService.requerirDeclaracion($event.id, $event.motivo); cerrarModales()"
+    (rechazar)="licoresService.rechazarDeclaracion($event.id, $event.motivo); cerrarModales()"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'TORNAGUIA' && liquidacionSeleccionada()) {
+  <app-tornaguia-viewer
+    [liquidacion]="liquidacionSeleccionada()!"
+    (cerrar)="cerrarModales()"
+  />
+}

@@ -1,0 +1,21 @@
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #liquidacion-documento-imprimible,
+  #liquidacion-documento-imprimible * {
+    visibility: visible;
+  }
+  #liquidacion-documento-imprimible {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 15px;
+    background: white;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

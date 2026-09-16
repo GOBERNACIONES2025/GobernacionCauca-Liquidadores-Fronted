@@ -1,0 +1,104 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 overflow-y-auto">
+  <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+    
+    <!-- HEADER -->
+    <div class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-5 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-300">
+          <i class="fa-solid fa-file-invoice-dollar text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold tracking-tight">Relacionamiento de Pago Bancario (Asobancario)</h2>
+          <p class="text-[11px] text-emerald-200">Procesamiento de recaudo por ventanilla / compensación</p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="cerrar.emit()"
+        class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition-colors"
+      >
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- BODY -->
+    <div class="p-6">
+      <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 mb-5 text-xs">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-slate-500">Radicado:</span>
+          <span class="font-mono font-bold text-slate-900">{{ liquidacion.numeroRadicado }}</span>
+        </div>
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-slate-500">Contribuyente:</span>
+          <span class="font-bold text-slate-800">{{ liquidacion.entidadProductora.nombreComercial }}</span>
+        </div>
+        <div class="flex justify-between items-center pt-2 mt-2 border-t border-emerald-200">
+          <span class="font-bold text-slate-700">Monto Liquidado a Conciliar:</span>
+          <span class="text-base font-black text-emerald-800 font-mono">{{ formatMoney(liquidacion.totalPagar) }}</span>
+        </div>
+      </div>
+
+      <form (ngSubmit)="confirmarRelacionamiento()" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Entidad Bancaria Recaudadora</label>
+          <input
+            type="text"
+            [(ngModel)]="bancoRecaudador"
+            name="banco"
+            class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">No. Comprobante / Recibo</label>
+            <input
+              type="text"
+              [(ngModel)]="numeroTransaccionBancaria"
+              name="comprobante"
+              class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-800 font-mono font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Fecha Recaudo</label>
+            <input
+              type="date"
+              [(ngModel)]="fechaRecaudo"
+              name="fecha"
+              class="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl px-3 py-2.5 text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+          <i class="fa-solid fa-circle-info text-blue-500 mr-1"></i>
+          Al confirmar el relacionamiento del extracto Asobancario 2001, el sistema legalizará el recaudo, emitirá automáticamente la <strong>Tornaguía Oficial</strong> y asignará el rango consecutivo de <strong>estampillas departamentales</strong>.
+        </p>
+
+        <div class="pt-2 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="cerrar.emit()"
+            class="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="procesando()"
+            class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+          >
+            @if (procesando()) {
+              <i class="fa-solid fa-spinner animate-spin"></i>
+              <span>Conciliando...</span>
+            } @else {
+              <i class="fa-solid fa-check-double text-xs"></i>
+              <span>Confirmar y Relacionar Pago</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>

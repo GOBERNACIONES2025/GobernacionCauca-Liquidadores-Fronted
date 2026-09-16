@@ -62,8 +62,11 @@ export class Home {
     {
       id: 'sobretasa',
       title: 'Sobretasa gasolina',
-      description: 'Declaraciones mensuales para distribuidores mayoristas.',
+      description: 'Declaraciones mensuales para distribuidores mayoristas y recaudo.',
       icon: '/sobretasa.svg',
+      routeAdmin: '/sobretasa',
+      routeCitizen: '/sobretasa/portal-ciudadano',
+      isNew: true,
     },
     {
       id: 'estampillas',
@@ -76,6 +79,8 @@ export class Home {
       title: 'Licores',
       description: 'Gestión de estampillas, tornaguías y señalización de licores.',
       icon: '/licores.svg',
+      routeAdmin: '/licores',
+      routeCitizen: '/licores/portal-ciudadano',
       isNew: true,
     },
   ]);

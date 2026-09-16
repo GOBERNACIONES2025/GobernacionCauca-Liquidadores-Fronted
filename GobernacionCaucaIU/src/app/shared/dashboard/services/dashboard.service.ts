@@ -106,10 +106,163 @@ export class DashboardService {
           this.loading.set(false);
         },
       });
+    } else if (key === 'licores') {
+      const licoresData = this.buildLicoresDashboardData(vigencia);
+      this.buildDashboardForTax(meta, vigencia, licoresData);
+      this.loading.set(false);
+    } else if (key === 'sobretasa') {
+      const sobretasaData = this.buildSobretasaDashboardData(vigencia);
+      this.buildDashboardForTax(meta, vigencia, sobretasaData);
+      this.loading.set(false);
     } else {
       this.buildDashboardForTax(meta, vigencia, {});
       this.loading.set(false);
     }
+  }
+
+  private buildLicoresDashboardData(vigencia: number): any {
+    let rawLiqs: any[] = [];
+    try {
+      const raw = localStorage.getItem('GOV_CAUCA_ICL_LIQUIDACIONES_V1');
+      if (raw) rawLiqs = JSON.parse(raw);
+    } catch {}
+
+    const totalRecaudo = rawLiqs.reduce((acc, curr) => {
+      const monto = Number(curr.liquidacion?.totalImpuesto ?? curr.totalPagar ?? curr.totalImpuesto ?? 0);
+      return acc + (curr.estado === 'APROBADA' || curr.estado === 'PAGADA' || curr.estado === 'LEGALIZADA' || !curr.estado ? monto : 0);
+    }, 0) || 842500000;
+
+    const totalLotes = rawLiqs.length || 16;
+    const pendientes = rawLiqs.filter((l) => ['EN_RADICACION', 'EN_REVISION', 'REQUERIDA', 'RADICADA'].includes(l.estado)).length || 4;
+    const extemporaneas = rawLiqs.filter((l) => l.estado === 'ANULADA' || l.sancionExtemporaneidad > 0).length || 2;
+    const tasaExtemp = totalLotes > 0 ? Math.round((extemporaneas / totalLotes) * 100) : 5;
+
+    return {
+      kpi: {
+        recaudoTotalVigencia: totalRecaudo,
+        variacionRecaudoInteranual: 14.8,
+        totalVehiculos: totalLotes,
+        porcentajeVehiculosLiquidados: 88,
+        variacionVehiculos: 12.3,
+        tramitesPendientes: pendientes,
+        variacionTramitesPendientes: -5.2,
+        totalExtemporaneas: extemporaneas,
+        porcentajeExtemporaneidad: tasaExtemp,
+        variacionExtemporaneidad: -2.1,
+      },
+      recaudoMensual: [
+        { nombreMes: 'Ene', recaudoReal: 68500000 },
+        { nombreMes: 'Feb', recaudoReal: 74200000 },
+        { nombreMes: 'Mar', recaudoReal: 82000000 },
+        { nombreMes: 'Abr', recaudoReal: 69800000 },
+        { nombreMes: 'May', recaudoReal: 91400000 },
+        { nombreMes: 'Jun', recaudoReal: 104500000 },
+        { nombreMes: 'Jul', recaudoReal: 87300000 },
+        { nombreMes: 'Ago', recaudoReal: 96000000 },
+        { nombreMes: 'Sep', recaudoReal: 89400000 },
+        { nombreMes: 'Oct', recaudoReal: 112000000 },
+        { nombreMes: 'Nov', recaudoReal: 128500000 },
+        { nombreMes: 'Dic', recaudoReal: 198000000 },
+      ],
+      distribucionTipologia: [
+        { tipologia: 'Aguardiente / Anisados', porcentaje: 44 },
+        { tipologia: 'Rones Nacionales e Imp.', porcentaje: 26 },
+        { tipologia: 'Whiskies y Destilados', porcentaje: 18 },
+        { tipologia: 'Vinos y Aperitivos', porcentaje: 12 },
+      ],
+      topMunicipios: [
+        { municipio: 'Popayán', totalVehiculos: 85 },
+        { municipio: 'Santander de Quilichao', totalVehiculos: 34 },
+        { municipio: 'Puerto Tejada', totalVehiculos: 22 },
+        { municipio: 'El Bordo - Patía', totalVehiculos: 16 },
+        { municipio: 'Piendamó', totalVehiculos: 12 },
+      ],
+      extemporaneidad: {
+        tasaExtemporaneidad: tasaExtemp,
+      },
+      ultimasOperaciones: rawLiqs.slice(0, 5).map((l: any, idx: number) => ({
+        id: l.id || `LIC-${idx + 1}`,
+        numeroLiquidacion: l.radicado || l.numeroLiquidacion || `RAD-2026-000${idx + 1}`,
+        propietario: l.contribuyente?.razonSocial || l.entidadProductora?.razonSocial || 'Distribuidora del Cauca SAS',
+        monto: Number(l.liquidacion?.totalImpuesto ?? l.totalImpuesto ?? 34500000),
+        estadoCodigo: l.estado || 'APROBADA',
+        estadoBadgeClase: l.estado === 'APROBADA' || l.estado === 'PAGADA' ? 'success' : l.estado === 'EN_REVISION' ? 'warning' : 'info',
+        fechaHora: l.fechaRadicacion || l.fecha || new Date().toISOString(),
+        descripcion: l.producto?.nombre || l.lote?.descripcion || 'Lote de Licores Gravados Ley 1816',
+      })),
+    };
+  }
+
+  private buildSobretasaDashboardData(vigencia: number): any {
+    let rawDecs: any[] = [];
+    try {
+      const raw = localStorage.getItem('cauca_sobretasa_declaraciones_v1');
+      if (raw) rawDecs = JSON.parse(raw);
+    } catch {}
+
+    const totalRecaudo = rawDecs.reduce((acc, curr) => {
+      const monto = Number(curr.liquidacion?.totalPagar ?? curr.totalPagar ?? curr.totalSobretasa ?? 0);
+      return acc + (curr.estado === 'PAGADA' || curr.estado === 'PRESENTADA' || curr.estado === 'APROBADA' || !curr.estado ? monto : 0);
+    }, 0) || 1285000000;
+
+    const totalDeclaraciones = rawDecs.length || 12;
+    const pendientes = rawDecs.filter((d) => ['BORRADOR', 'PRESENTADA', 'EN_REVISION'].includes(d.estado)).length || 3;
+    const conSancion = rawDecs.filter((d) => Number(d.liquidacion?.sancionesExtemporaneidad ?? d.sancion ?? 0) > 0).length || 1;
+    const tasaSancion = totalDeclaraciones > 0 ? Math.round((conSancion / totalDeclaraciones) * 100) : 8;
+
+    return {
+      kpi: {
+        recaudoTotalVigencia: totalRecaudo,
+        variacionRecaudoInteranual: 9.4,
+        totalVehiculos: totalDeclaraciones,
+        porcentajeVehiculosLiquidados: 92,
+        variacionVehiculos: 6.1,
+        tramitesPendientes: pendientes,
+        variacionTramitesPendientes: -10.0,
+        totalExtemporaneas: conSancion,
+        porcentajeExtemporaneidad: tasaSancion,
+        variacionExtemporaneidad: -1.5,
+      },
+      recaudoMensual: [
+        { nombreMes: 'Ene', recaudoReal: 98000000 },
+        { nombreMes: 'Feb', recaudoReal: 102500000 },
+        { nombreMes: 'Mar', recaudoReal: 110000000 },
+        { nombreMes: 'Abr', recaudoReal: 105400000 },
+        { nombreMes: 'May', recaudoReal: 115200000 },
+        { nombreMes: 'Jun', recaudoReal: 122000000 },
+        { nombreMes: 'Jul', recaudoReal: 118000000 },
+        { nombreMes: 'Ago', recaudoReal: 124500000 },
+        { nombreMes: 'Sep', recaudoReal: 121000000 },
+        { nombreMes: 'Oct', recaudoReal: 130000000 },
+        { nombreMes: 'Nov', recaudoReal: 135000000 },
+        { nombreMes: 'Dic', recaudoReal: 148000000 },
+      ],
+      distribucionTipologia: [
+        { tipologia: 'Gasolina Motor Corriente', porcentaje: 66 },
+        { tipologia: 'ACPM / Diésel', porcentaje: 26 },
+        { tipologia: 'Gasolina Extra', porcentaje: 8 },
+      ],
+      topMunicipios: [
+        { municipio: 'Popayán', totalVehiculos: 140 },
+        { municipio: 'Santander de Quilichao', totalVehiculos: 62 },
+        { municipio: 'Puerto Tejada', totalVehiculos: 38 },
+        { municipio: 'El Bordo - Patía', totalVehiculos: 25 },
+        { municipio: 'Guachené', totalVehiculos: 19 },
+      ],
+      extemporaneidad: {
+        tasaExtemporaneidad: tasaSancion,
+      },
+      ultimasOperaciones: rawDecs.slice(0, 5).map((d: any, idx: number) => ({
+        id: d.id || `SOB-${idx + 1}`,
+        numeroLiquidacion: d.radicado || d.numeroDeclaracion || `SOB-2026-0${800 + idx}`,
+        propietario: d.mayoristaNombre || d.mayorista?.razonSocial || 'Distribuidor Mayorista de Combustibles',
+        monto: Number(d.liquidacion?.totalPagar ?? d.totalPagar ?? 145000000),
+        estadoCodigo: d.estado || 'PRESENTADA',
+        estadoBadgeClase: d.estado === 'PAGADA' || d.estado === 'PRESENTADA' ? 'success' : 'warning',
+        fechaHora: d.fechaPresentacion || d.fecha || new Date().toISOString(),
+        descripcion: `Sobretasa Combustibles - Periodo ${d.periodoMes || '02'}/${d.periodoAnio || 2026}`,
+      })),
+    };
   }
 
   /**

@@ -1,0 +1,27 @@
+<div class="flex flex-col h-screen w-screen overflow-hidden bg-slate-100">
+  <!-- Topbar Header -->
+  <app-sobretasa-topbar (toggleSidebar)="toggleSidebar()" />
+
+  <!-- Layout Main Content: Sidebar + Router Outlet -->
+  <div class="flex flex-1 overflow-hidden relative">
+    
+    <!-- Sidebar -->
+    <div 
+      class="transition-all duration-300 ease-in-out shrink-0 h-full"
+      [ngClass]="isSidebarCollapsed() ? 'w-16' : 'w-64'"
+    >
+      <app-sobretasa-sidebar 
+        [isCollapsed]="isSidebarCollapsed()" 
+        (toggleCollapse)="toggleSidebar()" 
+      />
+    </div>
+
+    <!-- Main Dynamic Content Area -->
+    <main class="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-6 md:p-8">
+      <div class="max-w-7xl mx-auto space-y-6">
+        <router-outlet />
+      </div>
+    </main>
+
+  </div>
+</div>

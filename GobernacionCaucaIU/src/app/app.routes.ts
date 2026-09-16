@@ -35,6 +35,14 @@ export const routes: Routes = [
     loadChildren: () => import('./features/pasaportes/pasaportes.routes').then(m => m.pasaportesRoutes)
   },
   {
+    path: 'licores',
+    loadChildren: () => import('./features/licores/licores.routes').then(m => m.licoresRoutes)
+  },
+  {
+    path: 'sobretasa',
+    loadChildren: () => import('./features/sobretasa/sobretasa.routes').then(m => m.sobretasaRoutes)
+  },
+  {
     path: '**',
     redirectTo: '',
   }

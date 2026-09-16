@@ -1,0 +1,529 @@
+<div class="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+  
+  <!-- TOP HEADER / NAVBAR (ESTILO PORTAL CIUDADANO GOBERNACIÓN) -->
+  <header class="w-full bg-white border-b border-slate-200 py-3 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+    <!-- Left: Logo & Title -->
+    <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
+      <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-10 md:h-12 w-auto object-contain select-none" />
+      <div class="flex flex-col border-l border-slate-200 pl-3">
+        <span class="text-xs font-extrabold text-[#0f4984] tracking-tight leading-none uppercase">Portal Ciudadano</span>
+        <span class="text-[10px] text-slate-400 font-semibold leading-none mt-1">Impuesto de Licores & Tornaguías &middot; Cauca</span>
+      </div>
+    </a>
+
+    <!-- Center: Nav Tabs (Inicio, Mis Declaraciones, Tornaguías) -->
+    <nav class="hidden md:flex items-center space-x-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+      
+      <button 
+        (click)="cambiarTab('inicio')"
+        [class.bg-[#0f4984]]="activeTab() === 'inicio'"
+        [class.text-white]="activeTab() === 'inicio'"
+        [class.shadow-xs]="activeTab() === 'inicio'"
+        [class.text-slate-600]="activeTab() !== 'inicio'"
+        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
+        [class.hover:text-white]="activeTab() === 'inicio'"
+      >
+        <i class="fa-solid fa-house text-xs"></i>
+        <span>Inicio y Servicios</span>
+      </button>
+
+      <button 
+        (click)="cambiarTab('mis-declaraciones')"
+        [class.bg-[#0f4984]]="activeTab() === 'mis-declaraciones'"
+        [class.text-white]="activeTab() === 'mis-declaraciones'"
+        [class.shadow-xs]="activeTab() === 'mis-declaraciones'"
+        [class.text-slate-600]="activeTab() !== 'mis-declaraciones'"
+        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
+        [class.hover:text-white]="activeTab() === 'mis-declaraciones'"
+      >
+        <i class="fa-solid fa-folder-open text-xs"></i>
+        <span>Mis Declaraciones</span>
+      </button>
+
+      <button 
+        (click)="cambiarTab('tornaguias')"
+        [class.bg-[#0f4984]]="activeTab() === 'tornaguias'"
+        [class.text-white]="activeTab() === 'tornaguias'"
+        [class.shadow-xs]="activeTab() === 'tornaguias'"
+        [class.text-slate-600]="activeTab() !== 'tornaguias'"
+        class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
+        [class.hover:text-white]="activeTab() === 'tornaguias'"
+      >
+        <i class="fa-solid fa-file-shield text-xs"></i>
+        <span>Tornaguías Emitidas</span>
+      </button>
+
+    </nav>
+
+    <!-- Right: Actions -->
+    <div class="flex items-center gap-2">
+      <a
+        routerLink="/licores/dashboard"
+        class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+        title="Ingresar como Funcionario de Rentas"
+      >
+        <i class="fa-solid fa-user-shield text-xs text-[#0f4984]"></i>
+        <span class="hidden sm:inline">Panel Funcionario</span>
+      </a>
+
+      <button 
+        (click)="salir()" 
+        class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
+        title="Salir al portal principal"
+      >
+        <i class="fa-solid fa-right-from-bracket text-xs"></i>
+        <span>Salir</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- NOTIFICACION TOAST -->
+  @if (mensajeExito()) {
+    <div class="max-w-5xl mx-auto w-full px-4 pt-4">
+      <div class="bg-emerald-600 text-white px-5 py-3.5 rounded-2xl shadow-lg flex items-center justify-between animate-fade-in">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-circle-check text-lg"></i>
+          <span class="text-xs sm:text-sm font-semibold">{{ mensajeExito() }}</span>
+        </div>
+        <button (click)="mensajeExito.set(null)" class="text-white/80 hover:text-white cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- MAIN BODY CONTAINER -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 py-8">
+    
+    <!-- TAB 1: INICIO Y SERVICIOS CIUDADANOS / DECLARANTE -->
+    @if (activeTab() === 'inicio') {
+      <div class="space-y-8">
+        
+        <!-- INTRO HERO -->
+        <div class="text-center max-w-2xl mx-auto">
+          <div class="inline-flex items-center gap-1.5 bg-blue-50 border border-blue-200 text-[#0f4984] text-[11px] font-bold px-3 py-1 rounded-full mb-2.5">
+            <i class="fa-solid fa-wine-glass"></i>
+            <span>Impuesto al Consumo de Licores &middot; Ley 1816 de 2016</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Trámites y Consultas de Licores y Tornaguías
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-500 mt-2 leading-relaxed">
+            Realice la declaración de embarque para despachos de bebidas alcohólicas hacia el Departamento del Cauca, consulte el estado de su pre-liquidación, pague en línea por PSE y descargue la tornaguía oficial.
+          </p>
+        </div>
+
+        <!-- 2 MAIN CARDS: SOLICITUD VS CONSULTA -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <!-- CARD 1: HACER SOLICITUD / DECLARACION -->
+          <div class="bg-white border-2 border-slate-200/90 rounded-2xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group hover:border-[#0f4984]/50">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-blue-50 text-[#0f4984] flex items-center justify-center text-2xl group-hover:scale-105 transition-transform shadow-xs">
+                  <i class="fa-solid fa-file-pen"></i>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase tracking-wider">
+                  Trámite en Línea
+                </span>
+              </div>
+              <h3 class="text-lg font-bold text-slate-900 group-hover:text-[#0f4984] transition-colors">
+                Hacer Solicitud / Nueva Declaración
+              </h3>
+              <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                Diligencie el formulario oficial con datos de la fábrica o importador, vehículo, conductor y detalle del lote de botellas. El sistema calcula en tiempo real el impuesto ICL y genera el número de radicado.
+              </p>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                (click)="abrirWizard()"
+                class="w-full py-3 rounded-xl text-xs font-black bg-[#0f4984] hover:bg-[#0a274d] text-white shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <i class="fa-solid fa-plus-circle"></i>
+                <span>Iniciar Declaración de Licores</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- CARD 2: CONSULTA DE RADICADO O TORNAGUIA -->
+          <div class="bg-white border-2 border-slate-200/90 rounded-2xl p-6 sm:p-7 shadow-xs hover:shadow-md transition-all flex flex-col justify-between group hover:border-[#0f4984]/50">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center text-2xl group-hover:scale-105 transition-transform shadow-xs">
+                  <i class="fa-solid fa-magnifying-glass-chart"></i>
+                </div>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-[#0f4984] border border-blue-200 uppercase tracking-wider">
+                  Seguimiento
+                </span>
+              </div>
+              <h3 class="text-lg font-bold text-slate-900 group-hover:text-[#0f4984] transition-colors">
+                Consultar Estado de Radicado o Tornaguía
+              </h3>
+              <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                Ingrese el número de radicado (ej. <strong>RAD-2026-0001</strong>) o tornaguía electrónica para verificar aprobación, pagar por PSE, subsanar requerimientos o descargar el amparo oficial.
+              </p>
+
+              <!-- INPUT FORM IN CARD -->
+              <div class="mt-4">
+                <div class="relative">
+                  <input
+                    type="text"
+                    [(ngModel)]="numeroConsultaInput"
+                    placeholder="Ej: RAD-2026-0001 ó TGN-2026-0045"
+                    (keyup.enter)="consultarRadicadoOtornaguia()"
+                    class="w-full pl-3.5 pr-24 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl font-mono uppercase font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    (click)="consultarRadicadoOtornaguia()"
+                    class="absolute right-1.5 top-1.5 bottom-1.5 px-3 rounded-lg text-xs font-bold bg-[#0f4984] text-white hover:bg-[#0a274d] transition-colors cursor-pointer"
+                  >
+                    Consultar
+                  </button>
+                </div>
+
+                <!-- QUICK CHIPS -->
+                <div class="mt-2.5 flex flex-wrap items-center gap-1.5 text-[10.5px] text-slate-400">
+                  <span>Ejemplos:</span>
+                  <button (click)="cargarEjemplo('RAD-2026-0001')" class="text-[#0f4984] font-mono font-bold hover:underline">RAD-2026-0001 (Pagado)</button>
+                  <span>&middot;</span>
+                  <button (click)="cargarEjemplo('RAD-2026-0002')" class="text-[#0f4984] font-mono font-bold hover:underline">RAD-2026-0002 (Revisión)</button>
+                  <span>&middot;</span>
+                  <button (click)="cargarEjemplo('RAD-2026-0003')" class="text-[#0f4984] font-mono font-bold hover:underline">RAD-2026-0003 (Requerido)</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+              <span>Consulta pública en tiempo real</span>
+              <i class="fa-solid fa-shield-check text-emerald-600"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RESULTADO DE CONSULTA (SI SE BUSCÓ) -->
+        @if (haConsultado()) {
+          @if (resultadoConsulta()) {
+            @let res = resultadoConsulta()!;
+            <div class="bg-white border-2 border-[#0f4984]/30 rounded-2xl p-6 shadow-md space-y-5 animate-fade-in">
+              
+              <!-- HEADER EXPEDIENTE -->
+              <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center font-bold text-lg">
+                    <i class="fa-solid fa-file-invoice"></i>
+                  </div>
+                  <div>
+                    <span class="text-[10.5px] uppercase font-bold text-slate-400 tracking-wider">Expediente de Declaración</span>
+                    <h3 class="text-base font-black text-[#0f3b73] font-mono tracking-tight">{{ res.numeroRadicado }}</h3>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-500">Estado:</span>
+                  <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold"
+                    [ngClass]="{
+                      'bg-amber-100 text-amber-900 border border-amber-300': res.estado === 'EN_REVISION',
+                      'bg-rose-100 text-rose-900 border border-rose-300': res.estado === 'REQUERIDO' || res.estado === 'RECHAZADO',
+                      'bg-blue-100 text-blue-900 border border-blue-300': res.estado === 'PENDIENTE_PAGO',
+                      'bg-emerald-100 text-emerald-900 border border-emerald-300': res.estado === 'PAGADO_EMITIDO' || res.estado === 'LEGALIZADO'
+                    }"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full"
+                      [ngClass]="{
+                        'bg-amber-600': res.estado === 'EN_REVISION',
+                        'bg-rose-600': res.estado === 'REQUERIDO' || res.estado === 'RECHAZADO',
+                        'bg-blue-600': res.estado === 'PENDIENTE_PAGO',
+                        'bg-emerald-600': res.estado === 'PAGADO_EMITIDO' || res.estado === 'LEGALIZADO'
+                      }"
+                    ></span>
+                    {{ res.estado }}
+                  </span>
+                </div>
+              </div>
+
+              <!-- DETALLES GRID -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <span class="text-slate-400 block text-[10px] font-bold uppercase">Declarante / Sujeto Pasivo</span>
+                  <strong class="text-slate-900 block mt-0.5">{{ res.entidadProductora.nombreComercial }}</strong>
+                  <span class="text-[10px] font-mono text-slate-500">NIT: {{ res.entidadProductora.nit }}</span>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <span class="text-slate-400 block text-[10px] font-bold uppercase">Destino y Transporte</span>
+                  <strong class="text-slate-900 block mt-0.5">{{ res.transporte.municipioDestino }} (Cauca)</strong>
+                  <span class="text-[10px] text-slate-600">Placa: <strong class="font-mono text-amber-800">{{ res.transporte.placaVehiculo }}</strong> &middot; {{ res.transporte.nombreConductor }}</span>
+                </div>
+
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <span class="text-slate-400 block text-[10px] font-bold uppercase">Liquidación Total ICL</span>
+                  <strong class="text-base font-black text-emerald-800 font-mono block mt-0.5">{{ formatMoney(res.totalPagar) }}</strong>
+                  <span class="text-[10px] font-mono text-[#0f3b73] font-bold">{{ res.totalBotellas | number }} Botellas declaradas</span>
+                </div>
+              </div>
+
+              <!-- OBSERVACIONES SI ESTA REQUERIDO O APROBADO -->
+              @if (res.observacionesFuncionario) {
+                <div class="p-3.5 rounded-xl border text-xs"
+                  [ngClass]="res.estado === 'REQUERIDO' ? 'bg-rose-50 border-rose-300 text-rose-950' : 'bg-blue-50 border-blue-200 text-blue-950'"
+                >
+                  <strong class="block text-[10.5px] uppercase font-bold mb-0.5">
+                    <i class="fa-solid fa-circle-info mr-1"></i>
+                    Observación de Rentas Departamentales:
+                  </strong>
+                  <p class="leading-relaxed">{{ res.observacionesFuncionario }}</p>
+                </div>
+              }
+
+              <!-- BOTONES DE ACCION DIRECTA SEGUN ESTADO -->
+              <div class="pt-2 flex flex-wrap items-center justify-end gap-2.5">
+                
+                <!-- VER PRELIQUIDACION / LIQUIDACION OFICIAL PDF -->
+                <button
+                  type="button"
+                  (click)="abrirLiquidacionPdf(res)"
+                  class="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
+                  title="Ver Formulario Oficial de Preliquidación o Liquidación ICL en PDF"
+                >
+                  <i class="fa-solid fa-file-invoice-dollar text-[#0f4984]"></i>
+                  <span>Ver Liquidación PDF</span>
+                </button>
+
+                <!-- SI ESTA PENDIENTE DE PAGO -->
+                @if (res.estado === 'PENDIENTE_PAGO') {
+                  <button
+                    type="button"
+                    (click)="abrirPse(res)"
+                    class="px-5 py-2.5 rounded-xl text-xs font-bold bg-[#0f4984] hover:bg-[#0a274d] text-white shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Pagar en Línea con PSE ({{ formatMoney(res.totalPagar) }})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="abrirAsobancario(res)"
+                    class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition-colors cursor-pointer"
+                  >
+                    <i class="fa-solid fa-building-columns mr-1"></i>
+                    <span>Relacionar Pago Bancario</span>
+                  </button>
+                }
+
+                <!-- SI ESTA REQUERIDO -->
+                @if (res.estado === 'REQUERIDO') {
+                  <button
+                    type="button"
+                    (click)="abrirSubsanar(res)"
+                    class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>Subsanar Requerimiento</span>
+                  </button>
+                }
+
+                <!-- SI ESTA PAGADO O LEGALIZADO -->
+                @if (res.estado === 'PAGADO_EMITIDO' || res.estado === 'LEGALIZADO') {
+                  <button
+                    type="button"
+                    (click)="abrirTornaguia(res)"
+                    class="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <i class="fa-solid fa-file-shield"></i>
+                    <span>Ver y Descargar Tornaguía Oficial ({{ res.tornaguiaNumero }})</span>
+                  </button>
+                }
+
+                <button
+                  type="button"
+                  (click)="abrirDetalle(res)"
+                  class="px-4 py-2.5 rounded-xl text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  <i class="fa-solid fa-list-check mr-1"></i>
+                  <span>Ver Detalle del Lote</span>
+                </button>
+
+              </div>
+
+            </div>
+          } @else {
+            <div class="bg-white border border-slate-200 rounded-2xl p-8 text-center text-slate-500 shadow-xs">
+              <i class="fa-solid fa-magnifying-glass text-2xl text-slate-300 mb-2"></i>
+              <h4 class="font-bold text-slate-800 text-sm">No se encontró ningún radicado o tornaguía</h4>
+              <p class="text-xs text-slate-400 mt-1">Verifica el número ingresado (ej. RAD-2026-0001) e intenta de nuevo.</p>
+            </div>
+          }
+        }
+
+      </div>
+    }
+
+    <!-- TAB 2: MIS DECLARACIONES (TABLA HISTORIAL COMPLETA) -->
+    @if (activeTab() === 'mis-declaraciones' || activeTab() === 'tornaguias') {
+      <div class="space-y-4">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">
+              {{ activeTab() === 'tornaguias' ? 'Tornaguías Oficiales Expedidas' : 'Historial de Declaraciones de Licores' }}
+            </h2>
+            <p class="text-xs text-slate-500">Expedientes registrados ante la Secretaría de Hacienda del Cauca</p>
+          </div>
+
+          <button
+            type="button"
+            (click)="abrirWizard()"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0f4984] hover:bg-[#0a274d] text-white shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Nueva Declaración</span>
+          </button>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-700">
+              <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+                <tr>
+                  <th class="py-3 px-4">No. Radicado</th>
+                  <th class="py-3 px-4">Declarante</th>
+                  <th class="py-3 px-4">Destino Cauca</th>
+                  <th class="py-3 px-4">Vehículo & Placa</th>
+                  <th class="py-3 px-4 text-center">Botellas</th>
+                  <th class="py-3 px-4 text-right">Total ICL</th>
+                  <th class="py-3 px-4 text-center">Estado</th>
+                  <th class="py-3 px-4 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (liq of licoresService.liquidacionesFiltradas(); track liq.id) {
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-3 px-4 font-mono font-bold text-[#0f3b73]">
+                      {{ liq.numeroRadicado }}
+                      @if (liq.tornaguiaNumero) {
+                        <span class="block text-[10px] font-mono text-emerald-700">{{ liq.tornaguiaNumero }}</span>
+                      }
+                    </td>
+                    <td class="py-3 px-4 font-medium text-slate-800">{{ liq.entidadProductora.nombreComercial }}</td>
+                    <td class="py-3 px-4 font-medium text-slate-700">{{ liq.transporte.municipioDestino }}</td>
+                    <td class="py-3 px-4 text-[11px]">
+                      <span class="font-mono font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">{{ liq.transporte.placaVehiculo }}</span>
+                    </td>
+                    <td class="py-3 px-4 text-center font-mono font-bold text-slate-800">{{ liq.totalBotellas | number }}</td>
+                    <td class="py-3 px-4 text-right font-mono font-bold text-emerald-800">{{ formatMoney(liq.totalPagar) }}</td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                        [ngClass]="{
+                          'bg-amber-100 text-amber-900 border border-amber-300': liq.estado === 'EN_REVISION',
+                          'bg-rose-100 text-rose-900 border border-rose-300': liq.estado === 'REQUERIDO' || liq.estado === 'RECHAZADO',
+                          'bg-blue-100 text-blue-900 border border-blue-300': liq.estado === 'PENDIENTE_PAGO',
+                          'bg-emerald-100 text-emerald-900 border border-emerald-300': liq.estado === 'PAGADO_EMITIDO' || liq.estado === 'LEGALIZADO'
+                        }"
+                      >
+                        {{ liq.estado }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4 text-right whitespace-nowrap">
+                      <button (click)="abrirLiquidacionPdf(liq)" class="px-2.5 py-1 rounded bg-slate-100 text-slate-800 border border-slate-300 font-bold text-[11px] hover:bg-slate-200 cursor-pointer mr-1" title="Ver Preliquidación / Liquidación PDF">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1 text-[#0f4984]"></i>
+                        <span>PDF</span>
+                      </button>
+                      @if (liq.estado === 'PENDIENTE_PAGO') {
+                        <button (click)="abrirPse(liq)" class="px-2.5 py-1 rounded bg-[#0f4984] text-white font-bold text-[11px] hover:bg-[#0a274d] cursor-pointer mr-1">
+                          Pagar PSE
+                        </button>
+                      }
+                      @if (liq.estado === 'REQUERIDO') {
+                        <button (click)="abrirSubsanar(liq)" class="px-2.5 py-1 rounded bg-amber-600 text-white font-bold text-[11px] hover:bg-amber-700 cursor-pointer mr-1">
+                          Subsanar
+                        </button>
+                      }
+                      @if (liq.estado === 'PAGADO_EMITIDO' || liq.estado === 'LEGALIZADO') {
+                        <button (click)="abrirTornaguia(liq)" class="px-2.5 py-1 rounded bg-emerald-700 text-white font-bold text-[11px] hover:bg-emerald-800 cursor-pointer mr-1">
+                          Tornaguía
+                        </button>
+                      }
+                      <button (click)="abrirDetalle(liq)" class="p-1 text-slate-400 hover:text-slate-700 cursor-pointer" title="Ver detalle del expediente">
+                        <i class="fa-solid fa-eye text-xs"></i>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    }
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 px-4 text-center text-xs text-slate-400 mt-auto">
+    <p>Gobernación del Cauca &middot; Secretaría de Hacienda Departamental &middot; Grupo de Rentas y Fiscalización Tributaria</p>
+  </footer>
+
+</div>
+
+<!-- MODALES INCLUIDOS -->
+@if (mostrarWizard()) {
+  <app-declaracion-wizard
+    [entidad]="licoresService.entidades()[0]"
+    [catalogo]="licoresService.catalogo()"
+    (radicadoCreado)="onRadicadoCreado($event)"
+    (cerrar)="cerrarWizard()"
+  />
+}
+
+@if (modalActivo() === 'LIQUIDACION_PDF' && liquidacionSeleccionada()) {
+  <app-liquidacion-pdf-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    (pagarPse)="abrirPse($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'TORNAGUIA' && liquidacionSeleccionada()) {
+  <app-tornaguia-viewer
+    [liquidacion]="liquidacionSeleccionada()!"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'PSE' && liquidacionSeleccionada()) {
+  <app-pse-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    (pagoExitoso)="onPagoPseExitoso($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'ASOBANCARIO' && liquidacionSeleccionada()) {
+  <app-asobancario-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    (pagoRegistrado)="onPagoAsobancario($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'SUBSANAR' && liquidacionSeleccionada()) {
+  <app-subsanar-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    [catalogo]="licoresService.catalogo()"
+    (subsanar)="onSubsanarGuardado($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'DETALLE' && liquidacionSeleccionada()) {
+  <app-auditoria-modal
+    [liquidacion]="liquidacionSeleccionada()!"
+    [esFuncionario]="false"
+    (cerrar)="cerrarModales()"
+  />
+}
