@@ -417,31 +417,16 @@ export class VehiculosFacade {
             subtituloFichaTecnica: item.subtituloFichaTecnica,
             propietarioId: item.propietarioId,
             propietarioNombre: propietarioNombre,
-            propietarioDocumento: propietarioDoc,
+            propietarioDocumento: docCompleto,
             propietarios: item.propietarios || [],
             propietario: {
               nombre: propietarioNombre,
               tipoDocumento: tipoDoc,
-              numeroDocumento: propietarioDoc,
+              numeroDocumento: numDoc,
               tipoPersona: tipoPersona
             }
           };
         });
-
-        if (mapped.length > 0) {
-          this.vehiculos.set(mapped);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(total);
-        } else {
-          this.vehiculos.set([]);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(0);
-        }
-        this.paginaActual.set(page);
-        this.pageSize.set(pageSize);
-        this.totalPaginas.set(totalPags);
-      }
-    });
   }
 
   refrescarDashboard(irAPrimeraPagina: boolean = true): void {

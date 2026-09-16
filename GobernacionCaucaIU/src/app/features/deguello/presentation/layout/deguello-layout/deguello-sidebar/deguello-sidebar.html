@@ -1,0 +1,121 @@
+<aside class="bg-white border-r border-slate-200 flex flex-col justify-between shrink-0 h-screen transition-all duration-300 z-10 w-full shadow-xs">
+
+  <!-- Menu Nav -->
+  <nav class="flex-1 overflow-y-auto py-4">
+    <div *ngIf="!isCollapsed()" class="px-4 pb-3 mb-2 border-b border-slate-100">
+      <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Módulos de Gestión</span>
+    </div>
+
+    <ul class="space-y-1.5 px-2">
+      <!-- 0. DASHBOARD EJECUTIVO -->
+      <li>
+        <a
+          routerLink="/deguello/dashboard"
+          routerLinkActive="bg-blue-50 text-[#1b53ad] font-bold border-l-4 border-[#1b53ad]"
+          class="flex items-center space-x-3 px-3.5 py-3 text-xs sm:text-sm transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent rounded-r-xl cursor-pointer"
+          [title]="isCollapsed() ? 'Dashboard Degüello' : ''">
+          <div class="w-6 h-6 flex items-center justify-center shrink-0 text-slate-500 group-hover:text-[#1b53ad]">
+            <i class="fa-solid fa-gauge-high text-base"></i>
+          </div>
+          @if (!isCollapsed()) {
+            <div class="flex flex-col truncate">
+              <span class="truncate leading-tight">Dashboard</span>
+              <span class="text-[10px] font-normal text-slate-400">Métricas & Indicadores</span>
+            </div>
+          }
+        </a>
+      </li>
+
+      <!-- 1. LIQUIDACIÓN -->
+      <li>
+        <a
+          routerLink="/deguello/liquidacion"
+          routerLinkActive="bg-blue-50 text-[#1b53ad] font-bold border-l-4 border-[#1b53ad]"
+          class="flex items-center space-x-3 px-3.5 py-3 text-xs sm:text-sm transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent rounded-r-xl cursor-pointer"
+          [title]="isCollapsed() ? 'Liquidación de Degüello' : ''">
+          <div class="w-6 h-6 flex items-center justify-center shrink-0 text-slate-500 group-hover:text-[#1b53ad]">
+            <i class="fa-solid fa-cow text-base"></i>
+          </div>
+          @if (!isCollapsed()) {
+            <div class="flex flex-col truncate">
+              <span class="truncate leading-tight">Liquidación</span>
+              <span class="text-[10px] font-normal text-slate-400">Consulta ICA & Cálculo</span>
+            </div>
+          }
+        </a>
+      </li>
+
+      <!-- 2. FACTURACIÓN & DECLARACIONES -->
+      <li>
+        <a
+          routerLink="/deguello/facturacion"
+          routerLinkActive="bg-blue-50 text-[#1b53ad] font-bold border-l-4 border-[#1b53ad]"
+          class="flex items-center space-x-3 px-3.5 py-3 text-xs sm:text-sm transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent rounded-r-xl cursor-pointer"
+          [title]="isCollapsed() ? 'Facturación & Formularios' : ''">
+          <div class="w-6 h-6 flex items-center justify-center shrink-0 text-slate-500 group-hover:text-[#1b53ad]">
+            <i class="fa-solid fa-file-invoice-dollar text-base"></i>
+          </div>
+          @if (!isCollapsed()) {
+            <div class="flex flex-col truncate">
+              <span class="truncate leading-tight">Facturación</span>
+              <span class="text-[10px] font-normal text-slate-400">Formularios Únicos & Recaudo</span>
+            </div>
+          }
+        </a>
+      </li>
+
+      <!-- 3. INFORMES & FISCALIZACIÓN -->
+      <li>
+        <a
+          routerLink="/deguello/informes"
+          routerLinkActive="bg-blue-50 text-[#1b53ad] font-bold border-l-4 border-[#1b53ad]"
+          class="flex items-center space-x-3 px-3.5 py-3 text-xs sm:text-sm transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent rounded-r-xl cursor-pointer"
+          [title]="isCollapsed() ? 'Informes & Fiscalización' : ''">
+          <div class="w-6 h-6 flex items-center justify-center shrink-0 text-slate-500 group-hover:text-[#1b53ad]">
+            <i class="fa-solid fa-chart-pie text-base"></i>
+          </div>
+          @if (!isCollapsed()) {
+            <div class="flex flex-col truncate">
+              <span class="truncate leading-tight">Informes</span>
+              <span class="text-[10px] font-normal text-slate-400">Fiscalización & 10% Municipios</span>
+            </div>
+          }
+        </a>
+      </li>
+
+      <!-- 4. PARAMETRIZACIÓN -->
+      <li>
+        <a
+          routerLink="/deguello/parametrizacion"
+          routerLinkActive="bg-blue-50 text-[#1b53ad] font-bold border-l-4 border-[#1b53ad]"
+          class="flex items-center space-x-3 px-3.5 py-3 text-xs sm:text-sm transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent rounded-r-xl cursor-pointer"
+          [title]="isCollapsed() ? 'Parametrización' : ''">
+          <div class="w-6 h-6 flex items-center justify-center shrink-0 text-slate-500 group-hover:text-[#1b53ad]">
+            <i class="fa-solid fa-sliders text-base"></i>
+          </div>
+          @if (!isCollapsed()) {
+            <div class="flex flex-col truncate">
+              <span class="truncate leading-tight">Parametrización</span>
+              <span class="text-[10px] font-normal text-slate-400">Tarifas, UVT, PBA & Municipios</span>
+            </div>
+          }
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Bottom Toggle -->
+  <div class="p-3 border-t border-slate-100 shrink-0">
+    <button
+      (click)="toggleCollapse.emit()"
+      class="flex items-center gap-3 px-3 py-2 text-xs text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-lg w-full transition cursor-pointer"
+      [title]="isCollapsed() ? 'Expandir menú' : 'Contraer menú'">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 shrink-0">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
+      @if (!isCollapsed()) {
+        <span>Contraer menú</span>
+      }
+    </button>
+  </div>
+</aside>

@@ -14,8 +14,8 @@ export const routes: Routes = [
     component: LoginComponent,
   },
   {
-    path: 'deguello/portal-ciudadano',
-    component: ConsultaCiudadanaSharedComponent,
+    path: 'deguello',
+    loadChildren: () => import('./features/deguello/deguello.routes').then(m => m.deguelloRoutes)
   },
   {
     path: 'portal-ciudadano',
