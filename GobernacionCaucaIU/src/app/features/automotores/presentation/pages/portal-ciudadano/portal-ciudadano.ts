@@ -2,6 +2,7 @@ import { Component, signal, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { VehiculosApiService } from '../../../infrastructure/api/vehiculos-api.service';
+import { DataMaskingUtil } from '../../../../../shared/utils/data-masking.util';
 import { 
   ConsultaCiudadanaSharedComponent, 
   ConsultaSubmitPayload,
@@ -57,6 +58,7 @@ export interface CertificadoCiudadano {
 }
 
 export interface PropietarioCiudadano {
+  id?: number;
   nombre: string;
   tipoDocumentoId: number;
   tipoDocumentoNombre: string;
@@ -66,6 +68,7 @@ export interface PropietarioCiudadano {
   direccion: string | null;
   ciudad: string | null;
   activo: boolean;
+  estaEnmascarado?: boolean;
 }
 
 export interface VehiculoCiudadano {
@@ -119,6 +122,10 @@ export class PortalCiudadano implements OnInit {
   readonly isConsulted = signal<boolean>(false);
   readonly activeTab = signal<'inicio' | 'historial' | 'liquidaciones' | 'certificados'>('inicio');
 
+  // Estado de Protección de Datos Personales (Habeas Data - Ley 1581)
+  readonly datosProtegidos = signal<boolean>(true);
+  readonly alertaDemoVisible = signal<boolean>(false);
+
   // Modales
   readonly liquidacionParaPagar = signal<LiquidacionCiudadano | null>(null);
 
@@ -126,6 +133,77 @@ export class PortalCiudadano implements OnInit {
   readonly ciudadano = signal<CiudadanoData | null>(null);
 
   ngOnInit(): void {}
+
+  toggleProteccionDatos(): void {
+    const nuevoEstado = !this.datosProtegidos();
+    this.datosProtegidos.set(nuevoEstado);
+    if (!nuevoEstado) {
+      this.alertaDemoVisible.set(true);
+      setTimeout(() => {
+        this.alertaDemoVisible.set(false);
+      }, 8000);
+    } else {
+      this.alertaDemoVisible.set(false);
+    }
+  }
+
+  cerrarAlertaDemo(): void {
+    this.alertaDemoVisible.set(false);
+  }
+
+  /**
+   * Método preparado para la Fase 2 (Backend OTP con MailKit):
+   * Permite inyectar los datos reales recibidos desde el API tras validar el código OTP.
+   */
+  aplicarDatosDesenmascaradosDesdeBackend(propietarioActualizado: Partial<PropietarioCiudadano>): void {
+    const actual = this.ciudadano();
+    if (!actual) return;
+
+    this.ciudadano.set({
+      ...actual,
+      propietario: {
+        ...actual.propietario,
+        ...propietarioActualizado,
+        estaEnmascarado: false
+      }
+    });
+    this.datosProtegidos.set(false);
+  }
+
+  getNombrePropietarioDisplay(): string {
+    const nombre = this.ciudadano()?.propietario?.nombre;
+    if (!nombre) return 'No registrado';
+    if (!this.datosProtegidos()) return nombre;
+    return DataMaskingUtil.maskNombre(nombre);
+  }
+
+  getDocumentoPropietarioDisplay(): string {
+    const doc = this.ciudadano()?.propietario?.documento;
+    if (!doc) return 'No registrado';
+    if (!this.datosProtegidos()) return doc;
+    return DataMaskingUtil.maskDocumento(doc);
+  }
+
+  getEmailPropietarioDisplay(): string {
+    const email = this.ciudadano()?.propietario?.email;
+    if (!email) return 'No registrado';
+    if (!this.datosProtegidos()) return email;
+    return DataMaskingUtil.maskEmail(email);
+  }
+
+  getTelefonoPropietarioDisplay(): string {
+    const tel = this.ciudadano()?.propietario?.telefono;
+    if (!tel) return 'No registrado';
+    if (!this.datosProtegidos()) return tel;
+    return DataMaskingUtil.maskTelefono(tel);
+  }
+
+  getDireccionPropietarioDisplay(): string {
+    const dir = this.ciudadano()?.propietario?.direccion;
+    if (!dir) return 'No registrada';
+    if (!this.datosProtegidos()) return dir;
+    return DataMaskingUtil.maskDireccion(dir);
+  }
 
   alConsultar(payload: ConsultaSubmitPayload): void {
     const tipoDocId = Number(payload.tipoDocumento) || 1;
@@ -418,8 +496,12 @@ export class PortalCiudadano implements OnInit {
       });
     }
 
+    const estaEnmascaradoBackend = prop?.estaEnmascarado ?? true;
+    this.datosProtegidos.set(estaEnmascaradoBackend);
+
     this.ciudadano.set({
       propietario: {
+        id: prop?.id,
         nombre: prop?.nombreCompleto || 'No especificado',
         tipoDocumentoId: prop?.tipoDocumentoId || tipoDocId,
         tipoDocumentoNombre: tipoDocStr,
@@ -428,7 +510,8 @@ export class PortalCiudadano implements OnInit {
         telefono: prop?.telefono || null,
         direccion: prop?.direccion || null,
         ciudad: prop?.ciudad || null,
-        activo: prop?.activo ?? true
+        activo: prop?.activo ?? true,
+        estaEnmascarado: estaEnmascaradoBackend
       },
       relacion: {
         tipoVinculo: rel?.tipoVinculoNombre || 'Propietario',

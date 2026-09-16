@@ -14,6 +14,24 @@ export interface PropietarioConsultaDto {
   direccion?: string | null;
   ciudad?: string | null;
   activo?: boolean;
+  estaEnmascarado?: boolean;
+  puedeDesenmascarar?: boolean;
+}
+
+export interface SolicitudOtpCiudadanoRequest {
+  propietarioId: number;
+  placa: string;
+}
+
+export interface ValidarOtpCiudadanoRequest {
+  propietarioId: number;
+  placa: string;
+  codigo: string;
+}
+
+export interface RespuestaValidacionOtpDto {
+  propietario: PropietarioConsultaDto;
+  tokenAutorizacion?: string;
 }
 
 export interface VehiculoConsultaDto {
