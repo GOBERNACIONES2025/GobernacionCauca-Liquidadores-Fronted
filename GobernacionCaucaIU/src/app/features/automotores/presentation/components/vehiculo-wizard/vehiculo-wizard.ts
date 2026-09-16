@@ -9,7 +9,7 @@ import {
   effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
@@ -18,7 +18,8 @@ import { FieldError } from '../../../application/validators/validation-result';
 import {
   RegistrarVehiculoDto,
   PropietarioInicialDto,
-  VehiculoItem
+  VehiculoItem,
+  CatalogoCiudad
 } from '../../../domain/models/vehiculo.model';
 
 @Component({
@@ -43,13 +44,15 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
   // ─── Estado local del wizard ──────────────────────────────────────────────
   readonly erroresPaso = signal<FieldError[]>([]);
-  readonly propietarioEncontradoMsg = signal<string | null>(null);
+  readonly propietarioEncontradoMsgs = signal<Record<number, string | null>>({});
+  readonly ciudadesPorPropietario = signal<Record<number, CatalogoCiudad[]>>({});
+  readonly buscandoPropietarioIndex = signal<number | null>(null);
 
   // ─── Formulario ───────────────────────────────────────────────────────────
   form!: FormGroup;
   private subs: Subscription[] = [];
 
-  // ─── Constructor Reactivo (Sincroniza apertura del drawer nuevo vs edición)
+  // ─── Constructor Reactivo (Sincroniza apertura del drawer nuevo vs edicion)
   constructor() {
     effect(() => {
       const isOpen = this.facade.isDrawerOpen();
@@ -66,7 +69,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Sincroniza selects reactivamente cuando los catálogos se actualicen
+    // Sincroniza selects reactivamente cuando los catalogos se actualicen
     effect(() => {
       const servs = this.facade.serviciosVehiculo();
       if (servs.length > 0 && this.form) {
@@ -90,33 +93,39 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── Computed helpers para el template ───────────────────────────────────
-  get isNatural(): boolean {
-    return this.form?.get('naturalezaJuridicaId')?.value == 1;
+  // ─── Getters para FormArray de Propietarios ──────────────────────────────
+  get propietariosArray(): FormArray {
+    return this.form.get('propietarios') as FormArray;
   }
 
-  getPlaceholderDocumento(): string {
-    const tipo = Number(this.form?.get('tipoDocumentoId')?.value);
+  isNatural(index: number): boolean {
+    const pGroup = this.propietariosArray?.at(index);
+    return (pGroup?.get('naturalezaJuridicaId')?.value ?? 1) == 1;
+  }
+
+  getPlaceholderDocumento(index: number): string {
+    const pGroup = this.propietariosArray?.at(index);
+    const tipo = Number(pGroup?.get('tipoDocumentoId')?.value);
     switch (tipo) {
-      case 1: return 'Ej: 1035421980 (Solo números)';
-      case 2: return 'Ej: 900123456 (NIT sin dígito)';
-      case 3: return 'Ej: 123456789 (Cédula de Extranjería)';
+      case 1: return 'Ej: 1035421980 (Solo numeros)';
+      case 2: return 'Ej: 900123456 (NIT sin digito)';
+      case 3: return 'Ej: 123456789 (Cedula de Extranjeria)';
       case 4: return 'Ej: 1023456789 (Tarjeta de Identidad)';
       case 5: return 'Ej: AB123456 (Pasaporte)';
       case 6: return 'Ej: 1023456789 (Registro Civil)';
-      default: return 'Número de documento...';
+      default: return 'Numero de documento...';
     }
   }
 
-  onDocumentoInput(event: Event): void {
+  onDocumentoInput(event: Event, index: number): void {
     const input = event.target as HTMLInputElement;
-    const tipo = Number(this.form.get('tipoDocumentoId')?.value);
-    // Tipos numéricos: 1 (CC), 2 (NIT), 4 (TI), 6 (RC)
+    const pGroup = this.propietariosArray.at(index);
+    const tipo = Number(pGroup?.get('tipoDocumentoId')?.value);
     if ([1, 2, 4, 6].includes(tipo)) {
       const soloDigitos = input.value.replace(/\D/g, '');
       if (input.value !== soloDigitos) {
         input.value = soloDigitos;
-        this.form.get('numeroDocumento')?.setValue(soloDigitos, { emitEvent: false });
+        pGroup.get('numeroDocumento')?.setValue(soloDigitos, { emitEvent: false });
       }
     }
   }
@@ -154,15 +163,15 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     }
     if (rawClean.includes('dies')) {
       const match = catalogo.find(c => cleanStr(c.nombre).includes('dies'));
-      return match ? match.nombre : 'Diésel';
+      return match ? match.nombre : 'Diesel';
     }
     if (rawClean.includes('elec')) {
       const match = catalogo.find(c => cleanStr(c.nombre).includes('elec'));
-      return match ? match.nombre : 'Eléctrico';
+      return match ? match.nombre : 'Electrico';
     }
     if (rawClean.includes('hib')) {
       const match = catalogo.find(c => cleanStr(c.nombre).includes('hib'));
-      return match ? match.nombre : 'Híbrido';
+      return match ? match.nombre : 'Hibrido';
     }
     if (rawClean.includes('gas')) {
       const match = catalogo.find(c => cleanStr(c.nombre).includes('gas'));
@@ -204,7 +213,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     }
     if (rawClean.includes('publ') || rawClean === '2') {
       const match = catalogo.find(s => cleanStr(s.nombre).includes('publ'));
-      return match ? match.nombre : 'Público';
+      return match ? match.nombre : 'Publico';
     }
     if (rawClean.includes('ofic') || rawClean === '3') {
       const match = catalogo.find(s => cleanStr(s.nombre).includes('ofic'));
@@ -216,7 +225,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     }
     if (rawClean.includes('diplo') || rawClean === '5') {
       const match = catalogo.find(s => cleanStr(s.nombre).includes('diplo'));
-      return match ? match.nombre : 'Diplomático';
+      return match ? match.nombre : 'Diplomatico';
     }
 
     return raw;
@@ -233,13 +242,13 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
   }
 
-  // ─── Inicialización del formulario ────────────────────────────────────────
+  // ─── Inicializacion del formulario ────────────────────────────────────────
   initForm(): void {
     this.subs.forEach(s => s.unsubscribe());
     this.subs = [];
 
     this.form = this.fb.group({
-      // Paso 1: Datos del Vehículo
+      // Paso 1: Datos del Vehiculo
       tipoVehiculo: [''],
       marca: [{ value: '', disabled: true }],
       linea: [{ value: '', disabled: true }],
@@ -254,23 +263,17 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       organismoTransitoId: [null],
       fechaMatricula: [''],
 
-      // Paso 2: Propietario Inicial
+      // Paso 2: Propietarios y Copropietarios
       incluirPropietario: [true],
-      personaId: [null],
-      tipoDocumentoId: [null],
-      numeroDocumento: [''],
-      digitoVerificacion: [null],
-      naturalezaJuridicaId: [null],
-      nombreRazonSocial: [''],
-      correoElectronico: [''],
-      telefono: [''],
-      direccion: [''],
-      departamentoId: [null],
-      ciudadId: [null],
-      tipoVinculoPersonaId: [1],
-      porcentajePropiedad: [100],
-      fechaInicio: [new Date().toISOString().split('T')[0]],
-      esResponsablePrincipal: [true],
+      propietarios: this.fb.array([
+        this.crearPropietarioFormGroup({
+          porcentajePropiedad: 100,
+          esResponsablePrincipal: true,
+          tipoVinculoPersonaId: 1,
+          naturalezaJuridicaId: 1,
+          tipoDocumentoId: 1
+        })
+      ]),
 
       // Paso 3: Observaciones
       observaciones: ['']
@@ -278,12 +281,124 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
     this.configurarCascadas();
     this.erroresPaso.set([]);
-    this.propietarioEncontradoMsg.set(null);
+    this.propietarioEncontradoMsgs.set({});
+    this.ciudadesPorPropietario.set({});
   }
 
-  // ─── Cascadas de dependencias entre campos ────────────────────────────────
+  // ─── Creacion de FormGroup para cada propietario ──────────────────────────
+  crearPropietarioFormGroup(datos?: Partial<PropietarioInicialDto>): FormGroup {
+    const fg = this.fb.group({
+      personaId: [datos?.personaId || null],
+      tipoDocumentoId: [datos?.tipoDocumentoId || 1],
+      numeroDocumento: [datos?.numeroDocumento || ''],
+      digitoVerificacion: [datos?.digitoVerificacion || null],
+      naturalezaJuridicaId: [datos?.naturalezaJuridicaId || 1],
+      nombreRazonSocial: [datos?.razonSocial || (datos as any)?.nombreRazonSocial || (datos as any)?.nombrePropietario || ''],
+      correoElectronico: [datos?.correoElectronico || ''],
+      telefono: [datos?.telefono || ''],
+      direccion: [datos?.direccion || ''],
+      departamentoId: [datos?.departamentoId || null],
+      ciudadId: [datos?.ciudadId || null],
+      tipoVinculoPersonaId: [datos?.tipoVinculoPersonaId || 1],
+      porcentajePropiedad: [datos?.porcentajePropiedad !== undefined ? datos.porcentajePropiedad : 100],
+      fechaInicio: [datos?.fechaInicio || new Date().toISOString().split('T')[0]],
+      esResponsablePrincipal: [datos?.esResponsablePrincipal !== undefined ? datos.esResponsablePrincipal : true]
+    });
+
+    if (datos?.departamentoId) {
+      this.cargarCiudadesPropietario(this.propietariosArray?.length || 0, Number(datos.departamentoId));
+    }
+
+    return fg;
+  }
+
+  // ─── Gestion de Propietarios / Copropietarios ─────────────────────────────
+  agregarCopropietario(): void {
+    const restante = this.calcularPorcentajeRestante();
+    const nuevoGrupo = this.crearPropietarioFormGroup({
+      porcentajePropiedad: restante > 0 ? restante : 0,
+      esResponsablePrincipal: false,
+      tipoVinculoPersonaId: 1,
+      naturalezaJuridicaId: 1,
+      tipoDocumentoId: 1
+    });
+    this.propietariosArray.push(nuevoGrupo);
+  }
+
+  eliminarCopropietario(index: number): void {
+    if (this.propietariosArray.length <= 1) return;
+
+    const fuePrincipal = this.propietariosArray.at(index).get('esResponsablePrincipal')?.value;
+    this.propietariosArray.removeAt(index);
+
+    // Si se elimino el principal, asignar al primero
+    if (fuePrincipal && this.propietariosArray.length > 0) {
+      this.setResponsablePrincipal(0);
+    }
+
+    // Limpiar mensajes y ciudades
+    const msgs = { ...this.propietarioEncontradoMsgs() };
+    delete msgs[index];
+    this.propietarioEncontradoMsgs.set(msgs);
+  }
+
+  setResponsablePrincipal(index: number): void {
+    this.propietariosArray.controls.forEach((control, i) => {
+      control.get('esResponsablePrincipal')?.setValue(i === index, { emitEvent: false });
+    });
+  }
+
+  calcularPorcentajeTotal(): number {
+    if (!this.propietariosArray) return 0;
+    const total = this.propietariosArray.controls.reduce((acc, control) => {
+      const val = Number(control.get('porcentajePropiedad')?.value) || 0;
+      return acc + val;
+    }, 0);
+    return Math.round(total * 100) / 100;
+  }
+
+  calcularPorcentajeRestante(): number {
+    const total = this.calcularPorcentajeTotal();
+    return Math.max(0, Math.round((100 - total) * 100) / 100);
+  }
+
+  asignarRestante(index: number): void {
+    const currentControl = this.propietariosArray.at(index);
+    if (!currentControl) return;
+
+    const actualVal = Number(currentControl.get('porcentajePropiedad')?.value) || 0;
+    const otrosTotal = this.calcularPorcentajeTotal() - actualVal;
+    const nuevoVal = Math.max(0, Math.round((100 - otrosTotal) * 100) / 100);
+    currentControl.get('porcentajePropiedad')?.setValue(nuevoVal);
+  }
+
+  cargarCiudadesPropietario(index: number, deptId: number | null): void {
+    if (!deptId) {
+      const map = { ...this.ciudadesPorPropietario() };
+      map[index] = [];
+      this.ciudadesPorPropietario.set(map);
+      this.propietariosArray.at(index)?.get('ciudadId')?.setValue(null, { emitEvent: false });
+      return;
+    }
+
+    this.facade.cargarCiudadesPorDepartamento(Number(deptId));
+    // La facade actualiza ciudadesDisponibles; guardamos copia local
+    setTimeout(() => {
+      const map = { ...this.ciudadesPorPropietario() };
+      map[index] = this.facade.ciudadesDisponibles();
+      this.ciudadesPorPropietario.set(map);
+    }, 150);
+  }
+
+  onDepartamentoChange(index: number, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const deptId = select.value ? Number(select.value) : null;
+    this.cargarCiudadesPropietario(index, deptId);
+  }
+
+  // ─── Cascadas de dependencias vehiculares ────────────────────────────────
   private configurarCascadas(): void {
-    // Cascada 1: Tipo de Vehículo -> habilita Marca y carga marcas disponibles
+    // Cascada 1: Tipo de Vehiculo -> habilita Marca y carga marcas disponibles
     const s1 = this.form.get('tipoVehiculo')!.valueChanges.subscribe(tipo => {
       if (tipo) {
         this.facade.cargarMarcasPorTipo(tipo);
@@ -296,7 +411,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Cascada 2: Marca -> habilita Línea y carga líneas disponibles
+    // Cascada 2: Marca -> habilita Linea y carga lineas disponibles
     const s2 = this.form.get('marca')!.valueChanges.subscribe(marca => {
       const tipo = this.form.get('tipoVehiculo')?.value;
       if (marca) {
@@ -308,7 +423,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Cascada 3: Línea -> auto-completa cilindraje y combustible si están vacíos
+    // Cascada 3: Linea -> auto-completa cilindraje y combustible si estan vacios
     const s3 = this.form.get('linea')!.valueChanges.subscribe(lineaNombre => {
       if (!lineaNombre) return;
       const linea = this.facade.lineasDisponibles().find(
@@ -328,31 +443,12 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Cascada 4: Departamento -> carga ciudades
-    const s4 = this.form.get('departamentoId')!.valueChanges.subscribe(deptId => {
-      if (deptId) {
-        this.facade.cargarCiudadesPorDepartamento(Number(deptId));
-      } else {
-        this.facade.ciudadesDisponibles.set([]);
-        this.form.get('ciudadId')!.setValue(null, { emitEvent: false });
-      }
-    });
-
-    // Cascada 5: Cambio en tipoDocumento -> limpiar valor si no cumple formato
-    const s5 = this.form.get('tipoDocumentoId')!.valueChanges.subscribe(() => {
-      const numDoc = this.form.get('numeroDocumento')?.value;
-      if (numDoc) {
-        const inputEvent = { target: { value: numDoc } } as unknown as Event;
-        this.onDocumentoInput(inputEvent);
-      }
-    });
-
-    this.subs.push(s1, s2, s3, s4, s5);
+    this.subs.push(s1, s2, s3);
   }
 
-  // ─── Pre-poblado para edición ─────────────────────────────────────────────
+  // ─── Pre-poblado para edicion ─────────────────────────────────────────────
   poblarParaEdicion(v: VehiculoItem): void {
-    const tipoInicial = v.tipoVehiculo || v.clase || 'Automóvil';
+    const tipoInicial = v.tipoVehiculo || v.clase || 'Automovil';
     const marcaInicial = v.marca || '';
     const lineaInicial = v.linea || '';
     const combustibleInicial = this.normalizarCombustible(v.tipoCombustible || v.combustible);
@@ -377,14 +473,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       pasajeros: v.pasajeros || 5,
       organismoTransitoId: v.organismoTransitoId ? Number(v.organismoTransitoId) : null,
       fechaMatricula: v.fechaMatricula || '',
-      incluirPropietario: true,
-      tipoDocumentoId: 1,
-      numeroDocumento: v.propietario?.numeroDocumento || v.propietarioDocumento || '',
-      naturalezaJuridicaId: v.propietario?.tipoPersona === 'Jurídica' ? 2 : 1,
-      nombreRazonSocial: v.propietario?.nombre || v.propietarioNombre || '',
-      tipoVinculoPersonaId: 1,
-      porcentajePropiedad: 100,
-      esResponsablePrincipal: true
+      incluirPropietario: true
     }, { emitEvent: false });
 
     this.form.get('placa')!.disable({ emitEvent: false });
@@ -394,7 +483,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       this.facade.cargarExpediente(v.id).subscribe(exp => {
         if (!exp) return;
         const veh = exp.vehiculo || exp;
-        const prop = exp.propietarios?.length > 0 ? exp.propietarios[0] : null;
+        const props = exp.propietarios && exp.propietarios.length > 0 ? exp.propietarios : [];
 
         if (veh) {
           const tipoVeh = veh.tipoVehiculo || veh.clase || tipoInicial;
@@ -419,73 +508,82 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           }, { emitEvent: false });
         }
 
-        if (prop) {
-          const deptId = prop.departamentoId ? Number(prop.departamentoId) : null;
-          if (deptId) this.facade.cargarCiudadesPorDepartamento(deptId);
-
-          this.form.patchValue({
-            personaId: prop.personaId,
-            tipoDocumentoId: prop.tipoDocumentoId ? Number(prop.tipoDocumentoId) : 1,
-            numeroDocumento: prop.numeroDocumento || '',
-            naturalezaJuridicaId: prop.naturalezaJuridicaId ? Number(prop.naturalezaJuridicaId) : 1,
-            nombreRazonSocial: prop.nombrePropietario || '',
-            correoElectronico: prop.correoElectronico || '',
-            telefono: prop.telefono || '',
-            direccion: prop.direccion || '',
-            departamentoId: deptId,
-            ciudadId: prop.ciudadId ? Number(prop.ciudadId) : null,
-            tipoVinculoPersonaId: prop.tipoVinculoId ? Number(prop.tipoVinculoId) : 1,
-            porcentajePropiedad: prop.porcentajePropiedad || 100,
-            fechaInicio: prop.fechaInicio || '',
-            esResponsablePrincipal: prop.esResponsablePrincipal ?? true
-          }, { emitEvent: false });
-
-          if (prop.personaId || prop.numeroDocumento) {
-            this.bloquearCamposPropietario();
-          }
+        if (props.length > 0) {
+          this.propietariosArray.clear();
+          props.forEach((prop: any, idx: number) => {
+            const fg = this.crearPropietarioFormGroup({
+              personaId: prop.personaId,
+              tipoDocumentoId: prop.tipoDocumentoId ? Number(prop.tipoDocumentoId) : 1,
+              numeroDocumento: prop.numeroDocumento || '',
+              naturalezaJuridicaId: prop.naturalezaJuridicaId ? Number(prop.naturalezaJuridicaId) : 1,
+              razonSocial: prop.nombrePropietario || '',
+              correoElectronico: prop.correoElectronico || '',
+              telefono: prop.telefono || '',
+              direccion: prop.direccion || '',
+              departamentoId: prop.departamentoId ? Number(prop.departamentoId) : null,
+              ciudadId: prop.ciudadId ? Number(prop.ciudadId) : null,
+              tipoVinculoPersonaId: prop.tipoVinculoId ? Number(prop.tipoVinculoId) : 1,
+              porcentajePropiedad: prop.porcentajePropiedad || 100,
+              fechaInicio: prop.fechaInicio || '',
+              esResponsablePrincipal: prop.esResponsablePrincipal ?? (idx === 0)
+            });
+            this.propietariosArray.push(fg);
+            if (prop.personaId || prop.numeroDocumento) {
+              this.bloquearCamposPropietario(idx);
+            }
+          });
         }
       });
     }
   }
 
-  // ─── Control de campos del propietario ────────────────────────────────────
-  bloquearCamposPropietario(): void {
+  // ─── Control de campos del propietario por indice ────────────────────────
+  bloquearCamposPropietario(index: number): void {
+    const pGroup = this.propietariosArray.at(index);
+    if (!pGroup) return;
     const campos = [
       'tipoDocumentoId', 'numeroDocumento', 'naturalezaJuridicaId',
       'nombreRazonSocial', 'correoElectronico', 'telefono',
       'direccion', 'departamentoId', 'ciudadId'
     ];
-    campos.forEach(c => this.form.get(c)?.disable({ emitEvent: false }));
+    campos.forEach(c => pGroup.get(c)?.disable({ emitEvent: false }));
   }
 
-  desbloquearCamposPropietario(): void {
+  desbloquearCamposPropietario(index: number): void {
+    const pGroup = this.propietariosArray.at(index);
+    if (!pGroup) return;
     const campos = [
       'tipoDocumentoId', 'numeroDocumento', 'naturalezaJuridicaId',
       'nombreRazonSocial', 'correoElectronico', 'telefono',
       'direccion', 'departamentoId', 'ciudadId'
     ];
-    campos.forEach(c => this.form.get(c)?.enable({ emitEvent: false }));
+    campos.forEach(c => pGroup.get(c)?.enable({ emitEvent: false }));
   }
 
-  // ─── Búsqueda de propietario por documento ────────────────────────────────
-  buscarPropietario(): void {
-    const tipoDocId = Number(this.form.get('tipoDocumentoId')?.value);
-    const numDoc = this.form.get('numeroDocumento')?.value;
+  // ─── Busqueda de propietario por documento individual ────────────────────
+  buscarPropietario(index: number): void {
+    const pGroup = this.propietariosArray.at(index);
+    if (!pGroup) return;
+
+    const tipoDocId = Number(pGroup.get('tipoDocumentoId')?.value);
+    const numDoc = pGroup.get('numeroDocumento')?.value;
 
     if (!tipoDocId || isNaN(tipoDocId)) {
-      this.propietarioEncontradoMsg.set('⚠️ Seleccione primero el tipo de documento para realizar la búsqueda.');
+      this.setPropietarioMsg(index, 'Seleccione primero el tipo de documento para realizar la busqueda.');
       return;
     }
 
     if (!numDoc || !String(numDoc).trim()) {
-      this.propietarioEncontradoMsg.set('⚠️ Ingrese un número de documento para realizar la búsqueda.');
+      this.setPropietarioMsg(index, 'Ingrese un numero de documento para realizar la busqueda.');
       return;
     }
 
     const docLimpio = String(numDoc).trim();
+    this.buscandoPropietarioIndex.set(index);
 
     this.facade.buscarPropietario(tipoDocId, docLimpio).subscribe({
       next: (propietario) => {
+        this.buscandoPropietarioIndex.set(null);
         if (propietario) {
           const nombreCompleto = propietario.nombreCompleto ||
             propietario.razonSocial ||
@@ -494,9 +592,11 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
               .filter(Boolean).join(' ');
 
           const deptId = propietario.departamentoId ? Number(propietario.departamentoId) : null;
-          if (deptId) this.facade.cargarCiudadesPorDepartamento(deptId);
+          if (deptId) {
+            this.cargarCiudadesPropietario(index, deptId);
+          }
 
-          this.form.patchValue({
+          pGroup.patchValue({
             personaId: propietario.id || propietario.personaId,
             nombreRazonSocial: nombreCompleto,
             naturalezaJuridicaId: propietario.naturalezaJuridicaId || (propietario.razonSocial ? 2 : 1),
@@ -509,27 +609,30 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
             ciudadId: propietario.ciudadId || propietario.municipioId || null
           }, { emitEvent: false });
 
-          this.bloquearCamposPropietario();
-          this.propietarioEncontradoMsg.set(`✅ Persona encontrada en base de datos: ${nombreCompleto}`);
+          this.bloquearCamposPropietario(index);
+          this.setPropietarioMsg(index, `Persona encontrada en base de datos: ${nombreCompleto}`);
         } else {
-          this.form.patchValue({ personaId: null });
-          this.desbloquearCamposPropietario();
-          this.propietarioEncontradoMsg.set('ℹ️ Documento no registrado previamente. Puede ingresar los datos para crear el propietario.');
+          pGroup.patchValue({ personaId: null });
+          this.desbloquearCamposPropietario(index);
+          this.setPropietarioMsg(index, 'Documento no registrado previamente. Puede ingresar los datos para registrar al contribuyente.');
         }
       },
       error: () => {
-        this.form.patchValue({ personaId: null });
-        this.desbloquearCamposPropietario();
-        this.propietarioEncontradoMsg.set('ℹ️ No fue posible consultar el documento. Puede ingresar los datos manualmente.');
+        this.buscandoPropietarioIndex.set(null);
+        pGroup.patchValue({ personaId: null });
+        this.desbloquearCamposPropietario(index);
+        this.setPropietarioMsg(index, 'No fue posible consultar el documento. Puede ingresar los datos manualmente.');
       }
     });
   }
 
-  limpiarPropietario(): void {
-    this.facade.limpiarBusquedaPropietario();
-    this.desbloquearCamposPropietario();
-    this.propietarioEncontradoMsg.set(null);
-    this.form.patchValue({
+  limpiarPropietario(index: number): void {
+    const pGroup = this.propietariosArray.at(index);
+    if (!pGroup) return;
+
+    this.desbloquearCamposPropietario(index);
+    this.setPropietarioMsg(index, null);
+    pGroup.patchValue({
       personaId: null,
       numeroDocumento: '',
       nombreRazonSocial: '',
@@ -542,16 +645,35 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ─── Helper para mostrar error de campo en el template ───────────────────
-  getError(campo: string): string | null {
+  private setPropietarioMsg(index: number, msg: string | null): void {
+    const current = { ...this.propietarioEncontradoMsgs() };
+    current[index] = msg;
+    this.propietarioEncontradoMsgs.set(current);
+  }
+
+  getPropietarioMsg(index: number): string | null {
+    return this.propietarioEncontradoMsgs()[index] ?? null;
+  }
+
+  // ─── Helpers para mostrar errores de campo en el template ────────────────
+  getError(campo: string, index?: number): string | null {
+    if (index !== undefined) {
+      const key = `propietario_${index}_${campo}`;
+      const found = this.erroresPaso().find(e => e.campo === key || e.campo === campo);
+      return found?.mensaje ?? null;
+    }
     return this.erroresPaso().find(e => e.campo === campo)?.mensaje ?? null;
   }
 
-  hasError(campo: string): boolean {
+  hasError(campo: string, index?: number): boolean {
+    if (index !== undefined) {
+      const key = `propietario_${index}_${campo}`;
+      return this.erroresPaso().some(e => e.campo === key || e.campo === campo);
+    }
     return this.erroresPaso().some(e => e.campo === campo);
   }
 
-  // ─── Navegación del wizard con validación por paso ───────────────────────
+  // ─── Navegacion del wizard con validacion por paso ───────────────────────
   onSiguiente(): void {
     const pasoActual = this.facade.currentStep();
     const totalPasos = this.facade.tabs().length;
@@ -585,8 +707,8 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
       const resumen = this.validator.resumenErrores(result);
       this.toastEmit.emit({
-        title: 'Campos incompletos o inválidos',
-        desc: resumen || 'Por favor revisa los campos marcados en rojo.',
+        title: 'Campos incompletos o invalidos',
+        desc: resumen || 'Por favor revise los campos marcados en rojo.',
         type: 'info'
       });
       return;
@@ -602,55 +724,59 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ─── Construcción del DTO ─────────────────────────────────────────────────
+  // ─── Construccion del DTO ─────────────────────────────────────────────────
   private construirPayload(): RegistrarVehiculoDto {
     const val = this.form.getRawValue();
-    let propietarioInicial: PropietarioInicialDto | null = null;
+    const listaPropietariosDto: PropietarioInicialDto[] = [];
 
-    if (val.incluirPropietario && (val.numeroDocumento || val.personaId)) {
-      const nombreCompleto = (val.nombreRazonSocial || '').trim();
-      let pNombre: string | null = null;
-      let sNombre: string | null = null;
-      let pApellido: string | null = null;
-      let sApellido: string | null = null;
-      let razonSocial: string | null = null;
+    if (val.incluirPropietario && Array.isArray(val.propietarios)) {
+      val.propietarios.forEach((p: any) => {
+        if (p.numeroDocumento || p.personaId) {
+          const nombreCompleto = (p.nombreRazonSocial || '').trim();
+          let pNombre: string | null = null;
+          let sNombre: string | null = null;
+          let pApellido: string | null = null;
+          let sApellido: string | null = null;
+          let razonSocial: string | null = null;
 
-      if (val.naturalezaJuridicaId == 1) {
-        const partes = nombreCompleto.split(/\s+/);
-        pNombre = partes[0] || null;
-        pApellido = partes[1] || null;
-        if (partes.length === 3) {
-          sApellido = partes[2];
-        } else if (partes.length >= 4) {
-          sNombre = partes[1];
-          pApellido = partes[2];
-          sApellido = partes.slice(3).join(' ');
+          if (p.naturalezaJuridicaId == 1) {
+            const partes = nombreCompleto.split(/\s+/);
+            pNombre = partes[0] || null;
+            pApellido = partes[1] || null;
+            if (partes.length === 3) {
+              sApellido = partes[2];
+            } else if (partes.length >= 4) {
+              sNombre = partes[1];
+              pApellido = partes[2];
+              sApellido = partes.slice(3).join(' ');
+            }
+          } else {
+            razonSocial = nombreCompleto;
+          }
+
+          listaPropietariosDto.push({
+            personaId: p.personaId || null,
+            tipoDocumentoId: Number(p.tipoDocumentoId) || 1,
+            numeroDocumento: String(p.numeroDocumento).trim(),
+            digitoVerificacion: p.digitoVerificacion || null,
+            naturalezaJuridicaId: Number(p.naturalezaJuridicaId) || 1,
+            primerNombre: pNombre,
+            segundoNombre: sNombre,
+            primerApellido: pApellido,
+            segundoApellido: sApellido,
+            razonSocial,
+            correoElectronico: p.correoElectronico ? String(p.correoElectronico).trim() : null,
+            telefono: p.telefono ? String(p.telefono).trim() : null,
+            direccion: p.direccion ? String(p.direccion).trim() : null,
+            departamentoId: p.departamentoId ? Number(p.departamentoId) : null,
+            ciudadId: p.ciudadId ? Number(p.ciudadId) : null,
+            tipoVinculoPersonaId: Number(p.tipoVinculoPersonaId) || 1,
+            porcentajePropiedad: Number(p.porcentajePropiedad) || 100,
+            fechaInicio: p.fechaInicio || new Date().toISOString().split('T')[0],
+            esResponsablePrincipal: Boolean(p.esResponsablePrincipal)
+          });
         }
-      } else {
-        razonSocial = nombreCompleto;
-      }
-
-      propietarioInicial = {
-        personaId: val.personaId || null,
-        tipoDocumentoId: Number(val.tipoDocumentoId) || 1,
-        numeroDocumento: String(val.numeroDocumento).trim(),
-        digitoVerificacion: val.digitoVerificacion || null,
-        naturalezaJuridicaId: Number(val.naturalezaJuridicaId) || 1,
-        primerNombre: pNombre,
-        segundoNombre: sNombre,
-        primerApellido: pApellido,
-        segundoApellido: sApellido,
-        razonSocial,
-        correoElectronico: val.correoElectronico ? String(val.correoElectronico).trim() : null,
-        telefono: val.telefono ? String(val.telefono).trim() : null,
-        direccion: val.direccion ? String(val.direccion).trim() : null,
-        departamentoId: val.departamentoId ? Number(val.departamentoId) : null,
-        ciudadId: val.ciudadId ? Number(val.ciudadId) : null,
-        tipoVinculoPersonaId: Number(val.tipoVinculoPersonaId) || 1,
-        porcentajePropiedad: Number(val.porcentajePropiedad) || 100,
-        fechaInicio: val.fechaInicio || new Date().toISOString().split('T')[0],
-        esResponsablePrincipal: Boolean(val.esResponsablePrincipal)
-      };
+      });
     }
 
     return {
@@ -660,15 +786,16 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       linea: String(val.linea).trim(),
       modelo: Number(val.modelo),
       servicio: val.servicio || 'Particular',
-      tipoVehiculo: val.tipoVehiculo || 'Automóvil',
-      clase: val.tipoVehiculo || 'Automóvil',
+      tipoVehiculo: val.tipoVehiculo || 'Automovil',
+      clase: val.tipoVehiculo || 'Automovil',
       combustible: val.combustible || 'Gasolina',
       cilindraje: Number(val.cilindraje) || 1000,
       pasajeros: val.pasajeros ? Number(val.pasajeros) : undefined,
       organismoTransitoId: val.organismoTransitoId && Number(val.organismoTransitoId) > 0
         ? Number(val.organismoTransitoId) : undefined,
       fechaMatricula: val.fechaMatricula ? String(val.fechaMatricula).trim() : undefined,
-      propietarioInicial
+      propietarios: listaPropietariosDto.length > 0 ? listaPropietariosDto : undefined,
+      propietarioInicial: listaPropietariosDto.length > 0 ? listaPropietariosDto[0] : null
     };
   }
 
@@ -681,7 +808,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
         this.initForm();
         this.toastEmit.emit({
           title: 'Registro Exitoso',
-          desc: `El vehículo con placa ${payload.placa} fue registrado exitosamente.`,
+          desc: `El vehiculo con placa ${payload.placa} fue registrado exitosamente.`,
           type: 'success'
         });
       },
@@ -691,7 +818,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           err.message;
         this.toastEmit.emit({
           title: 'Error al Registrar',
-          desc: msg || 'No se pudo guardar el vehículo.',
+          desc: msg || 'No se pudo guardar el vehiculo.',
           type: 'error'
         });
       }
@@ -703,13 +830,15 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     if (!vehiculoId) {
       this.toastEmit.emit({
         title: 'Error al Actualizar',
-        desc: 'No se encontró el identificador del vehículo a modificar.',
+        desc: 'No se encontro el identificador del vehiculo a modificar.',
         type: 'error'
       });
       return;
     }
 
     const val = this.form.getRawValue();
+    const principalProp = payload.propietarios?.find(p => p.esResponsablePrincipal) || payload.propietarios?.[0] || payload.propietarioInicial;
+
     const updatePayload: any = {
       placa: payload.placa,
       marca: payload.marca,
@@ -724,23 +853,21 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       estadoMatriculaId: payload.estadoMatriculaId,
       organismoTransitoId: payload.organismoTransitoId,
       fechaMatricula: payload.fechaMatricula,
-      propietarioNombre: val.nombreRazonSocial ? String(val.nombreRazonSocial).trim() : undefined,
-      propietarioDocumento: val.numeroDocumento ? String(val.numeroDocumento).trim() : undefined,
-      tipoVinculoPersonaId: Number(val.tipoVinculoPersonaId) || 1,
-      porcentajePropiedad: Number(val.porcentajePropiedad) || 100
+      propietarioNombre: principalProp?.razonSocial || [principalProp?.primerNombre, principalProp?.primerApellido].filter(Boolean).join(' ') || undefined,
+      propietarioDocumento: principalProp?.numeroDocumento || undefined,
+      tipoVinculoPersonaId: principalProp?.tipoVinculoPersonaId || 1,
+      porcentajePropiedad: principalProp?.porcentajePropiedad || 100,
+      propietarios: payload.propietarios,
+      propietarioInicial: payload.propietarioInicial
     };
-
-    if (payload.propietarioInicial) {
-      updatePayload.propietarioInicial = payload.propietarioInicial;
-    }
 
     this.facade.actualizarVehiculo(vehiculoId, updatePayload).subscribe({
       next: () => {
         this.facade.refrescarDashboard();
         this.facade.cerrarRegistro();
         this.toastEmit.emit({
-          title: 'Vehículo Actualizado',
-          desc: `Los datos del vehículo con placa ${payload.placa} se guardaron exitosamente.`,
+          title: 'Vehiculo Actualizado',
+          desc: `Los datos del vehiculo con placa ${payload.placa} se guardaron exitosamente.`,
           type: 'success'
         });
       },
@@ -755,3 +882,4 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     });
   }
 }
+

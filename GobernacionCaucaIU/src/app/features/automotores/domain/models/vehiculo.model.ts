@@ -92,6 +92,7 @@ export interface RegistrarVehiculoDto {
   vinChasis?: string;
   organismoTransitoId?: number;
   fechaMatricula?: string;
+  propietarios?: PropietarioInicialDto[] | null;
   propietarioInicial?: PropietarioInicialDto | null;
 }
 
@@ -139,6 +140,22 @@ export interface VehiculoItem {
   propietarioId?: number;
   propietarioNombre?: string;
   propietarioDocumento?: string;
+  propietarios?: VehiculoPropietarioResumen[];
+}
+
+export interface VehiculoPropietarioResumen {
+  personaId: number;
+  nombre: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  tipoPersona?: string;
+  porcentajePropiedad: number;
+  esResponsablePrincipal: boolean;
+  tipoVinculo: string;
+  correoElectronico?: string;
+  telefono?: string;
+  direccion?: string;
+  ciudad?: string;
 }
 
 // Alias for backward compatibility

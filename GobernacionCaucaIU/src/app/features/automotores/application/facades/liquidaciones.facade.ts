@@ -349,13 +349,83 @@ export class LiquidacionesFacade {
   readonly rangoFin = computed(() => Math.min(this.page() * this.pageSize(), this.totalCount()));
 
   /** Total acumulado dinámico de las vigencias seleccionadas por el usuario */
-  totalPagarSeleccionado = computed(() => {
+  readonly totalPagarSeleccionado = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
     const seleccionadas = this.selectedVigenciaAnios();
     return sim.vigencias
       .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
       .reduce((sum, v) => sum + v.totalVigencia, 0);
+  });
+
+  /** Subtotal Impuesto Vehicular Seleccionado */
+  readonly subtotalImpuestoSeleccionado = computed(() => {
+    const sim = this.simulacion();
+    if (!sim) return 0;
+    const seleccionadas = this.selectedVigenciaAnios();
+    return sim.vigencias
+      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
+      .reduce((sum, v) => sum + v.valorImpuestoNominal, 0);
+  });
+
+  /** Total Descuentos Seleccionados */
+  readonly descuentosSeleccionado = computed(() => {
+    const sim = this.simulacion();
+    if (!sim) return 0;
+    const seleccionadas = this.selectedVigenciaAnios();
+    return sim.vigencias
+      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
+      .reduce((sum, v) => sum + v.descuentoProntoPago, 0);
+  });
+
+  /** Total Sanciones Seleccionadas */
+  readonly sancionesSeleccionado = computed(() => {
+    const sim = this.simulacion();
+    if (!sim) return 0;
+    const seleccionadas = this.selectedVigenciaAnios();
+    return sim.vigencias
+      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
+      .reduce((sum, v) => sum + v.sancionExtemporaneidad, 0);
+  });
+
+  /** Total Intereses de Mora Seleccionados */
+  readonly interesesSeleccionado = computed(() => {
+    const sim = this.simulacion();
+    if (!sim) return 0;
+    const seleccionadas = this.selectedVigenciaAnios();
+    return sim.vigencias
+      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
+      .reduce((sum, v) => sum + v.interesesMora, 0);
+  });
+
+  /** Total Derechos de Sistematización y Estampillas Seleccionados */
+  readonly sistematizacionSeleccionado = computed(() => {
+    const sim = this.simulacion();
+    if (!sim) return 0;
+    const seleccionadas = this.selectedVigenciaAnios();
+    return sim.vigencias
+      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
+      .reduce((sum, v) => sum + (v.derechossistematizacion || v.derechosSistematizacion || 0), 0);
+  });
+
+  /** Base Gravable Total Seleccionada */
+  readonly baseGravableSeleccionada = computed(() => {
+    const sim = this.simulacion();
+    if (!sim) return 0;
+    const seleccionadas = this.selectedVigenciaAnios();
+    return sim.vigencias
+      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
+      .reduce((sum, v) => sum + v.baseGravableAvaluo, 0);
+  });
+
+  /** Distribución Legal del Recaudo: Municipio (20%) */
+  readonly repartoMunicipioSeleccionado = computed(() => {
+    return Math.round(this.totalPagarSeleccionado() * 0.20);
+  });
+
+  /** Distribución Legal del Recaudo: Departamento del Cauca (80%) */
+  readonly repartoDepartamentoSeleccionado = computed(() => {
+    return this.totalPagarSeleccionado() - this.repartoMunicipioSeleccionado();
   });
 
   /**

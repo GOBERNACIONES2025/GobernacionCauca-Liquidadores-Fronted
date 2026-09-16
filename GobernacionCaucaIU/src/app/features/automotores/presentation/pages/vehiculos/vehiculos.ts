@@ -102,7 +102,7 @@ export class Vehiculos implements OnInit, OnDestroy {
   buscarPropietarioAuditoria(): void {
     const numDoc = this.editFormAuditoria.get('propietarioDocumento')?.value;
     if (!numDoc || !String(numDoc).trim()) {
-      this.propietarioAuditoriaEncontrado.set('⚠️ Ingrese un número de documento para realizar la búsqueda.');
+      this.propietarioAuditoriaEncontrado.set('Ingrese un numero de documento para realizar la busqueda.');
       return;
     }
 
@@ -125,14 +125,14 @@ export class Vehiculos implements OnInit, OnDestroy {
             propietarioDocumento: persona.numeroDocumento || docLimpio
           });
 
-          this.propietarioAuditoriaEncontrado.set(`✅ Persona encontrada en BD: ${nombreEncontrado}`);
+          this.propietarioAuditoriaEncontrado.set(`Persona encontrada en BD: ${nombreEncontrado}`);
         } else {
-          this.propietarioAuditoriaEncontrado.set(`ℹ️ Documento no registrado previamente (se vinculará como nuevo propietario).`);
+          this.propietarioAuditoriaEncontrado.set(`Documento no registrado previamente (se vinculara como nuevo propietario).`);
         }
       },
       error: () => {
         this.buscandoPropietarioAuditoria.set(false);
-        this.propietarioAuditoriaEncontrado.set(`ℹ️ Documento libre para registro.`);
+        this.propietarioAuditoriaEncontrado.set(`Documento libre para registro.`);
       }
     });
   }
@@ -219,16 +219,16 @@ export class Vehiculos implements OnInit, OnDestroy {
           this.cerrarAuditoriaModal();
         } else {
           this.toastMessage.set({
-            title: '✨ Datos Modificados',
-            desc: 'La información del vehículo fue actualizada exitosamente.',
+            title: 'Datos Modificados',
+            desc: 'La informacion del vehiculo fue actualizada exitosamente.',
             type: 'success'
           });
         }
       },
       error: (err) => {
-        console.error('Error guardando cambios en auditoría:', err);
+        console.error('Error guardando cambios en auditoria:', err);
         this.toastMessage.set({
-          title: '❌ Error al Guardar',
+          title: 'Error al Guardar',
           desc: err.message || 'No se pudieron actualizar los datos.',
           type: 'error'
         });
@@ -281,21 +281,21 @@ export class Vehiculos implements OnInit, OnDestroy {
     this.facade.cambiarEstadoAprobacion(id, nuevoEstado).subscribe({
       next: () => {
         const msgMap: Record<string, string> = {
-          'APROBADO': '✅ Vehículo aprobado exitosamente. Ahora aparece en la flota activa.',
-          'REVISION': '🔄 Vehículo marcado para revisión de datos.',
-          'RECHAZADO': '❌ Vehículo rechazado.'
+          'APROBADO': 'Vehiculo aprobado exitosamente. Ahora aparece en la lista de vehiculos activos.',
+          'REVISION': 'Vehiculo marcado para revision de datos.',
+          'RECHAZADO': 'Vehiculo rechazado.'
         };
         this.toastMessage.set({
-          title: 'Estado de Aprobación Actualizado',
+          title: 'Estado de Aprobacion Actualizado',
           desc: msgMap[nuevoEstado.toUpperCase()] || `Estado cambiado a ${nuevoEstado}`,
           type: nuevoEstado.toUpperCase() === 'APROBADO' ? 'success' : 'info'
         });
       },
       error: (err) => {
-        console.error('Error al cambiar estado de aprobación:', err);
+        console.error('Error al cambiar estado de aprobacion:', err);
         this.toastMessage.set({
-          title: '❌ Error al actualizar estado',
-          desc: err.message || 'No se pudo cambiar el estado de aprobación.',
+          title: 'Error al actualizar estado',
+          desc: err.message || 'No se pudo cambiar el estado de aprobacion.',
           type: 'error'
         });
       }
