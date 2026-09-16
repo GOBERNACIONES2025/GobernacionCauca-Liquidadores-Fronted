@@ -38,6 +38,7 @@ export interface CreateVehiculoRequest {
   vinChasis?: string;
   organismoTransitoId?: number;
   fechaMatricula?: string;
+  propietarios?: PropietarioInicialRequest[] | null;
   propietarioInicial?: PropietarioInicialRequest | null;
 }
 export type RegistrarVehiculoDto = CreateVehiculoRequest;
@@ -95,6 +96,22 @@ export interface VehiculoItemDto {
   propietarioId?: number;
   propietarioNombre?: string;
   propietarioDocumento?: string;
+  propietarios?: VehiculoPropietarioResumenDto[];
+}
+
+export interface VehiculoPropietarioResumenDto {
+  personaId: number;
+  nombre: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  tipoPersona?: string;
+  porcentajePropiedad: number;
+  esResponsablePrincipal: boolean;
+  tipoVinculo: string;
+  correoElectronico?: string;
+  telefono?: string;
+  direccion?: string;
+  ciudad?: string;
 }
 export type VehiculoItem = VehiculoItemDto;
 export type Vehiculo = VehiculoItemDto;

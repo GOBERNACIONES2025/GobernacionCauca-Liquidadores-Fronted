@@ -311,6 +311,10 @@ export class VehiculosFacade {
             seleccionado: false,
             tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
             subtituloFichaTecnica: item.subtituloFichaTecnica,
+            propietarioId: item.propietarioId,
+            propietarioNombre: propietarioNombre,
+            propietarioDocumento: propietarioDoc,
+            propietarios: item.propietarios || [],
             propietario: {
               nombre: propietarioNombre,
               tipoDocumento: tipoDoc,
@@ -336,7 +340,10 @@ export class VehiculosFacade {
     });
   }
 
-  refrescarDashboard(): void {
+  refrescarDashboard(irAPrimeraPagina: boolean = true): void {
+    if (irAPrimeraPagina) {
+      this.paginaActual.set(1);
+    }
     this.cargarKpis();
     this.cargarVehiculos(this.paginaActual(), this.pageSize());
     this.cargarPendientesAprobacion();
@@ -367,13 +374,15 @@ export class VehiculosFacade {
           estadoMatricula: item.estadoMatricula || 'Pendiente',
           estadoMatriculaId: item.estadoMatriculaId || 2,
           estadoAprobacion: item.estadoAprobacion || 'PENDIENTE',
+          propietarioId: item.propietarioId,
+          propietarioNombre: item.propietarioNombre,
+          propietarioDocumento: item.propietarioDocumento,
+          propietarios: item.propietarios || [],
           propietario: {
             nombre: item.propietarioNombre || 'Propietario Pendiente',
             tipoDocumento: 'CC',
             numeroDocumento: item.propietarioDocumento || 'Pendiente'
-          },
-          propietarioNombre: item.propietarioNombre,
-          propietarioDocumento: item.propietarioDocumento
+          }
         }));
         this.vehiculosPendientesAprobacion.set(mapped);
         this.kpis.update(k => ({ ...k, totalPendientesAprobacion: mapped.length }));
@@ -393,8 +402,9 @@ export class VehiculosFacade {
   cambiarEstadoAprobacion(id: number, nuevoEstado: string): Observable<any> {
     return this.api.put<ApiResponse<any>>(`/vehiculos/${id}/estado-aprobacion?nuevoEstado=${nuevoEstado}`, {}, {}, 'AUTOMOTORES').pipe(
       map(res => {
-        this.cargarPendientesAprobacion();
-        this.refrescarDashboard();
+        // Remover de la lista local de pendientes de inmediato
+        this.vehiculosPendientesAprobacion.update(list => list.filter(item => item.id !== id));
+        this.refrescarDashboard(true);
         return res;
       })
     );
@@ -560,6 +570,7 @@ export class VehiculosFacade {
     return this.vehiculosApi.crearVehiculo(payload).pipe(
       map(res => {
         this.registroLoading.set(false);
+        this.refrescarDashboard(true);
         return res;
       }),
       catchError(err => {
