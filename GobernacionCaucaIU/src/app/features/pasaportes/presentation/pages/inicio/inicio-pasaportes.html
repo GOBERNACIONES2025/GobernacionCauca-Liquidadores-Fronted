@@ -20,7 +20,9 @@
       <span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() >= 2" [class.text-white]="pasoActual() >= 2" [class.bg-slate-200]="pasoActual() === 1">2</span>
     </li>
     <li class="h-px flex-1 bg-slate-300" aria-hidden="true"></li>
-    <li class="flex flex-1 items-center justify-end gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() === 3" [class.text-slate-400]="pasoActual() < 3"><span class="hidden sm:inline">Agendamiento</span><span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() === 3" [class.text-white]="pasoActual() === 3" [class.bg-slate-200]="pasoActual() < 3">3</span></li>
+    <li class="flex flex-1 items-center justify-center gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() >= 3" [class.text-slate-400]="pasoActual() < 3"><span class="hidden sm:inline">Agendamiento</span><span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() >= 3" [class.text-white]="pasoActual() >= 3" [class.bg-slate-200]="pasoActual() < 3">3</span></li>
+    <li class="h-px flex-1 bg-slate-300" aria-hidden="true"></li>
+    <li class="flex flex-1 items-center justify-end gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() === 4" [class.text-slate-400]="pasoActual() < 4"><span class="hidden sm:inline">Confirmación</span><span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() === 4" [class.text-white]="pasoActual() === 4" [class.bg-slate-200]="pasoActual() < 4">4</span></li>
   </ol>
 
   <div class="mx-auto max-w-5xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -38,20 +40,43 @@
           (anterior)="volverAPersonal()"
           (continuar)="continuar()"
         />
-      } @else {
+      } @else if (pasoActual() === 3) {
         <app-agendamiento-form
           [tipoPasaporteSeleccionado]="tipoPasaporteSeleccionado()"
           [fechaSeleccionada]="fechaSeleccionada()"
           [intervaloSeleccionado]="intervaloSeleccionado()"
           [completado]="datosCompletos()"
-          [creandoCita]="creandoCita()"
-          [consecutivoCita]="consecutivoCita()"
-          [errorCreacion]="errorCreacionCita()"
           (tipoPasaporteChange)="actualizarTipoPasaporte($event)"
           (fechaChange)="actualizarFecha($event)"
           (intervaloChange)="actualizarIntervalo($event)"
           (anterior)="volverAContacto()"
-          (continuar)="completarAgendamiento()"
+          (continuar)="avanzarAConfirmacion()"
+        />
+        @if (errorCreacionCita()) {
+          <div class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+            {{ errorCreacionCita() }}
+          </div>
+        }
+      } @else if (pasoActual() === 4) {
+        <app-confirmacion-liquidacion
+          [formularioPersonal]="formularioPersonal"
+          [formularioContacto]="formularioContacto"
+          [tipoPasaporte]="tipoPasaporteSeleccionado()!"
+          [fecha]="fechaSeleccionada()!"
+          [intervalo]="intervaloSeleccionado()!"
+          [liquidacion]="liquidacion()"
+          [procesando]="creandoCita()"
+          [error]="errorCreacionCita()"
+          [errorPdf]="errorPdf()"
+          [generandoPdf]="generandoPdf()"
+          [pdfBlob]="pdfBlob()"
+          (anterior)="cambiarAgendamiento()"
+          (editarPersonal)="editarPersonal()"
+          (editarContacto)="editarContacto()"
+          (cambiarAgendamiento)="cambiarAgendamiento()"
+          (confirmar)="confirmarYGenerar()"
+          (reintentarPdf)="reintentarPdf()"
+          (descargar)="descargarLiquidacion()"
         />
       }
     </div>
