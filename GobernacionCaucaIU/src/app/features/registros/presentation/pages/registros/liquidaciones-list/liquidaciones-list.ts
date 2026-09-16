@@ -73,7 +73,11 @@ export class LiquidacionesListComponent implements OnInit {
     const status = this.filterStatus();
 
     if (status !== 'Todas') {
-      filtered = filtered.filter(l => l.estado.nombre.toUpperCase() === status.toUpperCase());
+      const target = status.toUpperCase();
+      filtered = filtered.filter(l => 
+        (l.estado?.nombre && l.estado.nombre.toUpperCase() === target) ||
+        (l.estado?.codigo && l.estado.codigo.toUpperCase() === target)
+      );
     }
 
     return filtered;

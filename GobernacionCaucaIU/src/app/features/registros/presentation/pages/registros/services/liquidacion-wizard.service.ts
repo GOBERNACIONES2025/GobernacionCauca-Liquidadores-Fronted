@@ -1,4 +1,4 @@
-﻿import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
@@ -223,11 +223,13 @@ export class LiquidacionWizardService {
       this.liquidacionGeneradaExitosa.set(true);
     }
 
+    if (solicitud.estadoSolicitudId === 2 && solicitud.etapaActual >= 3) {
+      this.tipoTramite.set('Reliquidacion');
+    }
     
-    // Asignar el paso actual segÃºn la etapa guardada (nunca superando el paso 5)
-    // Si etapa es 1 (RadicaciÃ³n completada), saltamos al paso 2
-    // Si etapa es 2 (Documento completado), saltamos al paso 3, etc.
-    const nextStep = Math.min(solicitud.etapaActual + 1, 5);
+    // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
+    // Si ya completó hasta intervinientes (etapa 4), abrir en el paso 4 o mantener el paso actual si ya navegaba
+    const nextStep = solicitud.etapaActual >= 4 ? 4 : Math.min(solicitud.etapaActual + 1, 5);
     this.currentStep.set(nextStep);
 
     // Poblar Paso 1
