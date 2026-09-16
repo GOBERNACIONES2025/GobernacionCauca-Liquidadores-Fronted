@@ -392,55 +392,40 @@ export class VehiculosFacade {
 
       const docCompleto = numDoc ? `${tipoDoc} ${numDoc}`.trim() : (propietarioNombre !== 'Sin propietario asignado' ? 'Sin documento' : '');
 
-          return {
-            id: item.id || idx + 1,
-            placa: item.placa || '',
-            marca: item.marca || '',
-            linea: item.linea || '',
-            modelo: Number(item.modelo) || 2024,
-            cilindraje: Number(item.cilindraje) || 1600,
-            tipoCombustible: item.combustible || item.tipoCombustible || 'Gasolina',
-            combustible: item.combustible || item.tipoCombustible || 'Gasolina',
-            clase: item.clase || item.tipoVehiculo || 'Automóvil',
-            tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
-            color: item.color || 'Blanco',
-            servicio: item.servicio || 'Particular',
-            pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
-            organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
-            organismoTransitoId: item.organismoTransitoId || undefined,
-            fechaMatricula: item.fechaMatricula || undefined,
-            estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
-            estadoMatriculaId: item.estadoMatriculaId || 1,
-            exencion: item.exencion || undefined,
-            seleccionado: false,
-            tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
-            subtituloFichaTecnica: item.subtituloFichaTecnica,
-            propietarioId: item.propietarioId,
-            propietarioNombre: propietarioNombre,
-            propietarioDocumento: propietarioDoc,
-            propietarios: item.propietarios || [],
-            propietario: {
-              nombre: propietarioNombre,
-              tipoDocumento: tipoDoc,
-              numeroDocumento: propietarioDoc,
-              tipoPersona: tipoPersona
-            }
-          };
-        });
-
-        if (mapped.length > 0) {
-          this.vehiculos.set(mapped);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(total);
-        } else {
-          this.vehiculos.set([]);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(0);
+      return {
+        id: item.id || idx + 1,
+        placa: item.placa || '',
+        marca: item.marca || '',
+        linea: item.linea || '',
+        modelo: Number(item.modelo) || 2024,
+        cilindraje: Number(item.cilindraje) || 1600,
+        tipoCombustible: item.combustible || item.tipoCombustible || 'Gasolina',
+        combustible: item.combustible || item.tipoCombustible || 'Gasolina',
+        clase: item.clase || item.tipoVehiculo || 'Automóvil',
+        tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
+        color: item.color || 'Blanco',
+        servicio: item.servicio || 'Particular',
+        pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
+        organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
+        organismoTransitoId: item.organismoTransitoId || undefined,
+        fechaMatricula: item.fechaMatricula || undefined,
+        estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
+        estadoMatriculaId: item.estadoMatriculaId || 1,
+        exencion: item.exencion || undefined,
+        seleccionado: false,
+        tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
+        subtituloFichaTecnica: item.subtituloFichaTecnica,
+        propietarioId: item.propietarioId,
+        propietarioNombre: propietarioNombre,
+        propietarioDocumento: docCompleto,
+        propietarios: item.propietarios || [],
+        propietario: {
+          nombre: propietarioNombre,
+          tipoDocumento: tipoDoc,
+          numeroDocumento: docCompleto,
+          tipoPersona: tipoPersona
         }
-        this.paginaActual.set(page);
-        this.pageSize.set(pageSize);
-        this.totalPaginas.set(totalPags);
-      }
+      };
     });
   }
 
