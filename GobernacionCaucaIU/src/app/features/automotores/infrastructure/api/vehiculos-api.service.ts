@@ -12,7 +12,13 @@ import {
   VincularPropietarioRequest, 
   VehiculoExpedienteDto 
 } from '../../domain/interfaces/vehiculo.interface';
-import { ConsultaVehicularRequest, ConsultaVehicularData } from '../../domain/interfaces/consulta-vehicular.interface';
+import { 
+  ConsultaVehicularRequest, 
+  ConsultaVehicularData,
+  SolicitudOtpCiudadanoRequest,
+  ValidarOtpCiudadanoRequest,
+  RespuestaValidacionOtpDto
+} from '../../domain/interfaces/consulta-vehicular.interface';
 
 @Injectable({
   providedIn: 'root',
@@ -108,5 +114,13 @@ export class VehiculosApiService {
 
   consultarVehicular(body: ConsultaVehicularRequest): Observable<ApiResponse<ConsultaVehicularData>> {
     return this.api.post<ApiResponse<ConsultaVehicularData>>('/Consultas/Vehicular', body, {}, 'AUTOMOTORES');
+  }
+
+  solicitarOtpDesenmascarar(payload: SolicitudOtpCiudadanoRequest): Observable<ApiResponse<any>> {
+    return this.api.post<ApiResponse<any>>('/Consultas/Vehicular/solicitar-otp', payload, {}, 'AUTOMOTORES');
+  }
+
+  validarOtpDesenmascarar(payload: ValidarOtpCiudadanoRequest): Observable<ApiResponse<RespuestaValidacionOtpDto>> {
+    return this.api.post<ApiResponse<RespuestaValidacionOtpDto>>('/Consultas/Vehicular/validar-otp', payload, {}, 'AUTOMOTORES');
   }
 }

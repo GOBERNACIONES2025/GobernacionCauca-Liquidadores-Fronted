@@ -21,7 +21,8 @@ export interface VigenciaLiquidada {
   mesesRetardo: number;
   interesesMora: number;
   diasMora: number;
-  derechossistematizacion: number;
+  derechosSistematizacion?: number;
+  derechossistematizacion?: number;
   totalVigencia: number;
   estado: string; // "PRONTO PAGO (-10%)", "AL DIA (NORMAL)", "EN MORA", "PRESCRITA"
   parametrosFaltantesEnDb?: boolean;

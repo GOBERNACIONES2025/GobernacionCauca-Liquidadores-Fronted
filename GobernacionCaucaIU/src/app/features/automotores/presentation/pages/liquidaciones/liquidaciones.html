@@ -180,9 +180,9 @@
     <!-- SUBHEADER INFORMATIVO SEGÚN PESTAÑA -->
     <div class="px-4 py-2 bg-slate-50 text-xs text-slate-500 border-b border-slate-200 flex items-center justify-between">
       @if (facade.activeTab() === 'sin-liquidar') {
-        <span>📋 Flota vehicular con vigencias pendientes proyectadas para liquidación.</span>
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-list-check text-slate-400"></i> Flota vehicular con vigencias pendientes proyectadas para liquidación.</span>
       } @else {
-        <span>🧾 Registro de recibos y liquidaciones oficiales expedidas.</span>
+        <span class="flex items-center gap-1.5"><i class="fa-solid fa-receipt text-slate-400"></i> Registro de recibos y liquidaciones oficiales expedidas.</span>
       }
       <span>Página <strong class="text-slate-800">{{ facade.page() }}</strong> de <strong class="text-slate-800">{{ facade.totalPaginas() }}</strong> (Total <strong class="text-slate-800">{{ facade.totalCount() }}</strong> vehículos)</span>
     </div>
@@ -215,6 +215,7 @@
               <th class="py-3 px-4 text-right">Descuento</th>
               <th class="py-3 px-4 text-right">Sanción Extemp.</th>
               <th class="py-3 px-4 text-right">Intereses Mora</th>
+              <th class="py-3 px-4 text-right">Sistematización</th>
               <th class="py-3 px-4 text-right">Total Liquidado</th>
             }
 
@@ -225,7 +226,7 @@
         <tbody class="divide-y divide-slate-100">
           @if (facade.loadingTabla()) {
             <tr>
-              <td [attr.colspan]="facade.activeTab() === 'liquidadas' ? 10 : 6" class="py-12 text-center text-slate-400">
+              <td [attr.colspan]="facade.activeTab() === 'liquidadas' ? 11 : 6" class="py-12 text-center text-slate-400">
                 <i class="fa-solid fa-spinner fa-spin text-xl text-blue-900 mb-2 block"></i>
                 Cargando vehículos y estados de cuenta...
               </td>
@@ -321,7 +322,7 @@
             <!-- PESTAÑA LIQUIDACIONES EMITIDAS (AGRUPADAS POR PLACA EN ACORDEÓN) -->
             @if (facade.liquidacionesEmitidasAgrupadas().length === 0) {
               <tr>
-                <td colspan="10" class="py-12 text-center text-slate-400">
+                <td colspan="11" class="py-12 text-center text-slate-400">
                   No se han emitido liquidaciones oficiales registradas para el filtro seleccionado.
                 </td>
               </tr>
@@ -356,7 +357,7 @@
                     }
                   </td>
 
-                  <td colspan="5" class="py-3.5 px-4">
+                  <td colspan="6" class="py-3.5 px-4">
                     <div class="flex flex-wrap items-center gap-1.5 max-w-xl">
                       <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-blue-100 text-blue-900 border border-blue-300 shrink-0">
                         <i class="fa-solid fa-receipt text-blue-700"></i>
@@ -447,6 +448,10 @@
 
                       <td class="py-2.5 px-4 text-right text-red-700 font-semibold">
                         ${{ v.interesesMora | number:'1.0-0' }}
+                      </td>
+
+                      <td class="py-2.5 px-4 text-right text-slate-700 font-medium">
+                        ${{ (v.sistematizacionEstampillas || 0) | number:'1.0-0' }}
                       </td>
 
                       <td class="py-2.5 px-4 text-right font-extrabold text-slate-900">
@@ -545,8 +550,8 @@
       <!-- Header -->
       <div class="bg-[#1e3a7b] px-6 py-4 flex items-center justify-between text-white shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white font-bold text-lg">
-            🧾
+          <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white text-lg">
+            <i class="fa-solid fa-file-invoice"></i>
           </div>
           <div>
             <div class="text-[11px] font-bold uppercase tracking-widest text-emerald-400">Gobernación del Cauca — Hacienda</div>
@@ -606,92 +611,168 @@
               </button>
             </div>
 
-            <table class="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[10.5px] uppercase tracking-wider">
-                  <th class="py-2.5 px-3 text-center w-10">
-                    <input 
-                      type="checkbox" 
-                      [checked]="facade.selectedVigenciaAnios().length === sim.vigencias.length"
-                      (change)="facade.toggleSeleccionarTodos()"
-                      class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                    />
-                  </th>
-                  <th class="py-2.5 px-3">Vigencia</th>
-                  <th class="py-2.5 px-3 text-right">Base Gravable</th>
-                  <th class="py-2.5 px-3 text-right">Impuesto</th>
-                  <th class="py-2.5 px-3 text-right">Descuento</th>
-                  <th class="py-2.5 px-3 text-right">Sanción Mora</th>
-                  <th class="py-2.5 px-3 text-right">Intereses</th>
-                  <th class="py-2.5 px-3 text-right">Total Vigencia</th>
-                  <th class="py-2.5 px-3 text-center">Estado</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                @if (sim.vigencias.length === 0) {
-                  <tr>
-                    <td colspan="9" class="py-10 text-center text-slate-500">
-                      <i class="fa-solid fa-circle-check text-3xl text-emerald-500 mb-2 block"></i>
-                      <div class="text-xs font-bold text-slate-800">El vehículo se encuentra AL DÍA</div>
-                      <div class="text-[11px] text-slate-400 mt-0.5">No registra vigencias tributarias pendientes de liquidación en el sistema.</div>
-                    </td>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 text-[10px] uppercase tracking-wider">
+                    <th class="py-2.5 px-2.5 text-center w-8">
+                      <input 
+                        type="checkbox" 
+                        [checked]="facade.selectedVigenciaAnios().length === sim.vigencias.length"
+                        (change)="facade.toggleSeleccionarTodos()"
+                        class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      />
+                    </th>
+                    <th class="py-2.5 px-2.5">Vigencia</th>
+                    <th class="py-2.5 px-2.5 text-right">Base Gravable</th>
+                    <th class="py-2.5 px-2 text-center">Tarifa</th>
+                    <th class="py-2.5 px-2.5 text-right">Impuesto</th>
+                    <th class="py-2.5 px-2.5 text-right">Descuento</th>
+                    <th class="py-2.5 px-2.5 text-right">Sanción Mora</th>
+                    <th class="py-2.5 px-2.5 text-right">Intereses</th>
+                    <th class="py-2.5 px-2.5 text-right text-blue-900">Sistematización</th>
+                    <th class="py-2.5 px-2.5 text-right">Total Vigencia</th>
+                    <th class="py-2.5 px-2.5 text-center">Estado</th>
                   </tr>
-                } @else {
-                  @for (v of sim.vigencias; track v.anio) {
-                    <tr [class]="'transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40' : (facade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-slate-50 opacity-60'))">
-                      <td class="py-3 px-3 text-center">
-                        <input 
-                          type="checkbox" 
-                          [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
-                          [checked]="facade.selectedVigenciaAnios().includes(v.anio) && !v.parametrosFaltantesEnDb"
-                          (change)="facade.toggleVigencia(v.anio)"
-                          class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
-                        />
-                      </td>
-                      <td class="py-3 px-3 font-bold text-slate-900">
-                        <div>{{ v.anio }}</div>
-                        @if (v.parametrosFaltantesEnDb) {
-                          <div class="text-[9.5px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1" title="Faltan los parámetros tributarios estatales en BD para esta vigencia">
-                            <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                            Sin datos en BD
-                          </div>
-                        }
-                      </td>
-                      <td class="py-3 px-3 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right text-emerald-700 font-medium">${{ v.descuentoProntoPago | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-center">
-                        @if (v.parametrosFaltantesEnDb) {
-                          <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                            <i class="fa-solid fa-ban text-amber-700"></i>
-                            NO LIQUIDABLE (SIN DATOS BD)
-                          </span>
-                        } @else if (v.estado.includes('PRESCRITA')) {
-                          <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                            PRESCRITA (>5 AÑOS)
-                          </span>
-                        } @else if (v.estado.includes('PRONTO') || v.estado.includes('AL DIA')) {
-                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                            {{ v.estado }}
-                          </span>
-                        } @else {
-                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
-                            {{ v.estado }}
-                          </span>
-                        }
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @if (sim.vigencias.length === 0) {
+                    <tr>
+                      <td colspan="11" class="py-10 text-center text-slate-500">
+                        <i class="fa-solid fa-circle-check text-3xl text-emerald-500 mb-2 block"></i>
+                        <div class="text-xs font-bold text-slate-800">El vehículo se encuentra AL DÍA</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">No registra vigencias tributarias pendientes de liquidación en el sistema.</div>
                       </td>
                     </tr>
+                  } @else {
+                    @for (v of sim.vigencias; track v.anio) {
+                      <tr [class]="'transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40' : (facade.selectedVigenciaAnios().includes(v.anio) ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-slate-50 opacity-60'))">
+                        <td class="py-3 px-2.5 text-center">
+                          <input 
+                            type="checkbox" 
+                            [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
+                            [checked]="facade.selectedVigenciaAnios().includes(v.anio) && !v.parametrosFaltantesEnDb"
+                            (change)="facade.toggleVigencia(v.anio)"
+                            class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                          />
+                        </td>
+                        <td class="py-3 px-2.5 font-bold text-slate-900">
+                          <div>{{ v.anio }}</div>
+                          @if (v.parametrosFaltantesEnDb) {
+                            <div class="text-[9.5px] font-bold text-amber-800 bg-amber-50 border border-amber-300 px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1" title="Faltan los parámetros tributarios estatales en BD para esta vigencia">
+                              <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+                              Sin datos en BD
+                            </div>
+                          }
+                        </td>
+                        <td class="py-3 px-2.5 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
+                        <td class="py-3 px-2 text-center font-semibold text-slate-600">{{ v.tarifaPorcentaje | number:'1.1-1' }}%</td>
+                        <td class="py-3 px-2.5 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
+                        <td class="py-3 px-2.5 text-right text-emerald-700 font-medium">{{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}</td>
+                        <td class="py-3 px-2.5 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
+                        <td class="py-3 px-2.5 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
+                        <td class="py-3 px-2.5 text-right font-bold text-blue-900">${{ (v.derechossistematizacion || v.derechosSistematizacion || 0) | number:'1.0-0' }}</td>
+                        <td class="py-3 px-2.5 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
+                        <td class="py-3 px-2.5 text-center">
+                          @if (v.parametrosFaltantesEnDb) {
+                            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                              <i class="fa-solid fa-ban text-amber-700"></i>
+                              NO LIQUIDABLE (SIN DATOS BD)
+                            </span>
+                          } @else if (v.estado.includes('PRESCRITA')) {
+                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
+                              <i class="fa-solid fa-clock-rotate-left"></i>
+                              PRESCRITA (>5 AÑOS)
+                            </span>
+                          } @else if (v.estado.includes('PRONTO') || v.estado.includes('AL DIA')) {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                              {{ v.estado }}
+                            </span>
+                          } @else {
+                            <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
+                              {{ v.estado }}
+                            </span>
+                          }
+                        </td>
+                      </tr>
+                    }
                   }
-                }
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <!-- Total Final -->
+          <!-- RESUMEN CONSOLIDADO DE CONCEPTOS TRIBUTARIOS (SECCIÓN C DE LA DECLARACIÓN / FACTURA OFICIAL) -->
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+            <div class="px-4 py-2.5 bg-slate-100/90 border-b border-slate-200 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-file-invoice-dollar text-[#1e3a7b] text-sm"></i>
+                <span class="font-extrabold text-slate-800 text-xs uppercase tracking-wide">
+                  C. Liquidación Privada y Conceptos Tributarios (Resumen Oficial)
+                </span>
+              </div>
+              <span class="text-[10.5px] font-semibold text-slate-500">
+                Estructura Oficial según Ley 488/1998 y Estatuto Tributario
+              </span>
+            </div>
+
+            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 text-xs">
+              <!-- Columna Izquierda: Avalúo, Tarifa, Impuesto y Descuento -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between py-1 border-b border-slate-100">
+                  <span class="text-slate-600 font-medium">Avalúo Comercial (Base Gravable):</span>
+                  <span class="font-bold text-slate-900 font-mono">${{ facade.baseGravableSeleccionada() | number:'1.0-0' }}</span>
+                </div>
+                <div class="flex items-center justify-between py-1 border-b border-slate-100">
+                  <span class="text-slate-600 font-medium">Tarifa Aplicada s/ Base Gravable:</span>
+                  <span class="font-bold text-slate-900">{{ sim.vigencias[0]?.tarifaPorcentaje | number:'1.1-1' }}%</span>
+                </div>
+                <div class="flex items-center justify-between py-1 border-b border-slate-100">
+                  <span class="text-slate-600 font-medium">Impuesto sobre Vehículos Automotores (Ley 488/1998):</span>
+                  <span class="font-bold text-slate-900 font-mono">${{ facade.subtotalImpuestoSeleccionado() | number:'1.0-0' }}</span>
+                </div>
+                <div class="flex items-center justify-between py-1 border-b border-slate-100">
+                  <span class="text-slate-600 font-medium">Descuento por Pronto Pago (Ordenanza Departamental) (-):</span>
+                  <span class="font-bold text-emerald-700 font-mono">{{ facade.descuentosSeleccionado() > 0 ? '-$' + (facade.descuentosSeleccionado() | number:'1.0-0') : '-$0' }}</span>
+                </div>
+              </div>
+
+              <!-- Columna Derecha: Sanciones, Intereses, Sistematización y Total -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between py-1 border-b border-slate-100">
+                  <span class="text-slate-600 font-medium">Sanción por Extemporaneidad (Art. 641 E.T.) (+):</span>
+                  <span class="font-bold text-amber-700 font-mono">${{ facade.sancionesSeleccionado() | number:'1.0-0' }}</span>
+                </div>
+                <div class="flex items-center justify-between py-1 border-b border-slate-100">
+                  <span class="text-slate-600 font-medium">Intereses de Mora (Art. 635 E.T.) (+):</span>
+                  <span class="font-bold text-red-700 font-mono">${{ facade.interesesSeleccionado() | number:'1.0-0' }}</span>
+                </div>
+                <div class="flex items-center justify-between py-1 border-b border-blue-100 bg-blue-50/70 px-2 -mx-2 rounded">
+                  <span class="text-blue-950 font-bold">Derechos de Sistematización y Estampillas (+):</span>
+                  <span class="font-extrabold text-blue-950 font-mono text-sm">${{ facade.sistematizacionSeleccionado() | number:'1.0-0' }}</span>
+                </div>
+                <div class="flex items-center justify-between py-1 border-t border-slate-200">
+                  <span class="text-slate-900 font-extrabold uppercase">Saldo Total a Pagar:</span>
+                  <span class="font-black text-slate-900 font-mono text-base">${{ facade.totalPagarSeleccionado() | number:'1.0-0' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer de Distribución Legal del Recaudo -->
+            <div class="bg-slate-50 px-4 py-2 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
+              <div class="flex items-center gap-1.5 font-medium">
+                <i class="fa-solid fa-scale-balanced text-slate-400"></i>
+                <span>Distribución del Recaudo (Ley 488/1998):</span>
+              </div>
+              <div class="flex items-center gap-4">
+                <span>Municipio (20%): <strong class="text-slate-800 font-bold">${{ facade.repartoMunicipioSeleccionado() | number:'1.0-0' }}</strong></span>
+                <span class="text-slate-300">|</span>
+                <span>Departamento del Cauca (80%): <strong class="text-slate-800 font-bold">${{ facade.repartoDepartamentoSeleccionado() | number:'1.0-0' }}</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Total Final y Acciones -->
           <div class="bg-slate-900 rounded-xl p-5 text-white flex items-center justify-between shadow-lg">
             <div>
               <div class="text-[11px] font-bold text-emerald-400 uppercase tracking-widest">Total Liquidación Oficial</div>
@@ -714,7 +795,8 @@
                   <i class="fa-solid fa-spinner fa-spin"></i>
                   Procesando Registro Oficial...
                 } @else {
-                  ⚡ Expedir Liquidación Oficial
+                  <i class="fa-solid fa-bolt mr-1"></i>
+                  Expedir Liquidación Oficial
                 }
               </button>
             </div>
@@ -733,7 +815,7 @@
       <div class="bg-[#1e3a7b] text-white p-5 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400 font-bold text-xl">
-            ⚡
+            <i class="fa-solid fa-bolt"></i>
           </div>
           <div>
             <h3 class="text-base font-extrabold m-0">Proceso de Liquidación Masiva</h3>
@@ -751,7 +833,7 @@
           <!-- RESULTADO EXITOSO DE LA LIQUIDACIÓN MASIVA -->
           <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-5 text-center">
             <i class="fa-solid fa-circle-check text-4xl text-emerald-600 mb-2"></i>
-            <h4 class="text-lg font-bold text-emerald-950 m-0">¡Liquidación Masiva Completada!</h4>
+            <h4 class="text-lg font-bold text-emerald-950 m-0">Liquidación Masiva Completada</h4>
             <p class="text-xs text-emerald-800 mt-1 mb-0">{{ facade.resultadoMasivo()?.mensaje }}</p>
           </div>
 
@@ -784,7 +866,7 @@
             <i class="fa-solid fa-clipboard-check text-blue-700 text-xl mt-0.5"></i>
             <div class="text-xs text-blue-950 flex-1">
               <div class="flex items-center justify-between mb-1">
-                <p class="font-extrabold text-blue-900 m-0 text-xs">📋 Resumen de Pre-Revisión del Lote Masivo:</p>
+                <p class="font-extrabold text-blue-900 m-0 text-xs flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Resumen de Pre-Revisión del Lote Masivo:</p>
                 <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 uppercase">
                   En Revisión
                 </span>
@@ -882,10 +964,12 @@
                               </th>
                               <th class="py-2 px-2.5">Vigencia</th>
                               <th class="py-2 px-2.5 text-right">Base Gravable</th>
+                              <th class="py-2 px-2 text-center">Tarifa</th>
                               <th class="py-2 px-2.5 text-right">Impuesto</th>
                               <th class="py-2 px-2.5 text-right">Descuento</th>
                               <th class="py-2 px-2.5 text-right">Sanción Mora</th>
                               <th class="py-2 px-2.5 text-right">Intereses</th>
+                              <th class="py-2 px-2.5 text-right text-blue-900">Sistematización</th>
                               <th class="py-2 px-2.5 text-right">Total Vigencia</th>
                               <th class="py-2 px-2.5 text-center">Estado</th>
                             </tr>
@@ -905,17 +989,19 @@
                                 <td class="py-2 px-2.5 font-bold text-slate-900">{{ v.anio }}</td>
                                 @if (!v.parametrosFaltantesEnDb && v.totalVigencia > 0) {
                                   <td class="py-2 px-2.5 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2 text-center font-semibold text-slate-600">{{ v.tarifaPorcentaje | number:'1.1-1' }}%</td>
                                   <td class="py-2 px-2.5 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
                                   <td class="py-2 px-2.5 text-right text-emerald-700 font-medium">{{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}</td>
                                   <td class="py-2 px-2.5 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
                                   <td class="py-2 px-2.5 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2.5 text-right font-bold text-blue-900">${{ (v.derechossistematizacion || v.derechosSistematizacion || 0) | number:'1.0-0' }}</td>
                                   <td class="py-2 px-2.5 text-right font-extrabold text-slate-900 text-xs">${{ v.totalVigencia | number:'1.0-0' }}</td>
                                   <td class="py-2 px-2.5 text-center">
                                     <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-red-100 text-red-800">EN MORA</span>
                                   </td>
                                 } @else {
-                                  <td colspan="6" class="py-2 px-2.5 text-center text-amber-800 font-bold italic text-[10.5px]">
-                                    🚫 NO LIQUIDABLE (Faltan Parámetros/Avalúos en BD)
+                                  <td colspan="8" class="py-2 px-2.5 text-center text-amber-800 font-bold italic text-[10.5px]">
+                                    <i class="fa-solid fa-ban text-amber-700 mr-1"></i> NO LIQUIDABLE (Faltan Parámetros/Avalúos en BD)
                                   </td>
                                   <td class="py-2 px-2.5 text-center">
                                     <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-amber-100 text-amber-900 border border-amber-300">SIN DATOS BD</span>
@@ -955,7 +1041,8 @@
                 <i class="fa-solid fa-spinner fa-spin"></i>
                 Procesando Determinación Masiva...
               } @else {
-                ⚡ Confirmar y Liquidar Masivamente
+                <i class="fa-solid fa-bolt mr-1"></i>
+                Confirmar y Liquidar Masivamente
               }
             </button>
           </div>
@@ -1000,17 +1087,6 @@
             <span>Imprimir</span>
           </button>
 
-          <!-- Botón Descargar PDF -->
-          @if (facade.facturaPreviewData(); as factura) {
-            <button 
-              (click)="facade.descargarFacturaPdf(factura.placa, factura.vigenciaAnio, false)" 
-              type="button" 
-              title="Descargar archivo PDF"
-              class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white border-none cursor-pointer shadow-xs transition-all">
-              <i class="fa-solid fa-file-pdf"></i>
-              <span>Descargar PDF</span>
-            </button>
-          }
 
           <!-- Botón Cerrar -->
           <button 

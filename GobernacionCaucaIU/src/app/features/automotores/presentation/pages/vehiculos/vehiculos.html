@@ -281,8 +281,25 @@
 
                     <!-- Propietario -->
                     <td class="py-3 px-4 align-middle">
-                      <div class="font-bold text-slate-900">{{ v.propietarioNombre || v.propietario.nombre }}</div>
-                      <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.propietarioDocumento || (v.propietario.tipoDocumento + ' ' + v.propietario.numeroDocumento) }}</div>
+                      @if (v.propietarios && v.propietarios.length > 1) {
+                        <div>
+                          <div class="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
+                            <span>{{ v.propietarios[0].nombre }}</span>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                              {{ v.propietarios[0].porcentajePropiedad }}% Principal
+                            </span>
+                          </div>
+                          <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                            <span>{{ v.propietarios[0].tipoDocumento }} {{ v.propietarios[0].numeroDocumento }}</span>
+                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                              +{{ v.propietarios.length - 1 }} copropietario{{ v.propietarios.length > 2 ? 's' : '' }} ({{ 100 - v.propietarios[0].porcentajePropiedad }}%)
+                            </span>
+                          </div>
+                        </div>
+                      } @else {
+                        <div class="font-bold text-slate-900">{{ v.propietarioNombre || v.propietario.nombre }}</div>
+                        <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.propietarioDocumento || (v.propietario.tipoDocumento + ' ' + v.propietario.numeroDocumento) }}</div>
+                      }
                     </td>
 
                     <!-- Exenciones -->
@@ -410,17 +427,32 @@
         <!-- Propietario Badge / Header Info -->
         <div class="p-2.5 px-4 bg-slate-50 border-b border-slate-200 flex gap-2.5 items-center shrink-0">
           <div class="w-7 h-7 rounded-full bg-[#1e3a7b] flex items-center justify-center text-[10px] font-bold text-white shrink-0 uppercase">
-            {{ sv.propietario.nombre.substring(0, 2) }}
+            {{ ((sv.propietarios && sv.propietarios.length > 0) ? sv.propietarios[0].nombre : sv.propietario.nombre).substring(0, 2) }}
           </div>
           <div class="min-w-0 flex-1">
-            <div class="text-[12.5px] font-semibold text-slate-900 truncate">{{ sv.propietario.nombre }}</div>
-            <div class="text-[11px] text-slate-500">{{ sv.propietario.tipoDocumento }} {{ sv.propietario.numeroDocumento }} · 100%</div>
+            <div class="text-[12.5px] font-semibold text-slate-900 truncate">
+              {{ (sv.propietarios && sv.propietarios.length > 0) ? sv.propietarios[0].nombre : sv.propietario.nombre }}
+            </div>
+            <div class="text-[11px] text-slate-500">
+              @if (sv.propietarios && sv.propietarios.length > 1) {
+                <span>{{ sv.propietarios.length }} copropietarios vinculados (100% total)</span>
+              } @else {
+                <span>{{ sv.propietario.tipoDocumento }} {{ sv.propietario.numeroDocumento }} · 100%</span>
+              }
+            </div>
           </div>
           <div class="shrink-0">
-            <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838] whitespace-nowrap">
-              <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238] shrink-0"></span>
-              Propietario Vigente
-            </span>
+            @if (sv.propietarios && sv.propietarios.length > 1) {
+              <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+                Copropiedad ({{ sv.propietarios.length }})
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838] whitespace-nowrap">
+                <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238] shrink-0"></span>
+                Propietario Vigente
+              </span>
+            }
           </div>
         </div>
 
@@ -499,21 +531,96 @@
             </div>
           }
 
-          <!-- TAB 2: PROPIETARIOS -->
+          <!-- TAB 2: PROPIETARIOS / COPROPIETARIOS -->
           @if (facade.panelTab() === 'propietarios') {
             <div class="space-y-3">
-              <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
-                <div class="flex items-center justify-between mb-2">
-                  <span class="text-xs font-bold text-slate-800">{{ sv.propietario.nombre }}</span>
-                  <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Principal</span>
+              @if (facade.expedienteLoading()) {
+                <div class="py-6 text-center text-slate-400 text-xs">
+                  <div class="animate-spin inline-block w-5 h-5 border-2 border-slate-300 border-t-blue-600 rounded-full mb-1"></div>
+                  <p>Cargando información de propietarios...</p>
                 </div>
-                <div class="text-[11.5px] text-slate-600 space-y-1">
-                  <div><strong>Documento:</strong> {{ sv.propietario.tipoDocumento }} {{ sv.propietario.numeroDocumento }}</div>
-                  <div><strong>Participación:</strong> 100%</div>
-                  <div><strong>Tipo:</strong> {{ sv.propietario.tipoPersona || 'Natural' }}</div>
-                  <div><strong>Estado:</strong> Activo</div>
+              } @else if ((facade.expedienteActual()?.propietarios?.length ? facade.expedienteActual().propietarios : (sv.propietarios?.length ? sv.propietarios : [])); as listaPropietarios) {
+                @for (prop of listaPropietarios; track (prop.id || prop.personaId || $index)) {
+                  <div class="border border-slate-200 rounded-lg p-3 bg-white shadow-xs space-y-2">
+                    <div class="flex items-center justify-between">
+                      <span class="text-xs font-bold text-slate-800">{{ prop.nombrePropietario || prop.nombre || sv.propietario.nombre }}</span>
+                      @if (prop.esResponsablePrincipal) {
+                        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                          Principal ({{ prop.porcentajePropiedad }}%)
+                        </span>
+                      } @else {
+                        <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full border border-amber-200">
+                          Copropietario ({{ prop.porcentajePropiedad }}%)
+                        </span>
+                      }
+                    </div>
+
+                    <!-- Barra visual de porcentaje de propiedad -->
+                    <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                      <div class="h-1.5 rounded-full bg-[#1e3a7b]" [style.width.%]="prop.porcentajePropiedad"></div>
+                    </div>
+
+                    <div class="text-[11.5px] text-slate-600 space-y-1">
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Identificación:</span>
+                        <span class="font-semibold text-slate-800">{{ prop.tipoDocumento }} {{ prop.numeroDocumento }}</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Participación:</span>
+                        <span class="font-bold text-slate-900">{{ prop.porcentajePropiedad }}%</span>
+                      </div>
+                      <div class="flex justify-between">
+                        <span class="text-slate-400">Tipo de Vinculación:</span>
+                        <span class="font-medium text-slate-700">{{ prop.tipoVinculoNombre || prop.tipoVinculo || 'Propietario' }}</span>
+                      </div>
+                      @if (prop.correoElectronico) {
+                        <div class="flex justify-between">
+                          <span class="text-slate-400">Correo:</span>
+                          <span class="text-slate-700 truncate max-w-[200px]">{{ prop.correoElectronico }}</span>
+                        </div>
+                      }
+                      @if (prop.telefono) {
+                        <div class="flex justify-between">
+                          <span class="text-slate-400">Teléfono:</span>
+                          <span class="text-slate-700">{{ prop.telefono }}</span>
+                        </div>
+                      }
+                      @if (prop.direccion) {
+                        <div class="flex justify-between">
+                          <span class="text-slate-400">Dirección:</span>
+                          <span class="text-slate-700 truncate max-w-[200px]">{{ prop.direccion }}</span>
+                        </div>
+                      }
+                      @if (prop.ciudad) {
+                        <div class="flex justify-between">
+                          <span class="text-slate-400">Municipio:</span>
+                          <span class="text-slate-700">{{ prop.ciudad }}</span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (listaPropietarios.length > 1) {
+                  <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-[11px] text-blue-900">
+                    <span class="font-bold">Distribución Total:</span> 100% distribuido en {{ listaPropietarios.length }} copropietarios.
+                  </div>
+                }
+              } @else {
+                <!-- Fallback propietario simple -->
+                <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-slate-800">{{ sv.propietario.nombre }}</span>
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Principal</span>
+                  </div>
+                  <div class="text-[11.5px] text-slate-600 space-y-1">
+                    <div><strong>Documento:</strong> {{ sv.propietario.tipoDocumento }} {{ sv.propietario.numeroDocumento }}</div>
+                    <div><strong>Participación:</strong> 100%</div>
+                    <div><strong>Tipo:</strong> {{ sv.propietario.tipoPersona || 'Natural' }}</div>
+                    <div><strong>Estado:</strong> Activo</div>
+                  </div>
                 </div>
-              </div>
+              }
             </div>
           }
 
