@@ -25,9 +25,19 @@ export class GeneracionLiquidacionApiService {
   private api = inject(BaseApiService);
   private readonly baseUrl = '/Liquidacion';
 
-  listarLiquidaciones(pageNumber: number = 1, pageSize: number = 10, search?: string): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
+  listarLiquidaciones(
+    pageNumber: number = 1, 
+    pageSize: number = 10, 
+    search?: string, 
+    estadoId?: number | null
+  ): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
     let url = `${this.baseUrl}?PageNumber=${pageNumber}&PageSize=${pageSize}`;
-    if (search) url += `&Search=${encodeURIComponent(search)}`;
+    if (search && search.trim() !== '') {
+      url += `&SearchTerm=${encodeURIComponent(search.trim())}`;
+    }
+    if (estadoId !== undefined && estadoId !== null) {
+      url += `&EstadoId=${estadoId}`;
+    }
     return this.api.get<ApiResponse<PagedResult<LiquidacionListadoDto>>>(url, {}, 'REGISTROS');
   }
 

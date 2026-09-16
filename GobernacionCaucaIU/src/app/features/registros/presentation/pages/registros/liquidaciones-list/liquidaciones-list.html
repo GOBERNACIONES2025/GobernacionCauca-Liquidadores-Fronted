@@ -25,7 +25,7 @@
       
       <!-- Pestañas de estado -->
       <div class="inline-flex bg-slate-100 p-1 rounded-lg">
-        @for (status of ['Todas', 'GENERADA', 'RELIQUIDADA', 'DEVUELTA', 'ANULADA']; track status) {
+        @for (status of ['Todas', 'GENERADA', 'RELIQUIDADA', 'PAGADA', 'DEVUELTA', 'ANULADA']; track status) {
           <button 
             (click)="setFilter(status)"
             [class.bg-white]="filterStatus() === status"

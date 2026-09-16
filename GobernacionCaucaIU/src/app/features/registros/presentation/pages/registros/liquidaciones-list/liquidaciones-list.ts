@@ -36,11 +36,25 @@ export class LiquidacionesListComponent implements OnInit {
     this.cargarLiquidaciones();
   }
 
+  // Mapeo oficial de estados de liquidación a ID de base de datos
+  private readonly ESTADOS_MAP: Record<string, number | null> = {
+    'TODAS': null,
+    'GENERADA': 2,
+    'RELIQUIDADA': 7,
+    'PAGADA': 4,
+    'DEVUELTA': 5,
+    'ANULADA': 6
+  };
+
+  obtenerEstadoIdActual(): number | null {
+    const status = this.filterStatus().toUpperCase();
+    return this.ESTADOS_MAP[status] ?? null;
+  }
+
   cargarLiquidaciones() {
     this.isLoading.set(true);
-    // Asumiendo que el facade/API soporta search, si no, fallará silenciosamente el filtrado o habría que ajustarlo,
-    // pero como el patrón de api es igual, lo añadimos:
-    this.facade.listarLiquidaciones(this.pageNumber(), this.pageSize(), this.searchText()).subscribe({
+    const estadoId = this.obtenerEstadoIdActual();
+    this.facade.listarLiquidaciones(this.pageNumber(), this.pageSize(), this.searchText(), estadoId).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.liquidaciones.set(res.data.items);
@@ -68,20 +82,8 @@ export class LiquidacionesListComponent implements OnInit {
     this.cargarLiquidaciones();
   }
 
-  filteredLiquidaciones = computed(() => {
-    let filtered = this.liquidaciones();
-    const status = this.filterStatus();
-
-    if (status !== 'Todas') {
-      const target = status.toUpperCase();
-      filtered = filtered.filter(l => 
-        (l.estado?.nombre && l.estado.nombre.toUpperCase() === target) ||
-        (l.estado?.codigo && l.estado.codigo.toUpperCase() === target)
-      );
-    }
-
-    return filtered;
-  });
+  // Ahora la consulta y paginación son 100% gestionadas por la API y SQL Server
+  filteredLiquidaciones = computed(() => this.liquidaciones());
 
   onSearch(term: string) {
     this.searchText.set(term);
@@ -97,6 +99,8 @@ export class LiquidacionesListComponent implements OnInit {
 
   setFilter(status: string) {
     this.filterStatus.set(status);
+    this.pageNumber.set(1);
+    this.cargarLiquidaciones();
   }
 
   // Modal de Pago

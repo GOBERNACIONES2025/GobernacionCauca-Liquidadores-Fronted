@@ -19,9 +19,14 @@ export class GeneracionLiquidacionFacade {
   
   public actionLoading = signal<boolean>(false);
 
-  listarLiquidaciones(pageNumber: number = 1, pageSize: number = 10, search?: string): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
+  listarLiquidaciones(
+    pageNumber: number = 1, 
+    pageSize: number = 10, 
+    search?: string, 
+    estadoId?: number | null
+  ): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
     this.actionLoading.set(true);
-    return this.apiService.listarLiquidaciones(pageNumber, pageSize, search).pipe(
+    return this.apiService.listarLiquidaciones(pageNumber, pageSize, search, estadoId).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }
