@@ -1,4 +1,4 @@
-﻿import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { concatMap, finalize } from 'rxjs/operators';
@@ -14,10 +14,12 @@ import { ContribuyentesApiService } from '../../../../../../infrastructure/api/C
 import { ToastService } from '../../../../../../../../core/services/toast.service';
 import { IntervinienteActoDto } from '../../../../../../domain/models/Radicacion/solicitud-wizard.model';
 
+import { FormFieldErrorComponent } from '../../../../../../../../shared/components/form-error/form-error.component';
+
 @Component({
   selector: 'app-step-intervinientes',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormFieldErrorComponent],
   templateUrl: './step-intervinientes.html'
 })
 export class StepIntervinientesComponent implements OnInit {

@@ -6,13 +6,7 @@
         <i [class]="icon()" class="text-xl"></i>
       </div>
       <div>
-        <div class="flex items-center space-x-2 text-[11px] font-medium text-slate-500 mb-0.5">
-          <span>Configuración</span>
-          <i class="fa-solid fa-chevron-right text-[8px] text-slate-400"></i>
-          <span>{{ category() }}</span>
-          <i class="fa-solid fa-chevron-right text-[8px] text-slate-400"></i>
-          <span class="text-blue-800 font-semibold">{{ title() }}</span>
-        </div>
+        <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-1" />
         <h1 class="text-lg font-bold text-slate-900 leading-tight flex items-center gap-2.5">
           {{ title() }}
           <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">

@@ -2,15 +2,18 @@ import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { BreadcrumbService } from '../../../../core/services/breadcrumb.service';
 
 @Component({
   selector: 'app-automotores-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, BreadcrumbComponent],
   templateUrl: './automotores-layout.html'
 })
 export class AutomotoresLayout {
   private router = inject(Router);
+  public breadcrumbService = inject(BreadcrumbService);
 
   readonly isSidebarOpen = signal<boolean>(false);
   readonly isSidebarHovered = signal<boolean>(false);
@@ -18,8 +21,8 @@ export class AutomotoresLayout {
 
   constructor() {
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: any) => {
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
       if (event.url.includes('/automotores/configuracion')) {
         this.isSidebarOpen.set(false);
       }

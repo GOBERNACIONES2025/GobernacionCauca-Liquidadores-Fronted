@@ -1,12 +1,13 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
+import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { ConfiguracionExtemporaneidadFacade } from '../../../../../application/facades/Tarifas/configuracion-extemporaneidad.facade';
 import { ConfiguracionExtemporaneidadApiService } from '../../../../../infrastructure/api/Tarifas/configuracion-extemporaneidad-api.service';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
@@ -30,7 +31,9 @@ import { ConfiguracionExtemporaneidad } from '../../../../../domain/models/Tarif
     PageHeaderComponent,
     SlideOverComponent,
     PaginationComponent,
-    SearchableSelectComponent
+    SearchableSelectComponent,
+    TableSearchComponent,
+    FormFieldErrorComponent
   ],
   templateUrl: './configuracion-extemporaneidad.html',
   styleUrl: './configuracion-extemporaneidad.css'
@@ -52,7 +55,6 @@ export class ConfiguracionExtemporaneidadComponent implements OnInit {
   breadcrumbs = ['Configuración', 'Tarifas', 'Extemporaneidad'];
 
   searchText = signal<string>('');
-  searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
@@ -152,14 +154,7 @@ export class ConfiguracionExtemporaneidadComponent implements OnInit {
     total: this.facade.totalConfiguraciones()
   }));
 
-  constructor() {
-    this.searchSubject
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe(() => {
-        this.pageNumber.set(1);
-        this.cargarItems();
-      });
-  }
+
 
   ngOnInit(): void {
     if (this.departamentosFacade.departamentos().length === 0) {
@@ -201,10 +196,16 @@ export class ConfiguracionExtemporaneidadComponent implements OnInit {
     this.cargarItems();
   }
 
-  onSearchChange(event: any): void {
-    const value = event?.target ? event.target.value : event;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string): void {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarItems();
+  }
+
+  onClearSearch(): void {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarItems();
   }
 
   setFilter(filter: 'todos' | 'activos' | 'inactivos'): void {

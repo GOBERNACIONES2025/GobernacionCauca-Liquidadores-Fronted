@@ -1,37 +1,26 @@
-<main class="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 sm:py-5 min-w-0 bg-slate-50 relative h-full">
-  <div class="flex flex-col lg:flex-row gap-5 h-full min-h-0">
-    <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-      
-      <!-- BREADCRUMB & HEADER -->
-      <div class="mb-4 sm:mb-5">
-        <div class="flex items-center gap-1.5 text-[11.5px] text-slate-400 mb-2 overflow-x-auto whitespace-nowrap">
-          <span class="flex items-center gap-1.5">
-            <span class="font-normal hover:text-slate-600 cursor-pointer">Inicio</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            <span class="font-normal hover:text-slate-600 cursor-pointer">Módulo Vehicular</span>
-          </span>
-          <span class="flex items-center gap-1.5">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            <span class="text-slate-900 font-semibold">Contribuyentes</span>
-          </span>
-        </div>
-
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 class="text-[16px] sm:text-[17px] font-bold text-slate-900 m-0 leading-snug">Gestión de Contribuyentes</h1>
-            <p class="text-[11.5px] sm:text-[12px] text-slate-400 mt-0.5">Directorio tributario — vehicular.Personas · general.TiposDocumento</p>
-          </div>
-          
-          <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <button (click)="openForm()" type="button" class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-[#70b238] hover:bg-[#5f972f] text-white border-none shadow-sm">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Nuevo Contribuyente
-            </button>
-          </div>
-        </div>
+<main class="flex-1 overflow-y-auto px-6 py-5 min-w-0 bg-slate-50 relative h-full">
+  <div class="mb-5">
+    <!-- Breadcrumb -->
+    <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-2" />
+    
+    <!-- Title Area -->
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <h1 class="text-[17px] font-bold text-slate-900 m-0 leading-snug">Gestión de Contribuyentes</h1>
+        <p class="text-[12px] text-slate-400 mt-1">Directorio tributario — vehicular.Personas · general.TiposDocumento</p>
       </div>
+      <div class="flex gap-2 items-center shrink-0">
+        <button type="button" class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Exportar
+        </button>
+        <button (click)="openForm()" type="button" class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-[#70b238] hover:bg-[#5f972f] text-white border-none shadow-sm">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Nuevo Contribuyente
+        </button>
+      </div>
+    </div>
+  </div>
 
       <!-- KPI CARDS (Comentado temporalmente según requerimiento de interfaz) -->
       <!--
@@ -370,8 +359,6 @@
         </div>
 
       </div>
-    </div>
-  </div>
 </main>
 
 <!-- DRAWER OVERLAY -->

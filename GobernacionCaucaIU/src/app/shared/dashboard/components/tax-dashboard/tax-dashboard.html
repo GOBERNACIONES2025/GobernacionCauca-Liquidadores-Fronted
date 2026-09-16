@@ -3,13 +3,7 @@
   <!-- CABECERA PRINCIPAL Y SELECTOR DE VIGENCIA -->
   <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
     <div>
-      <div class="flex items-center gap-2 text-xs text-slate-400 mb-1.5">
-        <a routerLink="/" class="hover:text-slate-600 transition">Inicio</a>
-        <i class="fa-solid fa-chevron-right text-[9px] text-slate-400"></i>
-        <span class="font-medium text-slate-600">{{ dashboardService.currentTaxMeta().badge }}</span>
-        <i class="fa-solid fa-chevron-right text-[9px] text-slate-400"></i>
-        <span class="font-bold text-slate-800">Panel de Control General</span>
-      </div>
+      <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-2" />
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm" [style.background-color]="dashboardService.currentTaxMeta().primaryColor">
           <i [class]="dashboardService.currentTaxMeta().icon + ' text-lg'"></i>

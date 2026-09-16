@@ -1,16 +1,10 @@
 <div class="flex flex-col gap-1.5 pb-2">
   
-  <!-- Breadcrumbs -->
-  <nav class="flex items-center gap-1.5 text-xs text-slate-400 select-none flex-wrap">
-    @for (crumb of breadcrumbs; track $index; let isLast = $last) {
-      @if (!$first) {
-        <span class="text-slate-300 font-normal">›</span>
-      }
-      <span [class]="isLast ? 'text-blue-600 font-semibold' : 'hover:text-slate-600 transition-colors cursor-default'">
-        {{ crumb }}
-      </span>
-    }
-  </nav>
+  <!-- Dynamic Breadcrumbs -->
+  <app-breadcrumb 
+    theme="light" 
+    [showHomeIcon]="showHome"
+  />
 
   <!-- Title & Tags -->
   <div class="flex items-center gap-3 mt-0.5 flex-wrap">

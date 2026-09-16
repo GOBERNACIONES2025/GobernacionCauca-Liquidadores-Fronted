@@ -1,25 +1,31 @@
-import { Component, inject, OnInit, HostListener, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 import { VehiculoItem } from '../../../domain/models/vehiculo.model';
 import { VehiculoWizardComponent } from '../../../presentation/components/vehiculo-wizard/vehiculo-wizard';
 import { AuditoriaVehiculoValidator } from '../../../application/validators/vehiculos/auditoria-vehiculo.validator';
 import { FieldError } from '../../../application/validators/validation-result';
+import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-vehiculos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, VehiculoWizardComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, VehiculoWizardComponent, BreadcrumbComponent],
   templateUrl: './vehiculos.html'
 })
-export class Vehiculos implements OnInit {
+export class Vehiculos implements OnInit, OnDestroy {
   readonly facade = inject(VehiculosFacade);
   readonly liqFacade = inject(LiquidacionesFacade);
   readonly auditoriaValidator = inject(AuditoriaVehiculoValidator);
   /** fb solo se usa para editFormAuditoria — el wizard tiene su propio FormBuilder */
   private fb = inject(FormBuilder);
+
+  private searchSubject = new Subject<string>();
+  private searchSub?: Subscription;
 
   // El formulario del wizard ahora vive en VehiculoWizardComponent.
   // Aquí solo mantenemos estado de la lista, modales de auditoría e inactivación.
@@ -96,7 +102,7 @@ export class Vehiculos implements OnInit {
   buscarPropietarioAuditoria(): void {
     const numDoc = this.editFormAuditoria.get('propietarioDocumento')?.value;
     if (!numDoc || !String(numDoc).trim()) {
-      this.propietarioAuditoriaEncontrado.set('⚠️ Ingrese un número de documento para realizar la búsqueda.');
+      this.propietarioAuditoriaEncontrado.set('Ingrese un numero de documento para realizar la busqueda.');
       return;
     }
 
@@ -119,14 +125,14 @@ export class Vehiculos implements OnInit {
             propietarioDocumento: persona.numeroDocumento || docLimpio
           });
 
-          this.propietarioAuditoriaEncontrado.set(`✅ Persona encontrada en BD: ${nombreEncontrado}`);
+          this.propietarioAuditoriaEncontrado.set(`Persona encontrada en BD: ${nombreEncontrado}`);
         } else {
-          this.propietarioAuditoriaEncontrado.set(`ℹ️ Documento no registrado previamente (se vinculará como nuevo propietario).`);
+          this.propietarioAuditoriaEncontrado.set(`Documento no registrado previamente (se vinculara como nuevo propietario).`);
         }
       },
       error: () => {
         this.buscandoPropietarioAuditoria.set(false);
-        this.propietarioAuditoriaEncontrado.set(`ℹ️ Documento libre para registro.`);
+        this.propietarioAuditoriaEncontrado.set(`Documento libre para registro.`);
       }
     });
   }
@@ -213,16 +219,16 @@ export class Vehiculos implements OnInit {
           this.cerrarAuditoriaModal();
         } else {
           this.toastMessage.set({
-            title: '✨ Datos Modificados',
-            desc: 'La información del vehículo fue actualizada exitosamente.',
+            title: 'Datos Modificados',
+            desc: 'La informacion del vehiculo fue actualizada exitosamente.',
             type: 'success'
           });
         }
       },
       error: (err) => {
-        console.error('Error guardando cambios en auditoría:', err);
+        console.error('Error guardando cambios en auditoria:', err);
         this.toastMessage.set({
-          title: '❌ Error al Guardar',
+          title: 'Error al Guardar',
           desc: err.message || 'No se pudieron actualizar los datos.',
           type: 'error'
         });
@@ -275,21 +281,21 @@ export class Vehiculos implements OnInit {
     this.facade.cambiarEstadoAprobacion(id, nuevoEstado).subscribe({
       next: () => {
         const msgMap: Record<string, string> = {
-          'APROBADO': '✅ Vehículo aprobado exitosamente. Ahora aparece en la flota activa.',
-          'REVISION': '🔄 Vehículo marcado para revisión de datos.',
-          'RECHAZADO': '❌ Vehículo rechazado.'
+          'APROBADO': 'Vehiculo aprobado exitosamente. Ahora aparece en la lista de vehiculos activos.',
+          'REVISION': 'Vehiculo marcado para revision de datos.',
+          'RECHAZADO': 'Vehiculo rechazado.'
         };
         this.toastMessage.set({
-          title: 'Estado de Aprobación Actualizado',
+          title: 'Estado de Aprobacion Actualizado',
           desc: msgMap[nuevoEstado.toUpperCase()] || `Estado cambiado a ${nuevoEstado}`,
           type: nuevoEstado.toUpperCase() === 'APROBADO' ? 'success' : 'info'
         });
       },
       error: (err) => {
-        console.error('Error al cambiar estado de aprobación:', err);
+        console.error('Error al cambiar estado de aprobacion:', err);
         this.toastMessage.set({
-          title: '❌ Error al actualizar estado',
-          desc: err.message || 'No se pudo cambiar el estado de aprobación.',
+          title: 'Error al actualizar estado',
+          desc: err.message || 'No se pudo cambiar el estado de aprobacion.',
           type: 'error'
         });
       }
@@ -299,7 +305,22 @@ export class Vehiculos implements OnInit {
 
 
   ngOnInit(): void {
+    this.searchSub = this.searchSubject.pipe(
+      debounceTime(350),
+      distinctUntilChanged()
+    ).subscribe(text => {
+      this.facade.setFiltroTexto(text);
+    });
     this.facade.refrescarDashboard();
+  }
+
+  ngOnDestroy(): void {
+    this.searchSub?.unsubscribe();
+  }
+
+  onFiltroTextoChange(val: string): void {
+    this.facade.filtroTexto.set(val);
+    this.searchSubject.next(val);
   }
 
   // ─── Métodos delegados al wizard ──────────────────────────────────────────

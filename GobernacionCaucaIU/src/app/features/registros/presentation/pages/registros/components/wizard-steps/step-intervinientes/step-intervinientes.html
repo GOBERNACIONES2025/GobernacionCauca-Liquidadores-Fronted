@@ -1,4 +1,4 @@
-﻿<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
   <!-- RESUMEN DE ACTOS PARA ASIGNAR INTERVINIENTES -->
   <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
@@ -70,10 +70,13 @@
       <!-- 1. Buscador -->
       <form [formGroup]="wizardService.intervinienteBusquedaForm" (ngSubmit)="buscarContribuyente()" class="flex items-end gap-3 mb-6">
         <div class="flex-1">
-          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Documento de Identidad a buscar</label>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Documento de Identidad a buscar *</label>
           <div class="relative">
-            <input formControlName="numeroIdentificacion" type="text" placeholder="Ej. 1061234567" class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
+            <input formControlName="numeroIdentificacion" type="text" placeholder="Ej. 1061234567"
+              [class.border-red-500]="wizardService.intervinienteBusquedaForm.get('numeroIdentificacion')?.invalid && (wizardService.intervinienteBusquedaForm.get('numeroIdentificacion')?.touched || wizardService.intervinienteBusquedaForm.get('numeroIdentificacion')?.dirty)"
+              class="w-full text-sm p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all" />
           </div>
+          <app-form-error [control]="wizardService.intervinienteBusquedaForm.get('numeroIdentificacion')" fieldName="Documento de Identidad"></app-form-error>
         </div>
         <button type="submit" [disabled]="buscandoContribuyente()" class="px-5 py-2.5 bg-slate-800 text-white font-medium text-sm rounded-lg hover:bg-slate-900 transition-colors shadow-sm whitespace-nowrap disabled:opacity-50">
           @if (buscandoContribuyente()) { Buscando... } @else { Buscar }
@@ -99,17 +102,23 @@
           
           <form [formGroup]="wizardService.intervinienteAsignarForm" (ngSubmit)="asignarIntervinienteAlActo()" class="flex items-end gap-3 pt-3 border-t border-slate-100">
             <div class="flex-1">
-              <label class="block text-xs font-semibold text-slate-700 mb-1.5">Rol en el acto</label>
-              <select formControlName="rolId" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white outline-none">
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">Rol en el acto *</label>
+              <select formControlName="rolId"
+                [class.border-red-500]="wizardService.intervinienteAsignarForm.get('rolId')?.invalid && (wizardService.intervinienteAsignarForm.get('rolId')?.touched || wizardService.intervinienteAsignarForm.get('rolId')?.dirty)"
+                class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white outline-none">
                 <option [ngValue]="null">Seleccione...</option>
                 @for (r of rolesIntervinienteFacade.rolesInterviniente(); track r.id) {
                   <option [value]="r.id">{{ r.nombre }}</option>
                 }
               </select>
+              <app-form-error [control]="wizardService.intervinienteAsignarForm.get('rolId')" fieldName="Rol en el acto"></app-form-error>
             </div>
             <div class="w-32">
-              <label class="block text-xs font-semibold text-slate-700 mb-1.5">Participación %</label>
-              <input formControlName="porcentaje" type="number" class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white outline-none text-right" />
+              <label class="block text-xs font-semibold text-slate-700 mb-1.5">Participación % *</label>
+              <input formControlName="porcentaje" type="number"
+                [class.border-red-500]="wizardService.intervinienteAsignarForm.get('porcentaje')?.invalid && (wizardService.intervinienteAsignarForm.get('porcentaje')?.touched || wizardService.intervinienteAsignarForm.get('porcentaje')?.dirty)"
+                class="w-full text-sm p-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white outline-none text-right" />
+              <app-form-error [control]="wizardService.intervinienteAsignarForm.get('porcentaje')" fieldName="Participación"></app-form-error>
             </div>
             <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
               Añadir al Acto
@@ -130,37 +139,49 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tipo de Persona *</label>
-                <select formControlName="tipoPersonaId" class="w-full text-sm p-2 border border-slate-300 rounded">
+                <select formControlName="tipoPersonaId"
+                  [class.border-red-500]="wizardService.intervinienteNuevoForm.get('tipoPersonaId')?.invalid && (wizardService.intervinienteNuevoForm.get('tipoPersonaId')?.touched || wizardService.intervinienteNuevoForm.get('tipoPersonaId')?.dirty)"
+                  class="w-full text-sm p-2 border border-slate-300 rounded">
                   <option [ngValue]="null">Seleccione...</option>
                   @for (tp of tiposPersonaFacade.tiposPersona(); track tp.id) {
                     <option [value]="tp.id">{{ tp.nombre }}</option>
                   }
                 </select>
+                <app-form-error [control]="wizardService.intervinienteNuevoForm.get('tipoPersonaId')" fieldName="Tipo de Persona"></app-form-error>
               </div>
               <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Tipo de Documento *</label>
-                <select formControlName="tipoIdentificacionId" class="w-full text-sm p-2 border border-slate-300 rounded">
+                <select formControlName="tipoIdentificacionId"
+                  [class.border-red-500]="wizardService.intervinienteNuevoForm.get('tipoIdentificacionId')?.invalid && (wizardService.intervinienteNuevoForm.get('tipoIdentificacionId')?.touched || wizardService.intervinienteNuevoForm.get('tipoIdentificacionId')?.dirty)"
+                  class="w-full text-sm p-2 border border-slate-300 rounded">
                   <option [ngValue]="null">Seleccione...</option>
                   @for (ti of tiposIdentificacionFacade.tiposIdentificacion(); track ti.id) {
                     <option [value]="ti.id">{{ ti.nombre }}</option>
                   }
                 </select>
+                <app-form-error [control]="wizardService.intervinienteNuevoForm.get('tipoIdentificacionId')" fieldName="Tipo de Documento"></app-form-error>
               </div>
               <div class="md:col-span-2">
                 <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombre Completo / Razón Social *</label>
-                <input formControlName="nombre" type="text" class="w-full text-sm p-2 border border-slate-300 rounded" />
+                <input formControlName="nombre" type="text"
+                  [class.border-red-500]="wizardService.intervinienteNuevoForm.get('nombre')?.invalid && (wizardService.intervinienteNuevoForm.get('nombre')?.touched || wizardService.intervinienteNuevoForm.get('nombre')?.dirty)"
+                  class="w-full text-sm p-2 border border-slate-300 rounded" />
+                <app-form-error [control]="wizardService.intervinienteNuevoForm.get('nombre')" fieldName="Nombre Completo / Razón Social"></app-form-error>
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">DirecciÃ³n de NotificaciÃ³n / Domicilio</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Dirección de Notificación / Domicilio</label>
                 <input formControlName="direccion" type="text" placeholder="Ej. Calle 5 # 4-20" class="w-full text-sm p-2 border border-slate-300 rounded" />
               </div>
               <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">TelÃ©fono / Celular</label>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Teléfono / Celular</label>
                 <input formControlName="telefono" type="text" placeholder="Ej. 3123456789" class="w-full text-sm p-2 border border-slate-300 rounded" />
               </div>
               <div class="md:col-span-2">
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Correo ElectrÃ³nico Fiscal</label>
-                <input formControlName="email" type="email" placeholder="Ej. interviniente@gmail.com" class="w-full text-sm p-2 border border-slate-300 rounded" />
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Correo Electrónico Fiscal</label>
+                <input formControlName="email" type="email" placeholder="Ej. interviniente@gmail.com"
+                  [class.border-red-500]="wizardService.intervinienteNuevoForm.get('email')?.invalid && (wizardService.intervinienteNuevoForm.get('email')?.touched || wizardService.intervinienteNuevoForm.get('email')?.dirty)"
+                  class="w-full text-sm p-2 border border-slate-300 rounded" />
+                <app-form-error [control]="wizardService.intervinienteNuevoForm.get('email')" fieldName="Correo Electrónico"></app-form-error>
               </div>
             </div>
             

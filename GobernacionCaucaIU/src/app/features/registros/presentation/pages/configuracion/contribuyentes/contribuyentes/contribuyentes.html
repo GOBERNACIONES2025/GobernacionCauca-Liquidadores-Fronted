@@ -15,29 +15,13 @@
     <div class="flex flex-wrap items-center gap-3">
       
       <!-- Search in Table -->
-      <div class="relative w-full sm:w-56 md:w-64">
-        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
-          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-          </svg>
-        </div>
-        <input 
-          type="text" 
-          [value]="searchText()"
-          (input)="onSearchChange($event)"
-          placeholder="Buscar por doc, nombre, email..." 
-          class="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-slate-200 rounded-md text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors shadow-2xs" 
-        />
-        @if (searchText()) {
-          <button 
-            (click)="searchText.set(''); searchSubject.next('')"
-            class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        }
-      </div>
+      <app-table-search
+        placeholder="Buscar por doc, nombre, email..."
+        [value]="searchText()"
+        [loading]="facade.loading()"
+        (search)="onSearch($event)"
+        (clear)="onClearSearch()"
+      ></app-table-search>
 
       <!-- Filter by Tipo Persona -->
       <div class="inline-flex p-0.5 bg-slate-100/90 border border-slate-200/80 rounded-lg">
@@ -197,13 +181,16 @@
           formControlName="tipoPersonaId"
           [searchFn]="searchTiposPersonaFn"
           [resolveIdFn]="resolveTipoPersonaFn"
+          [isInvalid]="contribuyenteForm.get('tipoPersonaId')?.invalid && (contribuyenteForm.get('tipoPersonaId')?.touched || contribuyenteForm.get('tipoPersonaId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Selecciona tipo..."
         ></app-searchable-select>
-        @if (contribuyenteForm.get('tipoPersonaId')?.hasError('required') && contribuyenteForm.get('tipoPersonaId')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Requerido</span></label>
-        }
+        <app-form-error 
+          [control]="contribuyenteForm.get('tipoPersonaId')" 
+          fieldName="Tipo de Persona"
+          [customMessages]="{ required: 'Debe seleccionar un tipo de persona' }">
+        </app-form-error>
       </div>
 
       <div class="form-control w-full">
@@ -214,13 +201,16 @@
           formControlName="tipoIdentificacionId"
           [searchFn]="searchTiposIdentificacionFn"
           [resolveIdFn]="resolveTipoIdentificacionFn"
+          [isInvalid]="contribuyenteForm.get('tipoIdentificacionId')?.invalid && (contribuyenteForm.get('tipoIdentificacionId')?.touched || contribuyenteForm.get('tipoIdentificacionId')?.dirty)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Selecciona doc..."
         ></app-searchable-select>
-        @if (contribuyenteForm.get('tipoIdentificacionId')?.hasError('required') && contribuyenteForm.get('tipoIdentificacionId')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Requerido</span></label>
-        }
+        <app-form-error 
+          [control]="contribuyenteForm.get('tipoIdentificacionId')" 
+          fieldName="Tipo de Documento"
+          [customMessages]="{ required: 'Debe seleccionar un tipo de documento' }">
+        </app-form-error>
       </div>
     </div>
 
@@ -234,11 +224,9 @@
         formControlName="numeroIdentificacion" 
         placeholder="Ej. 1061789456 o 900123456-1" 
         class="input input-sm input-bordered w-full text-slate-800 font-mono" 
-        [class.input-error]="contribuyenteForm.get('numeroIdentificacion')?.invalid && contribuyenteForm.get('numeroIdentificacion')?.touched" 
+        [class.input-error]="contribuyenteForm.get('numeroIdentificacion')?.invalid && (contribuyenteForm.get('numeroIdentificacion')?.touched || contribuyenteForm.get('numeroIdentificacion')?.dirty)" 
       />
-      @if (contribuyenteForm.get('numeroIdentificacion')?.hasError('required') && contribuyenteForm.get('numeroIdentificacion')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="contribuyenteForm.get('numeroIdentificacion')" fieldName="Número de Identificación"></app-form-error>
     </div>
 
     <!-- Nombre o Razón Social -->
@@ -251,11 +239,9 @@
         formControlName="nombre" 
         placeholder="Ej. Juan Pérez o Inversiones Cauca S.A.S." 
         class="input input-sm input-bordered w-full text-slate-800" 
-        [class.input-error]="contribuyenteForm.get('nombre')?.invalid && contribuyenteForm.get('nombre')?.touched" 
+        [class.input-error]="contribuyenteForm.get('nombre')?.invalid && (contribuyenteForm.get('nombre')?.touched || contribuyenteForm.get('nombre')?.dirty)" 
       />
-      @if (contribuyenteForm.get('nombre')?.hasError('required') && contribuyenteForm.get('nombre')?.touched) {
-        <label class="label pb-0"><span class="label-text-alt text-error">Este campo es requerido</span></label>
-      }
+      <app-form-error [control]="contribuyenteForm.get('nombre')" fieldName="Nombre o Razón Social"></app-form-error>
     </div>
 
     <!-- Dirección -->
@@ -294,11 +280,9 @@
           formControlName="email" 
           placeholder="correo@ejemplo.com" 
           class="input input-sm input-bordered w-full text-slate-800" 
-          [class.input-error]="contribuyenteForm.get('email')?.invalid && contribuyenteForm.get('email')?.touched"
+          [class.input-error]="contribuyenteForm.get('email')?.invalid && (contribuyenteForm.get('email')?.touched || contribuyenteForm.get('email')?.dirty)"
         />
-        @if (contribuyenteForm.get('email')?.hasError('email') && contribuyenteForm.get('email')?.touched) {
-          <label class="label pb-0"><span class="label-text-alt text-error">Email inválido</span></label>
-        }
+        <app-form-error [control]="contribuyenteForm.get('email')" fieldName="Correo Electrónico"></app-form-error>
       </div>
     </div>
   </form>

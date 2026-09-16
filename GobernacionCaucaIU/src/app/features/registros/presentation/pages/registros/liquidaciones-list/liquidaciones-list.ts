@@ -1,18 +1,18 @@
 import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { Router, RouterModule } from '@angular/router';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { LiquidacionListadoDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
+import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
+import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-liquidaciones-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, TableSearchComponent, BreadcrumbComponent],
   templateUrl: './liquidaciones-list.html'
 })
 export class LiquidacionesListComponent implements OnInit {
@@ -27,21 +27,10 @@ export class LiquidacionesListComponent implements OnInit {
   filterStatus = signal<string>('Todas');
   
   searchText = signal<string>('');
-  private searchSubject = new Subject<string>();
 
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   isLoading = signal<boolean>(false);
-
-  constructor() {
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged()
-    ).subscribe(query => {
-      this.pageNumber.set(1);
-      this.cargarLiquidaciones();
-    });
-  }
 
   ngOnInit() {
     this.cargarLiquidaciones();
@@ -90,10 +79,16 @@ export class LiquidacionesListComponent implements OnInit {
     return filtered;
   });
 
-  onSearchChange(event: any) {
-    const value = event.target.value;
-    this.searchText.set(value);
-    this.searchSubject.next(value);
+  onSearch(term: string) {
+    this.searchText.set(term);
+    this.pageNumber.set(1);
+    this.cargarLiquidaciones();
+  }
+
+  onClearSearch() {
+    this.searchText.set('');
+    this.pageNumber.set(1);
+    this.cargarLiquidaciones();
   }
 
   setFilter(status: string) {

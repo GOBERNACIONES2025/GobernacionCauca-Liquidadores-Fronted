@@ -1,15 +1,15 @@
 import { Component, inject, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { DashboardService } from '../../services/dashboard.service';
 import { EchartsChartComponent } from '../../../components/echarts-chart/echarts-chart';
+import { BreadcrumbComponent } from '../../../components/breadcrumb/breadcrumb.component';
 import { TaxModuleKey } from '../../models/dashboard.model';
 
 @Component({
   selector: 'app-tax-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, EchartsChartComponent],
+  imports: [CommonModule, FormsModule, EchartsChartComponent, BreadcrumbComponent],
   templateUrl: './tax-dashboard.html',
   styleUrl: './tax-dashboard.css',
 })

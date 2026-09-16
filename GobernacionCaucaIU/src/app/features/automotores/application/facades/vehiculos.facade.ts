@@ -290,13 +290,15 @@ export class VehiculosFacade {
   // --------------------------------------------------------------------------
   // CARGA DE VEHÍCULOS DESDE LA BASE DE DATOS (GET /api/vehiculos)
   // --------------------------------------------------------------------------
-  cargarVehiculos(page: number = 1, pageSize: number = 10): void {
+  cargarVehiculos(page: number = 1, pageSize?: number): void {
     this.loading.set(true);
     this.error.set(null);
 
+    const size = pageSize ?? this.pageSize();
+
     const filtros = {
       page,
-      pageSize,
+      pageSize: size,
       buscar: this.filtroTexto().trim() || undefined,
       estado: this.filtroEstado(),
       tipoVehiculo: this.filtroTipo()
@@ -311,26 +313,30 @@ export class VehiculosFacade {
     ).subscribe((res: any) => {
       this.loading.set(false);
       if (res && res.data) {
-        const rawItems = Array.isArray(res.data) ? res.data : (res.data.items || []);
-        const total = res.data.totalCount ?? rawItems.length;
-        const totalPags = res.data.totalPages ?? Math.ceil(total / pageSize);
+        const isPaged = !Array.isArray(res.data) && res.data.items !== undefined;
+        const rawItems: any[] = isPaged ? (res.data.items || []) : (Array.isArray(res.data) ? res.data : []);
+        const total = isPaged ? (res.data.totalCount ?? rawItems.length) : rawItems.length;
+        const totalPags = (isPaged && res.data.totalPages)
+          ? res.data.totalPages
+          : Math.max(1, Math.ceil(total / size));
 
         const mapped: VehiculoItem[] = this.mapearItemsVehiculo(rawItems);
 
-        if (mapped.length > 0) {
-          this.vehiculos.set(mapped);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(total);
-        } else {
-          this.vehiculos.set([]);
-          this.selectedVehiculo.set(null);
-          this.totalVehiculos.set(0);
-        }
+        this.vehiculos.set(mapped);
+        this.selectedVehiculo.set(null);
+        this.totalVehiculos.set(total);
         this.paginaActual.set(page);
-        this.pageSize.set(pageSize);
+        this.pageSize.set(size);
         this.totalPaginas.set(totalPags);
       }
     });
+  }
+
+  cambiarPagina(nuevaPagina: number): void {
+    if (this.loading()) return;
+    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
+    if (this.totalVehiculos() === 0) return;
+    this.cargarVehiculos(nuevaPagina, this.pageSize());
   }
 
   /**
@@ -386,69 +392,62 @@ export class VehiculosFacade {
 
       const docCompleto = numDoc ? `${tipoDoc} ${numDoc}`.trim() : (propietarioNombre !== 'Sin propietario asignado' ? 'Sin documento' : '');
 
-      return {
-        id: item.id || idx + 1,
-        placa: item.placa || '',
-        marca: item.marca || '',
-        linea: item.linea || '',
-        modelo: Number(item.modelo) || 2024,
-        cilindraje: Number(item.cilindraje) || 1600,
-        tipoCombustible: item.combustible || item.tipoCombustible || 'Gasolina',
-        combustible: item.combustible || item.tipoCombustible || 'Gasolina',
-        clase: item.clase || item.tipoVehiculo || 'Automóvil',
-        tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
-        color: item.color || 'Blanco',
-        servicio: item.servicio || 'Particular',
-        pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
-        organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
-        organismoTransitoId: item.organismoTransitoId || undefined,
-        fechaMatricula: item.fechaMatricula || undefined,
-        estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
-        estadoMatriculaId: item.estadoMatriculaId || 1,
-        exencion: item.exencion || undefined,
-        seleccionado: false,
-        tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
-        subtituloFichaTecnica: item.subtituloFichaTecnica,
-        propietarioId: item.propietarioId,
-        propietarioNombre: propietarioNombre,
-        propietarioDocumento: docCompleto,
-        propietario: {
-          nombre: propietarioNombre,
-          tipoDocumento: tipoDoc,
-          numeroDocumento: numDoc,
-          tipoPersona: tipoPersona
+          return {
+            id: item.id || idx + 1,
+            placa: item.placa || '',
+            marca: item.marca || '',
+            linea: item.linea || '',
+            modelo: Number(item.modelo) || 2024,
+            cilindraje: Number(item.cilindraje) || 1600,
+            tipoCombustible: item.combustible || item.tipoCombustible || 'Gasolina',
+            combustible: item.combustible || item.tipoCombustible || 'Gasolina',
+            clase: item.clase || item.tipoVehiculo || 'Automóvil',
+            tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
+            color: item.color || 'Blanco',
+            servicio: item.servicio || 'Particular',
+            pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
+            organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
+            organismoTransitoId: item.organismoTransitoId || undefined,
+            fechaMatricula: item.fechaMatricula || undefined,
+            estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
+            estadoMatriculaId: item.estadoMatriculaId || 1,
+            exencion: item.exencion || undefined,
+            seleccionado: false,
+            tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
+            subtituloFichaTecnica: item.subtituloFichaTecnica,
+            propietarioId: item.propietarioId,
+            propietarioNombre: propietarioNombre,
+            propietarioDocumento: propietarioDoc,
+            propietarios: item.propietarios || [],
+            propietario: {
+              nombre: propietarioNombre,
+              tipoDocumento: tipoDoc,
+              numeroDocumento: propietarioDoc,
+              tipoPersona: tipoPersona
+            }
+          };
+        });
+
+        if (mapped.length > 0) {
+          this.vehiculos.set(mapped);
+          this.selectedVehiculo.set(null);
+          this.totalVehiculos.set(total);
+        } else {
+          this.vehiculos.set([]);
+          this.selectedVehiculo.set(null);
+          this.totalVehiculos.set(0);
         }
-      };
+        this.paginaActual.set(page);
+        this.pageSize.set(pageSize);
+        this.totalPaginas.set(totalPags);
+      }
     });
   }
 
-  /**
-   * Obtiene la totalidad de vehículos para exportación a nivel general (universo completo filtrado),
-   * consultando la API con pageSize: 10000 para no limitarse a la paginación visible de la tabla.
-   */
-  obtenerTodosParaExportar(): Observable<VehiculoItem[]> {
-    const filtros = {
-      page: 1,
-      pageSize: 10000,
-      buscar: this.filtroTexto().trim() || undefined,
-      estado: this.filtroEstado(),
-      tipoVehiculo: this.filtroTipo()
-    };
-
-    return this.vehiculosApi.getVehiculos(filtros).pipe(
-      map((res: any) => {
-        if (!res || !res.data) return [];
-        const rawItems = Array.isArray(res.data) ? res.data : (res.data.items || []);
-        return this.mapearItemsVehiculo(rawItems);
-      }),
-      catchError((err: any) => {
-        console.warn('Error al obtener vehículos generales para exportación:', err);
-        return of(this.filteredVehiculos());
-      })
-    );
-  }
-
-  refrescarDashboard(): void {
+  refrescarDashboard(irAPrimeraPagina: boolean = true): void {
+    if (irAPrimeraPagina) {
+      this.paginaActual.set(1);
+    }
     this.cargarKpis();
     this.cargarVehiculos(this.paginaActual(), this.pageSize());
     this.cargarPendientesAprobacion();
@@ -465,45 +464,30 @@ export class VehiculosFacade {
     ).subscribe((res: ApiResponse<any[]> | null) => {
       this.cargandoPendientes.set(false);
       if (res && res.data) {
-        const mapped: VehiculoItem[] = res.data.map((item: any) => {
-          let propDoc = item.propietarioDocumento || '';
-          let tipoDoc = 'CC';
-          let numDoc = propDoc;
-
-          if (propDoc) {
-            const tokens = String(propDoc).split(/\s+/).filter(Boolean);
-            const known = ['CC', 'NIT', 'CE', 'TI', 'PA', 'PAS', 'RC'];
-            const types = tokens.filter(t => known.includes(t.toUpperCase()));
-            const nums = tokens.filter(t => !known.includes(t.toUpperCase()));
-            if (types.length > 0) tipoDoc = types[types.length - 1].toUpperCase();
-            if (nums.length > 0) numDoc = nums.join(' ');
+        const mapped: VehiculoItem[] = res.data.map((item: any) => ({
+          id: item.id,
+          placa: item.placa || '',
+          marca: item.marca || '',
+          linea: item.linea || '',
+          modelo: item.modelo || 2024,
+          cilindraje: item.cilindraje || 1600,
+          combustible: item.combustible || 'Gasolina',
+          tipoVehiculo: item.tipoVehiculo || 'Automóvil',
+          clase: item.clase || 'Automóvil',
+          servicio: item.servicio || 'Particular',
+          estadoMatricula: item.estadoMatricula || 'Pendiente',
+          estadoMatriculaId: item.estadoMatriculaId || 2,
+          estadoAprobacion: item.estadoAprobacion || 'PENDIENTE',
+          propietarioId: item.propietarioId,
+          propietarioNombre: item.propietarioNombre,
+          propietarioDocumento: item.propietarioDocumento,
+          propietarios: item.propietarios || [],
+          propietario: {
+            nombre: item.propietarioNombre || 'Propietario Pendiente',
+            tipoDocumento: 'CC',
+            numeroDocumento: item.propietarioDocumento || 'Pendiente'
           }
-
-          const docCompleto = numDoc ? `${tipoDoc} ${numDoc}`.trim() : (propDoc || 'Pendiente');
-
-          return {
-            id: item.id,
-            placa: item.placa || '',
-            marca: item.marca || '',
-            linea: item.linea || '',
-            modelo: item.modelo || 2024,
-            cilindraje: item.cilindraje || 1600,
-            combustible: item.combustible || 'Gasolina',
-            tipoVehiculo: item.tipoVehiculo || 'Automóvil',
-            clase: item.clase || 'Automóvil',
-            servicio: item.servicio || 'Particular',
-            estadoMatricula: item.estadoMatricula || 'Pendiente',
-            estadoMatriculaId: item.estadoMatriculaId || 2,
-            estadoAprobacion: item.estadoAprobacion || 'PENDIENTE',
-            propietario: {
-              nombre: item.propietarioNombre || 'Propietario Pendiente',
-              tipoDocumento: tipoDoc,
-              numeroDocumento: numDoc || 'Pendiente'
-            },
-            propietarioNombre: item.propietarioNombre,
-            propietarioDocumento: docCompleto
-          };
-        });
+        }));
         this.vehiculosPendientesAprobacion.set(mapped);
         this.kpis.update(k => ({ ...k, totalPendientesAprobacion: mapped.length }));
       }
@@ -522,8 +506,9 @@ export class VehiculosFacade {
   cambiarEstadoAprobacion(id: number, nuevoEstado: string): Observable<any> {
     return this.api.put<ApiResponse<any>>(`/vehiculos/${id}/estado-aprobacion?nuevoEstado=${nuevoEstado}`, {}, {}, 'AUTOMOTORES').pipe(
       map(res => {
-        this.cargarPendientesAprobacion();
-        this.refrescarDashboard();
+        // Remover de la lista local de pendientes de inmediato
+        this.vehiculosPendientesAprobacion.update(list => list.filter(item => item.id !== id));
+        this.refrescarDashboard(true);
         return res;
       })
     );
@@ -689,6 +674,7 @@ export class VehiculosFacade {
     return this.vehiculosApi.crearVehiculo(payload).pipe(
       map(res => {
         this.registroLoading.set(false);
+        this.refrescarDashboard(true);
         return res;
       }),
       catchError(err => {

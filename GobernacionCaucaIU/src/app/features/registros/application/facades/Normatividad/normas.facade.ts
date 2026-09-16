@@ -35,11 +35,11 @@ export class NormasFacade {
   /**
    * Carga la lista paginada de normas con filtro opcional por departamento.
    */
-  cargarNormas(departamentoId?: number, pageNumber: number = 1, pageSize: number = 10): void {
+  cargarNormas(departamentoId?: number, pageNumber: number = 1, pageSize: number = 10, search?: string): void {
     this.loading.set(true);
     this.error.set(null);
 
-    this.apiService.obtenerTodos({ pageNumber, pageSize, departamentoId }).subscribe({
+    this.apiService.obtenerTodos({ pageNumber, pageSize, departamentoId, search }).subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.normas.set(response.data.items || []);
