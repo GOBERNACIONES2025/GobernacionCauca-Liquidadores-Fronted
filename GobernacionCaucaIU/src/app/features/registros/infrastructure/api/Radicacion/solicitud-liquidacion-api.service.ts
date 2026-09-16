@@ -73,9 +73,6 @@ export class SolicitudLiquidacionApiService {
 
   registrarDocumento(id: number, file: File | null, command: RegistrarDocumentoDto): Observable<ApiResponse<boolean>> {
     const formData = new FormData();
-    
-    // Al usar [FromForm] con un record, ASP.NET Core exige que todos los campos estén presentes
-    // (incluyendo SolicitudId, aunque luego el controlador lo sobreescriba).
     formData.append('SolicitudId', id.toString());
     formData.append('NumeroDocumento', command.numeroDocumento);
     formData.append('FechaDocumento', command.fechaDocumento);
@@ -107,5 +104,9 @@ export class SolicitudLiquidacionApiService {
 
   cancelarSolicitud(id: number, motivo: string): Observable<ApiResponse<boolean>> {
     return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${id}/cancelar`, { motivo }, {}, this.dbContext);
+  }
+
+  devolverSolicitud(id: number, motivo: string): Observable<ApiResponse<boolean>> {
+    return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${id}/devolver`, { motivoDevolucion: motivo }, {}, this.dbContext);
   }
 }

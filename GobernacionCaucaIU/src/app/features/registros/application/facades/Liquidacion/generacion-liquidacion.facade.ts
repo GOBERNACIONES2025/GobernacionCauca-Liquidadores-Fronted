@@ -31,9 +31,6 @@ export class GeneracionLiquidacionFacade {
     );
   }
 
-  /**
-   * Ejecuta la simulación de liquidación y retorna el observable para manejarlo en el componente.
-   */
   simularLiquidacion(solicitudId: number): Observable<ApiResponse<LiquidacionSimuladaResponse>> {
     this.actionLoading.set(true);
     return this.apiService.simularLiquidacion(solicitudId).pipe(
@@ -41,9 +38,6 @@ export class GeneracionLiquidacionFacade {
     );
   }
 
-  /**
-   * Ejecuta la generación oficial de la liquidación basada en la solicitud completada.
-   */
   generarLiquidacion(command: GenerarLiquidacionDto): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.generarLiquidacion(command).pipe(
@@ -51,9 +45,6 @@ export class GeneracionLiquidacionFacade {
     );
   }
 
-  /**
-   * Descarga el PDF de la liquidación oficial generada.
-   */
   descargarPdf(id: number): Observable<Blob> {
     this.actionLoading.set(true);
     return this.apiService.descargarPdf(id).pipe(
@@ -61,9 +52,6 @@ export class GeneracionLiquidacionFacade {
     );
   }
 
-  /**
-   * Anula una liquidación oficial generada.
-   */
   anularLiquidacion(id: number, motivo: string): Observable<ApiResponse<boolean>> {
     this.actionLoading.set(true);
     return this.apiService.anularLiquidacion(id, motivo).pipe(
@@ -71,12 +59,49 @@ export class GeneracionLiquidacionFacade {
     );
   }
 
-  /**
-   * Reliquida una liquidación oficial, anulando la actual y reaperturando la solicitud.
-   */
   reliquidarLiquidacion(id: number, motivo: string): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
     return this.apiService.reliquidarLiquidacion(id, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  solicitarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<number>> {
+    this.actionLoading.set(true);
+    return this.apiService.solicitarReliquidacion(liquidacionId, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  listarReliquidacionesPendientes(
+    pageNumber: number = 1, 
+    pageSize: number = 10, 
+    search?: string, 
+    entidadRegistroId?: number
+  ): Observable<ApiResponse<PagedResult<any>>> {
+    this.actionLoading.set(true);
+    return this.apiService.listarReliquidacionesPendientes(pageNumber, pageSize, search, entidadRegistroId).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  aprobarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<number>> {
+    this.actionLoading.set(true);
+    return this.apiService.aprobarReliquidacion(liquidacionId, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  rechazarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<boolean>> {
+    this.actionLoading.set(true);
+    return this.apiService.rechazarReliquidacion(liquidacionId, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  obtenerHistorial(liquidacionId: number): Observable<ApiResponse<any>> {
+    this.actionLoading.set(true);
+    return this.apiService.obtenerHistorial(liquidacionId).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }
