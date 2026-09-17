@@ -1,11 +1,26 @@
 import { Injectable, signal } from '@angular/core';
-import { BloqueoHorarioDemoConfig, ModoCalculoCupos, PasaportesConfiguracionDemo } from '../../domain/models/pasaportes-configuracion-demo.model';
+import {
+  BeneficioLiquidacionDemoConfig,
+  BloqueoHorarioDemoConfig,
+  ImpuestoLiquidacionDemoConfig,
+  ModoCalculoCupos,
+  PasaportesConfiguracionDemo,
+} from '../../domain/models/pasaportes-configuracion-demo.model';
 
 const DEFAULT_CONFIG: PasaportesConfiguracionDemo = {
   pagoWeb: {
     habilitado: true,
     modalidad: 'PORCENTAJE',
     valor: 50,
+  },
+  liquidacion: {
+    vigencia: 2026,
+    tarifas: [
+      { id: 1, codigo: 'ORDINARIO', nombre: 'Pasaporte ordinario', valor: 321000, vigenciaDesde: '2026-01-01', obligatorio: true },
+      { id: 2, codigo: 'EJECUTIVO', nombre: 'Pasaporte ejecutivo', valor: 429000, vigenciaDesde: '2026-01-01', obligatorio: true },
+    ],
+    impuestos: [],
+    beneficios: [],
   },
   modoCalculoCupos: 'AUTOMATICO',
   intervaloMinutos: 5,
@@ -32,7 +47,7 @@ const cloneDefault = (): PasaportesConfiguracionDemo => structuredClone(DEFAULT_
 
 @Injectable({ providedIn: 'root' })
 export class PasaportesConfiguracionDemoService {
-  // Demo deliberadamente en memoria. No usa localStorage y no modifica el portal ciudadano.
+  // Configuración administrativa en memoria. No usa localStorage y no modifica el portal ciudadano.
   readonly configuracion = signal<PasaportesConfiguracionDemo>(cloneDefault());
 
   restaurarValoresDemo(): void {
@@ -43,6 +58,92 @@ export class PasaportesConfiguracionDemoService {
     this.configuracion.update((actual) => ({
       ...actual,
       pagoWeb: { ...actual.pagoWeb, ...cambios },
+    }));
+  }
+
+  actualizarTarifa(id: number, cambios: Partial<PasaportesConfiguracionDemo['liquidacion']['tarifas'][number]>): void {
+    this.configuracion.update((actual) => ({
+      ...actual,
+      liquidacion: {
+        ...actual.liquidacion,
+        tarifas: actual.liquidacion.tarifas.map((item) => item.id === id ? { ...item, ...cambios } : item),
+      },
+    }));
+  }
+
+  crearImpuesto(datos: Omit<ImpuestoLiquidacionDemoConfig, 'id'>): ImpuestoLiquidacionDemoConfig {
+    const ids = this.configuracion().liquidacion.impuestos.map((item) => item.id);
+    const nuevo: ImpuestoLiquidacionDemoConfig = {
+      id: ids.length ? Math.max(...ids) + 1 : 1,
+      ...datos,
+    };
+
+    this.configuracion.update((actual) => ({
+      ...actual,
+      liquidacion: {
+        ...actual.liquidacion,
+        impuestos: [...actual.liquidacion.impuestos, nuevo],
+      },
+    }));
+
+    return nuevo;
+  }
+
+  actualizarImpuesto(id: number, cambios: Partial<ImpuestoLiquidacionDemoConfig>): void {
+    this.configuracion.update((actual) => ({
+      ...actual,
+      liquidacion: {
+        ...actual.liquidacion,
+        impuestos: actual.liquidacion.impuestos.map((item) => item.id === id ? { ...item, ...cambios } : item),
+      },
+    }));
+  }
+
+  eliminarImpuesto(id: number): void {
+    this.configuracion.update((actual) => ({
+      ...actual,
+      liquidacion: {
+        ...actual.liquidacion,
+        impuestos: actual.liquidacion.impuestos.filter((item) => item.id !== id),
+      },
+    }));
+  }
+
+  crearBeneficio(datos: Omit<BeneficioLiquidacionDemoConfig, 'id'>): BeneficioLiquidacionDemoConfig {
+    const ids = this.configuracion().liquidacion.beneficios.map((item) => item.id);
+    const nuevo: BeneficioLiquidacionDemoConfig = {
+      id: ids.length ? Math.max(...ids) + 1 : 1,
+      ...datos,
+    };
+
+    this.configuracion.update((actual) => ({
+      ...actual,
+      liquidacion: {
+        ...actual.liquidacion,
+        beneficios: [...actual.liquidacion.beneficios, nuevo],
+      },
+    }));
+
+    return nuevo;
+  }
+
+  actualizarBeneficio(id: number, cambios: Partial<BeneficioLiquidacionDemoConfig>): void {
+    this.configuracion.update((actual) => ({
+      ...actual,
+      liquidacion: {
+        ...actual.liquidacion,
+        beneficios: actual.liquidacion.beneficios.map((item) => item.id === id ? { ...item, ...cambios } : item),
+      },
+    }));
+  }
+
+  eliminarBeneficio(id: number): void {
+    this.configuracion.update((actual) => ({
+      ...actual,
+      liquidacion: {
+        ...actual.liquidacion,
+        beneficios: actual.liquidacion.beneficios.filter((item) => item.id !== id),
+      },
     }));
   }
 

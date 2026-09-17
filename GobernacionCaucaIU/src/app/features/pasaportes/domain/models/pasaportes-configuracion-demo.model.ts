@@ -1,10 +1,48 @@
 export type ModalidadPrimerPago = 'PORCENTAJE' | 'VALOR_FIJO';
 export type ModoCalculoCupos = 'AUTOMATICO' | 'MANUAL';
+export type TipoCalculoValor = 'VALOR_FIJO' | 'PORCENTAJE';
+export type AplicacionTipoPasaporte = 'AMBOS' | 'ORDINARIO' | 'EJECUTIVO';
+export type TipoBeneficioLiquidacion = 'DESCUENTO' | 'EXENCION';
 
 export interface PagoWebDemoConfig {
   habilitado: boolean;
   modalidad: ModalidadPrimerPago;
   valor: number;
+}
+
+export interface TarifaPasaporteDemoConfig {
+  id: number;
+  codigo: 'ORDINARIO' | 'EJECUTIVO';
+  nombre: string;
+  valor: number;
+  vigenciaDesde: string;
+  obligatorio: true;
+}
+
+export interface ImpuestoLiquidacionDemoConfig {
+  id: number;
+  nombre: string;
+  tipoCalculo: TipoCalculoValor;
+  valor: number;
+  aplicaA: AplicacionTipoPasaporte;
+  activo: boolean;
+}
+
+export interface BeneficioLiquidacionDemoConfig {
+  id: number;
+  nombre: string;
+  tipo: TipoBeneficioLiquidacion;
+  tipoCalculo: TipoCalculoValor;
+  valor: number;
+  aplicaA: AplicacionTipoPasaporte;
+  activo: boolean;
+}
+
+export interface LiquidacionDemoConfig {
+  vigencia: number;
+  tarifas: TarifaPasaporteDemoConfig[];
+  impuestos: ImpuestoLiquidacionDemoConfig[];
+  beneficios: BeneficioLiquidacionDemoConfig[];
 }
 
 export interface TipoCitaDemoConfig {
@@ -40,6 +78,7 @@ export interface FormalizadorDemoConfig {
 
 export interface PasaportesConfiguracionDemo {
   pagoWeb: PagoWebDemoConfig;
+  liquidacion: LiquidacionDemoConfig;
   modoCalculoCupos: ModoCalculoCupos;
   intervaloMinutos: number;
   tiposCita: TipoCitaDemoConfig[];
