@@ -106,10 +106,6 @@ export class DashboardService {
           this.loading.set(false);
         },
       });
-    } else if (key === 'deguello') {
-      const mockDeguello = this.getMockDeguelloDashboard(vigencia);
-      this.buildDashboardForTax(meta, vigencia, mockDeguello);
-      this.loading.set(false);
     } else if (key === 'licores') {
       const licoresData = this.buildLicoresDashboardData(vigencia);
       this.buildDashboardForTax(meta, vigencia, licoresData);
@@ -117,6 +113,10 @@ export class DashboardService {
     } else if (key === 'sobretasa') {
       const sobretasaData = this.buildSobretasaDashboardData(vigencia);
       this.buildDashboardForTax(meta, vigencia, sobretasaData);
+      this.loading.set(false);
+    } else if (key === 'deguello') {
+      const mockDeguello = this.getMockDeguelloDashboard(vigencia);
+      this.buildDashboardForTax(meta, vigencia, mockDeguello);
       this.loading.set(false);
     } else {
       this.buildDashboardForTax(meta, vigencia, {});
@@ -360,6 +360,100 @@ export class DashboardService {
         fechaHora: d.fechaPresentacion || d.fecha || new Date().toISOString(),
         descripcion: `Sobretasa Combustibles - Periodo ${d.periodoMes || '02'}/${d.periodoAnio || 2026}`,
       })),
+    };
+  }
+
+  private getMockDeguelloDashboard(vigencia: number): any {
+    return {
+      kpi: {
+        recaudoTotalVigencia: 423300000,
+        variacionRecaudoInteranual: 8.4,
+        totalVehiculos: 8500,
+        porcentajeRegistradosEnSistema: 96,
+        variacionVehiculos: 5.2,
+        tramitesPendientes: 4,
+        variacionTramitesPendientes: -12,
+        totalExtemporaneas: 14,
+        porcentajeExtemporaneidad: 2.1,
+        variacionExtemporaneidad: -0.5,
+      },
+      recaudoMensual: [
+        { nombreMes: 'Ene', recaudoReal: 38200000 },
+        { nombreMes: 'Feb', recaudoReal: 41500000 },
+        { nombreMes: 'Mar', recaudoReal: 46800000 },
+        { nombreMes: 'Abr', recaudoReal: 44200000 },
+        { nombreMes: 'May', recaudoReal: 49100000 },
+        { nombreMes: 'Jun', recaudoReal: 52400000 },
+        { nombreMes: 'Jul', recaudoReal: 48900000 },
+        { nombreMes: 'Ago', recaudoReal: 53200000 },
+        { nombreMes: 'Sep', recaudoReal: 49000000 },
+        { nombreMes: 'Oct', recaudoReal: 0 },
+        { nombreMes: 'Nov', recaudoReal: 0 },
+        { nombreMes: 'Dic', recaudoReal: 0 },
+      ],
+      distribucionTipologia: [
+        { nombre: 'Bovino Macho Ceba', cantidad: 5270 },
+        { nombre: 'Bovino Hembra Descarte', cantidad: 2040 },
+        { nombre: 'Bufalino Mayor', cantidad: 765 },
+        { nombre: 'Terneros Especiales', cantidad: 425 },
+      ],
+      topMunicipios: [
+        { municipio: 'POPAYÁN', totalTramites: 4330, recaudo: 215800000 },
+        { municipio: 'PATÍA - EL BORDO', totalTramites: 1780, recaudo: 88600000 },
+        { municipio: 'SANTANDER DE QUILICHAO', totalTramites: 1300, recaudo: 64700000 },
+        { municipio: 'BOLÍVAR', totalTramites: 625, recaudo: 31200000 },
+        { municipio: 'EL TAMBO', totalTramites: 465, recaudo: 23000000 },
+      ],
+      extemporaneidad: {
+        tasaExtemporaneidad: 2.1,
+        totalFueraDePlazo: 14,
+      },
+      ultimasOperaciones: [
+        {
+          id: '2026-004521',
+          codigoTramite: 'FORM-2026-004521',
+          descripcion: 'Frigorífico Regional de Popayán — 24 Bovinos',
+          propietario: 'FRIGORÍFICO REGIONAL DE POPAYÁN S.A.S.',
+          monto: 1075680,
+          usuario: 'Ventanilla Rentas',
+          fechaHora: '2026-09-16T14:20:00',
+          estadoCodigo: 'PAGADO',
+          estado: 'Pagado',
+        },
+        {
+          id: '2026-008912',
+          codigoTramite: 'FORM-2026-008912',
+          descripcion: 'Planta Regional Patía — 12 Bovinos',
+          propietario: 'DISTRIBUIDORA DE CARNES EL BORDO LTDA',
+          monto: 537840,
+          usuario: 'Inspección Sanitaria',
+          fechaHora: '2026-09-16T11:05:00',
+          estadoCodigo: 'PENDIENTE',
+          estado: 'Pendiente',
+        },
+        {
+          id: '2026-007740',
+          codigoTramite: 'FORM-2026-007740',
+          descripcion: 'Frigorífico Santander Quilichao — 40 Bovinos',
+          propietario: 'CARNES DEL NORTE DEL CAUCA S.A.S.',
+          monto: 1792800,
+          usuario: 'Ventanilla Rentas',
+          fechaHora: '2026-09-15T16:45:00',
+          estadoCodigo: 'PAGADO',
+          estado: 'Pagado',
+        },
+        {
+          id: '2026-003319',
+          codigoTramite: 'FORM-2026-003319',
+          descripcion: 'Matadero Municipal Bolívar — 8 Bovinos',
+          propietario: 'GANADERÍA Y COMERCIALIZADORA DEL MACIZO',
+          monto: 358560,
+          usuario: 'Ventanilla Rentas',
+          fechaHora: '2026-09-14T09:15:00',
+          estadoCodigo: 'VENCIDO',
+          estado: 'Vencido',
+        },
+      ],
     };
   }
 
