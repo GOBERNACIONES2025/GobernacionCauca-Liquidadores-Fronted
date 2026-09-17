@@ -18,3 +18,24 @@ export interface Formalizer {
   name: string;
   status: 'Disponible' | 'No disponible';
 }
+
+export type AdminAppointmentStatus = 'Pendiente' | 'Agendada' | 'Finalizada' | 'Cancelada';
+
+export interface AdminAppointment {
+  id: number;
+  ticket: string;
+  citizen: string;
+  documentType: 'Cédula de ciudadanía' | 'Tarjeta de identidad' | 'Registro civil' | 'Pasaporte';
+  document: string;
+  appointmentType: 'Público general' | 'Santander de Quilichao' | 'Secretaría de Gobierno';
+  passportType: 'Ordinario' | 'Ejecutivo' | 'Emergencia';
+  dateIso: string;
+  date: string;
+  time: string;
+  status: AdminAppointmentStatus;
+  priority: boolean;
+  extraordinary: boolean;
+  email: string;
+  phone: string;
+  paymentReference?: string;
+}

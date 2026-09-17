@@ -1,0 +1,679 @@
+<section class="mx-auto w-full max-w-[1500px] p-4 sm:p-6">
+  <div class="mb-5 flex flex-wrap items-start justify-between gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div>
+      <div class="mb-2 flex items-center gap-2 text-xs text-slate-500">
+        <span>Inicio</span><i class="fa-solid fa-chevron-right text-[9px]"></i><span>Pasaportes</span><i class="fa-solid fa-chevron-right text-[9px]"></i><span class="font-semibold text-slate-700">Configuración</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900">Configuración de Pasaportes</h1>
+      <p class="mt-1 text-sm text-slate-500">Parametrización de demostración. Los valores iniciales representan la configuración vigente.</p>
+    </div>
+    <button type="button" (click)="restaurar()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+      <i class="fa-solid fa-rotate-left mr-2"></i>Restaurar valores demo
+    </button>
+  </div>
+
+  <div class="grid gap-5 xl:grid-cols-[290px_minmax(0,1fr)]">
+    <aside class="self-start overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm xl:sticky xl:top-4">
+      <div class="border-b border-slate-200 px-4 py-4">
+        <div class="text-sm font-extrabold text-slate-900">Parámetros</div>
+        <div class="mt-0.5 text-xs text-slate-500">Seleccione una sección para editar.</div>
+      </div>
+
+      <nav class="p-2 text-xs">
+        <div class="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Agenda y disponibilidad</div>
+        <button type="button" (click)="seleccionar('tipos-cita')" [class.bg-blue-50]="seccion() === 'tipos-cita'" [class.text-blue-900]="seccion() === 'tipos-cita'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-users-rectangle w-4 text-center"></i>Tipos de cita y cupos</button>
+        <button type="button" (click)="seleccionar('horarios')" [class.bg-blue-50]="seccion() === 'horarios'" [class.text-blue-900]="seccion() === 'horarios'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-600 hover:bg-slate-50"><i class="fa-regular fa-clock w-4 text-center"></i>Rangos horarios</button>
+        <button type="button" (click)="seleccionar('bloqueos')" [class.bg-blue-50]="seccion() === 'bloqueos'" [class.text-blue-900]="seccion() === 'bloqueos'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-lock w-4 text-center"></i>Bloqueos</button>
+
+        <div class="mt-3 px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Liquidación y pagos</div>
+        <button type="button" (click)="seleccionar('pago')" [class.bg-blue-50]="seccion() === 'pago'" [class.text-blue-900]="seccion() === 'pago'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-credit-card w-4 text-center"></i>Pago web</button>
+
+        <div class="mt-3 px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">Operación</div>
+        <button type="button" (click)="seleccionar('formalizadores')" [class.bg-blue-50]="seccion() === 'formalizadores'" [class.text-blue-900]="seccion() === 'formalizadores'" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-600 hover:bg-slate-50"><i class="fa-solid fa-user-tie w-4 text-center"></i>Formalizadores</button>
+      </nav>
+    </aside>
+
+    <div class="min-w-0">
+      @if (seccion() === 'pago') {
+        <div class="space-y-5">
+          <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="font-extrabold text-slate-900">Pago web</h2>
+                  <span
+                    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide"
+                    [class.bg-emerald-100]="configuracion().pagoWeb.habilitado"
+                    [class.text-emerald-700]="configuracion().pagoWeb.habilitado"
+                    [class.bg-slate-100]="!configuracion().pagoWeb.habilitado"
+                    [class.text-slate-600]="!configuracion().pagoWeb.habilitado"
+                  >
+                    <span
+                      class="h-1.5 w-1.5 rounded-full"
+                      [class.bg-emerald-500]="configuracion().pagoWeb.habilitado"
+                      [class.bg-slate-400]="!configuracion().pagoWeb.habilitado"
+                    ></span>
+                    {{ configuracion().pagoWeb.habilitado ? 'Habilitado' : 'Deshabilitado' }}
+                  </span>
+                </div>
+                <p class="mt-1 text-xs text-slate-500">Defina cómo se comporta el primer pago dentro del proceso de solicitud de pasaporte.</p>
+              </div>
+
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#1b53ad]">
+                <i class="fa-solid fa-credit-card text-lg"></i>
+              </div>
+            </div>
+
+            <div class="grid gap-5 p-5 sm:p-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,.85fr)]">
+              <div class="space-y-5">
+                <section
+                  class="rounded-2xl border p-5 transition"
+                  [class.border-emerald-200]="configuracion().pagoWeb.habilitado"
+                  [class.bg-emerald-50/50]="configuracion().pagoWeb.habilitado"
+                  [class.border-slate-200]="!configuracion().pagoWeb.habilitado"
+                  [class.bg-slate-50]="!configuracion().pagoWeb.habilitado"
+                >
+                  <div class="flex items-start justify-between gap-5">
+                    <div class="flex min-w-0 items-start gap-3">
+                      <span
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
+                        [class.bg-emerald-100]="configuracion().pagoWeb.habilitado"
+                        [class.text-emerald-700]="configuracion().pagoWeb.habilitado"
+                        [class.bg-slate-200]="!configuracion().pagoWeb.habilitado"
+                        [class.text-slate-500]="!configuracion().pagoWeb.habilitado"
+                      >
+                        <i class="fa-solid" [class.fa-shield-halved]="configuracion().pagoWeb.habilitado" [class.fa-ban]="!configuracion().pagoWeb.habilitado"></i>
+                      </span>
+                      <div>
+                        <h3 class="font-bold text-slate-900">Exigir pago web antes del agendamiento</h3>
+                        <p class="mt-1 text-xs leading-5 text-slate-500">
+                          @if (configuracion().pagoWeb.habilitado) {
+                            El ciudadano debe completar el primer pago antes de continuar hacia el calendario de citas.
+                          } @else {
+                            El ciudadano puede continuar al calendario sin realizar un pago web previo.
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      role="switch"
+                      [attr.aria-checked]="configuracion().pagoWeb.habilitado"
+                      (click)="solicitarCambioPagoWeb()"
+                      class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition focus:outline-none focus:ring-4 focus:ring-blue-100"
+                      [class.bg-[#1b53ad]]="configuracion().pagoWeb.habilitado"
+                      [class.bg-slate-300]="!configuracion().pagoWeb.habilitado"
+                      title="Activar o desactivar pago web"
+                    >
+                      <span
+                        class="absolute left-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform"
+                        [class.translate-x-5]="configuracion().pagoWeb.habilitado"
+                      ></span>
+                    </button>
+                  </div>
+                </section>
+
+                <section class="rounded-2xl border border-slate-200 bg-white p-5">
+                  <div class="mb-4 flex items-start justify-between gap-4">
+                    <div>
+                      <h3 class="font-bold text-slate-900">Política del primer pago</h3>
+                      <p class="mt-1 text-xs text-slate-500">Seleccione la modalidad y el valor que se exigirá como pago inicial.</p>
+                    </div>
+                    <span class="rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">Configuración vigente</span>
+                  </div>
+
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="block">
+                      <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Modalidad</span>
+                      <div class="relative">
+                        <i class="fa-solid fa-sliders pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+                        <select
+                          [value]="configuracion().pagoWeb.modalidad"
+                          (change)="cambiarModalidad($event)"
+                          class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-9 text-sm font-medium text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        >
+                          <option value="PORCENTAJE">Porcentaje del valor total</option>
+                          <option value="VALOR_FIJO">Valor fijo</option>
+                        </select>
+                      </div>
+                    </label>
+
+                    <label class="block">
+                      <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                        {{ configuracion().pagoWeb.modalidad === 'PORCENTAJE' ? 'Porcentaje exigido (%)' : 'Valor fijo exigido (COP)' }}
+                      </span>
+                      <div class="relative">
+                        <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                          {{ configuracion().pagoWeb.modalidad === 'PORCENTAJE' ? '%' : '$' }}
+                        </span>
+                        <input
+                          type="number"
+                          min="0"
+                          [max]="configuracion().pagoWeb.modalidad === 'PORCENTAJE' ? 100 : null"
+                          [value]="configuracion().pagoWeb.valor"
+                          (input)="cambiarValorPago($event)"
+                          class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        />
+                      </div>
+                    </label>
+                  </div>
+
+                  <div class="mt-4 flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-3">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#1b53ad] shadow-sm">
+                      <i class="fa-solid fa-circle-info text-sm"></i>
+                    </span>
+                    <div class="text-xs leading-5 text-blue-900">
+                      @if (configuracion().pagoWeb.modalidad === 'PORCENTAJE') {
+                        <strong>Política actual:</strong> el primer pago corresponde al <strong>{{ configuracion().pagoWeb.valor }}%</strong> del valor liquidado.
+                      } @else {
+                        <strong>Política actual:</strong> el primer pago corresponde a un valor fijo de <strong>$ {{ configuracion().pagoWeb.valor }} COP</strong>.
+                      }
+                    </div>
+                  </div>
+                </section>
+              </div>
+
+              <aside class="space-y-4">
+                <section class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                  <div class="border-b border-slate-200 bg-white px-4 py-3.5">
+                    <div class="text-xs font-bold uppercase tracking-wide text-slate-500">Flujo resultante</div>
+                    <div class="mt-1 text-sm font-bold text-slate-900">Experiencia del ciudadano</div>
+                  </div>
+
+                  <div class="p-4">
+                    <div class="relative space-y-0">
+                      <div class="absolute bottom-5 left-[17px] top-5 w-px bg-slate-200"></div>
+
+                      <div class="relative flex gap-3 pb-5">
+                        <span class="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-extrabold text-[#1b53ad]">1</span>
+                        <div class="pt-0.5">
+                          <div class="text-sm font-bold text-slate-900">Liquidación</div>
+                          <div class="mt-0.5 text-xs leading-5 text-slate-500">Se calcula el valor correspondiente al trámite seleccionado.</div>
+                        </div>
+                      </div>
+
+                      @if (configuracion().pagoWeb.habilitado) {
+                        <div class="relative flex gap-3 pb-5">
+                          <span class="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-extrabold text-emerald-700">2</span>
+                          <div class="pt-0.5">
+                            <div class="text-sm font-bold text-slate-900">Primer pago</div>
+                            <div class="mt-0.5 text-xs leading-5 text-slate-500">Debe aprobarse antes de habilitar la selección de fecha y hora.</div>
+                          </div>
+                        </div>
+
+                        <div class="relative flex gap-3">
+                          <span class="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs font-extrabold text-violet-700">3</span>
+                          <div class="pt-0.5">
+                            <div class="text-sm font-bold text-slate-900">Calendario</div>
+                            <div class="mt-0.5 text-xs leading-5 text-slate-500">El ciudadano programa la cita con el pago inicial ya confirmado.</div>
+                          </div>
+                        </div>
+                      } @else {
+                        <div class="relative flex gap-3">
+                          <span class="z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs font-extrabold text-violet-700">2</span>
+                          <div class="pt-0.5">
+                            <div class="text-sm font-bold text-slate-900">Calendario directo</div>
+                            <div class="mt-0.5 text-xs leading-5 text-slate-500">La agenda se habilita sin exigir un pago web previo.</div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                </section>
+
+                <section class="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                  <div class="flex items-start gap-3">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-amber-600 shadow-sm">
+                      <i class="fa-solid fa-flask"></i>
+                    </span>
+                    <div>
+                      <div class="text-xs font-bold uppercase tracking-wide text-amber-800">Modo demostración</div>
+                      <p class="mt-1 text-xs leading-5 text-amber-900/80">Los cambios permanecen únicamente durante la sesión administrativa. Al recargar se restauran los valores iniciales definidos para la demo.</p>
+                    </div>
+                  </div>
+                </section>
+              </aside>
+            </div>
+          </article>
+
+          @if (confirmacionPagoAbierta()) {
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-[1px]" (click)="cancelarCambioPagoWeb()">
+              <section class="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="titulo-confirmacion-pago" (click)="$event.stopPropagation()">
+                <div class="p-6">
+                  <div class="flex items-start gap-4">
+                    <span
+                      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+                      [class.bg-emerald-100]="nuevoEstadoPagoWeb()"
+                      [class.text-emerald-700]="nuevoEstadoPagoWeb()"
+                      [class.bg-amber-100]="!nuevoEstadoPagoWeb()"
+                      [class.text-amber-700]="!nuevoEstadoPagoWeb()"
+                    >
+                      <i class="fa-solid" [class.fa-shield-halved]="nuevoEstadoPagoWeb()" [class.fa-triangle-exclamation]="!nuevoEstadoPagoWeb()"></i>
+                    </span>
+                    <div>
+                      <div class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Confirmar cambio de política</div>
+                      <h3 id="titulo-confirmacion-pago" class="mt-1 text-lg font-extrabold text-slate-900">
+                        {{ nuevoEstadoPagoWeb() ? '¿Habilitar pago web antes del agendamiento?' : '¿Deshabilitar pago web antes del agendamiento?' }}
+                      </h3>
+                      <p class="mt-2 text-sm leading-6 text-slate-600">
+                        @if (nuevoEstadoPagoWeb()) {
+                          El ciudadano deberá completar y aprobar el primer pago antes de poder acceder al calendario de citas.
+                        } @else {
+                          El ciudadano podrá continuar al calendario sin realizar un pago web previo. Esta acción cambia la política de acceso al agendamiento.
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    class="mt-5 rounded-xl border px-4 py-3 text-xs leading-5"
+                    [class.border-emerald-200]="nuevoEstadoPagoWeb()"
+                    [class.bg-emerald-50]="nuevoEstadoPagoWeb()"
+                    [class.text-emerald-900]="nuevoEstadoPagoWeb()"
+                    [class.border-amber-200]="!nuevoEstadoPagoWeb()"
+                    [class.bg-amber-50]="!nuevoEstadoPagoWeb()"
+                    [class.text-amber-900]="!nuevoEstadoPagoWeb()"
+                  >
+                    <strong>Resultado:</strong> {{ nuevoEstadoPagoWeb() ? 'Liquidación → Primer pago → Calendario.' : 'Liquidación → Calendario directo.' }}
+                  </div>
+                </div>
+
+                <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+                  <button type="button" (click)="cancelarCambioPagoWeb()" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-100">Cancelar</button>
+                  <button
+                    type="button"
+                    (click)="confirmarCambioPagoWeb()"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-xs font-bold text-white shadow-sm transition"
+                    [class.bg-emerald-600]="nuevoEstadoPagoWeb()"
+                    [class.hover:bg-emerald-700]="nuevoEstadoPagoWeb()"
+                    [class.bg-amber-600]="!nuevoEstadoPagoWeb()"
+                    [class.hover:bg-amber-700]="!nuevoEstadoPagoWeb()"
+                  >
+                    <i class="fa-solid fa-check"></i>
+                    {{ nuevoEstadoPagoWeb() ? 'Sí, habilitar' : 'Sí, deshabilitar' }}
+                  </button>
+                </div>
+              </section>
+            </div>
+          }
+        </div>
+      }
+
+      @if (seccion() === 'tipos-cita') {
+        <div class="space-y-5">
+          <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 class="font-extrabold text-slate-900">Tipos de cita y cupos</h2>
+                  <span
+                    class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide"
+                    [class.bg-blue-100]="configuracion().modoCalculoCupos === 'AUTOMATICO'"
+                    [class.text-blue-700]="configuracion().modoCalculoCupos === 'AUTOMATICO'"
+                    [class.bg-amber-100]="configuracion().modoCalculoCupos === 'MANUAL'"
+                    [class.text-amber-700]="configuracion().modoCalculoCupos === 'MANUAL'"
+                  >
+                    {{ configuracion().modoCalculoCupos === 'AUTOMATICO' ? 'Cálculo automático' : 'Parámetro manual' }}
+                  </span>
+                </div>
+                <p class="mt-1 text-xs text-slate-500">Defina cómo se obtienen los topes de cupos por tipo de cita. Los horarios continúan siendo comunes para todos.</p>
+              </div>
+              <span class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#1b53ad]">
+                <i class="fa-solid fa-users-gear text-lg"></i>
+              </span>
+            </div>
+
+            <div class="space-y-5 p-5 sm:p-6">
+              <section class="grid gap-3 lg:grid-cols-2">
+                <button
+                  type="button"
+                  (click)="cambiarModoCalculoCupos('AUTOMATICO')"
+                  class="group rounded-2xl border p-4 text-left transition"
+                  [class.border-blue-300]="configuracion().modoCalculoCupos === 'AUTOMATICO'"
+                  [class.bg-blue-50]="configuracion().modoCalculoCupos === 'AUTOMATICO'"
+                  [class.ring-2]="configuracion().modoCalculoCupos === 'AUTOMATICO'"
+                  [class.ring-blue-100]="configuracion().modoCalculoCupos === 'AUTOMATICO'"
+                  [class.border-slate-200]="configuracion().modoCalculoCupos !== 'AUTOMATICO'"
+                  [class.bg-white]="configuracion().modoCalculoCupos !== 'AUTOMATICO'"
+                >
+                  <div class="flex items-start gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-[#1b53ad]">
+                      <i class="fa-solid fa-calculator"></i>
+                    </span>
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="font-bold text-slate-900">Calcular automáticamente</h3>
+                        @if (configuracion().modoCalculoCupos === 'AUTOMATICO') {
+                          <span class="rounded-full bg-[#1b53ad] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Seleccionado</span>
+                        }
+                      </div>
+                      <p class="mt-1 text-xs leading-5 text-slate-500">El sistema determinará los topes con la capacidad real: formalizadores, disponibilidad, rangos horarios y bloqueos vigentes.</p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  (click)="cambiarModoCalculoCupos('MANUAL')"
+                  class="group rounded-2xl border p-4 text-left transition"
+                  [class.border-amber-300]="configuracion().modoCalculoCupos === 'MANUAL'"
+                  [class.bg-amber-50]="configuracion().modoCalculoCupos === 'MANUAL'"
+                  [class.ring-2]="configuracion().modoCalculoCupos === 'MANUAL'"
+                  [class.ring-amber-100]="configuracion().modoCalculoCupos === 'MANUAL'"
+                  [class.border-slate-200]="configuracion().modoCalculoCupos !== 'MANUAL'"
+                  [class.bg-white]="configuracion().modoCalculoCupos !== 'MANUAL'"
+                >
+                  <div class="flex items-start gap-3">
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                      <i class="fa-solid fa-sliders"></i>
+                    </span>
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="font-bold text-slate-900">Definir topes manualmente</h3>
+                        @if (configuracion().modoCalculoCupos === 'MANUAL') {
+                          <span class="rounded-full bg-amber-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">Seleccionado</span>
+                        }
+                      </div>
+                      <p class="mt-1 text-xs leading-5 text-slate-500">El administrador establece directamente el máximo disponible para cada tipo de cita.</p>
+                    </div>
+                  </div>
+                </button>
+              </section>
+
+              @if (configuracion().modoCalculoCupos === 'AUTOMATICO') {
+                <section class="rounded-2xl border border-blue-100 bg-blue-50/70 p-4">
+                  <div class="flex items-start gap-3">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#1b53ad] shadow-sm"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                    <div class="min-w-0 flex-1">
+                      <div class="font-bold text-blue-950">Cálculo dinámico de capacidad</div>
+                      <p class="mt-1 text-xs leading-5 text-blue-900/80">Los topes se calculan considerando la disponibilidad operativa, los formalizadores activos, los rangos horarios configurados y los bloqueos vigentes. Los valores mostrados representan la capacidad actualmente disponible para cada tipo de cita.</p>
+                      <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                        <div class="rounded-lg border border-blue-100 bg-white px-3 py-2"><div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Formalizadores activos</div><div class="mt-1 text-lg font-extrabold text-slate-900">{{ formalizadoresActivos() }}</div></div>
+                        <div class="rounded-lg border border-blue-100 bg-white px-3 py-2"><div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Disponibles</div><div class="mt-1 text-lg font-extrabold text-emerald-700">{{ formalizadoresDisponibles() }}</div></div>
+                        <div class="rounded-lg border border-blue-100 bg-white px-3 py-2"><div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Rangos activos</div><div class="mt-1 text-lg font-extrabold text-slate-900">{{ rangosActivos() }}</div></div>
+                        <div class="rounded-lg border border-blue-100 bg-white px-3 py-2"><div class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Bloqueos activos</div><div class="mt-1 text-lg font-extrabold text-amber-700">{{ bloqueosActivos() }}</div></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              } @else {
+                <section class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
+                  <i class="fa-solid fa-triangle-exclamation mt-0.5 text-amber-600"></i>
+                  <p><strong>Modo manual:</strong> los valores digitados por el administrador se usarán como tope para la apertura de cupos, independientemente de la capacidad calculada por el sistema.</p>
+                </section>
+              }
+            </div>
+          </article>
+
+          <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+              <div>
+                <h3 class="font-extrabold text-slate-900">Topes por tipo de cita</h3>
+                <p class="mt-1 text-xs text-slate-500">
+                  {{ configuracion().modoCalculoCupos === 'AUTOMATICO' ? 'Valores de referencia mientras el cálculo automático se conecta a datos reales.' : 'Edite el máximo permitido para cada tipo de cita.' }}
+                </p>
+              </div>
+              <span class="rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">{{ configuracion().tiposCita.length }} tipos configurados</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[760px] text-sm">
+                <thead class="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
+                  <tr><th class="px-5 py-3">Código</th><th class="px-4 py-3">Tipo de cita</th><th class="px-4 py-3">Tope actual</th><th class="px-4 py-3">Estado</th></tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (tipo of configuracion().tiposCita; track tipo.id) {
+                    <tr class="transition hover:bg-slate-50/60">
+                      <td class="px-5 py-4 font-mono text-xs text-slate-500">{{ tipo.codigo }}</td>
+                      <td class="px-4 py-4"><div class="font-semibold text-slate-800">{{ tipo.nombre }}</div><div class="mt-0.5 text-[11px] text-slate-400">Cupo independiente · horario compartido</div></td>
+                      <td class="px-4 py-4">
+                        @if (configuracion().modoCalculoCupos === 'MANUAL') {
+                          <div class="relative w-32">
+                            <input type="number" min="0" [value]="tipo.cupo" (input)="cambiarCupoTipo(tipo.id, $event)" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                          </div>
+                        } @else {
+                          <div class="inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-2">
+                            <i class="fa-solid fa-calculator text-xs text-[#1b53ad]"></i>
+                            <span class="font-extrabold text-slate-900">{{ tipo.cupo }}</span>
+                            <span class="text-[10px] font-bold uppercase tracking-wide text-blue-700">Auto</span>
+                          </div>
+                        }
+                      </td>
+                      <td class="px-4 py-4">
+                        <label class="inline-flex items-center gap-2">
+                          <input type="checkbox" [checked]="tipo.activo" (change)="cambiarActivoTipo(tipo.id, $event)" class="h-4 w-4 accent-[#1b53ad]" />
+                          <span class="rounded-full px-2.5 py-1 text-[10px] font-bold" [class.bg-emerald-100]="tipo.activo" [class.text-emerald-700]="tipo.activo" [class.bg-slate-100]="!tipo.activo" [class.text-slate-500]="!tipo.activo">{{ tipo.activo ? 'Activo' : 'Inactivo' }}</span>
+                        </label>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      }
+
+      @if (seccion() === 'horarios') {
+        <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div class="border-b border-slate-200 px-5 py-4"><h2 class="font-extrabold text-slate-900">Rangos horarios</h2><p class="mt-1 text-xs text-slate-500">Se almacenan rangos e intervalo; no se crean registros individuales por cada hora.</p></div>
+          <div class="space-y-5 p-5">
+            <label class="block max-w-xs"><span class="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-500">Intervalo de atención</span><select [value]="configuracion().intervaloMinutos" (change)="cambiarIntervalo($event)" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm"><option [value]="5">5 minutos</option><option [value]="10">10 minutos</option><option [value]="15">15 minutos</option><option [value]="20">20 minutos</option></select></label>
+            <div class="grid gap-4 md:grid-cols-2">@for (rango of configuracion().rangosHorarios; track rango.id) {<div class="rounded-xl border border-slate-200 p-4"><div class="mb-4 flex items-center justify-between"><span class="font-bold text-slate-900">Rango {{ rango.id }}</span><label class="inline-flex items-center gap-2 text-xs"><input type="checkbox" [checked]="rango.activo" (change)="cambiarActivoRango(rango.id, $event)" class="h-4 w-4 accent-[#1b53ad]" />Activo</label></div><div class="grid grid-cols-2 gap-3"><label class="text-xs text-slate-500">Desde<input type="time" [value]="rango.horaInicio" (input)="cambiarRango(rango.id, 'horaInicio', $event)" class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800" /></label><label class="text-xs text-slate-500">Hasta<input type="time" [value]="rango.horaFin" (input)="cambiarRango(rango.id, 'horaFin', $event)" class="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800" /></label></div></div>}</div>
+          </div>
+        </article>
+      }
+
+      @if (seccion() === 'bloqueos') {
+        <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div class="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h2 class="font-extrabold text-slate-900">Bloqueos de agenda</h2>
+                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">
+                  {{ configuracion().bloqueos.length }} registrados
+                </span>
+              </div>
+              <p class="mt-1 text-xs text-slate-500">Bloquee únicamente el rango que no estará disponible. El resto de la jornada permanece habilitado.</p>
+            </div>
+
+            <button
+              type="button"
+              (click)="abrirNuevoBloqueo()"
+              class="inline-flex items-center gap-2 rounded-lg bg-[#1b53ad] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#164792]"
+            >
+              <i class="fa-solid fa-plus"></i>
+              Nuevo bloqueo
+            </button>
+          </div>
+
+          <div class="border-b border-blue-100 bg-blue-50/70 px-5 py-3">
+            <div class="flex items-start gap-3 text-xs leading-5 text-blue-900">
+              <i class="fa-solid fa-circle-info mt-0.5 text-[#1b53ad]"></i>
+              <p><strong>Ejemplo:</strong> si bloquea de 08:00 a 10:30, la agenda podrá continuar ofreciendo horarios a partir de las 10:30 según los rangos configurados.</p>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[860px] text-sm">
+              <thead class="bg-slate-50 text-left text-[11px] uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th class="px-5 py-3">Fecha</th>
+                  <th class="px-4 py-3">Inicio</th>
+                  <th class="px-4 py-3">Fin</th>
+                  <th class="px-4 py-3">Motivo</th>
+                  <th class="px-4 py-3">Estado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (bloqueo of configuracion().bloqueos; track bloqueo.id) {
+                  <tr class="transition hover:bg-slate-50/70">
+                    <td class="px-5 py-4">
+                      <div class="flex items-center gap-2 font-semibold text-slate-800">
+                        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                          <i class="fa-regular fa-calendar"></i>
+                        </span>
+                        {{ bloqueo.fecha }}
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 font-mono text-xs font-semibold text-slate-700">{{ bloqueo.horaInicio }}</td>
+                    <td class="px-4 py-4 font-mono text-xs font-semibold text-slate-700">{{ bloqueo.horaFin }}</td>
+                    <td class="px-4 py-4 text-slate-600">{{ bloqueo.motivo }}</td>
+                    <td class="px-4 py-4">
+                      <label class="inline-flex cursor-pointer items-center gap-2">
+                        <input
+                          type="checkbox"
+                          [checked]="bloqueo.activo"
+                          (change)="cambiarActivoBloqueo(bloqueo.id, $event)"
+                          class="h-4 w-4 accent-[#1b53ad]"
+                        />
+                        <span
+                          class="rounded-full px-2.5 py-1 text-[10px] font-bold"
+                          [class.bg-emerald-100]="bloqueo.activo"
+                          [class.text-emerald-700]="bloqueo.activo"
+                          [class.bg-slate-100]="!bloqueo.activo"
+                          [class.text-slate-500]="!bloqueo.activo"
+                        >
+                          {{ bloqueo.activo ? 'Activo' : 'Inactivo' }}
+                        </span>
+                      </label>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="px-5 py-12 text-center">
+                      <div class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                        <i class="fa-solid fa-lock-open"></i>
+                      </div>
+                      <div class="mt-3 font-semibold text-slate-700">No hay bloqueos configurados</div>
+                      <div class="mt-1 text-xs text-slate-500">Use “Nuevo bloqueo” para restringir un rango de atención.</div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        @if (modalBloqueoAbierto()) {
+          <div
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-[1px]"
+            (click)="cerrarNuevoBloqueo()"
+          >
+            <section
+              class="w-full max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="titulo-nuevo-bloqueo"
+              (click)="$event.stopPropagation()"
+            >
+              <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5">
+                <div class="flex items-start gap-3">
+                  <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1b53ad]">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                  </span>
+                  <div>
+                    <h3 id="titulo-nuevo-bloqueo" class="text-lg font-extrabold text-slate-900">Nuevo bloqueo de agenda</h3>
+                    <p class="mt-1 text-xs leading-5 text-slate-500">Defina la fecha y el rango durante el cual no se ofrecerán citas.</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  (click)="cerrarNuevoBloqueo()"
+                  class="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                  aria-label="Cerrar"
+                >
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+
+              <div class="space-y-5 p-6">
+                <div class="grid gap-4 sm:grid-cols-3">
+                  <label class="block sm:col-span-1">
+                    <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Fecha</span>
+                    <input
+                      type="date"
+                      [value]="nuevoBloqueoFecha()"
+                      (input)="cambiarCampoNuevoBloqueo('fecha', $event)"
+                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </label>
+
+                  <label class="block">
+                    <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Hora inicio</span>
+                    <input
+                      type="time"
+                      [value]="nuevoBloqueoInicio()"
+                      (input)="cambiarCampoNuevoBloqueo('inicio', $event)"
+                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </label>
+
+                  <label class="block">
+                    <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Hora fin</span>
+                    <input
+                      type="time"
+                      [value]="nuevoBloqueoFin()"
+                      (input)="cambiarCampoNuevoBloqueo('fin', $event)"
+                      class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    />
+                  </label>
+                </div>
+
+                <label class="block">
+                  <span class="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">Motivo del bloqueo</span>
+                  <input
+                    type="text"
+                    maxlength="120"
+                    placeholder="Ej. Reunión institucional, mantenimiento, actividad interna..."
+                    [value]="nuevoBloqueoMotivo()"
+                    (input)="cambiarCampoNuevoBloqueo('motivo', $event)"
+                    class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  />
+                </label>
+
+                <div class="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs leading-5 text-blue-900">
+                  <i class="fa-solid fa-circle-info mt-0.5 text-[#1b53ad]"></i>
+                  <p>El bloqueo se crea activo. Los horarios anteriores y posteriores al rango continuarán disponibles si pertenecen a un rango horario habilitado.</p>
+                </div>
+
+                @if (errorBloqueo()) {
+                  <div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-700" role="alert">
+                    <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                    <span>{{ errorBloqueo() }}</span>
+                  </div>
+                }
+              </div>
+
+              <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-6 py-4 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  (click)="cerrarNuevoBloqueo()"
+                  class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  (click)="guardarNuevoBloqueo()"
+                  class="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1b53ad] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#164792]"
+                >
+                  <i class="fa-solid fa-lock"></i>
+                  Crear bloqueo
+                </button>
+              </div>
+            </section>
+          </div>
+        }
+      }
+
+      @if (seccion() === 'formalizadores') {
+        <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div class="border-b border-slate-200 px-5 py-4"><h2 class="font-extrabold text-slate-900">Formalizadores</h2><p class="mt-1 text-xs text-slate-500">Personal de taquilla que atiende físicamente las citas.</p></div>
+          <div class="divide-y divide-slate-100">@for (formalizador of configuracion().formalizadores; track formalizador.id) {<div class="flex flex-wrap items-center justify-between gap-4 px-5 py-4"><div class="flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-500"><i class="fa-solid fa-user-tie"></i></span><div><div class="font-semibold text-slate-900">{{ formalizador.nombre }}</div><div class="text-xs text-slate-500">Atención en taquilla</div></div></div><div class="flex items-center gap-5 text-xs"><label class="inline-flex items-center gap-2"><input type="checkbox" [checked]="formalizador.disponible" (change)="cambiarFormalizador(formalizador.id, 'disponible', $event)" class="h-4 w-4 accent-emerald-600" />Disponible</label><label class="inline-flex items-center gap-2"><input type="checkbox" [checked]="formalizador.activo" (change)="cambiarFormalizador(formalizador.id, 'activo', $event)" class="h-4 w-4 accent-[#1b53ad]" />Activo</label></div></div>}</div>
+        </article>
+      }
+    </div>
+  </div>
+</section>

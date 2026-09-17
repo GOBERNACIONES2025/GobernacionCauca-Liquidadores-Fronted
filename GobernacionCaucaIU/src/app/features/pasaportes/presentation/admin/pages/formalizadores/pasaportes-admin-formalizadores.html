@@ -1,0 +1,221 @@
+<section class="mx-auto w-full max-w-[1600px] p-4 sm:p-6">
+  <!-- Cabecera -->
+  <div class="rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm sm:px-6">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex items-start gap-4">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1b53ad]">
+          <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
+        </span>
+        <div>
+          <div class="mb-1 flex items-center gap-2 text-[11px] text-slate-500">
+            <span>Inicio</span><i class="fa-solid fa-chevron-right text-[8px]"></i><span>Pasaportes</span><i class="fa-solid fa-chevron-right text-[8px]"></i><span class="font-semibold text-slate-700">Formalizadores</span>
+          </div>
+          <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Formalizadores</h1>
+          <p class="mt-1 text-sm text-slate-500">Control operativo del personal de taquilla, su jornada de atención y disponibilidad.</p>
+        </div>
+      </div>
+
+      <label class="flex min-w-[220px] items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
+        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#1b53ad] shadow-sm"><i class="fa-regular fa-calendar"></i></span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-[9px] font-bold uppercase tracking-wider text-slate-400">Jornada consultada</span>
+          <input type="date" [value]="fecha()" (change)="cambiarFecha($any($event.target).value)" class="mt-0.5 w-full bg-transparent text-sm font-bold text-slate-800 outline-none" />
+        </span>
+      </label>
+    </div>
+  </div>
+
+  @if (mensaje()) {
+    <div class="mt-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-800">
+      <i class="fa-solid fa-circle-check"></i><span>{{ mensaje() }}</span>
+    </div>
+  }
+
+  <!-- Indicadores -->
+  <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between"><div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Formalizadores activos</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ resumen().activos }}</p></div><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-600"><i class="fa-solid fa-users"></i></span></div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">Personal habilitado para atención</p>
+    </article>
+    <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between"><div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Disponibles</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ resumen().disponibles }}</p></div><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><i class="fa-solid fa-user-check"></i></span></div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">Sin bloqueo ni atención en curso</p>
+    </article>
+    <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between"><div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Atendiendo ahora</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ resumen().atendiendo }}</p></div><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700"><i class="fa-solid fa-headset"></i></span></div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">Con una cita en proceso</p>
+    </article>
+    <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between"><div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Atenciones del día</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ resumen().atendidas }}</p></div><span class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-700"><i class="fa-solid fa-circle-check"></i></span></div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">Citas marcadas como atendidas</p>
+    </article>
+  </div>
+
+  <!-- Filtros -->
+  <div class="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]">
+      <label class="relative block">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+        <input type="text" [value]="busqueda()" (input)="cambiarBusqueda($any($event.target).value)" placeholder="Buscar por nombre o taquilla..." class="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-blue-500" />
+      </label>
+      <select [value]="filtroEstado()" (change)="cambiarEstado($any($event.target).value)" class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-500">
+        <option value="Todos">Todos los estados</option>
+        <option value="Disponible">Disponible</option>
+        <option value="Atendiendo">Atendiendo</option>
+        <option value="Bloqueado">Bloqueado</option>
+        <option value="No disponible">No disponible</option>
+        <option value="Inactivo">Inactivo</option>
+      </select>
+      <button type="button" (click)="limpiarFiltros()" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"><i class="fa-solid fa-filter-circle-xmark mr-1.5"></i>Limpiar</button>
+    </div>
+  </div>
+
+  <!-- Tabla principal -->
+  <article class="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex flex-col gap-2 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div><h2 class="font-extrabold text-slate-900">Equipo de formalización</h2><p class="mt-1 text-xs text-slate-500">Seguimiento operativo de la atención física en taquilla.</p></div>
+      <span class="text-xs text-slate-500">{{ filtrados().length }} de {{ formalizadores().length }} formalizadores</span>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[1120px] text-sm">
+        <thead class="bg-slate-50 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <tr>
+            <th class="px-5 py-3">Formalizador</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3 text-center">Asignadas</th>
+            <th class="px-4 py-3 text-center">Atendidas</th>
+            <th class="px-4 py-3 text-center">Pendientes</th>
+            <th class="px-4 py-3">Rendimiento</th>
+            <th class="px-4 py-3">Próxima cita</th>
+            <th class="px-5 py-3 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (formalizador of filtrados(); track formalizador.id) {
+            <tr class="transition hover:bg-slate-50/80">
+              <td class="px-5 py-4">
+                <div class="flex items-center gap-3">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[#1b53ad]"><i class="fa-solid fa-user-tie"></i></span>
+                  <div><div class="font-bold text-slate-900">{{ formalizador.nombre }}</div><div class="mt-0.5 text-xs text-slate-500">{{ formalizador.taquilla }} · Atención en taquilla</div></div>
+                </div>
+              </td>
+              <td class="px-4 py-4"><span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold" [class]="estadoClass(formalizador.estado)"><span class="h-1.5 w-1.5 rounded-full" [class]="estadoDotClass(formalizador.estado)"></span>{{ formalizador.estado }}</span></td>
+              <td class="px-4 py-4 text-center font-semibold text-slate-800">{{ formalizador.asignadas }}</td>
+              <td class="px-4 py-4 text-center font-bold text-emerald-700">{{ formalizador.atendidas }}</td>
+              <td class="px-4 py-4 text-center font-semibold text-amber-700">{{ formalizador.pendientes }}</td>
+              <td class="px-4 py-4">
+                <div class="min-w-32"><div class="mb-1 flex items-center justify-between text-[10px] text-slate-500"><span>{{ porcentajeAtencion(formalizador.atendidas, formalizador.asignadas) }}%</span><span>{{ formalizador.tiempoPromedio }} min prom.</span></div><div class="h-1.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-[#1b53ad]" [style.width.%]="porcentajeAtencion(formalizador.atendidas, formalizador.asignadas)"></div></div></div>
+              </td>
+              <td class="px-4 py-4"><div class="font-semibold text-slate-800">{{ formalizador.proximaCita }}</div><div class="text-[10px] text-slate-400">Próxima programación</div></td>
+              <td class="px-5 py-4">
+                <div class="flex justify-end gap-2">
+                  <button type="button" (click)="abrirJornada(formalizador.id)" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"><i class="fa-regular fa-eye mr-1.5 text-slate-400"></i>Ver jornada</button>
+                  <button type="button" (click)="abrirBloqueo(formalizador.id)" [disabled]="!formalizador.activo" class="rounded-lg bg-[#1b53ad] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#164792] disabled:cursor-not-allowed disabled:opacity-40"><i class="fa-solid fa-ban mr-1.5"></i>Bloquear</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="8" class="px-6 py-16 text-center"><i class="fa-solid fa-user-slash text-3xl text-slate-300"></i><p class="mt-3 font-semibold text-slate-600">No hay formalizadores para los filtros seleccionados</p></td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </article>
+
+  <!-- Información y bloqueos personales -->
+  <div class="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_430px]">
+    <article class="rounded-xl border border-blue-100 bg-blue-50/70 p-5">
+      <div class="flex items-start gap-3">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#1b53ad] shadow-sm"><i class="fa-solid fa-circle-info"></i></span>
+        <div><h3 class="font-bold text-blue-950">¿Dónde se bloquea la disponibilidad?</h3><p class="mt-1 text-xs leading-5 text-blue-900/80">Los bloqueos creados aquí afectan únicamente al formalizador seleccionado, por ejemplo permisos, capacitaciones o ausencias parciales. Los cierres que afectan a toda la atención continúan administrándose en <strong>Configuración → Bloqueos</strong>.</p></div>
+      </div>
+    </article>
+
+    <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <div class="border-b border-slate-200 px-5 py-4"><h3 class="font-extrabold text-slate-900">Próximos bloqueos personales</h3><p class="mt-1 text-xs text-slate-500">Ausencias o indisponibilidades programadas.</p></div>
+      <div class="divide-y divide-slate-100">
+        @for (bloqueo of bloqueosFecha(); track bloqueo.id) {
+          <div class="flex items-start justify-between gap-3 px-5 py-3.5">
+            <div class="min-w-0"><div class="truncate text-xs font-bold text-slate-800">{{ nombreFormalizador(bloqueo.formalizadorId) }}</div><div class="mt-1 text-[11px] text-slate-500">{{ fechaLegible(bloqueo.fecha) }} · {{ bloqueo.todoDia ? 'Todo el día' : bloqueo.horaInicio + ' – ' + bloqueo.horaFin }}</div><div class="mt-1 text-[11px] text-amber-700">{{ bloqueo.motivo }}</div></div>
+            <button type="button" (click)="eliminarBloqueo(bloqueo.id)" class="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600" title="Retirar bloqueo"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        } @empty {
+          <div class="px-5 py-8 text-center text-xs text-slate-400">No hay bloqueos personales próximos.</div>
+        }
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- Modal jornada -->
+@if (formalizadorSeleccionado(); as formalizador) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[1px]">
+    <article class="max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+        <div class="flex items-center gap-3"><span class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-[#1b53ad]"><i class="fa-solid fa-user-tie"></i></span><div><div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Jornada de atención · {{ fechaLegible(fecha()) }}</div><h2 class="text-lg font-extrabold text-slate-900">{{ formalizador.nombre }}</h2><p class="text-xs text-slate-500">{{ formalizador.taquilla }}</p></div></div>
+        <button type="button" (click)="cerrarJornada()" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="grid gap-3 border-b border-slate-200 bg-slate-50 px-5 py-4 sm:grid-cols-4 sm:px-6">
+        <div><div class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Asignadas</div><div class="mt-1 text-lg font-extrabold text-slate-900">{{ formalizador.asignadas }}</div></div>
+        <div><div class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Atendidas</div><div class="mt-1 text-lg font-extrabold text-emerald-700">{{ formalizador.atendidas }}</div></div>
+        <div><div class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Pendientes</div><div class="mt-1 text-lg font-extrabold text-amber-700">{{ formalizador.pendientes }}</div></div>
+        <div><div class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Tiempo promedio</div><div class="mt-1 text-lg font-extrabold text-blue-700">{{ formalizador.tiempoPromedio }} min</div></div>
+      </div>
+
+      <div class="max-h-[52vh] overflow-y-auto p-5 sm:p-6">
+        <h3 class="mb-3 text-sm font-extrabold text-slate-900">Citas de la jornada</h3>
+        <div class="space-y-2">
+          @for (cita of jornada(formalizador.id); track cita.ticket) {
+            <div class="grid items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 sm:grid-cols-[80px_minmax(0,1fr)_170px_110px]">
+              <div class="font-mono text-xs font-bold text-[#1b53ad]">{{ cita.hora }}</div>
+              <div class="min-w-0"><div class="truncate text-sm font-bold text-slate-900">{{ cita.ciudadano }}</div><div class="mt-0.5 truncate text-[10px] text-slate-500">{{ cita.ticket }} · {{ cita.tipo }}</div></div>
+              <span class="justify-self-start rounded-full px-2.5 py-1 text-[10px] font-bold" [class]="jornadaEstadoClass(cita.estado)">{{ cita.estado }}</span>
+              <button type="button" class="justify-self-end text-xs font-semibold text-[#1b53ad] hover:underline">Ver cita</button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4 sm:flex-row sm:justify-between sm:px-6">
+        <button type="button" (click)="abrirBloqueo(formalizador.id); cerrarJornada()" class="rounded-lg border border-amber-300 bg-white px-4 py-2.5 text-xs font-bold text-amber-800 transition hover:bg-amber-50"><i class="fa-solid fa-ban mr-1.5"></i>Bloquear disponibilidad</button>
+        <button type="button" (click)="cerrarJornada()" class="rounded-lg bg-[#1b53ad] px-4 py-2.5 text-xs font-bold text-white">Cerrar</button>
+      </div>
+    </article>
+  </div>
+}
+
+<!-- Modal bloqueo personal -->
+@if (formalizadorBloqueo(); as formalizador) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[1px]">
+    <article class="w-full max-w-lg overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+        <div><div class="text-[10px] font-bold uppercase tracking-wider text-amber-600">Bloqueo personal</div><h2 class="mt-0.5 text-lg font-extrabold text-slate-900">{{ formalizador.nombre }}</h2><p class="mt-1 text-xs text-slate-500">El bloqueo afecta únicamente la disponibilidad de este formalizador.</p></div>
+        <button type="button" (click)="cerrarBloqueo()" class="rounded-lg p-2 text-slate-400 hover:bg-slate-100"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="space-y-4 p-5">
+        <label class="block"><span class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Fecha</span><input type="date" [value]="bloqueoFecha()" (change)="bloqueoFecha.set($any($event.target).value)" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500" /></label>
+
+        <label class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"><div><div class="text-sm font-bold text-slate-800">Bloquear todo el día</div><div class="mt-0.5 text-[11px] text-slate-500">El formalizador no estará disponible durante toda la jornada.</div></div><input type="checkbox" [checked]="bloqueoTodoDia()" (change)="bloqueoTodoDia.set($any($event.target).checked)" class="h-5 w-5 accent-[#1b53ad]" /></label>
+
+        @if (!bloqueoTodoDia()) {
+          <div class="grid grid-cols-2 gap-3">
+            <label class="block"><span class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Desde</span><input type="time" [value]="bloqueoInicio()" (change)="bloqueoInicio.set($any($event.target).value)" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" /></label>
+            <label class="block"><span class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Hasta</span><input type="time" [value]="bloqueoFin()" (change)="bloqueoFin.set($any($event.target).value)" class="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm" /></label>
+          </div>
+        }
+
+        <label class="block"><span class="mb-1.5 block text-[10px] font-bold uppercase tracking-wider text-slate-500">Motivo</span><textarea rows="3" [value]="bloqueoMotivo()" (input)="bloqueoMotivo.set($any($event.target).value)" placeholder="Ej. permiso personal, capacitación, comisión..." class="w-full resize-none rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-blue-500"></textarea></label>
+
+        @if (errorBloqueo()) { <div class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs font-medium text-rose-700">{{ errorBloqueo() }}</div> }
+      </div>
+
+      <div class="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 px-5 py-4">
+        <button type="button" (click)="cerrarBloqueo()" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600">Cancelar</button>
+        <button type="button" (click)="guardarBloqueo()" class="rounded-lg bg-[#1b53ad] px-4 py-2.5 text-xs font-bold text-white"><i class="fa-solid fa-lock mr-1.5"></i>Guardar bloqueo</button>
+      </div>
+    </article>
+  </div>
+}

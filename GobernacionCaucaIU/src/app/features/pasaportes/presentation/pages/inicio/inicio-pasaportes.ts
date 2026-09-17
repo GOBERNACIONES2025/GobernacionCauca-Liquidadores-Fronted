@@ -1,322 +1,464 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+
 import { InformacionPersonalForm } from '../../components/informacion-personal-form/informacion-personal-form';
 import { InformacionContactoForm } from '../../components/informacion-contacto-form/informacion-contacto-form';
 import { AgendamientoForm } from '../../components/agendamiento-form/agendamiento-form';
 import { ConfirmacionLiquidacion } from '../../components/confirmacion-liquidacion/confirmacion-liquidacion';
-import { IntervaloDisponible, TipoPasaporte } from '../../../domain/models/agendamiento.model';
-import { TIPO_CITA_GENERAL } from '../../../domain/constants/agendamiento.constants';
-import { CrearCitaRequest } from '../../../domain/models/crear-cita.model';
-import { PasaportesApiService } from '../../../infrastructure/api/pasaportes-api.service';
-import { LiquidacionPasaporteDemo } from '../../../domain/models/liquidacion-pasaporte-demo.model';
+
+import { FlujoPasaporteDemoService } from '../../../application/demo/flujo-pasaporte-demo.service';
 import { LiquidacionPasaporteDemoService } from '../../../application/demo/liquidacion-pasaporte-demo.service';
 
-const camposCoinciden = (campo: string, confirmacion: string) => (group: AbstractControl) => {
-  const valor = group.get(campo)?.value;
-  const confirmacionValor = group.get(confirmacion)?.value;
-  return valor === confirmacionValor ? null : { camposNoCoinciden: true };
-};
+import { TipoPasaporte } from '../../../domain/models/agendamiento.model';
+import {
+  CalculoPasaporteDemo,
+  CitaDemo,
+} from '../../../domain/models/flujo-pasaporte-demo.model';
+import { LiquidacionPasaporteDemo } from '../../../domain/models/liquidacion-pasaporte-demo.model';
+
+const coinciden =
+  (a: string, b: string) =>
+  (grupo: AbstractControl) =>
+    grupo.get(a)?.value === grupo.get(b)?.value
+      ? null
+      : { noCoinciden: true };
 
 @Component({
   selector: 'app-inicio-pasaportes',
   standalone: true,
-  imports: [ReactiveFormsModule, InformacionPersonalForm, InformacionContactoForm, AgendamientoForm, ConfirmacionLiquidacion],
+  imports: [
+    ReactiveFormsModule,
+    InformacionPersonalForm,
+    InformacionContactoForm,
+    AgendamientoForm,
+    ConfirmacionLiquidacion,
+  ],
   templateUrl: './inicio-pasaportes.html',
 })
 export class InicioPasaportes {
-  private readonly api = inject(PasaportesApiService);
-  private readonly liquidacionDemo = inject(LiquidacionPasaporteDemoService);
+  private readonly demo = inject(FlujoPasaporteDemoService);
+  private readonly pdf = inject(LiquidacionPasaporteDemoService);
 
+  readonly configuracion = this.demo.obtenerConfiguracion();
+  readonly tipos = this.demo.obtenerTiposPasaporte();
 
-  readonly tipoCita = TIPO_CITA_GENERAL;
-  readonly pasoActual = signal<1 | 2 | 3 | 4>(1);
-  readonly datosCompletos = signal(false);
-  readonly tipoPasaporteSeleccionado = signal<TipoPasaporte | null>(null);
-  readonly fechaSeleccionada = signal<string | null>(null);
-  readonly intervaloSeleccionado = signal<IntervaloDisponible | null>(null);
-  readonly creandoCita = signal(false);
-  readonly consecutivoCita = signal<number | null>(null);
-  readonly errorCreacionCita = signal<string | null>(null);
-  readonly liquidacion = signal<LiquidacionPasaporteDemo | null>(null);
-  readonly pdfBlob = signal<Blob | null>(null);
+  readonly pasoActual = signal<1 | 2 | 3 | 4 | 5>(1);
+  readonly tipo = signal<TipoPasaporte | null>(null);
+  readonly calculo = signal<CalculoPasaporteDemo | null>(null);
+  readonly cita = signal<CitaDemo | null>(null);
+  readonly citaRecuperada = signal(false);
+
+  readonly fecha = signal<string | null>(null);
+  readonly hora = signal<string | null>(null);
+
+  readonly pasarelaAbierta = signal(false);
+  readonly procesando = signal(false);
+  readonly error = signal<string | null>(null);
+
+  readonly soporte = signal<LiquidacionPasaporteDemo | null>(null);
   readonly generandoPdf = signal(false);
-  readonly errorPdf = signal<string | null>(null);
+  readonly mensajeCorreo = signal(false);
 
   readonly formularioPersonal = new FormGroup(
     {
-      primerNombre: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      segundoNombre: new FormControl('', { nonNullable: true }),
-      primerApellido: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      segundoApellido: new FormControl('', { nonNullable: true }),
-      tipoDocumento: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      numeroDocumento: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^\d+$/)] }),
-      confirmarDocumento: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      genero: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      grupoEtnico: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      discapacidad: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      fechaNacimiento: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      nombreResponsable: new FormControl('', { nonNullable: true }),
-      documentoResponsable: new FormControl('', { nonNullable: true }),
-      confirmarDocumentoResponsable: new FormControl('', { nonNullable: true }),
-      aceptoLey: new FormControl(false, { nonNullable: true, validators: [Validators.requiredTrue] }),
+      primerNombre: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      segundoNombre: new FormControl('', {
+        nonNullable: true,
+      }),
+      primerApellido: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      segundoApellido: new FormControl('', {
+        nonNullable: true,
+      }),
+      tipoDocumento: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      numeroDocumento: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.pattern(/^\d+$/)],
+      }),
+      confirmarDocumento: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      genero: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      grupoEtnico: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      discapacidad: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      fechaNacimiento: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      nombreResponsable: new FormControl('', {
+        nonNullable: true,
+      }),
+      documentoResponsable: new FormControl('', {
+        nonNullable: true,
+      }),
+      confirmarDocumentoResponsable: new FormControl('', {
+        nonNullable: true,
+      }),
+      aceptoLey: new FormControl(false, {
+        nonNullable: true,
+        validators: [Validators.requiredTrue],
+      }),
     },
-    { validators: camposCoinciden('numeroDocumento', 'confirmarDocumento') },
+    {
+      validators: coinciden('numeroDocumento', 'confirmarDocumento'),
+    },
   );
 
   readonly formularioContacto = new FormGroup(
     {
-      telefono: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^\d{10}$/)] }),
-      confirmarTelefono: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      correo: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.pattern(/^[\w.-]+@[\w.-]+\.\w{2,}$/)] }),
-      confirmarCorreo: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      departamento: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
-      municipio: new FormControl('', { nonNullable: true, validators: [Validators.required] }),
+      telefono: new FormControl('', {
+        nonNullable: true,
+        validators: [
+          Validators.required,
+          Validators.pattern(/^\d{10}$/),
+        ],
+      }),
+      confirmarTelefono: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      correo: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required, Validators.email],
+      }),
+      confirmarCorreo: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      departamento: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
+      municipio: new FormControl('', {
+        nonNullable: true,
+        validators: [Validators.required],
+      }),
     },
     {
       validators: [
-        camposCoinciden('telefono', 'confirmarTelefono'),
-        camposCoinciden('correo', 'confirmarCorreo'),
+        coinciden('telefono', 'confirmarTelefono'),
+        coinciden('correo', 'confirmarCorreo'),
       ],
     },
   );
 
   irAContacto(): void {
     if (this.formularioPersonal.valid && this.responsableValido()) {
+      const pendiente = this.demo.recuperarCitaPendiente(
+        this.formularioPersonal.controls.numeroDocumento.value,
+      );
+
+      this.citaRecuperada.set(!!pendiente);
+
+      if (pendiente) {
+        this.cita.set(pendiente);
+        this.tipo.set(pendiente.tipoPasaporte);
+        this.calculo.set(pendiente.calculo);
+      }
+
       this.pasoActual.set(2);
-    } else {
-      this.formularioPersonal.markAllAsTouched();
-    }
-  }
-
-  volverAPersonal(): void {
-    this.datosCompletos.set(false);
-    this.pasoActual.set(1);
-  }
-
-  continuar(): void {
-    if (this.formularioContacto.valid) {
-      this.datosCompletos.set(false);
-      this.pasoActual.set(3);
-    } else {
-      this.formularioContacto.markAllAsTouched();
-    }
-  }
-
-  volverAContacto(): void {
-    this.datosCompletos.set(false);
-    this.pasoActual.set(2);
-  }
-
-  actualizarTipoPasaporte(tipo: TipoPasaporte | null): void {
-    this.errorCreacionCita.set(null);
-    this.tipoPasaporteSeleccionado.set(tipo);
-    this.fechaSeleccionada.set(null);
-    this.intervaloSeleccionado.set(null);
-    this.datosCompletos.set(false);
-  }
-
-  actualizarFecha(fecha: string | null): void {
-    this.errorCreacionCita.set(null);
-    this.fechaSeleccionada.set(fecha);
-    this.intervaloSeleccionado.set(null);
-    this.datosCompletos.set(false);
-  }
-
-  actualizarIntervalo(intervalo: IntervaloDisponible | null): void {
-    this.errorCreacionCita.set(null);
-    this.intervaloSeleccionado.set(intervalo);
-    this.datosCompletos.set(false);
-  }
-
-  avanzarAConfirmacion(): void {
-    if (!this.tipoPasaporteSeleccionado() || !this.fechaSeleccionada() || !this.intervaloSeleccionado()?.idCitaHora) {
-      this.errorCreacionCita.set('Seleccione el tipo de pasaporte, la fecha y un horario válido antes de continuar.');
       return;
     }
-    this.errorCreacionCita.set(null);
+
+    this.formularioPersonal.markAllAsTouched();
+  }
+
+  continuarATramite(): void {
+    if (this.formularioContacto.valid) {
+      this.pasoActual.set(this.cita() ? 4 : 3);
+      return;
+    }
+
+    this.formularioContacto.markAllAsTouched();
+  }
+
+  seleccionarTipo(event: Event): void {
+    const id = Number(
+      (event.target as HTMLSelectElement).value,
+    );
+
+    this.tipo.set(
+      this.tipos.find((t) => t.id === id) ?? null,
+    );
+
+    this.calculo.set(null);
+    this.cita.set(null);
+    this.error.set(null);
+
+    if (this.tipo()) {
+      this.calculo.set(
+        this.demo.calcularLiquidacion(
+          this.tipo()!,
+          {
+            documento:
+              this.formularioPersonal.controls.numeroDocumento.value,
+          },
+        ),
+      );
+    }
+  }
+
+  continuarAPago(): void {
+    if (!this.calculo()) {
+      return;
+    }
+
+    this.error.set(null);
+
+    if (this.configuracion.pagoWebHabilitado) {
+      this.pasarelaAbierta.set(true);
+      return;
+    }
+
+    this.cita.set(
+      this.demo.continuarSinPago(this.calculo()!),
+    );
+
     this.pasoActual.set(4);
   }
 
-  confirmarYGenerar(): void {
-    if (this.creandoCita() || this.consecutivoCita()) return;
-
-    this.errorCreacionCita.set(null);
-    const personal = this.formularioPersonal.getRawValue();
-    const intervalo = this.intervaloSeleccionado();
-    const tipoPasaporte = this.tipoPasaporteSeleccionado();
-    const fecha = this.fechaSeleccionada();
-    if (
-      !this.formularioPersonal.valid ||
-      !this.responsableValido() ||
-      !this.formularioContacto.valid ||
-      !tipoPasaporte ||
-      !fecha ||
-      !intervalo?.idCitaHora
-    ) {
-      this.formularioPersonal.markAllAsTouched();
-      this.formularioContacto.markAllAsTouched();
-      this.errorCreacionCita.set('Complete correctamente todos los datos antes de crear la cita.');
+  aprobarPago(): void {
+    if (!this.calculo() || this.procesando()) {
       return;
     }
 
-    const request = this.construirCrearCitaRequest(tipoPasaporte, fecha, intervalo);
-    this.creandoCita.set(true);
-    this.api.crearCita(request).subscribe({
-      next: ({ consecutivo }) => {
-        this.consecutivoCita.set(consecutivo);
-        this.datosCompletos.set(true);
-        const liquidacion = this.liquidacionDemo.crearLiquidacion({
-          consecutivo,
-          tipoPasaporte,
-          ciudadano: this.nombreCompleto(personal),
-          documento: personal.numeroDocumento,
+    this.procesando.set(true);
+
+    window.setTimeout(() => {
+      this.cita.set(
+        this.demo.simularPago(this.calculo()!),
+      );
+
+      this.pasarelaAbierta.set(false);
+      this.procesando.set(false);
+      this.pasoActual.set(4);
+    }, 450);
+  }
+
+  seleccionarFecha(fecha: string): void {
+    this.fecha.set(fecha);
+    this.hora.set(null);
+    this.error.set(null);
+  }
+
+  programar(): void {
+    const cita = this.cita();
+    const fecha = this.fecha();
+    const hora = this.hora();
+
+    if (!cita || !fecha || !hora) {
+      return;
+    }
+
+    try {
+      const programada =
+        this.demo.programarCita(
+          cita,
+          fecha,
+          hora,
+        );
+
+      this.cita.set(programada);
+
+      const personal =
+        this.formularioPersonal.getRawValue();
+
+      const ciudadano = [
+        personal.primerNombre,
+        personal.segundoNombre,
+        personal.primerApellido,
+        personal.segundoApellido,
+      ]
+        .filter(Boolean)
+        .join(' ');
+
+      this.soporte.set(
+        this.pdf.crearLiquidacion({
+          consecutivo: programada.consecutivo,
+          referenciaPago:
+            programada.referenciaPago,
+          pagoAprobado:
+            programada.pagoAprobado,
+          tipoPasaporte:
+            programada.tipoPasaporte,
+          ciudadano,
+          documento:
+            personal.numeroDocumento,
           fechaCita: fecha,
-          horario: `${intervalo.horaInicio.slice(0, 5)} - ${intervalo.horaFin.slice(0, 5)}`,
-        });
-        this.liquidacion.set(liquidacion);
-        this.creandoCita.set(false);
-        this.generarPdfDemo(liquidacion);
-      },
-      error: (error: HttpErrorResponse) => {
-        const mensaje = this.obtenerMensajeError(error);
-        this.errorCreacionCita.set(mensaje);
-        this.creandoCita.set(false);
-        if (this.esErrorDisponibilidad(mensaje)) {
-          this.intervaloSeleccionado.set(null);
-          this.pasoActual.set(3);
-        }
-      },
-    });
+          horario: hora,
+
+          // Se envía exactamente el cálculo
+          // que ya vio el ciudadano.
+          conceptos:
+            programada.calculo.conceptos,
+          totalLiquidado:
+            programada.calculo.total,
+          primerPago:
+            programada.calculo.primerPago,
+          saldoPendiente:
+            programada.calculo.saldo,
+        }),
+      );
+
+      this.error.set(null);
+      this.pasoActual.set(5);
+    } catch (e) {
+      this.error.set(
+        (e as Error).message,
+      );
+      this.hora.set(null);
+    }
   }
 
-  editarPersonal(): void {
-    this.errorCreacionCita.set(null);
-    this.pasoActual.set(1);
-  }
+  async descargar(): Promise<void> {
+    const soporte = this.soporte();
 
-  editarContacto(): void {
-    this.errorCreacionCita.set(null);
-    this.pasoActual.set(2);
-  }
-
-  cambiarAgendamiento(): void {
-    this.errorCreacionCita.set(null);
-    this.pasoActual.set(3);
-  }
-  descargarLiquidacion(): void {
-    const liquidacion = this.liquidacion();
-    if (!liquidacion) return;
-    const blob = this.pdfBlob();
-    if (blob) {
-      this.descargarBlobPdf(liquidacion, blob);
+    if (
+      !soporte ||
+      this.generandoPdf()
+    ) {
       return;
     }
-
-    this.generarPdfDemo(liquidacion, true);
-  }
-
-  reintentarPdf(): void {
-    const liquidacion = this.liquidacion();
-    if (!liquidacion) return;
-    this.generarPdfDemo(liquidacion);
-  }
-
-  private generarPdfDemo(liquidacion: LiquidacionPasaporteDemo, descargarAlFinal = false): void {
-    if (this.generandoPdf()) return;
 
     this.generandoPdf.set(true);
-    this.errorPdf.set(null);
-    void this.liquidacionDemo.generarPdf(liquidacion).then((blob) => {
-      this.pdfBlob.set(blob);
-      if (descargarAlFinal) this.descargarBlobPdf(liquidacion, blob);
-    }).catch(() => {
-      this.pdfBlob.set(null);
-      this.errorPdf.set('La cita fue creada correctamente, pero no fue posible generar el PDF de demostración.');
-    }).finally(() => this.generandoPdf.set(false));
+    this.error.set(null);
+
+    try {
+      const blob =
+        await this.pdf.generarPdf(
+          soporte,
+        );
+
+      const url =
+        URL.createObjectURL(blob);
+
+      const enlace =
+        document.createElement('a');
+
+      enlace.href = url;
+
+      enlace.download =
+        `liquidacion-pasaporte-${soporte.referenciaPago}.pdf`;
+
+      document.body.appendChild(enlace);
+
+      enlace.click();
+      enlace.remove();
+
+      window.setTimeout(
+        () => URL.revokeObjectURL(url),
+        1000,
+      );
+    } catch (e) {
+      console.error(
+        'Error generando la factura/liquidación de pasaporte:',
+        e,
+      );
+
+      this.error.set(
+        'No fue posible generar el soporte. Intente de nuevo.',
+      );
+    } finally {
+      this.generandoPdf.set(false);
+    }
   }
 
-  private descargarBlobPdf(liquidacion: LiquidacionPasaporteDemo, blob: Blob): void {
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `liquidacion-pasaporte-${liquidacion.consecutivoCita}.pdf`;
-    anchor.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-  }
+finalizar(): void {
+  this.formularioPersonal.reset();
+  this.formularioContacto.reset();
 
-  private construirCrearCitaRequest(
-    tipoPasaporte: TipoPasaporte,
-    fecha: string,
-    intervalo: IntervaloDisponible,
-  ): CrearCitaRequest {
-    const personal = this.formularioPersonal.getRawValue();
-    const contacto = this.formularioContacto.getRawValue();
-    const requiereResponsable = this.esMenor(personal.fechaNacimiento);
+  this.tipo.set(null);
+  this.calculo.set(null);
+  this.cita.set(null);
+  this.citaRecuperada.set(false);
 
-    return {
-      idTipoDoc: Number(personal.tipoDocumento),
-      idTipoPasaporte: tipoPasaporte.id,
-      documento: personal.numeroDocumento.trim(),
-      nombres: this.unirNombres(personal.primerNombre, personal.segundoNombre),
-      apellidos: this.unirNombres(personal.primerApellido, personal.segundoApellido),
-      correo: contacto.correo.trim(),
-      telefono: contacto.telefono.trim(),
-      municipio: contacto.municipio.trim(),
-      departamento: contacto.departamento.trim(),
-      genero: personal.genero,
-      discapacidad: personal.discapacidad,
-      etnia: personal.grupoEtnico,
-      nombreResponsable: requiereResponsable ? personal.nombreResponsable.trim() : '',
-      documentoResponsable: requiereResponsable ? personal.documentoResponsable.trim() : '',
-      fechaNacimiento: this.formatearFecha(personal.fechaNacimiento),
-      idCitaHora: intervalo.idCitaHora,
-      fecha: this.formatearFecha(fecha),
-    };
-  }
+  this.fecha.set(null);
+  this.hora.set(null);
 
-  private unirNombres(...partes: string[]): string {
-    return partes.map((parte) => parte.trim()).filter(Boolean).join(' ');
-  }
+  this.pasarelaAbierta.set(false);
+  this.procesando.set(false);
 
-  private nombreCompleto(personal: ReturnType<typeof this.formularioPersonal.getRawValue>): string {
-    return this.unirNombres(personal.primerNombre, personal.segundoNombre, personal.primerApellido, personal.segundoApellido);
-  }
+  this.soporte.set(null);
+  this.generandoPdf.set(false);
 
-  private formatearFecha(fecha: string): string {
-    return fecha.trim().slice(0, 10);
-  }
+  this.error.set(null);
+  this.mensajeCorreo.set(false);
 
-  private obtenerMensajeError(error: HttpErrorResponse): string {
-    const cuerpo = error.error;
-    const mensaje = typeof cuerpo === 'string'
-      ? cuerpo
-      : cuerpo?.mensaje ?? cuerpo?.message ?? cuerpo?.detail ?? cuerpo?.title;
-    return typeof mensaje === 'string' && mensaje.trim()
-      ? mensaje.trim()
-      : 'No fue posible crear la cita. Verifique la disponibilidad e inténtelo nuevamente.';
-  }
+  this.pasoActual.set(1);
 
-  private esErrorDisponibilidad(mensaje: string): boolean {
-    return /cupo|disponib|horario|d[ií]a/i.test(mensaje);
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
+}
+  moneda(valor: number): string {
+    return valor.toLocaleString(
+      'es-CO',
+      {
+        style: 'currency',
+        currency: 'COP',
+        maximumFractionDigits: 0,
+      },
+    );
   }
 
   private responsableValido(): boolean {
-    const fecha = this.formularioPersonal.controls.fechaNacimiento.value;
-    if (!fecha || !this.esMenor(fecha)) return true;
+    const p =
+      this.formularioPersonal.getRawValue();
 
-    const nombre = this.formularioPersonal.controls.nombreResponsable.value.trim();
-    const documento = this.formularioPersonal.controls.documentoResponsable.value.trim();
-    const confirmacion = this.formularioPersonal.controls.confirmarDocumentoResponsable.value.trim();
-    return nombre !== '' && documento !== '' && confirmacion !== '' && documento === confirmacion;
-  }
+    const nacimiento = new Date(
+      `${p.fechaNacimiento}T00:00:00`,
+    );
 
-  private esMenor(fecha: string): boolean {
     const hoy = new Date();
-    const nacimiento = new Date(`${fecha}T00:00:00`);
-    let edad = hoy.getFullYear() - nacimiento.getFullYear();
-    const diferenciaMes = hoy.getMonth() - nacimiento.getMonth();
-    if (diferenciaMes < 0 || (diferenciaMes === 0 && hoy.getDate() < nacimiento.getDate())) edad--;
-    return edad < 18;
+
+    let edad =
+      hoy.getFullYear() -
+      nacimiento.getFullYear();
+
+    if (
+      hoy.getMonth() <
+        nacimiento.getMonth() ||
+      (hoy.getMonth() ===
+        nacimiento.getMonth() &&
+        hoy.getDate() <
+          nacimiento.getDate())
+    ) {
+      edad--;
+    }
+
+    return (
+      edad >= 18 ||
+      !!(
+        p.nombreResponsable.trim() &&
+        p.documentoResponsable.trim() &&
+        p.documentoResponsable ===
+          p.confirmarDocumentoResponsable
+      )
+    );
   }
 }
