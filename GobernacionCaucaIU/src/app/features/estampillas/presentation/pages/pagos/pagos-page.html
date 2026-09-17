@@ -26,7 +26,7 @@
 
   <!-- TARJETAS DE RESUMEN RECAUDO -->
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-    <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
+    <div class="bg-emerald-700 rounded-2xl p-5 text-white shadow-xs flex items-center justify-between">
       <div class="space-y-1">
         <span class="text-xs text-emerald-100 uppercase font-bold tracking-wider block">Total Recaudo Efectivo</span>
         <h2 class="text-2xl font-black font-mono tracking-tight">{{ storage.formatCOP(facade.totalPagadoRecaudado()) }}</h2>
@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
+    <div class="bg-amber-600 rounded-2xl p-5 text-white shadow-xs flex items-center justify-between">
       <div class="space-y-1">
         <span class="text-xs text-amber-100 uppercase font-bold tracking-wider block">Cartera Pendiente de Cobro</span>
         <h2 class="text-2xl font-black font-mono tracking-tight">{{ storage.formatCOP(facade.totalPendienteRecaudar()) }}</h2>

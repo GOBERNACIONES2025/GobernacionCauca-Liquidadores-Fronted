@@ -5,7 +5,7 @@ import { PasaportesAdminAuthService } from '../../application/auth/pasaportes-ad
 @Component({
   selector: 'app-pasaportes-layout',
   standalone: true,
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterOutlet],
   templateUrl: './pasaportes-layout.html',
 })
 export class PasaportesLayout {

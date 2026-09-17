@@ -27,7 +27,7 @@ import { CommonModule } from '@angular/common';
           <span [class]="badgeClass() + ' font-semibold px-2 py-0.5 rounded-full text-[11px]'">{{ badgeText() }}</span>
         </div>
       }
-      <div [class]="'absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ' + gradientBarClass()"></div>
+      <div [class]="'absolute bottom-0 left-0 right-0 h-1 ' + iconBgClass()"></div>
     </div>
   `
 })
@@ -39,5 +39,5 @@ export class EstampillasStatCardComponent {
   readonly badgeText = input<string>('');
   readonly badgeClass = input<string>('text-emerald-700 bg-emerald-50');
   readonly iconBgClass = input<string>('bg-blue-600');
-  readonly gradientBarClass = input<string>('from-blue-600 to-indigo-600');
+  readonly gradientBarClass = input<string>('');
 }

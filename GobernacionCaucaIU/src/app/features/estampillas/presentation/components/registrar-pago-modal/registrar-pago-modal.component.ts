@@ -14,7 +14,7 @@ import { LiquidacionEstampilla, MedioPago, RegistroPagoRequest } from '../../../
         <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full border border-slate-200 overflow-hidden transform transition-all animate-fadeIn">
           
           <!-- Header -->
-          <div class="bg-gradient-to-r from-[#1b53ad] to-blue-800 text-white px-6 py-4 flex items-center justify-between">
+          <div class="bg-[#1b53ad] text-white px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="p-2 bg-white/10 rounded-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-6 h-6">
