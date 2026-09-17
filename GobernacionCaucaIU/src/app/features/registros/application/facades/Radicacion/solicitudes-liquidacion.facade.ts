@@ -92,4 +92,11 @@ export class SolicitudesLiquidacionFacade {
       finalize(() => this.actionLoading.set(false))
     );
   }
+
+  devolverSolicitud(id: number, motivo: string): Observable<ApiResponse<boolean>> {
+    this.actionLoading.set(true);
+    return this.apiService.devolverSolicitud(id, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
 }

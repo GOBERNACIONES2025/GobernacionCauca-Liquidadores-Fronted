@@ -68,6 +68,10 @@ export const registrosRoutes: Routes = [
         loadComponent: () => import('./presentation/pages/registros/liquidaciones-list/liquidaciones-list').then(m => m.LiquidacionesListComponent)
       },
       {
+        path: 'reliquidaciones',
+        loadComponent: () => import('./presentation/pages/registros/reliquidaciones-gestion/reliquidaciones-gestion').then(m => m.ReliquidacionesGestionComponent)
+      },
+      {
         path: 'configuracion',
         component: ConfiguracionLayoutComponent,
         children: [

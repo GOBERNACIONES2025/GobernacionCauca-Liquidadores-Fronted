@@ -2,268 +2,1071 @@
   
   <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-1" />
 
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
-    <div>
-      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Liquidaciones Oficiales</h2>
-      <p class="text-sm text-slate-500 mt-1">Gestión de trámites liquidados, devoluciones y anulaciones.</p>
-    </div>
-    <div class="flex gap-3">
-      <button class="px-4 py-2 bg-white text-slate-700 text-sm font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors shadow-sm flex items-center gap-2">
+  <!-- DUAL PANEL TOGGLE (Coherente con Solicitudes) -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+    <div class="flex items-center gap-2">
+      <button 
+        (click)="setPanel('ENTIDAD')"
+        [class.bg-blue-900]="activePanel() === 'ENTIDAD'"
+        [class.text-white]="activePanel() === 'ENTIDAD'"
+        [class.shadow-md]="activePanel() === 'ENTIDAD'"
+        [class.bg-slate-100]="activePanel() !== 'ENTIDAD'"
+        [class.text-slate-600]="activePanel() !== 'ENTIDAD'"
+        class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
-        Exportar
+        Panel Entidades Externas (Notarías / Cámaras)
+      </button>
+
+      <button 
+        (click)="setPanel('GOBERNACION')"
+        [class.bg-blue-900]="activePanel() === 'GOBERNACION'"
+        [class.text-white]="activePanel() === 'GOBERNACION'"
+        [class.shadow-md]="activePanel() === 'GOBERNACION'"
+        [class.bg-slate-100]="activePanel() !== 'GOBERNACION'"
+        [class.text-slate-600]="activePanel() !== 'GOBERNACION'"
+        class="px-4 py-2 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        Panel Gobernación (Fiscalización y Rentas)
+        @if ((totalReliquidaciones() + totalAnulaciones()) > 0) {
+          <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">
+            {{ totalReliquidaciones() + totalAnulaciones() }}
+          </span>
+        }
       </button>
     </div>
+
+    <!-- Indicador Contextual -->
+    <div class="flex items-center gap-2">
+      @if (activePanel() === 'ENTIDAD') {
+        <span class="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Rol: Entidad Registral (Emisor / Solicitante)
+        </span>
+      } @else {
+        <span class="px-3 py-1 bg-blue-50 text-blue-900 border border-blue-200 rounded-full text-xs font-semibold flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          Rol: Autoridad Tributaria Departamental
+        </span>
+      }
+    </div>
   </div>
 
-  <!-- Filtros y Tabla -->
-  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-    
-    <!-- Header de la tabla (Filtros) -->
-    <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
-      
-      <!-- Pestañas de estado -->
-      <div class="inline-flex bg-slate-100 p-1 rounded-lg">
-        @for (status of ['Todas', 'GENERADA', 'RELIQUIDADA', 'DEVUELTA', 'ANULADA']; track status) {
-          <button 
-            (click)="setFilter(status)"
-            [class.bg-white]="filterStatus() === status"
-            [class.shadow-sm]="filterStatus() === status"
-            [class.text-slate-800]="filterStatus() === status"
-            [class.text-slate-500]="filterStatus() !== status"
-            class="px-4 py-1.5 text-sm font-medium rounded-md transition-all hover:text-slate-700">
-            {{ status }}
-          </button>
-        }
+  <!-- ========================================== -->
+  <!-- VISTA 1: PANEL ENTIDADES EXTERNAS          -->
+  <!-- ========================================== -->
+  @if (activePanel() === 'ENTIDAD') {
+    <div class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Liquidaciones Oficiales de Impuesto de Registro</h2>
+        <p class="text-sm text-slate-500 mt-0.5">
+          Consulte las liquidaciones oficiales generadas para sus solicitudes, descargue recibos de pago con código de barras o radique solicitudes motivadas de reliquidación o anulación.
+        </p>
       </div>
 
-      <!-- Buscador -->
-      <app-table-search
-        placeholder="Buscar radicado, documento..."
-        [value]="searchText()"
-        [loading]="isLoading()"
-        (search)="onSearch($event)"
-        (clear)="onClearSearch()"
-      ></app-table-search>
-    </div>
-
-    <!-- Tabla -->
-    <div class="overflow-x-auto">
-      <table class="w-full text-left border-collapse">
-        <thead>
-          <tr class="bg-white border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
-            <th class="p-4">Radicado / Fecha</th>
-            <th class="p-4">Contribuyente</th>
-            <th class="p-4 text-right">Valor Total</th>
-            <th class="p-4 text-center">Estado</th>
-            <th class="p-4 text-center">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-          @for (liquidacion of filteredLiquidaciones(); track liquidacion.id) {
-            <tr class="hover:bg-slate-50/80 transition-colors group">
-              <td class="p-4">
-                <div class="font-bold text-slate-700 text-sm font-mono">{{ liquidacion.radicacion.numeroRadicado }}</div>
-                <div class="text-xs text-slate-500 mt-0.5">{{ liquidacion.radicacion.fechaRadicacion | date:'mediumDate' }}</div>
-              </td>
-              <td class="p-4">
-                <div class="font-medium text-slate-800 text-sm truncate max-w-[200px]">{{ liquidacion.contribuyente.nombreCompleto }}</div>
-                <div class="text-xs text-slate-500 mt-0.5">Doc: {{ liquidacion.contribuyente.numeroIdentificacion }}</div>
-              </td>
-              <td class="p-4">
-                <div class="font-medium text-slate-800 text-sm font-mono text-right">{{ liquidacion.totales.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
-              </td>
-              <td class="p-4 text-center">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border" 
-                  [ngClass]="{
-                    'bg-purple-100 text-purple-700 border-purple-300': liquidacion.estado.codigo === 'RELIQUIDADA' || liquidacion.estado.nombre.toUpperCase() === 'RELIQUIDADA',
-                    'bg-blue-100 text-blue-700 border-blue-200': liquidacion.estado.codigo !== 'RELIQUIDADA' && liquidacion.estado.badgeClase === 'info',
-                    'bg-green-100 text-green-700 border-green-200': liquidacion.estado.badgeClase === 'success' || liquidacion.estado.badgeClase === 'primary',
-                    'bg-red-100 text-red-700 border-red-200': liquidacion.estado.badgeClase === 'danger',
-                    'bg-orange-100 text-orange-700 border-orange-200': liquidacion.estado.badgeClase === 'warning',
-                    'bg-slate-100 text-slate-600 border-slate-200': !liquidacion.estado.badgeClase || !['info', 'success', 'primary', 'danger', 'warning'].includes(liquidacion.estado.badgeClase)
-                  }">
-                  {{ liquidacion.estado.nombre }}
-                </span>
-              </td>
-              <td class="p-4 text-center flex justify-center gap-2">
-                @if (liquidacion.accionesPermitidas.permiteDescargarPdf) {
-                  <button (click)="descargar(liquidacion.id)" class="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100 transition-colors" title="Descargar">
-                    PDF
-                  </button>
-                }
-                @if (liquidacion.estado.codigo === 'GENERADA') {
-                  <button (click)="abrirModalPago(liquidacion)" class="px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors" title="Registrar Pago">
-                    Pagar
-                  </button>
-                }
-                @if (liquidacion.accionesPermitidas.permiteContinuar) {
-                  <button (click)="reliquidar(liquidacion.id)" class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors" title="Reliquidar">
-                    Reliquidar
-                  </button>
-                }
-                @if (liquidacion.accionesPermitidas.permiteCancelar) {
-                  <button (click)="anular(liquidacion.id)" class="px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 rounded-lg hover:bg-red-100 transition-colors" title="Anular">
-                    Anular
-                  </button>
-                }
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="5" class="p-8 text-center text-slate-500">
-                <div class="flex flex-col items-center justify-center">
-                  <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <p class="text-base font-medium text-slate-600">No hay liquidaciones generadas</p>
-                  <p class="text-sm mt-1">Completa una solicitud para verla en esta bandeja.</p>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Paginación -->
-    <app-pagination
-      [pageNumber]="pageNumber()"
-      [pageSize]="pageSize()"
-      [totalCount]="totalCount()"
-      (pageChange)="onPageChange($event)"
-      (pageSizeChange)="onPageSizeChange($event)">
-    </app-pagination>
-  </div>
-</div>
-
-<!-- Modal para Registrar Pago -->
-@if (showPagoModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
-      
-      <!-- Header -->
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <svg class="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Registrar Pago - Radicado: {{ pagoLiquidacionSeleccionada()?.radicacion?.numeroRadicado }}
-        </h3>
-        <button (click)="cerrarModalPago()" class="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-200">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Body -->
-      <div class="p-6 space-y-5">
-        <div class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 flex justify-between items-center">
-          <span class="text-sm font-bold text-emerald-900">Valor a registrar:</span>
-          <span class="text-xl font-black text-emerald-700">{{ pagoLiquidacionSeleccionada()?.totales?.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Fecha de pago *</label>
-            <input type="date" [(ngModel)]="fechaPago" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
+      <!-- Filtros y Tabla Entidades -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/60">
+          
+          <!-- Pestañas de estado -->
+          <div class="inline-flex bg-slate-200/70 p-1 rounded-xl">
+            @for (status of ['Todas', 'GENERADA', 'VIGENTE', 'PAGADA', 'RELIQUIDADA', 'ANULADA']; track status) {
+              <button 
+                (click)="setFilter(status)"
+                [class.bg-white]="filterStatus() === status"
+                [class.shadow-sm]="filterStatus() === status"
+                [class.text-blue-900]="filterStatus() === status"
+                [class.font-bold]="filterStatus() === status"
+                [class.text-slate-600]="filterStatus() !== status"
+                class="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all hover:text-slate-900 cursor-pointer">
+                {{ status }}
+              </button>
+            }
           </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1.5">Medio de pago *</label>
-            <select [(ngModel)]="medioPago" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all">
-              <option [value]="1">Transferencia PSE</option>
-              <option [value]="2">Consignación Bancaria</option>
-              <option [value]="3">Efectivo en Caja</option>
-            </select>
-          </div>
-        </div>
-        
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1.5">Referencia / comprobante (recomendado)</label>
-          <input type="text" [(ngModel)]="referenciaPago" placeholder="Ej: PSE-20258804-887712" class="w-full text-sm p-2.5 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all" />
-        </div>
-      </div>
 
-      <!-- Footer -->
-      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-        <button 
-          (click)="cerrarModalPago()" 
-          class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-          Cancelar
-        </button>
-        <button 
-          (click)="confirmarPago()" 
-          class="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-600/20 flex items-center gap-2">
-          Confirmar pago
-        </button>
+          <!-- Buscador -->
+          <app-table-search
+            placeholder="Buscar liquidación, radicado, contribuyente..."
+            [value]="searchText()"
+            [loading]="isLoading()"
+            (search)="onSearch($event)"
+            (clear)="onClearSearch()"
+          ></app-table-search>
+        </div>
+
+        <!-- Tabla Entidades -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-white border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                <th class="p-4">No. Liquidación / Fecha</th>
+                <th class="p-4">Radicado Solicitud</th>
+                <th class="p-4">Contribuyente</th>
+                <th class="p-4">Entidad Emisora</th>
+                <th class="p-4 text-right">Valor Liquidado</th>
+                <th class="p-4 text-center">Estado</th>
+                <th class="p-4 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              @for (liquidacion of filteredLiquidaciones(); track liquidacion.id) {
+                <tr class="hover:bg-slate-50/80 transition-colors group">
+                  <!-- No. Liquidación -->
+                  <td class="p-4">
+                    <div class="font-bold text-blue-900 text-sm font-mono flex items-center gap-1.5">
+                      <span>{{ liquidacion.numeroLiquidacion }}</span>
+                      @if (!liquidacion.esVigente) {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-500 font-normal">Anterior</span>
+                      }
+                    </div>
+                    <div class="text-xs text-slate-400 mt-0.5">{{ liquidacion.fechaLiquidacion | date:'mediumDate' }}</div>
+                  </td>
+
+                  <!-- Radicado -->
+                  <td class="p-4">
+                    <div class="font-semibold text-slate-700 text-xs font-mono">{{ liquidacion.radicacion.numeroRadicado }}</div>
+                    <div class="text-[11px] text-slate-400">Doc: #{{ liquidacion.documentoRegistro.numeroDocumento || 'S/N' }}</div>
+                  </td>
+
+                  <!-- Contribuyente -->
+                  <td class="p-4">
+                    <div class="font-medium text-slate-800 text-xs truncate max-w-[180px]">{{ liquidacion.contribuyente.nombreCompleto }}</div>
+                    <div class="text-[11px] text-slate-500 mt-0.5">Identificación: {{ liquidacion.contribuyente.numeroIdentificacion }}</div>
+                  </td>
+
+                  <!-- Entidad -->
+                  <td class="p-4">
+                    <div class="text-xs text-slate-600 truncate max-w-[160px]">{{ liquidacion.documentoRegistro.entidadRegistro }}</div>
+                    <div class="text-[11px] text-slate-400">{{ liquidacion.documentoRegistro.tipoEntidad }}</div>
+                  </td>
+
+                  <!-- Valor -->
+                  <td class="p-4 text-right">
+                    <div class="font-bold text-slate-800 text-sm font-mono">{{ liquidacion.totales.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                    <div class="text-[10px] text-slate-400">Vence: {{ liquidacion.fechaVencimiento | date:'shortDate' }}</div>
+                  </td>
+
+                  <!-- Estado -->
+                  <td class="p-4 text-center">
+                    <span 
+                      [class.bg-emerald-50]="liquidacion.estado.nombre === 'PAGADA' || liquidacion.estado.nombre === 'VIGENTE'"
+                      [class.text-emerald-700]="liquidacion.estado.nombre === 'PAGADA' || liquidacion.estado.nombre === 'VIGENTE'"
+                      [class.border-emerald-200]="liquidacion.estado.nombre === 'PAGADA' || liquidacion.estado.nombre === 'VIGENTE'"
+                      [class.bg-blue-50]="liquidacion.estado.nombre === 'GENERADA'"
+                      [class.text-blue-700]="liquidacion.estado.nombre === 'GENERADA'"
+                      [class.border-blue-200]="liquidacion.estado.nombre === 'GENERADA'"
+                      [class.bg-amber-50]="liquidacion.estado.nombre === 'RELIQUIDADA'"
+                      [class.text-amber-700]="liquidacion.estado.nombre === 'RELIQUIDADA'"
+                      [class.border-amber-200]="liquidacion.estado.nombre === 'RELIQUIDADA'"
+                      [class.bg-red-50]="liquidacion.estado.nombre === 'ANULADA'"
+                      [class.text-red-700]="liquidacion.estado.nombre === 'ANULADA'"
+                      [class.border-red-200]="liquidacion.estado.nombre === 'ANULADA'"
+                      class="px-2.5 py-1 rounded-full text-xs font-semibold border inline-flex items-center gap-1">
+                      <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                      {{ liquidacion.estado.nombre }}
+                    </span>
+                  </td>
+
+                  <!-- Acciones Entidad -->
+                  <td class="p-4">
+                    <div class="flex items-center justify-center gap-1.5">
+                      
+                      <!-- Descargar PDF Oficial -->
+                      <button 
+                        (click)="descargar(liquidacion.id)"
+                        class="p-1.5 text-blue-900 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 cursor-pointer"
+                        title="Descargar Recibo Oficial de Pago con Código de Barras">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </button>
+
+                      @if (puedeSolicitarTramite(liquidacion)) {
+                        <!-- Solicitar Reliquidación -->
+                        <button 
+                          (click)="abrirModalReliquidar(liquidacion)"
+                          class="p-1.5 text-purple-700 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200 cursor-pointer"
+                          title="Radicar solicitud de reliquidación motivada ante Gobernación">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                        </button>
+
+                        <!-- Solicitar Anulación -->
+                        <button 
+                          (click)="abrirModalSolicitarAnulacion(liquidacion)"
+                          class="p-1.5 text-rose-700 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200 cursor-pointer"
+                          title="Radicar solicitud de anulación formal ante Gobernación">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                          </svg>
+                        </button>
+                      }
+
+                      <!-- Ver Historial -->
+                      <button 
+                        (click)="verHistorial(liquidacion)"
+                        class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 cursor-pointer"
+                        title="Ver bitácora y trazabilidad de eventos">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="p-12 text-center text-slate-500">
+                    <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                      <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <h4 class="text-sm font-semibold text-slate-700">No se encontraron liquidaciones</h4>
+                      <p class="text-xs text-slate-500 mt-1">No hay registros que coincidan con los filtros aplicados.</p>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginador -->
+        <div class="p-4 border-t border-slate-200">
+          <app-pagination
+            [totalCount]="totalCount()"
+            [pageSize]="pageSize()"
+            [pageNumber]="pageNumber()"
+            (pageChange)="onPageChange($event)"
+          ></app-pagination>
+        </div>
       </div>
-      
     </div>
-  </div>
-}
+  }
 
-<!-- Modal Elegante para Reliquidar -->
-@if (showReliquidarModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-      
-      <!-- Header -->
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-          <svg class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <!-- ========================================== -->
+  <!-- VISTA 2: PANEL GOBERNACIÓN DEL CAUCA       -->
+  <!-- ========================================== -->
+  @if (activePanel() === 'GOBERNACION') {
+    <div class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Gestión Fiscal y Auditoría de Liquidaciones</h2>
+        <p class="text-sm text-slate-500 mt-0.5">
+          Revise y resuelva formalmente las solicitudes de reliquidación y anulación radicadas por las entidades registrales, o audite el directorio departamental de rentas.
+        </p>
+      </div>
+
+      <!-- Subpestañas del Panel Gobernación -->
+      <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-2">
+        <button 
+          (click)="setGobernacionTab('RELIQUIDACIONES')"
+          [class.border-purple-600]="activeGobernacionTab() === 'RELIQUIDACIONES'"
+          [class.text-purple-700]="activeGobernacionTab() === 'RELIQUIDACIONES'"
+          [class.bg-purple-50]="activeGobernacionTab() === 'RELIQUIDACIONES'"
+          [class.border-transparent]="activeGobernacionTab() !== 'RELIQUIDACIONES'"
+          [class.text-slate-600]="activeGobernacionTab() !== 'RELIQUIDACIONES'"
+          class="px-4 py-2.5 text-xs font-bold rounded-xl border-2 transition-all flex items-center gap-2 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          Reliquidar Liquidación
-        </h3>
-        <button (click)="cerrarModalReliquidar()" class="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-200">
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Body -->
-      <div class="p-6 space-y-4">
-        <p class="text-sm text-slate-600">
-          Por favor, ingrese el motivo por el cual desea anular la liquidación actual y reabrir la solicitud para generar una nueva.
-        </p>
-        
-        <div>
-          <label for="motivo" class="block text-sm font-medium text-slate-700 mb-1">Motivo de Reliquidación</label>
-          <textarea 
-            id="motivo"
-            rows="3"
-            [(ngModel)]="motivoReliquidacion"
-            class="w-full px-4 py-2 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all resize-none shadow-sm placeholder:text-slate-400"
-            placeholder="Ej. Modificación en los actos informados..."></textarea>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-        <button 
-          (click)="cerrarModalReliquidar()" 
-          class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
-          Cancelar
-        </button>
-        <button 
-          (click)="confirmarReliquidar()" 
-          [disabled]="isLoading()"
-          class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors shadow-sm shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-          @if (isLoading()) {
-            <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Procesando...
-          } @else {
-            Confirmar Reliquidación
+          Solicitudes de Reliquidación Pendientes
+          @if (totalReliquidaciones() > 0) {
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-600 text-white">
+              {{ totalReliquidaciones() }}
+            </span>
           }
         </button>
+
+        <button 
+          (click)="setGobernacionTab('ANULACIONES')"
+          [class.border-rose-600]="activeGobernacionTab() === 'ANULACIONES'"
+          [class.text-rose-700]="activeGobernacionTab() === 'ANULACIONES'"
+          [class.bg-rose-50]="activeGobernacionTab() === 'ANULACIONES'"
+          [class.border-transparent]="activeGobernacionTab() !== 'ANULACIONES'"
+          [class.text-slate-600]="activeGobernacionTab() !== 'ANULACIONES'"
+          class="px-4 py-2.5 text-xs font-bold rounded-xl border-2 transition-all flex items-center gap-2 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+          Solicitudes de Anulación Pendientes
+          @if (totalAnulaciones() > 0) {
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-600 text-white">
+              {{ totalAnulaciones() }}
+            </span>
+          }
+        </button>
+
+        <button 
+          (click)="setGobernacionTab('DIRECTORIO')"
+          [class.border-blue-900]="activeGobernacionTab() === 'DIRECTORIO'"
+          [class.text-blue-900]="activeGobernacionTab() === 'DIRECTORIO'"
+          [class.bg-blue-50]="activeGobernacionTab() === 'DIRECTORIO'"
+          [class.border-transparent]="activeGobernacionTab() !== 'DIRECTORIO'"
+          [class.text-slate-600]="activeGobernacionTab() !== 'DIRECTORIO'"
+          class="px-4 py-2.5 text-xs font-bold rounded-xl border-2 transition-all flex items-center gap-2 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          Directorio Oficial de Liquidaciones
+        </button>
       </div>
-      
+
+      <!-- SUBTAB 1: SOLICITUDES DE RELIQUIDACIÓN (GOBERNACIÓN) -->
+      @if (activeGobernacionTab() === 'RELIQUIDACIONES') {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-purple-50/40">
+            <div>
+              <h3 class="text-sm font-bold text-purple-950">Bandeja de Entrada: Solicitudes de Reliquidación</h3>
+              <p class="text-xs text-purple-700 mt-0.5">Evalúe los motivos planteados por la entidad registral y apruebe emitiendo la nueva liquidación o rechace con fundamento.</p>
+            </div>
+            <app-table-search
+              placeholder="Buscar por radicado o contribuyente..."
+              [value]="searchText()"
+              [loading]="isReliquidacionesLoading()"
+              (search)="onSearch($event)"
+              (clear)="onClearSearch()"
+            ></app-table-search>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-white border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                  <th class="p-4">Radicado Solicitud</th>
+                  <th class="p-4">Liquidación Actual</th>
+                  <th class="p-4">Entidad Registral</th>
+                  <th class="p-4">Contribuyente</th>
+                  <th class="p-4">Causal y Motivo de la Entidad</th>
+                  <th class="p-4 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (item of reliquidacionesPendientes(); track item.liquidacionId) {
+                  <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-4">
+                      <div class="font-bold text-slate-800 text-xs font-mono">{{ item.numeroRadicado }}</div>
+                      <div class="text-[11px] text-slate-400 mt-0.5">{{ item.fechaSolicitud | date:'medium' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="font-bold text-blue-900 text-xs font-mono">{{ item.numeroLiquidacion }}</div>
+                      <div class="text-xs text-slate-700 font-semibold mt-0.5">{{ item.valorTotal | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="text-xs text-slate-800 font-medium">{{ item.nombreEntidadRegistro || 'Notaría / Registro' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="text-xs text-slate-800 font-medium">{{ item.nombreContribuyente }}</div>
+                      <div class="text-[11px] text-slate-400">CC/NIT: {{ item.numeroIdentificacionContribuyente }}</div>
+                    </td>
+                    <td class="p-4 max-w-xs">
+                      <div class="p-2.5 bg-purple-50 border border-purple-200 rounded-xl text-xs text-purple-900">
+                        <span class="font-bold block text-[11px] uppercase tracking-wide text-purple-700 mb-0.5">Justificación de la Entidad:</span>
+                        {{ item.motivo || 'Ajuste solicitado por la entidad registral.' }}
+                      </div>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex items-center justify-center gap-2">
+                        <button 
+                          (click)="abrirModalAprobarReliquidacion(item)"
+                          class="px-3 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors shadow-xs flex items-center gap-1 cursor-pointer"
+                          title="Aprobar y expedir nueva liquidación oficial">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Aprobar
+                        </button>
+                        <button 
+                          (click)="abrirModalRechazarReliquidacion(item)"
+                          class="px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                          title="Rechazar solicitud motivando la negativa">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Rechazar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="p-12 text-center text-slate-500">
+                      <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                        <div class="w-10 h-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center font-bold mb-2">✓</div>
+                        <h4 class="text-sm font-semibold text-slate-700">Sin reliquidaciones pendientes</h4>
+                        <p class="text-xs text-slate-500 mt-1">No hay solicitudes de reliquidación radicadas por resolver en este momento.</p>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- SUBTAB 2: SOLICITUDES DE ANULACIÓN (GOBERNACIÓN) -->
+      @if (activeGobernacionTab() === 'ANULACIONES') {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-rose-50/40">
+            <div>
+              <h3 class="text-sm font-bold text-rose-950">Bandeja de Entrada: Solicitudes de Anulación</h3>
+              <p class="text-xs text-rose-700 mt-0.5">Audite la causal expuesta por la entidad registral (ej. escritura no firmada, desistimiento) y determine si aprueba la anulación o la rechaza.</p>
+            </div>
+            <app-table-search
+              placeholder="Buscar por radicado o contribuyente..."
+              [value]="searchText()"
+              [loading]="isAnulacionesLoading()"
+              (search)="onSearch($event)"
+              (clear)="onClearSearch()"
+            ></app-table-search>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-white border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                  <th class="p-4">Radicado Solicitud</th>
+                  <th class="p-4">Liquidación a Anular</th>
+                  <th class="p-4">Entidad Registral</th>
+                  <th class="p-4">Contribuyente</th>
+                  <th class="p-4">Causal y Motivo de la Entidad</th>
+                  <th class="p-4 text-center">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (item of anulacionesPendientes(); track item.liquidacionId) {
+                  <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-4">
+                      <div class="font-bold text-slate-800 text-xs font-mono">{{ item.numeroRadicado }}</div>
+                      <div class="text-[11px] text-slate-400 mt-0.5">{{ item.fechaSolicitud | date:'medium' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="font-bold text-rose-900 text-xs font-mono">{{ item.numeroLiquidacion }}</div>
+                      <div class="text-xs text-slate-700 font-semibold mt-0.5">{{ item.valorTotal | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="text-xs text-slate-800 font-medium">{{ item.nombreEntidadRegistro || 'Notaría / Registro' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="text-xs text-slate-800 font-medium">{{ item.nombreContribuyente }}</div>
+                      <div class="text-[11px] text-slate-400">CC/NIT: {{ item.numeroIdentificacionContribuyente }}</div>
+                    </td>
+                    <td class="p-4 max-w-xs">
+                      <div class="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900">
+                        <span class="font-bold block text-[11px] uppercase tracking-wide text-rose-700 mb-0.5">Causal Planteada: {{ item.causal }}</span>
+                        {{ item.motivo || 'Anulación formal solicitada por la entidad emisora.' }}
+                      </div>
+                    </td>
+                    <td class="p-4 text-center">
+                      <div class="flex items-center justify-center gap-2">
+                        <button 
+                          (click)="abrirModalAprobarAnulacion(item)"
+                          class="px-3 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors shadow-xs flex items-center gap-1 cursor-pointer"
+                          title="Aprobar anulación oficial de la liquidación">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Aprobar Anulación
+                        </button>
+                        <button 
+                          (click)="abrirModalRechazarAnulacion(item)"
+                          class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                          title="Rechazar anulación motivando razones">
+                          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                          Rechazar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="p-12 text-center text-slate-500">
+                      <div class="flex flex-col items-center justify-center max-w-sm mx-auto">
+                        <div class="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-bold mb-2">✓</div>
+                        <h4 class="text-sm font-semibold text-slate-700">Sin solicitudes de anulación pendientes</h4>
+                        <p class="text-xs text-slate-500 mt-1">No hay solicitudes de anulación radicadas por resolver en este momento.</p>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- SUBTAB 3: DIRECTORIO GENERAL DE LIQUIDACIONES (GOBERNACIÓN) -->
+      @if (activeGobernacionTab() === 'DIRECTORIO') {
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/60">
+            
+            <div class="inline-flex bg-slate-200/70 p-1 rounded-xl">
+              @for (status of ['Todas', 'GENERADA', 'VIGENTE', 'PAGADA', 'RELIQUIDADA', 'ANULADA']; track status) {
+                <button 
+                  (click)="setFilter(status)"
+                  [class.bg-white]="filterStatus() === status"
+                  [class.shadow-sm]="filterStatus() === status"
+                  [class.text-blue-900]="filterStatus() === status"
+                  [class.font-bold]="filterStatus() === status"
+                  [class.text-slate-600]="filterStatus() !== status"
+                  class="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all hover:text-slate-900 cursor-pointer">
+                  {{ status }}
+                </button>
+              }
+            </div>
+
+            <app-table-search
+              placeholder="Buscar liquidación, radicado, contribuyente..."
+              [value]="searchText()"
+              [loading]="isLoading()"
+              (search)="onSearch($event)"
+              (clear)="onClearSearch()"
+            ></app-table-search>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-white border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+                  <th class="p-4">No. Liquidación / Fecha</th>
+                  <th class="p-4">Radicado Solicitud</th>
+                  <th class="p-4">Contribuyente</th>
+                  <th class="p-4">Entidad Emisora</th>
+                  <th class="p-4 text-right">Valor Liquidado</th>
+                  <th class="p-4 text-center">Estado</th>
+                  <th class="p-4 text-center">Auditoría / Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (liquidacion of filteredLiquidaciones(); track liquidacion.id) {
+                  <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-4">
+                      <div class="font-bold text-blue-900 text-sm font-mono flex items-center gap-1.5">
+                        <span>{{ liquidacion.numeroLiquidacion }}</span>
+                        @if (!liquidacion.esVigente) {
+                          <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-500 font-normal">Anterior</span>
+                        }
+                      </div>
+                      <div class="text-xs text-slate-400 mt-0.5">{{ liquidacion.fechaLiquidacion | date:'mediumDate' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="font-semibold text-slate-700 text-xs font-mono">{{ liquidacion.radicacion.numeroRadicado }}</div>
+                      <div class="text-[11px] text-slate-400">Doc: #{{ liquidacion.documentoRegistro.numeroDocumento || 'S/N' }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="font-medium text-slate-800 text-xs truncate max-w-[180px]">{{ liquidacion.contribuyente.nombreCompleto }}</div>
+                      <div class="text-[11px] text-slate-500 mt-0.5">Identificación: {{ liquidacion.contribuyente.numeroIdentificacion }}</div>
+                    </td>
+                    <td class="p-4">
+                      <div class="text-xs text-slate-600 truncate max-w-[160px]">{{ liquidacion.documentoRegistro.entidadRegistro }}</div>
+                      <div class="text-[11px] text-slate-400">{{ liquidacion.documentoRegistro.tipoEntidad }}</div>
+                    </td>
+                    <td class="p-4 text-right">
+                      <div class="font-bold text-slate-800 text-sm font-mono">{{ liquidacion.totales.totalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+                      <div class="text-[10px] text-slate-400">Vence: {{ liquidacion.fechaVencimiento | date:'shortDate' }}</div>
+                    </td>
+                    <td class="p-4 text-center">
+                      <span 
+                        [class.bg-emerald-50]="liquidacion.estado.nombre === 'PAGADA' || liquidacion.estado.nombre === 'VIGENTE'"
+                        [class.text-emerald-700]="liquidacion.estado.nombre === 'PAGADA' || liquidacion.estado.nombre === 'VIGENTE'"
+                        [class.border-emerald-200]="liquidacion.estado.nombre === 'PAGADA' || liquidacion.estado.nombre === 'VIGENTE'"
+                        [class.bg-blue-50]="liquidacion.estado.nombre === 'GENERADA'"
+                        [class.text-blue-700]="liquidacion.estado.nombre === 'GENERADA'"
+                        [class.border-blue-200]="liquidacion.estado.nombre === 'GENERADA'"
+                        [class.bg-amber-50]="liquidacion.estado.nombre === 'RELIQUIDADA'"
+                        [class.text-amber-700]="liquidacion.estado.nombre === 'RELIQUIDADA'"
+                        [class.border-amber-200]="liquidacion.estado.nombre === 'RELIQUIDADA'"
+                        [class.bg-red-50]="liquidacion.estado.nombre === 'ANULADA'"
+                        [class.text-red-700]="liquidacion.estado.nombre === 'ANULADA'"
+                        [class.border-red-200]="liquidacion.estado.nombre === 'ANULADA'"
+                        class="px-2.5 py-1 rounded-full text-xs font-semibold border inline-flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                        {{ liquidacion.estado.nombre }}
+                      </span>
+                    </td>
+                    <td class="p-4">
+                      <div class="flex items-center justify-center gap-1.5">
+                        <button 
+                          (click)="descargar(liquidacion.id)"
+                          class="p-1.5 text-blue-900 hover:bg-blue-50 rounded-lg transition-colors border border-blue-200 cursor-pointer"
+                          title="Descargar PDF Oficial">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </button>
+                        <button 
+                          (click)="verHistorial(liquidacion)"
+                          class="p-1.5 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200 cursor-pointer"
+                          title="Auditar trazabilidad completa">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </button>
+                        @if (liquidacion.estado.nombre !== 'ANULADA' && liquidacion.estado.nombre !== 'PAGADA') {
+                          <button 
+                            (click)="abrirModalAnulacionOficio(liquidacion)"
+                            class="p-1.5 text-rose-700 hover:bg-rose-50 rounded-lg transition-colors border border-rose-200 cursor-pointer"
+                            title="Anulación de Oficio (Autoridad Fiscal)">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="p-4 border-t border-slate-200">
+            <app-pagination
+              [totalCount]="totalCount()"
+              [pageSize]="pageSize()"
+              [pageNumber]="pageNumber()"
+              (pageChange)="onPageChange($event)"
+            ></app-pagination>
+          </div>
+        </div>
+      }
     </div>
-  </div>
-}
+  }
+
+  <!-- ========================================== -->
+  <!-- MODALES DE OPERACIÓN                       -->
+  <!-- ========================================== -->
+
+  <!-- MODAL: SOLICITAR RELIQUIDACIÓN (ENTIDADES) -->
+  @if (showReliquidarModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-purple-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold">🔄</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Radicar Solicitud de Reliquidación</h3>
+              <p class="text-xs text-slate-500">Liquidación No. {{ liquidacionSeleccionada()?.numeroLiquidacion }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalReliquidar()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="p-3 bg-purple-50/80 border border-purple-200 rounded-xl text-xs text-purple-900 leading-relaxed">
+            <span class="font-bold">Información:</span> Esta solicitud será remitida a la bandeja de fiscalización de la Gobernación del Cauca para su respectiva evaluación técnica y aprobación o rechazo.
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Causal de Reliquidación</label>
+            <select [(ngModel)]="causalReliquidacion" class="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-hidden">
+              <option value="ERROR_CUANTIA">Error aritmético o en la base gravable declarada</option>
+              <option value="ERROR_ACTOS">Inconsistencia en tipos de actos o tarifas seleccionadas</option>
+              <option value="ESCRITURA_ACLARATORIA">Otorgamiento de escritura o documento aclaratorio posterior</option>
+              <option value="CORRECCION_INTERVINIENTES">Ajuste en sujetos pasivos, exenciones o cuotas parte</option>
+              <option value="VENCIMIENTO">Actualización de liquidación oficial vencida</option>
+              <option value="OTRO">Otra causal justificada</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">No. Documento Aclaratorio / Soporte (Opcional)</label>
+            <input 
+              type="text" 
+              [(ngModel)]="docAclaratorioReliquidacion"
+              placeholder="Ej: Escritura Pública No. 452 aclaratoria"
+              class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-hidden"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Justificación y Motivo Detallado *</label>
+            <textarea 
+              [(ngModel)]="motivoReliquidacion"
+              rows="3"
+              placeholder="Explique claramente el motivo del ajuste y las correcciones a efectuar..."
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-hidden"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalReliquidar()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarSolicitudReliquidacion()"
+            [disabled]="isLoading()"
+            class="px-4 py-2 text-xs font-bold text-white bg-purple-700 hover:bg-purple-800 rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+            @if (isLoading()) {
+              <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            }
+            Radicar Solicitud
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: SOLICITAR ANULACIÓN (ENTIDADES) -->
+  @if (showSolicitarAnulacionModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-rose-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">🚫</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Radicar Solicitud de Anulación</h3>
+              <p class="text-xs text-slate-500">Liquidación No. {{ liquidacionSeleccionada()?.numeroLiquidacion }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalSolicitarAnulacion()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="p-3 bg-rose-50/80 border border-rose-200 rounded-xl text-xs text-rose-900 leading-relaxed">
+            <span class="font-bold">Aviso Fiscal:</span> Las entidades externas no anulan directamente documentos tributarios oficiales. Esta solicitud será auditada por la Gobernación del Cauca para confirmar o denegar la anulación.
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Causal de Anulación *</label>
+            <select [(ngModel)]="causalAnulacion" class="w-full text-xs px-3 py-2 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden">
+              <option value="ESCRITURA_NO_AUTORIZADA">Escritura pública no autorizada o anulada en Notaría</option>
+              <option value="DESISTIMIENTO">Desistimiento formal de las partes intervinientes</option>
+              <option value="DUPLICIDAD">Duplicidad en la radicación o liquidación del trámite</option>
+              <option value="ACTO_NO_REGISTRABLE">Acto no sujeto a impuesto de registro departamental</option>
+              <option value="ORDEN_JUDICIAL">Orden judicial o medida cautelar de suspensión</option>
+              <option value="OTRO">Otra causal de anulación legalmente fundamentada</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Documento Soporte / Acto de Cancelación (Opcional)</label>
+            <input 
+              type="text" 
+              [(ngModel)]="docSoporteAnulacion"
+              placeholder="Ej: Acta de anulación notarial No. 12"
+              class="w-full text-xs px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
+            />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Justificación y Motivo *</label>
+            <textarea 
+              [(ngModel)]="motivoAnulacion"
+              rows="3"
+              placeholder="Explique detalladamente por qué este trámite y liquidación deben ser anulados..."
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalSolicitarAnulacion()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarSolicitudAnulacion()"
+            [disabled]="isLoading()"
+            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+            @if (isLoading()) {
+              <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            }
+            Radicar Solicitud de Anulación
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: APROBAR RELIQUIDACIÓN (GOBERNACIÓN) -->
+  @if (showAprobarReliquidacionModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-emerald-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">✓</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Aprobar Solicitud de Reliquidación</h3>
+              <p class="text-xs text-slate-500">Radicado: {{ itemTramiteSeleccionado()?.numeroRadicado }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalAprobarReliquidacion()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+            <div class="font-bold text-slate-700">Liquidación Previa: {{ itemTramiteSeleccionado()?.numeroLiquidacion }}</div>
+            <div class="text-slate-500">Entidad: {{ itemTramiteSeleccionado()?.nombreEntidadRegistro }}</div>
+            <div class="text-slate-500">Contribuyente: {{ itemTramiteSeleccionado()?.nombreContribuyente }}</div>
+            <div class="text-purple-800 font-medium mt-1">Motivo expuesto: "{{ itemTramiteSeleccionado()?.motivo }}"</div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Observaciones de Aprobación Fiscal *</label>
+            <textarea 
+              [(ngModel)]="observacionesAprobacion"
+              rows="3"
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-hidden"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalAprobarReliquidacion()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarAprobacionReliquidacion()"
+            [disabled]="isReliquidacionesLoading()"
+            class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+            @if (isReliquidacionesLoading()) {
+              <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            }
+            Confirmar y Emitir Nueva Liquidación
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: RECHAZAR RELIQUIDACIÓN (GOBERNACIÓN) -->
+  @if (showRechazarReliquidacionModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-rose-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">✕</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Rechazar Solicitud de Reliquidación</h3>
+              <p class="text-xs text-slate-500">Radicado: {{ itemTramiteSeleccionado()?.numeroRadicado }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalRechazarReliquidacion()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <p class="text-xs text-slate-600">Al rechazar la solicitud, la liquidación oficial original permanecerá vigente y el motivo quedará registrado en la trazabilidad para conocimiento de la entidad.</p>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Motivo Técnico del Rechazo *</label>
+            <textarea 
+              [(ngModel)]="motivoRechazo"
+              rows="3"
+              placeholder="Indique las razones fiscales y jurídicas por las cuales no procede la reliquidación..."
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalRechazarReliquidacion()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarRechazoReliquidacion()"
+            [disabled]="isReliquidacionesLoading()"
+            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+            Confirmar Rechazo
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: APROBAR ANULACIÓN (GOBERNACIÓN) -->
+  @if (showAprobarAnulacionModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-rose-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">⚠️</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Aprobar Anulación Oficial</h3>
+              <p class="text-xs text-slate-500">Liquidación No. {{ itemTramiteSeleccionado()?.numeroLiquidacion }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalAprobarAnulacion()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1">
+            <div class="font-bold text-slate-700">Radicado: {{ itemTramiteSeleccionado()?.numeroRadicado }}</div>
+            <div class="text-slate-500">Entidad: {{ itemTramiteSeleccionado()?.nombreEntidadRegistro }}</div>
+            <div class="text-rose-800 font-medium mt-1">Causal: {{ itemTramiteSeleccionado()?.causal }} - "{{ itemTramiteSeleccionado()?.motivo }}"</div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Observaciones de Anulación Oficial *</label>
+            <textarea 
+              [(ngModel)]="observacionesAprobacion"
+              rows="3"
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalAprobarAnulacion()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarAprobacionAnulacion()"
+            [disabled]="isAnulacionesLoading()"
+            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+            Confirmar y Anular Liquidación
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: RECHAZAR ANULACIÓN (GOBERNACIÓN) -->
+  @if (showRechazarAnulacionModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-100">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-bold">✕</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Rechazar Solicitud de Anulación</h3>
+              <p class="text-xs text-slate-500">Radicado: {{ itemTramiteSeleccionado()?.numeroRadicado }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalRechazarAnulacion()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <p class="text-xs text-slate-600">Al rechazar la solicitud, la liquidación oficial original permanecerá vigente sin modificaciones.</p>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Motivo del Rechazo *</label>
+            <textarea 
+              [(ngModel)]="motivoRechazo"
+              rows="3"
+              placeholder="Indique por qué no procede la anulación..."
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-slate-500 focus:outline-hidden"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalRechazarAnulacion()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarRechazoAnulacion()"
+            [disabled]="isAnulacionesLoading()"
+            class="px-4 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-900 rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+            Confirmar Rechazo
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: ANULACIÓN DE OFICIO (GOBERNACIÓN) -->
+  @if (showAnulacionOficioModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-rose-50/50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center font-bold">⚠️</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Anulación de Oficio (Autoridad Fiscal)</h3>
+              <p class="text-xs text-slate-500">Liquidación No. {{ liquidacionSeleccionada()?.numeroLiquidacion }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalAnulacionOficio()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 space-y-4">
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+            <span class="font-bold">Potestad Tributaria:</span> Esta acción anulará de forma irrevocable la liquidación seleccionada dejando constancia del funcionario actuante y de la causal en los libros de auditoría.
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Motivo de Anulación de Oficio *</label>
+            <textarea 
+              [(ngModel)]="motivoAnulacionOficio"
+              rows="3"
+              placeholder="Indique el acto administrativo, resolución o justificación de anulación..."
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-hidden"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalAnulacionOficio()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarAnulacionOficio()"
+            [disabled]="isLoading()"
+            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer">
+            Anular de Oficio
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: HISTORIAL DE ESTADOS Y AUDITORÍA -->
+  @if (showHistorialModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-900 flex items-center justify-center font-bold">📜</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800">Historial y Auditoría de Estados</h3>
+              <p class="text-xs text-slate-500">Liquidación No. {{ liquidacionSeleccionada()?.numeroLiquidacion }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarHistorialModal()" class="text-slate-400 hover:text-slate-600 text-lg cursor-pointer">✕</button>
+        </div>
+
+        <div class="p-5 overflow-y-auto space-y-4 flex-1">
+          @if (isHistorialLoading()) {
+            <div class="p-8 text-center text-slate-400 flex flex-col items-center">
+              <div class="w-6 h-6 border-2 border-blue-900 border-t-transparent rounded-full animate-spin mb-2"></div>
+              <p class="text-xs">Consultando libro de auditoría...</p>
+            </div>
+          } @else if (historialItems().length === 0) {
+            <div class="p-8 text-center text-slate-400 text-xs">
+              No hay registros de historial adicionales para esta liquidación.
+            </div>
+          } @else {
+            <div class="relative border-l-2 border-slate-200 ml-4 pl-4 space-y-4">
+              @for (item of historialItems(); track item.id || item.fecha) {
+                <div class="relative group">
+                  <div class="absolute -left-[23px] top-1.5 w-3 h-3 rounded-full bg-blue-900 border-2 border-white"></div>
+                  <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                      <span class="font-bold text-slate-800">{{ item.estadoLiquidacionNuevo?.nombre || item.estadoLiquidacionAnterior?.nombre || 'Actualización de Estado' }}</span>
+                      <span class="text-slate-400 text-[11px]">{{ item.fecha | date:'medium' }}</span>
+                    </div>
+                    <p class="text-xs text-slate-600">{{ item.motivo || 'Transición de estado registrada en el sistema.' }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end">
+          <button (click)="cerrarHistorialModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

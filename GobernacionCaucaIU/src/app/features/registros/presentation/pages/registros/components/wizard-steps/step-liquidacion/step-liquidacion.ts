@@ -445,6 +445,34 @@ export class StepLiquidacionComponent implements OnInit {
     return ('SON: ' + texto.trim() + ' PESOS M/CTE').toUpperCase();
   }
 
+  radicarParaRevision() {
+    const solicitudId = this.wizardService.solicitudId();
+    if (!solicitudId) {
+      this.toast.error('No hay solicitud para radicar.');
+      return;
+    }
+
+    this.isCompleting.set(true);
+    this.solicitudesFacade.completarSolicitud(solicitudId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.wizardService.estadoSolicitudId.set(2);
+          this.wizardService.estadoSolicitudNombre.set('En Revisión');
+          this.toast.success('Trámite radicado exitosamente ante la Gobernación del Cauca para revisión técnica.');
+          this.router.navigate(['/registros/solicitudes']);
+        } else {
+          this.toast.error(res.message || 'No se pudo radicar la solicitud.');
+        }
+        this.isCompleting.set(false);
+      },
+      error: (err) => {
+        const errorMsg = err?.error?.message || err?.error?.detail || 'Error al radicar solicitud.';
+        this.toast.error(errorMsg);
+        this.isCompleting.set(false);
+      }
+    });
+  }
+
   irABandeja() {
     this.router.navigate(['/registros/liquidaciones']);
   }

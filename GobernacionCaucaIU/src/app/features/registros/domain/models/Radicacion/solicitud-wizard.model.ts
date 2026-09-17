@@ -1,4 +1,4 @@
-export interface CrearSolicitudDto {
+﻿export interface CrearSolicitudDto {
   numeroRadicado: string;
   vigenciaId: number;
   departamentoId: number;
@@ -25,7 +25,7 @@ export interface RegistrarContribuyenteDto {
   email?: string | null;
 }
 
-// Para registrar documento se usará FormData enviando el archivo
+// Para registrar documento se usarÃ¡ FormData enviando el archivo
 // y los siguientes campos como un JSON string en 'commandJson'
 export interface RegistrarDocumentoDto {
   numeroDocumento: string;
@@ -146,6 +146,11 @@ export interface SolicitudCompletaDto {
   documentos: SolicitudDocumentoRegistroDto[];
 }
 
+export interface DevolverSolicitudRequest {
+  motivoDevolucion: string;
+  observacionesTecnicas?: string;
+}
+
 export interface SolicitudListadoDto {
   id: number;
   numeroRadicado: string;
@@ -155,6 +160,9 @@ export interface SolicitudListadoDto {
   etapaActual: number;
   numeroIdentificacionContribuyente?: string;
   nombreContribuyente?: string;
+  observacion?: string;
+  nombreEntidadRegistro?: string;
+  numeroDocumento?: string;
 }
 
 export interface PagedResult<T> {
@@ -166,8 +174,8 @@ export interface PagedResult<T> {
   hasNextPage: boolean;
 }
 
-// Representación legacy (mantener si se usa en otro lado, de lo contrario la reemplazamos con SolicitudCompletaDto)
+// RepresentaciÃ³n legacy (mantener si se usa en otro lado, de lo contrario la reemplazamos con SolicitudCompletaDto)
 export interface SolicitudLiquidacion extends SolicitudCompletaDto {
-  // Alias para retrocompatibilidad rápida
+  // Alias para retrocompatibilidad rÃ¡pida
   id: number;
 }
