@@ -10,7 +10,6 @@ import {
 } from '../../../domain/calculator/sobretasa-tax-calculator';
 import { SicomValidadorModalComponent } from '../../components/sicom-validador-modal/sicom-validador-modal';
 import { FormularioOficialModalComponent } from '../../components/formulario-oficial-modal/formulario-oficial-modal';
-import { PseModalComponent } from '../../components/pse-modal/pse-modal';
 import { SobretasaAuditoriaModalComponent } from '../../components/auditoria-modal/auditoria-modal.component';
 import { SobretasaAsobancarioModalComponent } from '../../components/asobancario-modal/asobancario-modal.component';
 import { SobretasaSubsanarModalComponent } from '../../components/subsanar-modal/subsanar-modal.component';
@@ -23,7 +22,6 @@ import { SobretasaSubsanarModalComponent } from '../../components/subsanar-modal
     FormsModule,
     SicomValidadorModalComponent,
     FormularioOficialModalComponent,
-    PseModalComponent,
     SobretasaAuditoriaModalComponent,
     SobretasaAsobancarioModalComponent,
     SobretasaSubsanarModalComponent,
