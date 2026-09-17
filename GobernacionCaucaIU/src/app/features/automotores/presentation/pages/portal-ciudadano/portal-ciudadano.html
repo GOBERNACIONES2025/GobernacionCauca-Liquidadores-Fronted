@@ -222,11 +222,49 @@
                   </div>
                 </div>
 
-                <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0">
-                  <i class="fa-solid fa-shield-check text-emerald-600"></i>
-                  <span>{{ ciudadano()?.propietario?.activo ? 'Activo' : 'Inactivo' }}</span>
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
+                  <!-- BOTÓN DEMOSTRATIVO DE PROTECCIÓN DE DATOS (HABEAS DATA) -->
+                  <button 
+                    (click)="toggleProteccionDatos()" 
+                    type="button" 
+                    [title]="datosProtegidos() ? 'Hacer clic para revelar datos personales (Modo Demostrativo)' : 'Hacer clic para proteger datos'"
+                    [class]="'inline-flex items-center justify-center gap-1.5 h-[32px] px-3 rounded-lg text-xs font-bold cursor-pointer transition-all border shadow-2xs ' + 
+                             (datosProtegidos() 
+                               ? 'bg-blue-50 text-[#0f4984] border-blue-200 hover:bg-blue-100/80' 
+                               : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100')">
+                    @if (datosProtegidos()) {
+                      <i class="fa-solid fa-lock text-xs text-[#0f4984]"></i>
+                      <span>Datos Protegidos</span>
+                      <span class="text-[9px] uppercase tracking-wider bg-white/90 px-1.5 py-0.5 rounded font-bold text-[#0f4984] border border-blue-200">Ley 1581</span>
+                    } @else {
+                      <i class="fa-solid fa-lock-open text-xs text-amber-700"></i>
+                      <span>Datos Visibles</span>
+                      <span class="text-[9px] uppercase tracking-wider bg-amber-200 px-1.5 py-0.5 rounded font-bold text-amber-900 border border-amber-300">Demo</span>
+                    }
+                  </button>
+
+                  <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0">
+                    <i class="fa-solid fa-shield-check text-emerald-600"></i>
+                    <span>{{ ciudadano()?.propietario?.activo ? 'Activo' : 'Inactivo' }}</span>
+                  </div>
                 </div>
               </div>
+
+              <!-- ALERTA MODO DEMOSTRATIVO -->
+              @if (alertaDemoVisible()) {
+                <div class="mt-3.5 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start justify-between gap-3 text-amber-900 shadow-2xs animate-fadeIn">
+                  <div class="flex items-start gap-2.5">
+                    <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm mt-0.5 shrink-0"></i>
+                    <div class="text-[12px] leading-relaxed">
+                      <span class="font-bold block text-amber-950">Modo Demostrativo Activo (Habeas Data):</span>
+                      Los datos personales del ciudadano se muestran temporalmente sin máscara. En la fase final de producción, revelar o modificar estos datos requerirá la confirmación de un código de seguridad (OTP) enviado vía correo electrónico institucional al titular registrado (Ley 1581 de 2012).
+                    </div>
+                  </div>
+                  <button (click)="cerrarAlertaDemo()" type="button" class="text-amber-600 hover:text-amber-800 p-1 rounded hover:bg-amber-100 transition-colors cursor-pointer">
+                    <i class="fa-solid fa-xmark text-xs"></i>
+                  </button>
+                </div>
+              }
 
               <!-- Divisor horizontal -->
               <hr class="border-t border-slate-200/80 my-4" />
@@ -236,12 +274,17 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                   <div>
                     <span class="text-slate-400 font-bold uppercase text-[10px] block">Nombre Completo</span>
-                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.propietario?.nombre }}</span>
+                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ getNombrePropietarioDisplay() }}</span>
                   </div>
 
                   <div>
                     <span class="text-slate-400 font-bold uppercase text-[10px] block">Número de Documento</span>
-                    <span class="font-bold text-slate-800 text-sm block mt-0.5 font-mono">{{ ciudadano()?.propietario?.documento }}</span>
+                    <span class="font-bold text-slate-800 text-sm block mt-0.5 font-mono inline-flex items-center gap-1.5">
+                      @if (datosProtegidos()) {
+                        <i class="fa-solid fa-lock text-[10px] text-slate-400"></i>
+                      }
+                      {{ getDocumentoPropietarioDisplay() }}
+                    </span>
                   </div>
 
                   <div>
@@ -260,15 +303,15 @@
                 <div class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                   <div class="flex items-center gap-2 text-slate-600">
                     <i class="fa-solid fa-envelope text-slate-400"></i>
-                    <span><strong class="text-slate-700">Email:</strong> {{ ciudadano()?.propietario?.email || 'No registrado' }}</span>
+                    <span><strong class="text-slate-700">Email:</strong> <span class="font-mono">{{ getEmailPropietarioDisplay() }}</span></span>
                   </div>
                   <div class="flex items-center gap-2 text-slate-600">
                     <i class="fa-solid fa-phone text-slate-400"></i>
-                    <span><strong class="text-slate-700">Teléfono:</strong> {{ ciudadano()?.propietario?.telefono || 'No registrado' }}</span>
+                    <span><strong class="text-slate-700">Teléfono:</strong> <span class="font-mono">{{ getTelefonoPropietarioDisplay() }}</span></span>
                   </div>
                   <div class="flex items-center gap-2 text-slate-600">
                     <i class="fa-solid fa-location-dot text-slate-400"></i>
-                    <span><strong class="text-slate-700">Dirección:</strong> {{ ciudadano()?.propietario?.direccion || 'No registrada' }}</span>
+                    <span><strong class="text-slate-700">Dirección:</strong> {{ getDireccionPropietarioDisplay() }}</span>
                   </div>
                 </div>
               </div>
