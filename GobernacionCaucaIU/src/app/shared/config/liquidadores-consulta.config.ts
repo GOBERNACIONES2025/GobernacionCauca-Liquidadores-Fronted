@@ -111,19 +111,23 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
   deguello: {
     id: 'deguello',
     brandingTitle: 'IMPUESTO DE DEGÜELLO',
-    headerTitle: 'IMPUESTO DE DEGÜELLO',
-    headerSubtitle: 'Servicio en desarrollo próximamente disponible.',
+    headerTitle: 'CONSULTA Y DECLARACIÓN DE DEGÜELLO',
+    headerSubtitle: 'Consulte guías de sacrificio, liquidaciones y formulario único de ganado mayor.',
     secondaryFieldKey: 'guia',
-    secondaryFieldLabel: 'NÚMERO DE GUÍA DE SACRIFICIO:',
-    secondaryFieldPlaceholder: 'Ej: GUI-2026-9012',
-    secondaryFieldIcon: 'fa-file-invoice',
+    secondaryFieldLabel: 'NÚMERO DE GUÍA ICA / FORMULARIO:',
+    secondaryFieldPlaceholder: 'Ej: GSMI-2026-004521',
+    secondaryFieldIcon: 'fa-cow',
     buttonText: 'Consultar Guía de Degüello',
-    buttonIcon: 'fa-cow',
+    buttonIcon: 'fa-magnifying-glass',
     iconSvg: '/deguello.svg',
-    headerBgColor: 'bg-[#0f4984]',
-    brandingTextColor: 'text-[#0f4984]',
-    buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
-    iconBadgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-    quickExamples: []
+    headerBgColor: 'bg-[#1b53ad]',
+    brandingTextColor: 'text-[#1b53ad]',
+    buttonBgColor: 'bg-[#1b53ad] hover:bg-[#154189]',
+    iconBadgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
+    quickExamples: [
+      { label: 'Guía Integrada ICA (Popayán - 25 Cabezas)', tipoDocId: 2, doc: '900823411', secondary: 'GSMI-2026-004521', tag: '25 Bovinos' },
+      { label: 'Guía Pagada (El Bordo/Patía - 12 Cabezas)', tipoDocId: 1, doc: '10548920', secondary: 'GSMI-2026-008912', tag: '12 Cabezas' },
+      { label: 'Guía Vencida (Alerta de Infracción)', tipoDocId: 1, doc: '76321450', secondary: 'GSMI-2026-001190', tag: 'Vencida' },
+    ]
   }
 };

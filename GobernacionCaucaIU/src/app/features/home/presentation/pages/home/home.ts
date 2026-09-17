@@ -57,6 +57,7 @@ export class Home {
       title: 'Degüello',
       description: 'Declaración y pago por sacrificio de ganado vacuno y menor.',
       icon: '/deguello.svg',
+      routeAdmin: '/deguello/dashboard',
       routeCitizen: '/deguello/portal-ciudadano',
     },
     {
