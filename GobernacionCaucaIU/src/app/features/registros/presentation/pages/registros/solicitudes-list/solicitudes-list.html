@@ -1,18 +1,21 @@
-<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 p-6">
-  
-  <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-1" />
+<div class="space-y-6">
 
-  <!-- Selector de Perspectiva (Entidades vs Gobernación) -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 p-5 rounded-2xl shadow-lg text-white">
-    <div>
-      <div class="flex items-center gap-2 mb-1">
-        <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-white/20 text-blue-100">
-          Super Administrador Activo
-        </span>
+  <!-- Breadcrumb -->
+  <app-breadcrumb [items]="[
+    { label: 'Inicio', url: '/registros/dashboard' },
+    { label: 'Gestión de Solicitudes', url: '/registros/solicitudes' }
+  ]"></app-breadcrumb>
+
+  <!-- Banner Superior y Selector de Panel -->
+  <div class="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 rounded-2xl p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="space-y-1 max-w-xl">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-blue-200 text-xs font-semibold backdrop-blur-xs">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Sistema de Impuesto de Registro
       </div>
-      <h2 class="text-2xl font-black tracking-tight">Sistema Liquidador de Impuesto de Registro</h2>
-      <p class="text-xs text-blue-200 mt-1">
-        Control unificado para Entidades Solicitantes (Notarías, Cámaras, ORIP) y Gestión Operativa de la Gobernación del Cauca.
+      <h2 class="text-2xl font-black tracking-tight text-white">Panel Operativo de Solicitudes</h2>
+      <p class="text-xs text-blue-100/80 leading-relaxed">
+        Conmute entre la vista técnica de la Gobernación del Cauca y la bandeja de trámite de las entidades externas (Notarías, Cámaras de Comercio y ORIP).
       </p>
     </div>
 
@@ -25,7 +28,7 @@
         [class.font-bold]="activePanel() === 'GOBERNACION'"
         [class.shadow-md]="activePanel() === 'GOBERNACION'"
         [class.text-blue-100]="activePanel() !== 'GOBERNACION'"
-        class="px-4 py-2 text-xs rounded-lg transition-all flex items-center gap-2">
+        class="px-4 py-2 text-xs rounded-lg transition-all flex items-center gap-2 cursor-pointer">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
@@ -39,7 +42,7 @@
         [class.font-bold]="activePanel() === 'ENTIDAD'"
         [class.shadow-md]="activePanel() === 'ENTIDAD'"
         [class.text-blue-100]="activePanel() !== 'ENTIDAD'"
-        class="px-4 py-2 text-xs rounded-lg transition-all flex items-center gap-2">
+        class="px-4 py-2 text-xs rounded-lg transition-all flex items-center gap-2 cursor-pointer">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
         </svg>
@@ -54,10 +57,10 @@
       @if (activePanel() === 'GOBERNACION') {
         <h3 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
           <span>Bandeja de Gestión y Revisión Departamental</span>
-          <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold">Gobernación</span>
+          <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-semibold">Gobernación del Cauca</span>
         </h3>
         <p class="text-xs text-slate-500 mt-0.5">
-          Revise técnicamente las solicitudes radicadas por las entidades, verifique soportes, apruebe emitiendo la liquidación oficial o devuelva con observaciones.
+          Revise técnicamente las solicitudes radicadas, verifique soportes, apruebe emitiendo la liquidación oficial o devuelva con observaciones.
         </p>
       } @else {
         <h3 class="text-xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
@@ -65,7 +68,7 @@
           <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold">Entidades Externas</span>
         </h3>
         <p class="text-xs text-slate-500 mt-0.5">
-          Consulte el estado de sus trámites, subsane solicitudes devueltas por la Gobernación o radique una nueva solicitud.
+          Consulte el estado de sus trámites en curso, subsane solicitudes devueltas por la Gobernación o radique una nueva solicitud.
         </p>
       }
     </div>
@@ -73,11 +76,11 @@
     <div class="flex items-center gap-3">
       <button 
         (click)="onNewSolicitud()" 
-        class="px-4 py-2.5 bg-blue-900 text-white text-xs font-semibold rounded-xl hover:bg-blue-800 transition-all shadow-md shadow-blue-900/20 flex items-center gap-2 shrink-0">
+        class="px-4 py-2.5 bg-blue-900 text-white text-xs font-semibold rounded-xl hover:bg-blue-800 transition-all shadow-md shadow-blue-900/20 flex items-center gap-2 shrink-0 cursor-pointer">
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Nueva Solicitud (Wizard)
+        {{ activePanel() === 'GOBERNACION' ? 'Radicación Directa' : 'Nueva Solicitud (Wizard)' }}
       </button>
     </div>
   </div>
@@ -89,9 +92,9 @@
     <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/60">
       
       <!-- Pestañas de estado según el panel -->
-      <div class="inline-flex bg-slate-200/70 p-1 rounded-xl">
+      <div class="inline-flex bg-slate-200/70 p-1 rounded-xl flex-wrap gap-1">
         @if (activePanel() === 'GOBERNACION') {
-          @for (status of ['EN_REVISION', 'Todas', 'DEVUELTA', 'LIQUIDADA']; track status) {
+          @for (status of ['EN_REVISION', 'DEVUELTA', 'LIQUIDADA', 'Todas']; track status) {
             <button 
               (click)="setFilter(status)"
               [class.bg-white]="filterStatus() === status"
@@ -99,15 +102,15 @@
               [class.text-blue-900]="filterStatus() === status"
               [class.font-bold]="filterStatus() === status"
               [class.text-slate-600]="filterStatus() !== status"
-              class="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all hover:text-slate-900">
+              class="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all hover:text-slate-900 cursor-pointer">
               @if (status === 'EN_REVISION') {
                 Pendientes de Revisión
               } @else if (status === 'DEVUELTA') {
-                Devueltas
+                Devueltas por Gobernación
               } @else if (status === 'LIQUIDADA') {
-                Liquidadas
+                Liquidadas Oficiales
               } @else {
-                Todas
+                Todas de Gobernación
               }
             </button>
           }
@@ -120,24 +123,23 @@
               [class.text-blue-900]="filterStatus() === status"
               [class.font-bold]="filterStatus() === status"
               [class.text-slate-600]="filterStatus() !== status"
-              class="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all hover:text-slate-900">
+              class="px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all hover:text-slate-900 cursor-pointer">
               @if (status === 'RADICADA') {
-                En Borrador
+                En Diligenciamiento (Borrador)
               } @else if (status === 'EN_REVISION') {
-                En Revisión
+                Radicadas en Revisión
               } @else if (status === 'DEVUELTA') {
-                Devueltas (Subsanar)
+                Devueltas (Por Subsanar)
               } @else if (status === 'LIQUIDADA') {
                 Liquidadas
               } @else {
-                Todas
+                Todas mis Solicitudes
               }
             </button>
           }
         }
       </div>
 
-      <!-- Buscador -->
       <app-table-search
         placeholder="Buscar radicado, documento, contribuyente..."
         [value]="searchText()"
@@ -203,60 +205,107 @@
                   </div>
                 } @else if (esEnRevision(solicitud)) {
                   <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                    En Revisión
+                    En Revisión Técnica
                   </span>
                 } @else if (esLiquidada(solicitud)) {
                   <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    Liquidada
+                    Liquidada Oficial
                   </span>
                 } @else {
-                  <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                    {{ solicitud.nombreEstado || 'Borrador' }}
-                  </span>
+                  <div class="flex flex-col items-center gap-0.5">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                      {{ obtenerTextoEstado(solicitud) }}
+                    </span>
+                    <span class="text-[10px] text-slate-400">Sin enviar a revisión</span>
+                  </div>
                 }
               </td>
 
-              <!-- Acciones -->
+              <!-- Acciones según el panel y responsabilidades -->
               <td class="p-4 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <!-- Acciones del Panel Gobernación -->
                   @if (activePanel() === 'GOBERNACION') {
-                    <button 
-                      (click)="abrirRevision(solicitud)" 
-                      class="px-3 py-1.5 text-xs font-semibold text-white bg-blue-900 rounded-lg hover:bg-blue-800 transition-colors shadow-xs flex items-center gap-1.5"
-                      title="Abrir Revisión Técnica y Preliquidación">
-                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      Revisión Técnica
-                    </button>
+                    @if (esEnRevision(solicitud)) {
+                      <button 
+                        (click)="abrirRevision(solicitud)" 
+                        class="px-3 py-1.5 text-xs font-semibold text-white bg-blue-900 rounded-lg hover:bg-blue-800 transition-colors shadow-xs flex items-center gap-1.5 cursor-pointer"
+                        title="Abrir Revisión Técnica y Preliquidación">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        Revisión Técnica
+                      </button>
 
-                    <button 
-                      (click)="abrirModalDevolver(solicitud)" 
-                      class="px-2.5 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 border border-amber-200 transition-colors"
-                      title="Devolver con observaciones para subsanación">
-                      Devolver
-                    </button>
+                      <button 
+                        (click)="abrirModalDevolver(solicitud)" 
+                        class="px-2.5 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer"
+                        title="Devolver con observaciones para subsanación">
+                        Devolver
+                      </button>
+                    } @else if (esDevuelta(solicitud)) {
+                      <button 
+                        (click)="abrirModalVerObservacion(solicitud)" 
+                        class="px-2.5 py-1.5 text-xs font-medium text-amber-800 bg-amber-50 rounded-lg hover:bg-amber-100 border border-amber-200 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Ver observaciones formuladas a la entidad">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Ver Motivo Devolución
+                      </button>
+                    } @else if (esLiquidada(solicitud)) {
+                      <a 
+                        [routerLink]="['/registros/liquidaciones']"
+                        [queryParams]="{ panel: 'GOBERNACION', tab: 'DIRECTORIO', radicado: solicitud.numeroRadicado }"
+                        class="px-2.5 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Ver Liquidación Oficial en Panel Gobernación">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Ver Liquidación (Gobernación)
+                      </a>
+                    }
                   } @else {
                     <!-- Acciones del Panel Entidades -->
                     @if (esDevuelta(solicitud)) {
                       <button 
                         (click)="subsanarSolicitud(solicitud)" 
-                        class="px-3 py-1.5 text-xs font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors shadow-xs flex items-center gap-1"
+                        class="px-3 py-1.5 text-xs font-bold text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors shadow-xs flex items-center gap-1 cursor-pointer"
                         title="Subsanar observaciones y corregir trámite">
                         <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        Subsanar
+                        Subsanar y Reenviar
                       </button>
-                    } @else {
+                    } @else if (esBorrador(solicitud)) {
                       <button 
                         (click)="continuarSolicitud(solicitud.id)" 
-                        class="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-                        title="Continuar o editar solicitud">
-                        Ver / Editar
+                        class="px-3 py-1.5 text-xs font-semibold text-blue-900 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Continuar diligenciamiento">
+                        <span>Continuar</span>
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
                       </button>
+                    } @else if (esEnRevision(solicitud)) {
+                      <span class="inline-flex items-center gap-1 text-xs text-blue-700 font-medium px-2 py-1 rounded bg-blue-50">
+                        <svg class="w-3.5 h-3.5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        En revisión Gobernación
+                      </span>
+                    } @else if (esLiquidada(solicitud)) {
+                      <a 
+                        [routerLink]="['/registros/liquidaciones']"
+                        [queryParams]="{ panel: 'ENTIDAD', radicado: solicitud.numeroRadicado }"
+                        class="px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-1 cursor-pointer"
+                        title="Ver Liquidación Oficial y Radicar Trámites">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Ver Liquidación (Entidad)
+                      </a>
                     }
                   }
                 </div>
@@ -273,8 +322,10 @@
                   </div>
                   <p class="text-sm font-semibold text-slate-700">No hay solicitudes para mostrar</p>
                   <p class="text-xs text-slate-400 mt-1">
-                    @if (filterStatus() !== 'Todas') {
-                      No se encontraron trámites con el filtro '{{ filterStatus() }}'.
+                    @if (activePanel() === 'GOBERNACION') {
+                      No hay trámites pendientes en este filtro para la Gobernación.
+                    } @else if (filterStatus() !== 'Todas') {
+                      No se encontraron trámites con el filtro seleccionado.
                     } @else {
                       Puede crear una nueva solicitud para iniciar un trámite de impuesto de registro.
                     }
@@ -319,7 +370,7 @@
               <p class="text-xs text-blue-200">Radicado: <span class="font-mono font-bold">{{ solicitudSeleccionada()?.numeroRadicado }}</span> | Entidad: {{ solicitudSeleccionada()?.nombreEntidadRegistro || 'General' }}</p>
             </div>
           </div>
-          <button (click)="cerrarRevision()" class="text-white/70 hover:text-white transition-colors">
+          <button (click)="cerrarRevision()" class="text-white/70 hover:text-white transition-colors cursor-pointer">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
@@ -345,7 +396,7 @@
                 </div>
                 <button 
                   (click)="descargarPdfLiquidacion(idLiquidacionGenerada()!)"
-                  class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2 shadow-xs">
+                  class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-2 shadow-xs cursor-pointer">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
@@ -354,35 +405,35 @@
               </div>
             }
 
-            <!-- 1. Datos Generales y Contribuyente -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
-              <div>
-                <span class="text-slate-400 font-semibold uppercase block">Contribuyente Principal</span>
-                <span class="font-bold text-slate-800 text-sm block mt-0.5">{{ solicitudDetalle()?.contribuyente?.nombre || solicitudSeleccionada()?.nombreContribuyente }}</span>
-                <span class="text-slate-500">Doc: {{ solicitudDetalle()?.contribuyente?.numeroIdentificacion || solicitudSeleccionada()?.numeroIdentificacionContribuyente }}</span>
+            <!-- 1. Expediente Base y Contribuyente -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Contribuyente Principal</span>
+                <div class="font-bold text-slate-800 text-sm">{{ solicitudDetalle()?.contribuyente?.nombre || 'N/A' }}</div>
+                <div class="text-xs text-slate-500 mt-1">Identificación: <span class="font-mono">{{ solicitudDetalle()?.contribuyente?.numeroIdentificacion }}</span></div>
+                <div class="text-xs text-slate-500">Email: {{ solicitudDetalle()?.contribuyente?.email || 'N/A' }}</div>
+                <div class="text-xs text-slate-500">Teléfono: {{ solicitudDetalle()?.contribuyente?.telefono || 'N/A' }}</div>
               </div>
-              <div>
-                <span class="text-slate-400 font-semibold uppercase block">Documento de Registro</span>
-                <span class="font-bold text-slate-800 block mt-0.5">Escritura / Acto #{{ solicitudDetalle()?.documentos?.[0]?.numeroDocumento || solicitudSeleccionada()?.numeroDocumento || 'S/N' }}</span>
-                <span class="text-slate-500">Fecha: {{ solicitudDetalle()?.documentos?.[0]?.fechaDocumento }}</span>
-              </div>
-              <div>
-                <span class="text-slate-400 font-semibold uppercase block">Estado Actual</span>
-                <span class="font-bold text-blue-900 block mt-0.5">{{ solicitudSeleccionada()?.nombreEstado }}</span>
-                <span class="text-slate-500">Etapa: Paso {{ solicitudSeleccionada()?.etapaActual }} de 5</span>
+
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">Documento / Escritura Base</span>
+                <div class="font-bold text-slate-800 text-sm">Documento #{{ solicitudDetalle()?.documentos?.[0]?.numeroDocumento || 'S/N' }}</div>
+                <div class="text-xs text-slate-500 mt-1">Fecha: {{ solicitudDetalle()?.documentos?.[0]?.fechaDocumento }}</div>
+                <div class="text-xs text-slate-500">Entidad: {{ solicitudDetalle()?.documentos?.[0]?.entidadRegistroNombre || 'Notaría' }}</div>
+                <div class="text-xs text-slate-500">Municipio: {{ solicitudDetalle()?.documentos?.[0]?.municipioJurisdiccionNombre || 'Popayán' }}</div>
               </div>
             </div>
 
             <!-- 2. Actos Registrados -->
-            <div>
-              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Actos Registrales Informados</h4>
+            <div class="space-y-2">
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider block">Actos Registrales e Intervinientes Declarados</span>
               <div class="border border-slate-200 rounded-xl overflow-hidden">
-                <table class="w-full text-left border-collapse text-xs">
-                  <thead class="bg-slate-100 text-slate-600 font-semibold">
+                <table class="w-full text-xs text-left">
+                  <thead class="bg-slate-100 text-slate-600 font-semibold border-b border-slate-200">
                     <tr>
-                      <th class="p-2.5">Código / Tipo de Acto</th>
-                      <th class="p-2.5 text-right">Valor Acto</th>
-                      <th class="p-2.5 text-right">Base Gravable</th>
+                      <th class="p-2.5">Tipo de Acto</th>
+                      <th class="p-2.5 text-right">Cuantía / Valor</th>
+                      <th class="p-2.5 text-right">Base Declarada</th>
                       <th class="p-2.5 text-center">Intervinientes</th>
                     </tr>
                   </thead>
@@ -408,23 +459,23 @@
             @if (simulacionDetalle()) {
               <div class="bg-blue-50/60 border border-blue-200 p-5 rounded-2xl">
                 <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-blue-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <h4 class="text-sm font-bold text-blue-950 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
-                    <h4 class="text-sm font-bold text-blue-950">Preliquidación de Impuesto de Registro Calculada</h4>
-                  </div>
-                  <span class="text-xs px-2.5 py-0.5 rounded-full bg-blue-200/80 text-blue-900 font-bold">Motor Tributario Activo</span>
+                    Cálculo y Preliquidación Oficial Simulada (Automático)
+                  </h4>
+                  <span class="text-xs px-2 py-0.5 rounded bg-blue-200/60 text-blue-900 font-mono">Reglas Ordenanza Vigente</span>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div class="bg-white p-3 rounded-xl border border-blue-100">
-                    <span class="text-slate-400 font-medium block">Subtotal</span>
+                    <span class="text-slate-400 font-medium block">Subtotal Impuesto</span>
                     <span class="font-mono font-bold text-slate-800 text-sm">{{ simulacionDetalle()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                   </div>
                   <div class="bg-white p-3 rounded-xl border border-blue-100">
-                    <span class="text-slate-400 font-medium block">Descuentos / Exenciones</span>
-                    <span class="font-mono font-bold text-emerald-700 text-sm">{{ simulacionDetalle()?.totalDescuentos | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                    <span class="text-slate-400 font-medium block">Exenciones / Descuento</span>
+                    <span class="font-mono font-bold text-emerald-600 text-sm">-{{ simulacionDetalle()?.totalDescuentos | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
                   </div>
                   <div class="bg-white p-3 rounded-xl border border-blue-100">
                     <span class="text-slate-400 font-medium block">Intereses / Mora</span>
@@ -447,7 +498,7 @@
             @if (solicitudSeleccionada()) {
               <button 
                 (click)="abrirModalDevolver(solicitudSeleccionada()!)"
-                class="px-3.5 py-2 text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-xl transition-colors flex items-center gap-1.5">
+                class="px-3.5 py-2 text-xs font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                 </svg>
@@ -456,14 +507,14 @@
 
               <button 
                 (click)="abrirModalAnular(solicitudSeleccionada()!)"
-                class="px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors">
+                class="px-3 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors cursor-pointer">
                 Anular Trámite
               </button>
             }
           </div>
 
           <div class="flex items-center gap-2">
-            <button (click)="cerrarRevision()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-xl transition-colors">
+            <button (click)="cerrarRevision()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
               Cerrar
             </button>
 
@@ -471,7 +522,7 @@
               <button 
                 (click)="aprobarYGenerarLiquidacion()"
                 [disabled]="isReviewLoading()"
-                class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-md shadow-emerald-600/20 flex items-center gap-2">
+                class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-colors shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer">
                 @if (isReviewLoading()) {
                   <span class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                 }
@@ -494,38 +545,76 @@
             <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm">!</div>
             <h3 class="text-sm font-bold text-amber-950">Devolver Solicitud a la Entidad</h3>
           </div>
-          <button (click)="cerrarModalDevolver()" class="text-slate-400 hover:text-slate-600">
+          <button (click)="cerrarModalDevolver()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
-        <div class="p-5 space-y-3 text-xs">
-          <p class="text-slate-600">
-            La solicitud <strong>{{ solicitudADevolver()?.numeroRadicado }}</strong> pasará al estado <strong>DEVUELTA</strong>. La notaría o entidad remitente podrá ver las observaciones, corregir los datos o soportes y reenviar.
-          </p>
+        <div class="p-5 space-y-4">
+          <div class="text-xs text-slate-600 leading-relaxed">
+            Especifique claramente los motivos técnicos o inconsistencias (en documento, actos o intervinientes) para que la entidad emisora proceda a subsanar el expediente.
+          </div>
 
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Motivo / Observaciones Técnicas *:</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Motivo y Observaciones de Devolución *</label>
             <textarea 
               [(ngModel)]="motivoDevolucion" 
               rows="4" 
-              class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none"
-              placeholder="Indique los motivos de la devolución (ej. La copia de la escritura adjunta presenta tachaduras o cuantía inconsistente)..."></textarea>
+              placeholder="Ej: El avalúo catastral del acto de compraventa no concuerda con el certificado aportado..."
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
           </div>
         </div>
 
         <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-          <button (click)="cerrarModalDevolver()" class="px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-lg">
+          <button (click)="cerrarModalDevolver()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
             Cancelar
           </button>
           <button 
-            (click)="confirmarDevolver()" 
+            (click)="confirmarDevolver()"
             [disabled]="isLoading() || motivoDevolucion().trim().length < 5"
-            class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5">
-            @if (isLoading()) {
-              <span class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            }
+            class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-xs disabled:opacity-50 cursor-pointer">
             Confirmar Devolución
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- MODAL VER OBSERVACIÓN DE DEVOLUCIÓN -->
+  @if (showVerObservacionModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-100 overflow-hidden">
+        <div class="p-5 bg-amber-50 border-b border-amber-200 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-sm">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-amber-950">Observación de Devolución</h3>
+              <p class="text-[11px] text-amber-800 font-mono font-bold">{{ solicitudSeleccionadaDevuelta()?.numeroRadicado }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalVerObservacion()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-3 text-slate-700">
+          <div class="bg-amber-50/50 p-3.5 rounded-xl border border-amber-200 text-xs">
+            <span class="font-bold text-amber-900 block mb-1">Motivo formulado por la Gobernación:</span>
+            <p class="text-slate-800 leading-relaxed">{{ solicitudSeleccionadaDevuelta()?.observacion || 'Sin detalle de observación registrado.' }}</p>
+          </div>
+          <div class="text-[11px] text-slate-500 space-y-0.5">
+            <div>Entidad: <strong>{{ solicitudSeleccionadaDevuelta()?.nombreEntidadRegistro || 'General' }}</strong></div>
+            <div>Contribuyente: <strong>{{ solicitudSeleccionadaDevuelta()?.nombreContribuyente || 'N/A' }}</strong></div>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <button (click)="cerrarModalVerObservacion()" class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
+            Cerrar
           </button>
         </div>
       </div>
@@ -539,36 +628,36 @@
         <div class="p-5 bg-rose-50 border-b border-rose-200 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center font-bold text-sm">✕</div>
-            <h3 class="text-sm font-bold text-rose-950">Anular Solicitud de Liquidación</h3>
+            <h3 class="text-sm font-bold text-rose-950">Anular Solicitud Formalmente</h3>
           </div>
-          <button (click)="cerrarModalAnular()" class="text-slate-400 hover:text-slate-600">
+          <button (click)="cerrarModalAnular()" class="text-slate-400 hover:text-slate-600 cursor-pointer">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
-        <div class="p-5 space-y-3 text-xs">
-          <p class="text-slate-600">
-            La solicitud <strong>{{ solicitudAAnular()?.numeroRadicado }}</strong> será anulada de forma definitiva.
-          </p>
+        <div class="p-5 space-y-4">
+          <div class="text-xs text-rose-800 leading-relaxed font-medium">
+            ¡Atención! La anulación del trámite es una acción irreversible. Esta solicitud no podrá ser liquidada ni modificada posteriormente.
+          </div>
 
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Motivo de Anulación *:</label>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Motivo de Anulación *</label>
             <textarea 
               [(ngModel)]="motivoAnulacion" 
               rows="3" 
-              class="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
-              placeholder="Indique la justificación de la anulación..."></textarea>
+              placeholder="Ej: Solicitud duplicada por la notaría o desistimiento expreso del contribuyente..."
+              class="w-full text-xs p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
           </div>
         </div>
 
         <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
-          <button (click)="cerrarModalAnular()" class="px-3.5 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-lg">
+          <button (click)="cerrarModalAnular()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer">
             Cancelar
           </button>
           <button 
-            (click)="confirmarAnular()" 
+            (click)="confirmarAnular()"
             [disabled]="isLoading() || motivoAnulacion().trim().length < 5"
-            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm disabled:opacity-50 flex items-center gap-1.5">
+            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors shadow-xs disabled:opacity-50 cursor-pointer">
             Confirmar Anulación
           </button>
         </div>

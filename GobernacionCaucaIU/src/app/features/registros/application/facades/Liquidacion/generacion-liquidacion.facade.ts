@@ -66,9 +66,26 @@ export class GeneracionLiquidacionFacade {
     );
   }
 
-  solicitarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<number>> {
+  solicitarReliquidacion(
+    liquidacionId: number, 
+    causal: string, 
+    motivo: string, 
+    docAclaratorio?: string
+  ): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
-    return this.apiService.solicitarReliquidacion(liquidacionId, motivo).pipe(
+    return this.apiService.solicitarReliquidacion(liquidacionId, causal, motivo, docAclaratorio).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  solicitarAnulacion(
+    liquidacionId: number, 
+    causal: string, 
+    motivo: string, 
+    docSoporte?: string
+  ): Observable<ApiResponse<number>> {
+    this.actionLoading.set(true);
+    return this.apiService.solicitarAnulacion(liquidacionId, causal, motivo, docSoporte).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }
@@ -95,6 +112,32 @@ export class GeneracionLiquidacionFacade {
   rechazarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<boolean>> {
     this.actionLoading.set(true);
     return this.apiService.rechazarReliquidacion(liquidacionId, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  listarAnulacionesPendientes(
+    pageNumber: number = 1, 
+    pageSize: number = 10, 
+    search?: string, 
+    entidadRegistroId?: number
+  ): Observable<ApiResponse<PagedResult<any>>> {
+    this.actionLoading.set(true);
+    return this.apiService.listarAnulacionesPendientes(pageNumber, pageSize, search, entidadRegistroId).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  aprobarAnulacion(liquidacionId: number, motivo?: string): Observable<ApiResponse<boolean>> {
+    this.actionLoading.set(true);
+    return this.apiService.aprobarAnulacion(liquidacionId, motivo).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  rechazarAnulacion(liquidacionId: number, motivo: string): Observable<ApiResponse<boolean>> {
+    this.actionLoading.set(true);
+    return this.apiService.rechazarAnulacion(liquidacionId, motivo).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }

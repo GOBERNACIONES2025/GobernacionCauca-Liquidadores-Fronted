@@ -27,11 +27,12 @@ export class SolicitudesListComponent implements OnInit {
   // Modo de vista: 'ENTIDAD' (Mis Trámites) o 'GOBERNACION' (Bandeja de Revisión y Liquidación)
   activePanel = signal<'ENTIDAD' | 'GOBERNACION'>('GOBERNACION');
 
-  // Estado
+  // Estado de solicitudes
   solicitudes = signal<SolicitudListadoDto[]>([]);
   totalCount = signal<number>(0);
   
-  filterStatus = signal<string>('Todas');
+  // Filtro activo (en Gobernación inicia en 'EN_REVISION', en Entidades en 'Todas')
+  filterStatus = signal<string>('EN_REVISION');
   searchText = signal<string>('');
 
   pageNumber = signal<number>(1);
@@ -55,19 +56,40 @@ export class SolicitudesListComponent implements OnInit {
   motivoAnulacion = signal<string>('');
   solicitudAAnular = signal<SolicitudListadoDto | null>(null);
 
+  // Modal Ver Observación de Devolución
+  showVerObservacionModal = signal<boolean>(false);
+  solicitudSeleccionadaDevuelta = signal<SolicitudListadoDto | null>(null);
+
   // Estado de éxito liquidación generada
   idLiquidacionGenerada = signal<number | null>(null);
 
+  // --- CLASIFICACIÓN DE ESTADOS ---
   esDevuelta(s: SolicitudListadoDto): boolean {
     return s.estadoSolicitudId === 5 || (s.nombreEstado || '').toUpperCase().includes('DEVUELT');
   }
 
-  esEnRevision(s: SolicitudListadoDto): boolean {
-    return s.estadoSolicitudId === 2 || (s.nombreEstado || '').toUpperCase().includes('REVIS');
-  }
-
   esLiquidada(s: SolicitudListadoDto): boolean {
     return s.estadoSolicitudId === 4 || (s.nombreEstado || '').toUpperCase().includes('LIQUID');
+  }
+
+  esEnRevision(s: SolicitudListadoDto): boolean {
+    // Solo está en revisión formal si ya culminó los 4 pasos del wizard y fue radicada
+    return !this.esDevuelta(s) 
+      && !this.esLiquidada(s) 
+      && (s.estadoSolicitudId === 2 || (s.nombreEstado || '').toUpperCase().includes('REVIS'))
+      && (s.etapaActual ?? 0) >= 4;
+  }
+
+  esBorrador(s: SolicitudListadoDto): boolean {
+    return !this.esDevuelta(s) && !this.esLiquidada(s) && !this.esEnRevision(s);
+  }
+
+  obtenerTextoEstado(s: SolicitudListadoDto): string {
+    if (this.esDevuelta(s)) return 'Devuelta para Subsanación';
+    if (this.esLiquidada(s)) return 'Liquidada Oficial';
+    if (this.esEnRevision(s)) return 'En Revisión Técnica';
+    const paso = Math.min(Math.max((s.etapaActual ?? 0) + 1, 1), 4);
+    return `Borrador (Paso ${paso} de 4)`;
   }
 
   ngOnInit() {
@@ -81,6 +103,12 @@ export class SolicitudesListComponent implements OnInit {
     } else {
       this.filterStatus.set('Todas');
     }
+    this.pageNumber.set(1);
+    this.cargarSolicitudes();
+  }
+
+  setFilter(status: string) {
+    this.filterStatus.set(status);
     this.pageNumber.set(1);
     this.cargarSolicitudes();
   }
@@ -99,7 +127,36 @@ export class SolicitudesListComponent implements OnInit {
 
   cargarSolicitudes() {
     this.isLoading.set(true);
-    this.facade.listarSolicitudes(this.pageNumber(), this.pageSize(), this.searchText()).subscribe({
+
+    let estadoIdParaApi: number = 0; // 0 indica sin filtro de estado en BD
+    const status = this.filterStatus();
+
+    if (this.activePanel() === 'GOBERNACION') {
+      if (status === 'EN_REVISION') {
+        estadoIdParaApi = 2;
+      } else if (status === 'DEVUELTA') {
+        estadoIdParaApi = 5;
+      } else if (status === 'LIQUIDADA') {
+        estadoIdParaApi = 4;
+      } else {
+        // 'Todas' en Gobernación consulta todos los estados y en memoria filtra exclusivamente los del gobierno
+        estadoIdParaApi = 0;
+      }
+    } else {
+      if (status === 'RADICADA') {
+        estadoIdParaApi = 1;
+      } else if (status === 'EN_REVISION') {
+        estadoIdParaApi = 2;
+      } else if (status === 'DEVUELTA') {
+        estadoIdParaApi = 5;
+      } else if (status === 'LIQUIDADA') {
+        estadoIdParaApi = 4;
+      } else {
+        estadoIdParaApi = 0;
+      }
+    }
+
+    this.facade.listarSolicitudes(this.pageNumber(), this.pageSize(), this.searchText(), estadoIdParaApi).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.solicitudes.set(res.data.items || []);
@@ -131,23 +188,39 @@ export class SolicitudesListComponent implements OnInit {
     let filtered = this.solicitudes();
     const status = this.filterStatus();
 
-    if (status !== 'Todas') {
-      filtered = filtered.filter(s => {
-        const nom = (s.nombreEstado || '').toUpperCase();
-        if (status === 'DEVUELTA') return nom.includes('DEVUELT');
-        if (status === 'EN_REVISION') return nom.includes('REVISION') || nom.includes('REVISIÓN');
-        if (status === 'RADICADA') return nom.includes('RADICAD') || nom.includes('BORRADOR');
-        if (status === 'LIQUIDADA') return nom.includes('LIQUIDAD');
-        return nom === status.toUpperCase();
-      });
+    if (this.activePanel() === 'GOBERNACION') {
+      // Regla de Oro Gobernación: NUNCA se visualizan borradores incompletos de entidades
+      const gobernacionItems = filtered.filter(s => !this.esBorrador(s));
+
+      if (status === 'EN_REVISION') {
+        return gobernacionItems.filter(s => this.esEnRevision(s));
+      }
+      if (status === 'DEVUELTA') {
+        return gobernacionItems.filter(s => this.esDevuelta(s));
+      }
+      if (status === 'LIQUIDADA') {
+        return gobernacionItems.filter(s => this.esLiquidada(s));
+      }
+      // 'Todas': Revisión + Devueltas + Liquidadas
+      return gobernacionItems;
+    }
+
+    // Panel Entidades Externas
+    if (status === 'RADICADA') {
+      return filtered.filter(s => this.esBorrador(s));
+    }
+    if (status === 'EN_REVISION') {
+      return filtered.filter(s => this.esEnRevision(s));
+    }
+    if (status === 'DEVUELTA') {
+      return filtered.filter(s => this.esDevuelta(s));
+    }
+    if (status === 'LIQUIDADA') {
+      return filtered.filter(s => this.esLiquidada(s));
     }
 
     return filtered;
   });
-
-  setFilter(status: string) {
-    this.filterStatus.set(status);
-  }
 
   onNewSolicitud() {
     this.router.navigate(['/registros/solicitudes/wizard']);
@@ -171,16 +244,17 @@ export class SolicitudesListComponent implements OnInit {
     this.showRevisionModal.set(true);
     this.isReviewLoading.set(true);
 
-    // Cargar detalle completo
+    // 1. Obtener expediente completo
     this.facade.obtenerSolicitudPorId(solicitud.id).subscribe({
       next: (res) => {
         if (res.success && res.data) {
           this.solicitudDetalle.set(res.data);
         }
-      }
+      },
+      error: () => this.toast.error('Error al cargar detalle del expediente')
     });
 
-    // Cargar preliquidación simulada
+    // 2. Obtener preliquidación simulada
     this.generacionFacade.simularLiquidacion(solicitud.id).subscribe({
       next: (res) => {
         if (res.success && res.data) {
@@ -189,6 +263,7 @@ export class SolicitudesListComponent implements OnInit {
         this.isReviewLoading.set(false);
       },
       error: () => {
+        this.toast.error('No se pudo simular la liquidación en tiempo real');
         this.isReviewLoading.set(false);
       }
     });
@@ -199,6 +274,7 @@ export class SolicitudesListComponent implements OnInit {
     this.solicitudSeleccionada.set(null);
     this.solicitudDetalle.set(null);
     this.simulacionDetalle.set(null);
+    this.idLiquidacionGenerada.set(null);
   }
 
   aprobarYGenerarLiquidacion() {
@@ -241,6 +317,17 @@ export class SolicitudesListComponent implements OnInit {
         this.toast.error('Error al descargar el PDF de la liquidación');
       }
     });
+  }
+
+  // --- VER OBSERVACIÓN DEVOLUCIÓN ---
+  abrirModalVerObservacion(solicitud: SolicitudListadoDto) {
+    this.solicitudSeleccionadaDevuelta.set(solicitud);
+    this.showVerObservacionModal.set(true);
+  }
+
+  cerrarModalVerObservacion() {
+    this.showVerObservacionModal.set(false);
+    this.solicitudSeleccionadaDevuelta.set(null);
   }
 
   // --- DEVOLVER SOLICITUD ---

@@ -53,10 +53,45 @@ export class GeneracionLiquidacionApiService {
     return this.api.post<ApiResponse<number>>(`${this.baseUrl}/${id}/reliquidar`, { motivoReliquidacion: motivo }, {}, 'REGISTROS');
   }
 
-  solicitarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<number>> {
-    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/${liquidacionId}/solicitar-reliquidacion`, { motivoSolicitud: motivo }, {}, 'REGISTROS');
+  // --- SOLICITUDES DE RELIQUIDACIÓN (ENTIDADES) ---
+  solicitarReliquidacion(
+    liquidacionId: number, 
+    causal: string, 
+    motivo: string, 
+    docAclaratorio?: string
+  ): Observable<ApiResponse<number>> {
+    return this.api.post<ApiResponse<number>>(
+      `${this.baseUrl}/${liquidacionId}/solicitar-reliquidacion`, 
+      { 
+        causal: causal, 
+        motivo: motivo, 
+        numeroDocumentoAclaratorio: docAclaratorio || null 
+      }, 
+      {}, 
+      'REGISTROS'
+    );
   }
 
+  // --- SOLICITUDES DE ANULACIÓN (ENTIDADES) ---
+  solicitarAnulacion(
+    liquidacionId: number, 
+    causal: string, 
+    motivo: string, 
+    docSoporte?: string
+  ): Observable<ApiResponse<number>> {
+    return this.api.post<ApiResponse<number>>(
+      `${this.baseUrl}/${liquidacionId}/solicitar-anulacion`, 
+      { 
+        causal: causal, 
+        motivo: motivo, 
+        documentoSoporte: docSoporte || null 
+      }, 
+      {}, 
+      'REGISTROS'
+    );
+  }
+
+  // --- BANDEJA DE RELIQUIDACIONES (GOBERNACIÓN) ---
   listarReliquidacionesPendientes(
     pageNumber: number = 1, 
     pageSize: number = 10, 
@@ -74,11 +109,36 @@ export class GeneracionLiquidacionApiService {
   }
 
   aprobarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<number>> {
-    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/${liquidacionId}/aprobar-reliquidacion`, { motivoAprobacion: motivo }, {}, 'REGISTROS');
+    return this.api.post<ApiResponse<number>>(`${this.baseUrl}/${liquidacionId}/aprobar-reliquidacion`, { observacionesAprobacion: motivo }, {}, 'REGISTROS');
   }
 
   rechazarReliquidacion(liquidacionId: number, motivo: string): Observable<ApiResponse<boolean>> {
     return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${liquidacionId}/rechazar-reliquidacion`, { motivoRechazo: motivo }, {}, 'REGISTROS');
+  }
+
+  // --- BANDEJA DE ANULACIONES (GOBERNACIÓN) ---
+  listarAnulacionesPendientes(
+    pageNumber: number = 1, 
+    pageSize: number = 10, 
+    search?: string, 
+    entidadRegistroId?: number
+  ): Observable<ApiResponse<PagedResult<any>>> {
+    let url = `${this.baseUrl}/anulaciones-pendientes?PageNumber=${pageNumber}&PageSize=${pageSize}`;
+    if (search && search.trim() !== '') {
+      url += `&SearchTerm=${encodeURIComponent(search.trim())}`;
+    }
+    if (entidadRegistroId) {
+      url += `&EntidadRegistroId=${entidadRegistroId}`;
+    }
+    return this.api.get<ApiResponse<PagedResult<any>>>(url, {}, 'REGISTROS');
+  }
+
+  aprobarAnulacion(liquidacionId: number, motivo?: string): Observable<ApiResponse<boolean>> {
+    return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${liquidacionId}/aprobar-anulacion`, { observacionesAprobacion: motivo || null }, {}, 'REGISTROS');
+  }
+
+  rechazarAnulacion(liquidacionId: number, motivo: string): Observable<ApiResponse<boolean>> {
+    return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${liquidacionId}/rechazar-anulacion`, { motivoRechazo: motivo }, {}, 'REGISTROS');
   }
 
   obtenerHistorial(liquidacionId: number): Observable<ApiResponse<any>> {

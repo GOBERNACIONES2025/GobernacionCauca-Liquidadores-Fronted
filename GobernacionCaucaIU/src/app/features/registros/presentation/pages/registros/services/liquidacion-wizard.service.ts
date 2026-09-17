@@ -223,9 +223,7 @@ export class LiquidacionWizardService {
       this.liquidacionGeneradaExitosa.set(true);
     }
 
-    if (solicitud.estadoSolicitudId === 2 && solicitud.etapaActual >= 3) {
-      this.tipoTramite.set('Reliquidacion');
-    }
+    // No forzar tipoTramite Reliquidacion
     
     // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
     // Si ya completó hasta intervinientes (etapa 4), abrir en el paso 4 o mantener el paso actual si ya navegaba

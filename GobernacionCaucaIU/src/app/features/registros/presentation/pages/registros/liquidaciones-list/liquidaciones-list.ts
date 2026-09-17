@@ -1,7 +1,7 @@
 import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { LiquidacionListadoDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
@@ -18,41 +18,65 @@ import { BreadcrumbComponent } from '../../../../../../shared/components/breadcr
 })
 export class LiquidacionesListComponent implements OnInit {
   router = inject(Router);
+  route = inject(ActivatedRoute);
   facade = inject(GeneracionLiquidacionFacade);
   toast = inject(ToastService);
 
-  // Estado
+  // Selector de Panel Superior (Entidades Externas vs Gobernación del Cauca)
+  activePanel = signal<'ENTIDAD' | 'GOBERNACION'>('ENTIDAD');
+
+  // Subpestañas del Panel Gobernación
+  activeGobernacionTab = signal<'RELIQUIDACIONES' | 'ANULACIONES' | 'DIRECTORIO'>('RELIQUIDACIONES');
+
+  // Estado del Directorio de Liquidaciones (Entidades / Directorio Oficial)
   liquidaciones = signal<LiquidacionListadoDto[]>([]);
   totalCount = signal<number>(0);
-
   filterStatus = signal<string>('Todas');
   searchText = signal<string>('');
-
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   isLoading = signal<boolean>(false);
 
-  // Modal de Pago
-  showPagoModal = signal<boolean>(false);
-  pagoLiquidacionSeleccionada = signal<LiquidacionListadoDto | null>(null);
-  fechaPago = signal<string>(new Date().toISOString().split('T')[0]);
-  medioPago = signal<number>(1);
-  referenciaPago = signal<string>('');
+  // Estado Bandeja de Solicitudes de Reliquidación (Gobernación)
+  reliquidacionesPendientes = signal<any[]>([]);
+  totalReliquidaciones = signal<number>(0);
+  isReliquidacionesLoading = signal<boolean>(false);
 
-  // Modal de Solicitud de Reliquidación
+  // Estado Bandeja de Solicitudes de Anulación (Gobernación)
+  anulacionesPendientes = signal<any[]>([]);
+  totalAnulaciones = signal<number>(0);
+  isAnulacionesLoading = signal<boolean>(false);
+
+  // Modales Entidad: Solicitar Reliquidación
   showReliquidarModal = signal<boolean>(false);
   liquidacionSeleccionada = signal<LiquidacionListadoDto | null>(null);
-  causalReliquidacion = signal<string>('Error aritmético o en la base gravable declarada');
-  motivoReliquidacion = signal<string>('Ajuste justificado en los actos e intervinientes declarados');
+  causalReliquidacion = signal<string>('ERROR_CUANTIA');
+  motivoReliquidacion = signal<string>('');
+  docAclaratorioReliquidacion = signal<string>('');
 
-  // Modal de Historial de Estados
+  // Modales Entidad: Solicitar Anulación
+  showSolicitarAnulacionModal = signal<boolean>(false);
+  causalAnulacion = signal<string>('ESCRITURA_NO_AUTORIZADA');
+  motivoAnulacion = signal<string>('');
+  docSoporteAnulacion = signal<string>('');
+
+  // Modales Gobernación: Resolución de Trámites
+  showAprobarReliquidacionModal = signal<boolean>(false);
+  showRechazarReliquidacionModal = signal<boolean>(false);
+  showAprobarAnulacionModal = signal<boolean>(false);
+  showRechazarAnulacionModal = signal<boolean>(false);
+  itemTramiteSeleccionado = signal<any | null>(null);
+  observacionesAprobacion = signal<string>('');
+  motivoRechazo = signal<string>('');
+
+  // Modal Gobernación: Anulación de Oficio
+  showAnulacionOficioModal = signal<boolean>(false);
+  motivoAnulacionOficio = signal<string>('');
+
+  // Modal Historial de Estados
   showHistorialModal = signal<boolean>(false);
   historialItems = signal<any[]>([]);
   isHistorialLoading = signal<boolean>(false);
-
-  ngOnInit() {
-    this.cargarLiquidaciones();
-  }
 
   private readonly ESTADOS_MAP: Record<string, number | null> = {
     'TODAS': null,
@@ -64,6 +88,84 @@ export class LiquidacionesListComponent implements OnInit {
     'RELIQUIDADA': 7
   };
 
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['panel'] === 'GOBERNACION') {
+        this.activePanel.set('GOBERNACION');
+      } else if (params['panel'] === 'ENTIDAD') {
+        this.activePanel.set('ENTIDAD');
+      }
+
+      if (params['tab']) {
+        const tab = params['tab'].toUpperCase();
+        if (tab === 'RELIQUIDACIONES' || tab === 'ANULACIONES' || tab === 'DIRECTORIO') {
+          this.activeGobernacionTab.set(tab as any);
+        }
+      }
+
+      if (params['radicado']) {
+        this.searchText.set(params['radicado']);
+      }
+
+      this.refrescarSegunPanel();
+    });
+  }
+
+  setPanel(panel: 'ENTIDAD' | 'GOBERNACION') {
+    this.activePanel.set(panel);
+    this.pageNumber.set(1);
+    this.searchText.set('');
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { panel: panel },
+      queryParamsHandling: 'merge'
+    });
+    this.refrescarSegunPanel();
+  }
+
+  setGobernacionTab(tab: 'RELIQUIDACIONES' | 'ANULACIONES' | 'DIRECTORIO') {
+    this.activeGobernacionTab.set(tab);
+    this.pageNumber.set(1);
+    this.searchText.set('');
+    this.refrescarSegunPanel();
+  }
+
+  refrescarSegunPanel() {
+    if (this.activePanel() === 'ENTIDAD') {
+      this.cargarLiquidaciones();
+    } else {
+      // Panel Gobernación
+      if (this.activeGobernacionTab() === 'RELIQUIDACIONES') {
+        this.cargarReliquidacionesPendientes();
+      } else if (this.activeGobernacionTab() === 'ANULACIONES') {
+        this.cargarAnulacionesPendientes();
+      } else {
+        this.cargarLiquidaciones();
+      }
+      // Actualizar contadores en segundo plano
+      this.cargarContadoresGobernacion();
+    }
+  }
+
+  cargarContadoresGobernacion() {
+    this.facade.listarReliquidacionesPendientes(1, 1).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.totalReliquidaciones.set(res.data.totalCount || 0);
+        }
+      }
+    });
+
+    this.facade.listarAnulacionesPendientes(1, 1).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.totalAnulaciones.set(res.data.totalCount || 0);
+        }
+      }
+    });
+  }
+
+  // --- CARGA DE DIRECTORIO DE LIQUIDACIONES ---
   obtenerEstadoIdActual(): number | null {
     const status = this.filterStatus().toUpperCase();
     return this.ESTADOS_MAP[status] ?? null;
@@ -83,35 +185,22 @@ export class LiquidacionesListComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.toast.error('Error de red al cargar liquidaciones');
+        this.toast.error('Error de red al consultar liquidaciones');
         this.isLoading.set(false);
       }
     });
   }
 
-  onPageChange(page: number) {
-    this.pageNumber.set(page);
-    this.cargarLiquidaciones();
-  }
-
-  onPageSizeChange(size: number) {
-    this.pageSize.set(size);
-    this.pageNumber.set(1);
-    this.cargarLiquidaciones();
-  }
-
-  filteredLiquidaciones = computed(() => this.liquidaciones());
-
   onSearch(term: string) {
     this.searchText.set(term);
     this.pageNumber.set(1);
-    this.cargarLiquidaciones();
+    this.refrescarSegunPanel();
   }
 
   onClearSearch() {
     this.searchText.set('');
     this.pageNumber.set(1);
-    this.cargarLiquidaciones();
+    this.refrescarSegunPanel();
   }
 
   setFilter(status: string) {
@@ -120,31 +209,19 @@ export class LiquidacionesListComponent implements OnInit {
     this.cargarLiquidaciones();
   }
 
-  // --- MODAL DE PAGO ---
-  abrirModalPago(liquidacion: LiquidacionListadoDto) {
-    this.pagoLiquidacionSeleccionada.set(liquidacion);
-    this.fechaPago.set(new Date().toISOString().split('T')[0]);
-    this.medioPago.set(1);
-    this.referenciaPago.set('');
-    this.showPagoModal.set(true);
+  onPageChange(page: number) {
+    this.pageNumber.set(page);
+    this.refrescarSegunPanel();
   }
 
-  cerrarModalPago() {
-    this.showPagoModal.set(false);
-    this.pagoLiquidacionSeleccionada.set(null);
-  }
+  filteredLiquidaciones = computed(() => this.liquidaciones());
 
-  confirmarPago() {
-    this.toast.success('Pago registrado exitosamente (simulado en entorno de desarrollo).');
-    this.cerrarModalPago();
-    this.cargarLiquidaciones();
-  }
-
-  // --- MODAL DE SOLICITUD DE RELIQUIDACIÓN ---
+  // --- ENTIDADES: SOLICITAR RELIQUIDACIÓN ---
   abrirModalReliquidar(liquidacion: LiquidacionListadoDto) {
     this.liquidacionSeleccionada.set(liquidacion);
-    this.causalReliquidacion.set('Error aritmético o en la base gravable declarada');
-    this.motivoReliquidacion.set('Ajuste justificado en los actos e intervinientes declarados');
+    this.causalReliquidacion.set('ERROR_CUANTIA');
+    this.motivoReliquidacion.set('');
+    this.docAclaratorioReliquidacion.set('');
     this.showReliquidarModal.set(true);
   }
 
@@ -153,19 +230,21 @@ export class LiquidacionesListComponent implements OnInit {
     this.liquidacionSeleccionada.set(null);
   }
 
-  // Radica formalmente la solicitud de reliquidación ante la Gobernación
   confirmarSolicitudReliquidacion() {
     const liq = this.liquidacionSeleccionada();
     if (!liq) return;
 
-    const motivoCompleto = `[Causal: ${this.causalReliquidacion()}] - ${this.motivoReliquidacion().trim()}`;
-    if (this.motivoReliquidacion().trim().length < 5) {
-      this.toast.warning('Debe ingresar un motivo de reliquidación con al menos 5 caracteres.');
+    const causal = this.causalReliquidacion().trim();
+    const motivo = this.motivoReliquidacion().trim();
+    const docAclaratorio = this.docAclaratorioReliquidacion().trim();
+
+    if (motivo.length < 5) {
+      this.toast.warning('Debe detallar el motivo de la reliquidación con al menos 5 caracteres.');
       return;
     }
 
     this.isLoading.set(true);
-    this.facade.solicitarReliquidacion(liq.id, motivoCompleto).subscribe({
+    this.facade.solicitarReliquidacion(liq.id, causal, motivo, docAclaratorio).subscribe({
       next: (res) => {
         if (res.success) {
           this.toast.success(`Solicitud de reliquidación radicada formalmente ante la Gobernación del Cauca para la liquidación ${liq.numeroLiquidacion}.`);
@@ -183,62 +262,292 @@ export class LiquidacionesListComponent implements OnInit {
     });
   }
 
-  // Reliquidación directa (Super Administrador)
-  confirmarReliquidarDirecto() {
+  // --- ENTIDADES: SOLICITAR ANULACIÓN ---
+  abrirModalSolicitarAnulacion(liquidacion: LiquidacionListadoDto) {
+    this.liquidacionSeleccionada.set(liquidacion);
+    this.causalAnulacion.set('ESCRITURA_NO_AUTORIZADA');
+    this.motivoAnulacion.set('');
+    this.docSoporteAnulacion.set('');
+    this.showSolicitarAnulacionModal.set(true);
+  }
+
+  cerrarModalSolicitarAnulacion() {
+    this.showSolicitarAnulacionModal.set(false);
+    this.liquidacionSeleccionada.set(null);
+  }
+
+  confirmarSolicitudAnulacion() {
     const liq = this.liquidacionSeleccionada();
     if (!liq) return;
 
-    const motivo = this.motivoReliquidacion().trim();
+    const causal = this.causalAnulacion().trim();
+    const motivo = this.motivoAnulacion().trim();
+    const docSoporte = this.docSoporteAnulacion().trim();
+
     if (motivo.length < 5) {
-      this.toast.warning('Debe ingresar un motivo de al menos 5 caracteres.');
+      this.toast.warning('Debe detallar el motivo de la anulación con al menos 5 caracteres.');
       return;
     }
 
     this.isLoading.set(true);
-    this.facade.reliquidarLiquidacion(liq.id, motivo).subscribe({
+    this.facade.solicitarAnulacion(liq.id, causal, motivo, docSoporte).subscribe({
       next: (res) => {
-        if (res.success && res.data) {
-          this.toast.success('La liquidación anterior ha sido anulada. Abriendo formulario para ajustar los datos del trámite...');
-          this.cerrarModalReliquidar();
-          this.router.navigate(['/registros/solicitudes/wizard', res.data]);
+        if (res.success) {
+          this.toast.success(`Solicitud de anulación radicada formalmente ante la Gobernación del Cauca para la liquidación ${liq.numeroLiquidacion}.`);
+          this.cerrarModalSolicitarAnulacion();
+          this.cargarLiquidaciones();
         } else {
-          this.toast.error(res.message || 'Error al reliquidar');
-          this.isLoading.set(false);
+          this.toast.error(res.message || 'Error al radicar solicitud de anulación');
         }
+        this.isLoading.set(false);
       },
-      error: () => {
-        this.toast.error('Error de red al ejecutar reliquidación directa');
+      error: (err) => {
+        this.toast.error(err?.error?.message || err?.error?.detail || 'Error al radicar solicitud de anulación');
         this.isLoading.set(false);
       }
     });
   }
 
-  // --- ANULAR LIQUIDACIÓN ---
-  anular(id: number) {
-    const motivo = prompt('Por favor, ingrese el motivo de anulación oficial para esta liquidación:');
-    if (motivo !== null) {
-      if (motivo.trim().length < 5) {
-        this.toast.warning('El motivo de anulación debe tener al menos 5 caracteres.');
-        return;
+  // --- GOBERNACIÓN: GESTIÓN DE RELIQUIDACIONES ---
+  cargarReliquidacionesPendientes() {
+    this.isReliquidacionesLoading.set(true);
+    this.facade.listarReliquidacionesPendientes(this.pageNumber(), this.pageSize(), this.searchText()).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.reliquidacionesPendientes.set(res.data.items || []);
+          this.totalReliquidaciones.set(res.data.totalCount || 0);
+          this.totalCount.set(res.data.totalCount || 0);
+        } else {
+          this.toast.error(res.message || 'Error al cargar reliquidaciones pendientes');
+        }
+        this.isReliquidacionesLoading.set(false);
+      },
+      error: () => {
+        this.toast.error('Error de red al consultar solicitudes de reliquidación');
+        this.isReliquidacionesLoading.set(false);
       }
+    });
+  }
 
-      this.isLoading.set(true);
-      this.facade.anularLiquidacion(id, motivo.trim()).subscribe({
-        next: (res) => {
-          if (res.success) {
-            this.toast.success('Liquidación anulada exitosamente.');
-            this.cargarLiquidaciones();
-          } else {
-            this.toast.error(res.message || 'Error al anular la liquidación');
-            this.isLoading.set(false);
-          }
-        },
-        error: () => {
-          this.toast.error('Error de red al intentar anular la liquidación');
+  abrirModalAprobarReliquidacion(item: any) {
+    this.itemTramiteSeleccionado.set(item);
+    this.observacionesAprobacion.set('Aprobación formal de reliquidación por verificación técnica conforme a la documentación radicada.');
+    this.showAprobarReliquidacionModal.set(true);
+  }
+
+  cerrarModalAprobarReliquidacion() {
+    this.showAprobarReliquidacionModal.set(false);
+    this.itemTramiteSeleccionado.set(null);
+  }
+
+  confirmarAprobacionReliquidacion() {
+    const item = this.itemTramiteSeleccionado();
+    if (!item) return;
+
+    const motivo = this.observacionesAprobacion().trim();
+    if (motivo.length < 5) {
+      this.toast.warning('Debe ingresar una observación de aprobación con al menos 5 caracteres.');
+      return;
+    }
+
+    this.isReliquidacionesLoading.set(true);
+    this.facade.aprobarReliquidacion(item.liquidacionId, motivo).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.toast.success(`Reliquidación aprobada formalmente. Se ha expedido la nueva liquidación oficial #${res.data}.`);
+          this.cerrarModalAprobarReliquidacion();
+          this.cargarReliquidacionesPendientes();
+          this.cargarContadoresGobernacion();
+        } else {
+          this.toast.error(res.message || 'Error al aprobar reliquidación');
+          this.isReliquidacionesLoading.set(false);
+        }
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || 'Error al aprobar reliquidación');
+        this.isReliquidacionesLoading.set(false);
+      }
+    });
+  }
+
+  abrirModalRechazarReliquidacion(item: any) {
+    this.itemTramiteSeleccionado.set(item);
+    this.motivoRechazo.set('');
+    this.showRechazarReliquidacionModal.set(true);
+  }
+
+  cerrarModalRechazarReliquidacion() {
+    this.showRechazarReliquidacionModal.set(false);
+    this.itemTramiteSeleccionado.set(null);
+  }
+
+  confirmarRechazoReliquidacion() {
+    const item = this.itemTramiteSeleccionado();
+    if (!item) return;
+
+    const motivo = this.motivoRechazo().trim();
+    if (motivo.length < 5) {
+      this.toast.warning('Debe ingresar un motivo de rechazo formal con al menos 5 caracteres.');
+      return;
+    }
+
+    this.isReliquidacionesLoading.set(true);
+    this.facade.rechazarReliquidacion(item.liquidacionId, motivo).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toast.success('Solicitud de reliquidación rechazada formalmente. La liquidación previa permanece vigente.');
+          this.cerrarModalRechazarReliquidacion();
+          this.cargarReliquidacionesPendientes();
+          this.cargarContadoresGobernacion();
+        } else {
+          this.toast.error(res.message || 'Error al rechazar reliquidación');
+          this.isReliquidacionesLoading.set(false);
+        }
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || 'Error al rechazar reliquidación');
+        this.isReliquidacionesLoading.set(false);
+      }
+    });
+  }
+
+  // --- GOBERNACIÓN: GESTIÓN DE ANULACIONES ---
+  cargarAnulacionesPendientes() {
+    this.isAnulacionesLoading.set(true);
+    this.facade.listarAnulacionesPendientes(this.pageNumber(), this.pageSize(), this.searchText()).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.anulacionesPendientes.set(res.data.items || []);
+          this.totalAnulaciones.set(res.data.totalCount || 0);
+          this.totalCount.set(res.data.totalCount || 0);
+        } else {
+          this.toast.error(res.message || 'Error al cargar anulaciones pendientes');
+        }
+        this.isAnulacionesLoading.set(false);
+      },
+      error: () => {
+        this.toast.error('Error de red al consultar solicitudes de anulación');
+        this.isAnulacionesLoading.set(false);
+      }
+    });
+  }
+
+  abrirModalAprobarAnulacion(item: any) {
+    this.itemTramiteSeleccionado.set(item);
+    this.observacionesAprobacion.set('Anulación oficial aprobada tras verificación documental y causal expuesta por la entidad.');
+    this.showAprobarAnulacionModal.set(true);
+  }
+
+  cerrarModalAprobarAnulacion() {
+    this.showAprobarAnulacionModal.set(false);
+    this.itemTramiteSeleccionado.set(null);
+  }
+
+  confirmarAprobacionAnulacion() {
+    const item = this.itemTramiteSeleccionado();
+    if (!item) return;
+
+    const obs = this.observacionesAprobacion().trim();
+    this.isAnulacionesLoading.set(true);
+    this.facade.aprobarAnulacion(item.liquidacionId, obs).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toast.success(`Liquidación oficial ${item.numeroLiquidacion} anulada formalmente.`);
+          this.cerrarModalAprobarAnulacion();
+          this.cargarAnulacionesPendientes();
+          this.cargarContadoresGobernacion();
+        } else {
+          this.toast.error(res.message || 'Error al aprobar anulación');
+          this.isAnulacionesLoading.set(false);
+        }
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || 'Error al aprobar anulación');
+        this.isAnulacionesLoading.set(false);
+      }
+    });
+  }
+
+  abrirModalRechazarAnulacion(item: any) {
+    this.itemTramiteSeleccionado.set(item);
+    this.motivoRechazo.set('');
+    this.showRechazarAnulacionModal.set(true);
+  }
+
+  cerrarModalRechazarAnulacion() {
+    this.showRechazarAnulacionModal.set(false);
+    this.itemTramiteSeleccionado.set(null);
+  }
+
+  confirmarRechazoAnulacion() {
+    const item = this.itemTramiteSeleccionado();
+    if (!item) return;
+
+    const motivo = this.motivoRechazo().trim();
+    if (motivo.length < 5) {
+      this.toast.warning('Debe ingresar un motivo de rechazo de al menos 5 caracteres.');
+      return;
+    }
+
+    this.isAnulacionesLoading.set(true);
+    this.facade.rechazarAnulacion(item.liquidacionId, motivo).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toast.success('Solicitud de anulación rechazada. La liquidación permanece vigente.');
+          this.cerrarModalRechazarAnulacion();
+          this.cargarAnulacionesPendientes();
+          this.cargarContadoresGobernacion();
+        } else {
+          this.toast.error(res.message || 'Error al rechazar anulación');
+          this.isAnulacionesLoading.set(false);
+        }
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.message || 'Error al rechazar anulación');
+        this.isAnulacionesLoading.set(false);
+      }
+    });
+  }
+
+  // --- GOBERNACIÓN: ANULACIÓN DE OFICIO (ADMINISTRATIVA) ---
+  abrirModalAnulacionOficio(liquidacion: LiquidacionListadoDto) {
+    this.liquidacionSeleccionada.set(liquidacion);
+    this.motivoAnulacionOficio.set('');
+    this.showAnulacionOficioModal.set(true);
+  }
+
+  cerrarModalAnulacionOficio() {
+    this.showAnulacionOficioModal.set(false);
+    this.liquidacionSeleccionada.set(null);
+  }
+
+  confirmarAnulacionOficio() {
+    const liq = this.liquidacionSeleccionada();
+    if (!liq) return;
+
+    const motivo = this.motivoAnulacionOficio().trim();
+    if (motivo.length < 5) {
+      this.toast.warning('El motivo de anulación de oficio debe tener al menos 5 caracteres.');
+      return;
+    }
+
+    this.isLoading.set(true);
+    this.facade.anularLiquidacion(liq.id, motivo).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.toast.success(`Liquidación oficial ${liq.numeroLiquidacion} anulada de oficio exitosamente.`);
+          this.cerrarModalAnulacionOficio();
+          this.cargarLiquidaciones();
+        } else {
+          this.toast.error(res.message || 'Error al anular la liquidación');
           this.isLoading.set(false);
         }
-      });
-    }
+      },
+      error: () => {
+        this.toast.error('Error de red al intentar anular la liquidación');
+        this.isLoading.set(false);
+      }
+    });
   }
 
   // --- HISTORIAL DE ESTADOS ---
@@ -279,13 +588,20 @@ export class LiquidacionesListComponent implements OnInit {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        this.toast.success('Descarga de PDF oficial iniciada');
+        this.toast.success('Descarga de recibo y PDF oficial iniciada.');
         this.isLoading.set(false);
       },
       error: () => {
-        this.toast.error('Error al descargar el PDF de la liquidación');
+        this.toast.error('Error al descargar el PDF de la liquidación.');
         this.isLoading.set(false);
       }
     });
+  }
+
+  // Helpers de estado para Entidades
+  puedeSolicitarTramite(liq: LiquidacionListadoDto): boolean {
+    // Si ya está anulada, pagada o reliquidada, o no es vigente, no se puede radicar trámite
+    const estado = liq.estado?.nombre?.toUpperCase() || '';
+    return liq.esVigente !== false && estado !== 'ANULADA' && estado !== 'PAGADA' && estado !== 'RELIQUIDADA';
   }
 }
