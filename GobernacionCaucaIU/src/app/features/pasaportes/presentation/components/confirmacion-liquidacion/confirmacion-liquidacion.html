@@ -1,220 +1,433 @@
-<div>
-  <div class="mb-8 text-center">
-    <h2 class="text-xl font-bold text-[#1b53ad] sm:text-2xl">4. Confirmación y liquidación</h2>
-    <p class="mx-auto mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
-      Verifica cuidadosamente la información antes de confirmar tu solicitud.
+<div class="mx-auto w-full max-w-4xl">
+
+  <!-- Encabezado de éxito -->
+  <div class="text-center">
+    <div
+      class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 ring-8 ring-emerald-50"
+    >
+      <svg
+        class="h-8 w-8 text-emerald-600"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2.5"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m5 12 4 4L19 6"
+        />
+      </svg>
+    </div>
+
+    <p
+      class="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-[#1b53ad]"
+    >
+      Proceso completado
+    </p>
+
+    <h2
+      class="mt-1 text-2xl font-extrabold text-slate-900 sm:text-3xl"
+    >
+      Cita agendada correctamente
+    </h2>
+
+    <p
+      class="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-600"
+    >
+      Tu cita fue registrada exitosamente. A continuación puedes
+      consultar la información de la cita y gestionar la factura
+      correspondiente al pago inicial.
     </p>
   </div>
 
-  @if (!liquidacion()) {
-    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
-      <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between gap-4">
-          <h3 class="font-bold text-slate-800">Datos personales</h3>
-          <button type="button" (click)="editarPersonal.emit()" class="text-sm font-semibold text-[#1b53ad] hover:underline">
-            Editar
-          </button>
+  <!-- Contenido principal -->
+  <div class="mt-8 grid gap-5 lg:grid-cols-2">
+
+    <!-- Resumen de cita -->
+    <section
+      class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+    >
+      <div
+        class="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-4 sm:px-6"
+      >
+        <div>
+          <p
+            class="text-xs font-bold uppercase tracking-wider text-slate-500"
+          >
+            Información
+          </p>
+
+          <h3
+            class="mt-0.5 text-base font-bold text-slate-900"
+          >
+            Resumen de la cita
+          </h3>
         </div>
 
-        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+        <span
+          class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-bold text-emerald-800"
+        >
+          <span
+            class="h-2 w-2 rounded-full bg-emerald-500"
+          ></span>
+          AGENDADA
+        </span>
+      </div>
+
+      <dl
+        class="grid grid-cols-1 divide-y divide-slate-100 px-5 sm:grid-cols-2 sm:divide-x sm:divide-y-0 sm:px-0"
+      >
+        <div class="py-4 sm:px-6">
+          <dt
+            class="text-xs font-medium uppercase tracking-wide text-slate-500"
+          >
+            Número de cita
+          </dt>
+
+          <dd
+            class="mt-1 font-bold text-slate-900"
+          >
+            {{ cita().consecutivo }}
+          </dd>
+        </div>
+
+        <div class="py-4 sm:px-6">
+          <dt
+            class="text-xs font-medium uppercase tracking-wide text-slate-500"
+          >
+            Tipo de pasaporte
+          </dt>
+
+          <dd
+            class="mt-1 font-semibold text-slate-900"
+          >
+            {{ cita().tipoPasaporte.nombre }}
+          </dd>
+        </div>
+      </dl>
+
+      <div
+        class="grid grid-cols-2 border-t border-slate-100"
+      >
+        <div class="px-5 py-4 sm:px-6">
+          <dt
+            class="text-xs font-medium uppercase tracking-wide text-slate-500"
+          >
+            Fecha
+          </dt>
+
+          <dd
+            class="mt-1 text-lg font-bold text-[#1b53ad]"
+          >
+            {{ cita().fecha }}
+          </dd>
+        </div>
+
+        <div
+          class="border-l border-slate-100 px-5 py-4 sm:px-6"
+        >
+          <dt
+            class="text-xs font-medium uppercase tracking-wide text-slate-500"
+          >
+            Hora
+          </dt>
+
+          <dd
+            class="mt-1 text-lg font-bold text-[#1b53ad]"
+          >
+            {{ cita().hora }}
+          </dd>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resumen del pago -->
+    <section
+      class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+    >
+      <div
+        class="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-5 py-4 sm:px-6"
+      >
+        <div>
+          <p
+            class="text-xs font-bold uppercase tracking-wider text-slate-500"
+          >
+            Pago
+          </p>
+
+          <h3
+            class="mt-0.5 text-base font-bold text-slate-900"
+          >
+            Factura del pago inicial
+          </h3>
+        </div>
+
+        <span
+          class="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-900"
+        >
+          DEMO
+        </span>
+      </div>
+
+      <div class="space-y-4 px-5 py-5 sm:px-6">
+        <div
+          class="flex items-start justify-between gap-4"
+        >
           <div>
-            <span class="block text-xs text-slate-500">Tipo de documento</span>
-            <span class="font-medium text-slate-800">{{ tipoDocumento() }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Número</span>
-            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['numeroDocumento'].value }}</span>
-          </div>
-          <div class="sm:col-span-2">
-            <span class="block text-xs text-slate-500">Nombres y apellidos</span>
-            <span class="font-medium text-slate-800">{{ nombreCompleto() }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Fecha de nacimiento</span>
-            <span class="font-medium text-slate-800">{{ fechaVisible(formularioPersonal().controls['fechaNacimiento'].value) }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Sexo</span>
-            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['genero'].value }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Grupo étnico</span>
-            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['grupoEtnico'].value }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Discapacidad</span>
-            <span class="font-medium text-slate-800">{{ formularioPersonal().controls['discapacidad'].value }}</span>
+            <p class="text-sm text-slate-500">
+              Estado del pago
+            </p>
+
+            <p
+              class="mt-1 font-bold text-emerald-700"
+            >
+              {{
+                cita().pagoAprobado
+                  ? 'Pago inicial confirmado'
+                  : 'Pago web no habilitado'
+              }}
+            </p>
           </div>
 
-          @if (formularioPersonal().controls['nombreResponsable'].value) {
-            <div class="border-t border-slate-100 pt-3 sm:col-span-2">
-              <span class="block text-xs text-slate-500">Responsable</span>
-              <span class="font-medium text-slate-800">
-                {{ formularioPersonal().controls['nombreResponsable'].value }} ·
-                {{ formularioPersonal().controls['documentoResponsable'].value }}
-              </span>
+          @if (cita().pagoAprobado) {
+            <div
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100"
+            >
+              <svg
+                class="h-5 w-5 text-emerald-700"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                aria-hidden="true"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 12.75 11.25 15 15 9.75"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                />
+              </svg>
             </div>
           }
         </div>
-      </section>
 
-      <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between gap-4">
-          <h3 class="font-bold text-slate-800">Datos de contacto</h3>
-          <button type="button" (click)="editarContacto.emit()" class="text-sm font-semibold text-[#1b53ad] hover:underline">
-            Editar
-          </button>
+        <div
+          class="border-t border-slate-100 pt-4"
+        >
+          <p class="text-sm text-slate-500">
+            Referencia de pago
+          </p>
+
+          <p
+            class="mt-1 break-all font-mono text-sm font-bold text-slate-900"
+          >
+            {{ cita().referenciaPago }}
+          </p>
         </div>
 
-        <div class="space-y-3 text-sm">
-          <div>
-            <span class="block text-xs text-slate-500">Teléfono</span>
-            <span class="font-medium text-slate-800">{{ formularioContacto().controls['telefono'].value }}</span>
+        <div
+          class="flex items-center gap-3 rounded-xl bg-blue-50 px-4 py-3"
+        >
+          <div
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-[#1b53ad] shadow-sm"
+          >
+            <svg
+              class="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M14.25 2.25H6.375A2.625 2.625 0 0 0 3.75 4.875v14.25a2.625 2.625 0 0 0 2.625 2.625h11.25a2.625 2.625 0 0 0 2.625-2.625V8.25L14.25 2.25Z"
+              />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M14.25 2.25V8.25H20.25"
+              />
+            </svg>
           </div>
+
           <div>
-            <span class="block text-xs text-slate-500">Correo electrónico</span>
-            <span class="font-medium text-slate-800">{{ formularioContacto().controls['correo'].value }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Ubicación</span>
-            <span class="font-medium text-slate-800">
-              {{ formularioContacto().controls['departamento'].value }} · {{ formularioContacto().controls['municipio'].value }}
-            </span>
+            <p
+              class="text-sm font-bold text-blue-900"
+            >
+              Factura disponible
+            </p>
+
+            <p
+              class="text-xs leading-5 text-blue-700"
+            >
+              Puedes descargarla o enviarla al correo registrado.
+            </p>
           </div>
         </div>
-      </section>
-
-      <section class="rounded-xl border border-blue-100 bg-blue-50 p-5 shadow-sm lg:col-span-2">
-        <div class="mb-4 flex items-center justify-between gap-4">
-          <h3 class="font-bold text-slate-800">Datos del trámite</h3>
-          <button type="button" (click)="cambiarAgendamiento.emit()" class="text-sm font-semibold text-[#1b53ad] hover:underline">
-            Cambiar agendamiento
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
-          <div>
-            <span class="block text-xs text-slate-500">Tipo de pasaporte</span>
-            <span class="font-medium text-slate-800">{{ tipoPasaporte().nombre }} · {{ tipoPasaporte().codigo }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Fecha seleccionada</span>
-            <span class="font-medium text-slate-800">{{ fechaVisible(fecha()) }}</span>
-          </div>
-          <div>
-            <span class="block text-xs text-slate-500">Horario</span>
-            <span class="font-medium text-slate-800">{{ horario() }}</span>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    @if (error()) {
-      <div class="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-        {{ error() }}
       </div>
-    }
+    </section>
+  </div>
 
-    <div class="mt-8 flex flex-col-reverse justify-end gap-3 sm:flex-row">
-      <button
-        type="button"
-        (click)="anterior.emit()"
-        [disabled]="procesando()"
-        class="rounded-lg border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        Anterior
-      </button>
-      <button
-        type="button"
-        (click)="confirmar.emit()"
-        [disabled]="procesando()"
-        class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {{ procesando() ? 'Creando cita...' : 'Confirmar y generar liquidación' }}
-      </button>
-    </div>
-  } @else {
-    <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 sm:p-7">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h3 class="text-lg font-bold text-emerald-800">Cita creada correctamente</h3>
-          <p class="mt-1 text-sm text-emerald-700">Consecutivo: {{ liquidacion()!.consecutivoCita }}</p>
-        </div>
-        <span class="rounded-full bg-amber-400 px-4 py-2 text-xs font-extrabold tracking-widest text-amber-950">SIMULACIÓN</span>
-      </div>
+  <!-- Aviso informativo -->
+  <div
+    class="mt-5 flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/70 px-4 py-4 text-left sm:px-5"
+  >
+    <svg
+      class="mt-0.5 h-5 w-5 shrink-0 text-[#1b53ad]"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9"></circle>
+      <path
+        stroke-linecap="round"
+        d="M12 11v5"
+      ></path>
+      <path
+        stroke-linecap="round"
+        d="M12 8h.01"
+      ></path>
+    </svg>
 
-      <p class="mt-4 rounded-lg bg-white/70 px-4 py-3 text-sm font-semibold text-amber-900">
-        Documento de demostración - No válido para pago
+    <div>
+      <p
+        class="text-sm font-bold text-slate-800"
+      >
+        Información importante
       </p>
 
-      <div class="mt-5 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-        <div>
-          <span class="block text-xs text-emerald-700">Tipo de pasaporte</span>
-          <span class="font-medium text-slate-800">{{ liquidacion()!.tipoPasaporte }}</span>
-        </div>
-        <div>
-          <span class="block text-xs text-emerald-700">Fecha y horario</span>
-          <span class="font-medium text-slate-800">{{ liquidacion()!.fechaCita }} · {{ liquidacion()!.horario }}</span>
-        </div>
-        <div>
-          <span class="block text-xs text-emerald-700">Referencia DEMO</span>
-          <span class="font-mono font-semibold text-slate-800">{{ liquidacion()!.referenciaPago }}</span>
-        </div>
-        <div>
-          <span class="block text-xs text-emerald-700">Valor simulado</span>
-          <span class="font-semibold text-slate-800">{{ valorVisible() }}</span>
-        </div>
-      </div>
-    </div>
-
-    <section class="mt-5 rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
-      <div class="mx-auto max-w-md" [innerHTML]="barcodeSvg()"></div>
-      <p class="mt-2 text-xs text-slate-500">Código de barras de demostración</p>
-      <p class="font-mono text-sm font-semibold text-slate-700">{{ liquidacion()!.referenciaPago }}</p>
-    </section>
-
-    @if (generandoPdf()) {
-      <div class="mt-5 rounded-xl border border-blue-200 bg-blue-50 px-4 py-4 text-sm text-blue-800">
-        Generando la previsualización de la liquidación...
-      </div>
-    }
-
-    @if (errorPdf()) {
-      <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900" role="alert">
-        <p>{{ errorPdf() }}</p>
-        <button
-          type="button"
-          (click)="reintentarPdf.emit()"
-          [disabled]="generandoPdf()"
-          class="mt-3 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-amber-900 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          Reintentar generar PDF
-        </button>
-      </div>
-    }
-
-    @if (pdfUrl(); as url) {
-      <section class="mt-5 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div class="border-b border-slate-200 px-4 py-3 text-sm font-bold text-slate-800">
-          Previsualización de la liquidación
-        </div>
-        <iframe
-          [src]="url"
-          title="Previsualización del PDF de liquidación"
-          class="h-[520px] w-full sm:h-[700px]"
-        ></iframe>
-      </section>
-    }
-
-    <div class="mt-5 flex justify-end">
-      <button
-        type="button"
-        (click)="descargar.emit()"
-        [disabled]="!pdfBlob() || generandoPdf()"
-        class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+      <p
+        class="mt-1 text-sm leading-5 text-slate-600"
       >
-        Descargar liquidación
-      </button>
+        La factura disponible en esta pantalla corresponde únicamente
+        al pago inicial. La información completa de la cita y su
+        documentación oficial será enviada al correo registrado.
+      </p>
+    </div>
+  </div>
+
+  <!-- Mensajes -->
+  @if (mensajeCorreo()) {
+    <div
+      class="mt-5 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left text-sm text-emerald-800"
+      role="status"
+    >
+      <svg
+        class="h-5 w-5 shrink-0"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="m5 12 4 4L19 6"
+        />
+      </svg>
+
+      <span>
+        Envío de factura al correo simulado. No se envió ningún mensaje real.
+      </span>
     </div>
   }
+
+  @if (error()) {
+    <div
+      class="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left text-sm text-red-700"
+      role="alert"
+    >
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Acciones -->
+  <div
+    class="mt-7 flex flex-col items-stretch justify-center gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:items-center"
+  >
+    <button
+      type="button"
+      (click)="descargar.emit()"
+      [disabled]="generandoPdf()"
+      class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#1b53ad] px-6 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#164792] disabled:cursor-not-allowed disabled:opacity-50"
+    >
+      <svg
+        class="h-4 w-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14"
+        />
+      </svg>
+
+      {{
+        generandoPdf()
+          ? 'Generando factura...'
+          : 'Descargar factura de pago'
+      }}
+    </button>
+
+    <button
+      type="button"
+      (click)="enviarCorreo.emit()"
+      class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#1b53ad] bg-white px-6 py-2.5 text-sm font-bold text-[#1b53ad] transition hover:bg-blue-50"
+    >
+      <svg
+        class="h-4 w-4"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        aria-hidden="true"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M3 6.75 12 13l9-6.25"
+        />
+        <rect
+          x="3"
+          y="5"
+          width="18"
+          height="14"
+          rx="2"
+        />
+      </svg>
+
+      Enviar factura al correo
+    </button>
+
+    <button
+      type="button"
+      (click)="finalizar.emit()"
+      class="inline-flex min-h-11 items-center justify-center rounded-xl border border-slate-300 bg-white px-6 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+    >
+      Finalizar
+    </button>
+  </div>
+
+  <p
+    class="mt-4 text-center text-xs text-slate-400"
+  >
+    Documento y transacción mostrados con fines de demostración.
+  </p>
+
 </div>

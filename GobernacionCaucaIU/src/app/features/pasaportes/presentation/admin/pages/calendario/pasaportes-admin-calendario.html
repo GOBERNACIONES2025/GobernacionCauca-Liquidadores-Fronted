@@ -1,0 +1,238 @@
+<section class="mx-auto w-full max-w-[1600px] p-4 sm:p-6">
+  <!-- Cabecera -->
+  <div class="rounded-xl border border-slate-200 bg-white px-5 py-5 shadow-sm sm:px-6">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+      <div class="flex items-start gap-4">
+        <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1b53ad]">
+          <i class="fa-solid fa-calendar-days"></i>
+        </span>
+        <div>
+          <div class="mb-1 flex items-center gap-2 text-[11px] text-slate-500">
+            <span>Inicio</span><i class="fa-solid fa-chevron-right text-[8px]"></i><span>Pasaportes</span><i class="fa-solid fa-chevron-right text-[8px]"></i><span class="font-semibold text-slate-700">Calendario</span>
+          </div>
+          <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">Apertura semanal de cupos</h1>
+          <p class="mt-1 text-sm text-slate-500">Administra la disponibilidad que se habilitará para la atención de citas de pasaportes.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+          <span class="font-semibold">Próxima semana:</span> {{ etiquetaProximaSemana() }}
+        </div>
+        <button
+          type="button"
+          (click)="abrirSemana()"
+          class="inline-flex items-center gap-2 rounded-lg bg-[#1b53ad] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#164792]"
+        >
+          <i class="fa-solid" [class.fa-pen-to-square]="proximaSemanaYaAbierta()" [class.fa-calendar-plus]="!proximaSemanaYaAbierta()"></i>
+          {{ proximaSemanaYaAbierta() ? 'Editar cupos próxima semana' : 'Abrir cupos próxima semana' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (mensaje()) {
+    <div class="mt-4 flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 shadow-sm">
+      <i class="fa-solid fa-circle-check"></i>
+      <span>{{ mensaje() }}</span>
+    </div>
+  }
+
+  <!-- Indicadores -->
+  <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between">
+        <div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Días con apertura</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ resumenMes().dias }}</p></div>
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700"><i class="fa-regular fa-calendar-check"></i></span>
+      </div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">En {{ tituloMes() }}</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between">
+        <div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Cupos abiertos</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ resumenMes().abiertos }}</p></div>
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><i class="fa-solid fa-ticket"></i></span>
+      </div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">Suma de todos los tipos de cita</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between">
+        <div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Citas tomadas</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ resumenMes().reservados }}</p></div>
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-50 text-amber-700"><i class="fa-solid fa-user-check"></i></span>
+      </div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">Ocupación del mes</p>
+    </div>
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div class="flex items-start justify-between">
+        <div><p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Intervalo de atención</p><p class="mt-2 text-2xl font-extrabold text-slate-900">{{ configuracionService.configuracion().intervaloMinutos }} <span class="text-sm font-bold text-slate-500">min</span></p></div>
+        <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-700"><i class="fa-regular fa-clock"></i></span>
+      </div>
+      <p class="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-500">Parametrizado desde Configuración</p>
+    </div>
+  </div>
+
+  <!-- Calendario -->
+  <div class="mt-4 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex flex-col gap-3 border-b border-slate-200 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+      <div>
+        <h2 class="text-lg font-extrabold capitalize text-slate-900">{{ tituloMes() }}</h2>
+        <p class="mt-0.5 text-xs text-slate-500">Los cupos se abren por semana. Los sábados y domingos permanecen bloqueados.</p>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button type="button" (click)="mesAnterior()" class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50" title="Mes anterior"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+        <button type="button" (click)="irMesActual()" class="h-9 rounded-lg border border-slate-200 px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Hoy</button>
+        <button type="button" (click)="mesSiguiente()" class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition hover:bg-slate-50" title="Mes siguiente"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
+      @for (dia of ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']; track dia) {
+        <div class="px-2 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">{{ dia }}</div>
+      }
+    </div>
+
+    <div class="grid grid-cols-7">
+      @for (dia of diasCalendario(); track dia.iso) {
+        <div
+          class="relative min-h-32 border-b border-r border-slate-100 p-2 transition sm:min-h-36 sm:p-2.5"
+          [class.bg-slate-50]="dia.finSemana"
+          [class.bg-slate-50/60]="!dia.delMes && !dia.finSemana"
+          [class.opacity-55]="!dia.delMes"
+        >
+          <div class="flex items-center justify-between">
+            <span
+              class="flex h-7 min-w-7 items-center justify-center rounded-full px-1 text-xs font-bold"
+              [class.bg-blue-700]="dia.hoy"
+              [class.text-white]="dia.hoy"
+              [class.text-slate-800]="!dia.hoy && dia.delMes"
+              [class.text-slate-400]="!dia.delMes"
+            >{{ dia.numero }}</span>
+            @if (dia.finSemana) {
+              <span class="hidden rounded-full bg-rose-50 px-2 py-0.5 text-[9px] font-bold text-rose-600 sm:inline">No hábil</span>
+            }
+          </div>
+
+          @if (!dia.finSemana && apertura(dia.iso); as aperturaDia) {
+            <div class="mt-2 space-y-1">
+              @for (cupo of aperturaDia.cupos; track cupo.tipoCitaId) {
+                <div class="flex items-center justify-between gap-1 rounded-md border border-slate-100 bg-white px-2 py-1 shadow-[0_1px_1px_rgba(15,23,42,.03)]" [title]="nombreTipo(cupo.tipoCitaId)">
+                  <span class="max-w-14 truncate text-[9px] font-semibold text-slate-500">{{ codigoTipo(cupo.tipoCitaId) }}</span>
+                  <span class="text-[10px] font-bold text-slate-800">{{ cupo.reservados }}/{{ cupo.abiertos }}</span>
+                </div>
+              }
+            </div>
+          } @else if (!dia.finSemana && dia.delMes) {
+            <div class="mt-3 flex min-h-16 items-center justify-center rounded-lg border border-dashed border-slate-200 bg-slate-50/70 px-2 text-center text-[10px] font-medium text-slate-400">
+              Sin cupos abiertos
+            </div>
+          }
+
+          @if (!dia.finSemana && bloqueo(dia.iso); as bloqueoDia) {
+            <div class="mt-1.5 flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-1 text-[9px] font-semibold text-amber-700" [title]="bloqueoDia.motivo">
+              <i class="fa-solid fa-lock text-[8px]"></i>
+              <span class="truncate">{{ bloqueoDia.horaInicio }}–{{ bloqueoDia.horaFin }}</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="flex flex-wrap gap-x-5 gap-y-2 border-t border-slate-200 bg-slate-50 px-4 py-3 text-[10px] text-slate-500 sm:px-5">
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-blue-700"></span>Hoy</span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full border border-slate-300 bg-white"></span>Día con cupos</span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-slate-200"></span>Fin de semana</span>
+      <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-full bg-amber-300"></span>Bloqueo parcial</span>
+      <span class="ml-auto hidden sm:inline">Formato por tipo: tomadas / abiertas</span>
+    </div>
+  </div>
+</section>
+
+<!-- Modal apertura semanal -->
+@if (modalSemanaAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-[2px] sm:p-5">
+    <div class="flex max-h-[94vh] w-full max-w-[1480px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+      <div class="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+        <div>
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="text-xl font-extrabold text-slate-900">{{ proximaSemanaYaAbierta() ? 'Editar cupos de la próxima semana' : 'Abrir cupos de la próxima semana' }}</h2>
+            <span class="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-700">{{ etiquetaProximaSemana() }}</span>
+          </div>
+          <p class="mt-1 max-w-3xl text-xs leading-5 text-slate-500">Define los cupos por tipo de cita para cada día hábil. Los máximos corresponden a la parametrización vigente y los horarios de atención son comunes para todos los tipos.</p>
+        </div>
+        <button type="button" (click)="cerrarSemana()" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-slate-50 px-5 py-3 sm:px-6">
+        <div class="flex flex-wrap gap-2 text-[10px]">
+          @for (tipo of tiposActivos(); track tipo.id) {
+            <span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-slate-600"><strong class="text-slate-800">{{ tipo.nombre }}:</strong> máx. {{ tipo.cupo }}/día</span>
+          }
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" (click)="copiarPrimerDia()" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50"><i class="fa-regular fa-copy mr-1.5"></i>Copiar lunes</button>
+          <button type="button" (click)="usarMaximos()" class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-[11px] font-bold text-blue-700 transition hover:bg-blue-100"><i class="fa-solid fa-wand-magic-sparkles mr-1.5"></i>Usar máximos</button>
+        </div>
+      </div>
+
+      <div class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
+        <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
+          @for (dia of semanaEdicion(); track dia.fecha) {
+            @if (!dia.finSemana) {
+              <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-start justify-between border-b border-slate-100 px-3.5 py-3">
+                  <div><div class="text-[10px] font-bold uppercase tracking-wider text-slate-400">{{ dia.nombreDia }}</div><div class="mt-0.5 text-sm font-extrabold capitalize text-slate-900">{{ dia.fechaCorta }}</div></div>
+                  <span class="rounded-full bg-emerald-50 px-2 py-1 text-[9px] font-bold text-emerald-700">HÁBIL</span>
+                </div>
+
+                <div class="space-y-3 p-3.5">
+                  @for (cupo of dia.cupos; track cupo.tipoCitaId) {
+                    <label class="block">
+                      <div class="mb-1.5 flex items-center justify-between gap-2">
+                        <span class="truncate text-[11px] font-semibold text-slate-600" [title]="nombreTipo(cupo.tipoCitaId)">{{ nombreTipo(cupo.tipoCitaId) }}</span>
+                        <span class="shrink-0 text-[9px] font-semibold text-blue-600">Máx. {{ maximoTipo(cupo.tipoCitaId) }}</span>
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        [max]="maximoTipo(cupo.tipoCitaId)"
+                        [value]="cupo.valor"
+                        (input)="cambiarCupo(dia.fecha, cupo.tipoCitaId, $any($event.target).value)"
+                        class="h-9 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 text-right text-sm font-bold text-slate-800 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+                      />
+                    </label>
+                  }
+                </div>
+
+                <div class="flex items-center justify-between border-t border-slate-100 bg-slate-50/70 px-3.5 py-2.5 text-[10px]">
+                  <span class="font-medium text-slate-500">Total del día</span>
+                  <span class="font-extrabold text-slate-800">{{ totalDia(dia) }} cupos</span>
+                </div>
+              </article>
+            } @else {
+              <article class="relative flex min-h-72 overflow-hidden rounded-xl border border-rose-200 bg-rose-50/70 p-4">
+                <div class="absolute inset-0 bg-[linear-gradient(135deg,transparent_45%,rgba(244,63,94,.07)_45%,rgba(244,63,94,.07)_55%,transparent_55%)] bg-[length:18px_18px]"></div>
+                <div class="relative m-auto text-center">
+                  <span class="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-rose-100 text-rose-600"><i class="fa-solid fa-ban"></i></span>
+                  <div class="mt-3 text-[10px] font-bold uppercase tracking-wider text-rose-400">{{ dia.nombreDia }}</div>
+                  <div class="mt-0.5 text-sm font-extrabold capitalize text-slate-800">{{ dia.fechaCorta }}</div>
+                  <p class="mt-3 text-[10px] font-semibold leading-4 text-rose-600">Día no habilitado para apertura semanal.</p>
+                </div>
+              </article>
+            }
+          }
+        </div>
+
+        @if (errorSemana()) {
+          <div class="mt-4 flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs text-rose-700"><i class="fa-solid fa-circle-exclamation mt-0.5"></i><span>{{ errorSemana() }}</span></div>
+        }
+      </div>
+
+      <div class="flex flex-col-reverse gap-2 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div class="text-[10px] text-slate-400"><i class="fa-solid fa-circle-info mr-1"></i>Los cambios son de demostración y se conservan durante la sesión actual.</div>
+        <div class="flex gap-2">
+          <button type="button" (click)="cerrarSemana()" class="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50">Cancelar</button>
+          <button type="button" (click)="guardarSemana()" class="rounded-lg bg-[#1b53ad] px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-[#164792]"><i class="fa-solid fa-floppy-disk mr-1.5"></i>{{ proximaSemanaYaAbierta() ? 'Guardar cambios' : 'Abrir semana' }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

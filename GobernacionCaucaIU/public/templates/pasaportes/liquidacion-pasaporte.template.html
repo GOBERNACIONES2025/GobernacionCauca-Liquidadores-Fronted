@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Liquidación de Pasaporte</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #000000;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+    }
+
+    body {
+      padding: 8px;
+    }
+
+    #pageContainer {
+      width: 760px;
+      margin: 0 auto;
+      background: #ffffff;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    .box {
+      border: 1px solid #000000;
+    }
+
+    .header-table {
+      border: 2px solid #000000;
+    }
+
+    .header-table td {
+      padding: 8px;
+      vertical-align: middle;
+    }
+
+    .logo-cell {
+      width: 20%;
+      text-align: center;
+    }
+
+    .logo-cell img {
+      display: block;
+      max-width: 150px;
+      max-height: 72px;
+      margin: 0 auto;
+      object-fit: contain;
+    }
+
+    .institution-cell {
+      width: 58%;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    .institution-cell .institution {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .institution-cell .title {
+      margin-top: 4px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .status-cell {
+      width: 22%;
+      text-align: center;
+      line-height: 1.45;
+      border-left: 1px solid #000000;
+    }
+
+    .demo-badge {
+      display: |MOSTRARMARCADEMO|;
+      margin-top: 5px;
+      padding: 4px 8px;
+      border: 1px solid #b45309;
+      border-radius: 4px;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .section {
+      margin-top: 8px;
+      border: 1px solid #000000;
+    }
+
+    .info-table td {
+      padding: 7px 8px;
+      vertical-align: top;
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 3px;
+      font-weight: 700;
+    }
+
+    .concept-table th,
+    .concept-table td {
+      padding: 7px 8px;
+      border: 1px solid #000000;
+    }
+
+    .concept-table th {
+      background: #dfdfdf;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .summary-table td {
+      padding: 6px 8px;
+      border: 1px solid #000000;
+    }
+
+    .barcode-cell {
+      width: 60%;
+      min-height: 95px;
+      padding: 10px !important;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .barcode-wrapper {
+      width: 100%;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .barcode-wrapper svg,
+    .barcode-wrapper img {
+      width: 100%;
+      max-width: 430px;
+      height: 72px;
+      object-fit: contain;
+    }
+
+    .barcode-reference {
+      margin-top: 5px;
+      font-family: "Courier New", monospace;
+      font-size: 10px;
+    }
+
+    .total-row td {
+      background: #dfdfdf;
+      font-weight: 700;
+    }
+
+    .paid-row td {
+      background: #edf7ed;
+      font-weight: 700;
+    }
+
+    .balance-row td {
+      background: #fff7e6;
+      font-weight: 700;
+    }
+
+    .footer {
+      margin-top: 14px;
+      padding-top: 7px;
+      border-top: 1px solid #bdbdbd;
+      color: #555555;
+      font-size: 9px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .footer strong {
+      color: #333333;
+    }
+
+    @media print {
+      body {
+        padding: 0;
+      }
+
+      #pageContainer {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main id="pageContainer">
+    <table class="header-table">
+      <tr>
+        <td class="logo-cell">
+          <img src="|SRCIMAGE|" alt="Gobernación del Cauca" />
+        </td>
+        <td class="institution-cell">
+          <div class="institution">GOBERNACIÓN DEL CAUCA</div>
+          <div><strong>NIT.</strong> |NITENTIDAD|</div>
+          <div class="title">Liquidación de Impuesto de Pasaporte</div>
+        </td>
+        <td class="status-cell">
+          <div><strong>Fecha liquidación</strong></div>
+          <div>|FECHALIQUIDACION|</div>
+          <div style="margin-top: 5px;"><strong>|ESTADO|</strong></div>
+          <div class="demo-badge">DEMO / SIMULACIÓN</div>
+        </td>
+      </tr>
+    </table>
+
+    <section class="section">
+      <table class="info-table">
+        <tr>
+          <td style="width: 25%;">
+            <span class="label">Nro. liquidación</span>
+            |NUMEROLIQUIDACION|
+          </td>
+          <td style="width: 25%;">
+            <span class="label">Fecha de liquidación</span>
+            |FECHALIQUIDACION|
+          </td>
+          <td style="width: 25%;">
+            <span class="label">Cod. impuesto</span>
+            |CODIGOIMPUESTO|
+          </td>
+          <td style="width: 25%;">
+            <span class="label">Impuesto sobre</span>
+            Pasaporte
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="label">Documento</span>
+            |DOCUMENTO|
+          </td>
+          <td colspan="3">
+            <span class="label">Nombre</span>
+            |NOMBRE|
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <span class="label">Periodo de liquidación</span>
+            |PERIODOLIQUIDACION|
+          </td>
+          <td colspan="2">
+            <span class="label">Tipo de pasaporte</span>
+            |TIPOPASAPORTE|
+          </td>
+          <td class="text-right">
+            <span class="label">Valor base</span>
+            $ |VALORBASE|
+          </td>
+        </tr>
+      </table>
+    </section>
+
+    <section class="section">
+      <table class="concept-table">
+        <thead>
+          <tr>
+            <th>Concepto / Impuesto</th>
+            <th style="width: 18%;">Tarifa aplicada</th>
+            <th style="width: 21%;">Cant. / Vlr Base ($)</th>
+            <th style="width: 18%;">Total ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          |FILASCONCEPTOS|
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <table class="summary-table">
+        <tr>
+          <td class="barcode-cell" rowspan="7">
+            <div class="barcode-wrapper">|CODIGOBARRAS|</div>
+            <div class="barcode-reference">|REFERENCIAPAGO|</div>
+          </td>
+          <td style="width: 22%;"><strong>Subtotal</strong></td>
+          <td style="width: 5%;" class="text-center"><strong>$</strong></td>
+          <td style="width: 18%;" class="text-right">|SUBTOTAL|</td>
+        </tr>
+        <tr>
+          <td><strong>Interés (+)</strong></td>
+          <td class="text-center"><strong>$</strong></td>
+          <td class="text-right">|INTERESES|</td>
+        </tr>
+        <tr>
+          <td><strong>Sanción (+)</strong></td>
+          <td class="text-center"><strong>$</strong></td>
+          <td class="text-right">|SANCION|</td>
+        </tr>
+        <tr>
+          <td><strong>Descuento (-)</strong></td>
+          <td class="text-center"><strong>$</strong></td>
+          <td class="text-right">|DESCUENTO|</td>
+        </tr>
+        <tr class="total-row">
+          <td><strong>Total liquidado</strong></td>
+          <td class="text-center"><strong>$</strong></td>
+          <td class="text-right"><strong>|TOTALLIQUIDADO|</strong></td>
+        </tr>
+        <tr class="paid-row">
+          <td><strong>Valor pagado</strong></td>
+          <td class="text-center"><strong>$</strong></td>
+          <td class="text-right"><strong>|VALORPAGADO|</strong></td>
+        </tr>
+        <tr class="balance-row">
+          <td><strong>Saldo pendiente</strong></td>
+          <td class="text-center"><strong>$</strong></td>
+          <td class="text-right"><strong>|SALDOPENDIENTE|</strong></td>
+        </tr>
+      </table>
+    </section>
+
+    <footer class="footer">
+      <div><strong>Referencia de pago:</strong> |REFERENCIAPAGO|</div>
+      <div>Documento generado por el módulo de Pasaportes de la Gobernación del Cauca.</div>
+      <div style="display: |MOSTRARMARCADEMO|; margin-top: 3px; color: #92400e; font-weight: 700;">
+        DOCUMENTO DE DEMOSTRACIÓN - NO VÁLIDO PARA PAGO
+      </div>
+    </footer>
+  </main>
+</body>
+</html>
