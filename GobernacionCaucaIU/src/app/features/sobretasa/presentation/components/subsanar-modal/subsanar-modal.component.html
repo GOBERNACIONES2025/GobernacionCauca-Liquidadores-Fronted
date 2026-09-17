@@ -1,0 +1,251 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto">
+  <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh] animate-in fade-in zoom-in duration-200">
+    
+    <!-- HEADER -->
+    <div class="bg-amber-600 text-white px-6 py-4 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-amber-100 shadow-xs">
+          <i class="fa-solid fa-pen-to-square text-lg"></i>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold tracking-tight">Subsanar y Reevaluar Declaración de Sobretasa</h2>
+          <p class="text-[11px] text-amber-100">
+            Radicado {{ declaracion.numeroRadicado }} &middot; {{ declaracion.mayorista.razonSocial }} &middot; Periodo {{ declaracion.periodoMes }}/{{ declaracion.periodoAnio }}
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        (click)="cerrar.emit()"
+        class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition-colors"
+      >
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </div>
+
+    <!-- BODY -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-5 text-xs text-slate-800">
+      
+      <!-- OBSERVACION DEL FUNCIONARIO DE FISCALIZACION -->
+      <div class="bg-amber-50 border border-amber-300 rounded-xl p-4 shadow-xs">
+        <h4 class="font-bold text-amber-950 uppercase text-[10.5px] flex items-center gap-1.5 mb-1">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+          <span>Requerimiento / Causal de Observación Emitida por Rentas:</span>
+        </h4>
+        <p class="text-xs text-amber-900 leading-relaxed font-medium">
+          "{{ declaracion.observacionesFiscalizacion || 'Se requiere rectificar y soportar las guías de despacho y volúmenes de combustible reportados.' }}"
+        </p>
+      </div>
+
+      <!-- SECCION 1: EDICION INTERACTIVA DE DESPACHOS -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-4 shadow-xs">
+        <div class="flex items-center justify-between">
+          <div>
+            <h4 class="font-bold text-[#0f3b73] uppercase text-[11px] tracking-wide">
+              1. Despachos y Guías de Transporte Declaradas ({{ despachosEditables.length }})
+            </h4>
+            <p class="text-[11px] text-slate-400">Modifique los volúmenes, guías o estaciones de servicio según los soportes reales</p>
+          </div>
+          <button
+            type="button"
+            (click)="agregarDespacho()"
+            class="px-3 py-1.5 rounded-lg bg-blue-50 text-[#0f4984] border border-blue-200 hover:bg-blue-100 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <i class="fa-solid fa-plus-circle"></i>
+            <span>Agregar Despacho</span>
+          </button>
+        </div>
+
+        <div class="space-y-3">
+          <div
+            *ngFor="let d of despachosEditables; let idx = index"
+            class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3 relative group"
+          >
+            <!-- Fila superior del despacho -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-200">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center">
+                  {{ idx + 1 }}
+                </span>
+                <span class="font-bold text-slate-800 text-xs">Guía SICOM:</span>
+                <input
+                  type="text"
+                  [(ngModel)]="d.codigoGuiaSicom"
+                  placeholder="SIC-2026-..."
+                  class="px-2.5 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg w-36 uppercase focus:border-[#0f4984] focus:outline-none"
+                />
+              </div>
+
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-mono font-bold text-emerald-800">
+                  Total Item: {{ formatMoney(d.totalItem) }}
+                </span>
+                <button
+                  *ngIf="despachosEditables.length > 1"
+                  type="button"
+                  (click)="eliminarDespacho(idx)"
+                  class="w-7 h-7 rounded-lg text-rose-500 hover:bg-rose-50 hover:text-rose-700 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Eliminar este despacho"
+                >
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Grid de campos editables del despacho -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <!-- Combustible -->
+              <div>
+                <label class="block font-bold text-slate-600 mb-1 text-[10.5px]">Tipo Combustible</label>
+                <select
+                  [(ngModel)]="d.tipoCombustible"
+                  (ngModelChange)="recalcularItem(idx)"
+                  class="w-full p-2 bg-white border border-slate-300 rounded-lg font-bold text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                >
+                  <option *ngFor="let t of tiposCombustible" [value]="t.codigo">{{ t.nombre }} ({{ t.codigo }})</option>
+                </select>
+              </div>
+
+              <!-- Galones con +/- -->
+              <div>
+                <label class="block font-bold text-slate-600 mb-1 text-[10.5px]">Galones Despachados</label>
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    (click)="cambiarGalones(idx, -500)"
+                    class="w-7 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                    title="-500 galones"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    [(ngModel)]="d.galonesDespachados"
+                    (ngModelChange)="recalcularItem(idx)"
+                    min="1"
+                    step="100"
+                    class="w-full text-center font-mono font-bold text-xs p-1.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    (click)="cambiarGalones(idx, 500)"
+                    class="w-7 h-8 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold flex items-center justify-center cursor-pointer"
+                    title="+500 galones"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <!-- Placa Vehículo -->
+              <div>
+                <label class="block font-bold text-slate-600 mb-1 text-[10.5px]">Placa Carrotanque</label>
+                <input
+                  type="text"
+                  [(ngModel)]="d.placaVehiculo"
+                  placeholder="SZK-412"
+                  class="w-full p-2 bg-white border border-slate-300 rounded-lg uppercase font-mono font-bold text-amber-800 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <!-- EDS Destino -->
+              <div>
+                <label class="block font-bold text-slate-600 mb-1 text-[10.5px]">Estación de Servicio Destino</label>
+                <select
+                  [(ngModel)]="d.codigoSicomEds"
+                  (ngModelChange)="onEdsChange(d)"
+                  class="w-full p-2 bg-white border border-slate-300 rounded-lg font-medium text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                >
+                  <option *ngFor="let eds of edsCatalog" [value]="eds.codigoSicomEds">
+                    {{ eds.nombreComercial }} ({{ eds.municipio }})
+                  </option>
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCION 2: RECALCULO AUTOMATICO DE LIQUIDACION -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-3">
+        <h4 class="font-bold text-[#0f3b73] uppercase text-[11px] tracking-wide flex items-center gap-2">
+          <i class="fa-solid fa-calculator text-emerald-600"></i>
+          <span>2. Determinación Recalculada del Tributo (Ley 2093 de 2021)</span>
+        </h4>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl text-xs">
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Galones GMC</span>
+            <strong class="font-mono text-slate-900 block mt-0.5">{{ totalesCalculados.totalGalonesGMC | number }} Gl</strong>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Galones GME</span>
+            <strong class="font-mono text-slate-900 block mt-0.5">{{ totalesCalculados.totalGalonesGME | number }} Gl</strong>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Galones ACPM</span>
+            <strong class="font-mono text-slate-900 block mt-0.5">{{ totalesCalculados.totalGalonesACPM | number }} Gl</strong>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[10px] uppercase font-bold block">Volumen Consolidado</span>
+            <strong class="font-mono text-blue-900 block mt-0.5">{{ totalesCalculados.totalGalonesGeneral | number }} Galones</strong>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-1">
+          <div class="bg-amber-50/70 border border-amber-200 p-3 rounded-xl">
+            <span class="text-amber-800 text-[10px] uppercase font-bold block">Porción Municipal Cauca</span>
+            <strong class="text-sm font-black text-amber-900 font-mono block mt-0.5">{{ formatMoney(totalesCalculados.totalMunicipal) }}</strong>
+          </div>
+          <div class="bg-blue-50/70 border border-blue-200 p-3 rounded-xl">
+            <span class="text-blue-800 text-[10px] uppercase font-bold block">Porción Departamental</span>
+            <strong class="text-sm font-black text-blue-900 font-mono block mt-0.5">{{ formatMoney(totalesCalculados.totalDepartamental) }}</strong>
+          </div>
+          <div class="bg-emerald-50/70 border border-emerald-200 p-3 rounded-xl">
+            <span class="text-emerald-800 text-[10px] uppercase font-bold block">Total a Pagar Liquidado</span>
+            <strong class="text-base font-black text-emerald-900 font-mono block mt-0.5">{{ formatMoney(totalesCalculados.totalPagar) }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCION 3: JUSTIFICACION FORMAL DE SUBSANACION -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-2">
+        <h4 class="font-bold text-[#0f3b73] uppercase text-[11px] tracking-wide">
+          3. Respuesta de Subsanación / Explicación Formal de Cambios *
+        </h4>
+        <textarea
+          [(ngModel)]="motivoSubsanacion"
+          rows="3"
+          placeholder="Describa cómo se atendió el requerimiento de fiscalización (ej: Se ajustaron los galones en la guía SIC-2026-90511 a 16.000 galones conforme al manifiesto de báscula de planta y se anexaron las planillas)..."
+          class="w-full text-xs p-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none resize-none"
+        ></textarea>
+        <span class="text-[10.5px] text-slate-400">
+          Esta aclaración quedará registrada de forma permanente en el expediente tributario y será evaluada por el funcionario auditor.
+        </span>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="bg-slate-100 border-t border-slate-200 px-6 py-3.5 flex items-center justify-end gap-3 shrink-0">
+      <button
+        type="button"
+        (click)="cerrar.emit()"
+        class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        (click)="guardarYReenviar()"
+        [disabled]="!motivoSubsanacion.trim() || despachosEditables.length === 0"
+        class="px-5 py-2.5 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white shadow-sm transition-colors flex items-center gap-2 cursor-pointer"
+      >
+        <i class="fa-solid fa-paper-plane"></i>
+        <span>Guardar y Reenviar a Fiscalización</span>
+      </button>
+    </div>
+
+  </div>
+</div>

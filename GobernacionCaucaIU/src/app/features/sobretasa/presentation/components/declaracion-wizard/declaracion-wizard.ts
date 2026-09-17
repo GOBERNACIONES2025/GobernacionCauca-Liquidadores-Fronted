@@ -28,7 +28,7 @@ export class DeclaracionWizardComponent implements OnInit {
   @Input() mayoristas: DistribuidorMayorista[] = [];
   @Input() edsCatalog: EstacionServicioDestino[] = [];
   @Output() cancelada = new EventEmitter<void>();
-  @Output() radicada = new EventEmitter<string>(); // emite el ID de la declaración
+  @Output() radicada = new EventEmitter<DeclaracionSobretasa>(); // emite el objeto de la declaración
 
   pasoActual = 1;
   tarifas = TARIFAS_SOBRETASA_2026;
@@ -181,7 +181,7 @@ export class DeclaracionWizardComponent implements OnInit {
       despachos: this.despachos,
     });
 
-    this.radicada.emit(nueva.id);
+    this.radicada.emit(nueva);
   }
 
   mostrarAlerta(mensaje: string, tipo: 'success' | 'warning' | 'info' | 'error'): void {

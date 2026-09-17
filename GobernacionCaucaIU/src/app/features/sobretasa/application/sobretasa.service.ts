@@ -212,15 +212,15 @@ export class SobretasaService {
     return nuevaDeclaracion;
   }
 
-  // Subsanar o Corregir una Declaración Observada (Mayorista)
+  // Subsanar o Corregir una Declaración Observada / Requerida (Mayorista)
   subsanarDeclaracion(
     id: string,
     despachosCorregidos: DespachoItem[],
     observacionMayorista: string
-  ): void {
+  ): boolean {
     const list = [...this.declaraciones()];
     const idx = list.findIndex((d) => d.id === id);
-    if (idx === -1) return;
+    if (idx === -1) return false;
 
     const dec = list[idx];
     const fecha = new Date();
@@ -231,37 +231,44 @@ export class SobretasaService {
       new Date(dec.fechaRadicacion)
     );
 
-    const actual = { ...dec };
-    actual.despachos = despachosCorregidos;
-    actual.totalGalonesGMC = liq.totalGalonesGMC;
-    actual.totalGalonesGME = liq.totalGalonesGME;
-    actual.totalGalonesACPM = liq.totalGalonesACPM;
-    actual.totalGalonesGeneral = liq.totalGalonesGeneral;
-    actual.totalMunicipal = liq.totalMunicipal;
-    actual.totalDepartamental = liq.totalDepartamental;
-    actual.subtotalImpuesto = liq.subtotalImpuesto;
-    actual.sancionExtemporaneidad = liq.sancionExtemporaneidad;
-    actual.totalPagar = liq.totalPagar;
-    actual.estado = 'EN_REVISION';
-    actual.observacionesSubsanacion = observacionMayorista;
-    actual.fechaActualizacion = fecha.toISOString();
-
-    actual.historial = [
-      ...actual.historial,
-      {
-        fecha: fecha.toISOString(),
-        funcionario: actual.mayorista.razonSocial,
-        cargo: 'Agente Mayorista Distribuidor',
-        accion: 'SUBSANACION',
-        observacion: `Subsanación de observaciones: ${observacionMayorista}`,
-        estadoAnterior: 'OBSERVADO',
-        estadoNuevo: 'EN_REVISION',
-      },
-    ];
+    const actual: DeclaracionSobretasa = {
+      ...dec,
+      despachos: despachosCorregidos,
+      totalGalonesGMC: liq.totalGalonesGMC,
+      totalGalonesGME: liq.totalGalonesGME,
+      totalGalonesACPM: liq.totalGalonesACPM,
+      totalGalonesGeneral: liq.totalGalonesGeneral,
+      totalMunicipalGMC: liq.totalMunicipalGMC,
+      totalDepartamentalGMC: liq.totalDepartamentalGMC,
+      totalMunicipalGME: liq.totalMunicipalGME,
+      totalDepartamentalGME: liq.totalDepartamentalGME,
+      totalDepartamentalACPM: liq.totalDepartamentalACPM,
+      totalMunicipal: liq.totalMunicipal,
+      totalDepartamental: liq.totalDepartamental,
+      subtotalImpuesto: liq.subtotalImpuesto,
+      sancionExtemporaneidad: liq.sancionExtemporaneidad,
+      totalPagar: liq.totalPagar,
+      estado: 'EN_REVISION',
+      observacionesSubsanacion: observacionMayorista,
+      fechaActualizacion: fecha.toISOString(),
+      historial: [
+        ...dec.historial,
+        {
+          fecha: fecha.toISOString(),
+          funcionario: dec.mayorista.razonSocial,
+          cargo: 'Agente Mayorista Distribuidor',
+          accion: 'SUBSANACION',
+          observacion: `Requerimiento subsanado: "${observacionMayorista}". Declaración y liquidación corregida reenviada a fiscalización tributaria.`,
+          estadoAnterior: dec.estado,
+          estadoNuevo: 'EN_REVISION',
+        },
+      ],
+    };
 
     list[idx] = actual;
     this.declaraciones.set(list);
     this.storage.saveDeclaraciones(list);
+    return true;
   }
 
   // Simular Cruce y Validación con SICOM MinMinas (Funcionario)
@@ -303,16 +310,16 @@ export class SobretasaService {
   }
 
   // Aprobar Declaración -> Pasa a PENDIENTE_PAGO
-  aprobarDeclaracion(id: string, funcionario: string, obs?: string): void {
+  aprobarDeclaracion(id: string, funcionario: string = 'Dra. Patricia Mosquera (Auditora Fiscal)', obs?: string): boolean {
     const list = [...this.declaraciones()];
     const idx = list.findIndex((d) => d.id === id);
-    if (idx === -1) return;
+    if (idx === -1) return false;
 
     const dec = list[idx];
     const fecha = new Date();
-    const actual = {
+    const actual: DeclaracionSobretasa = {
       ...dec,
-      estado: 'PENDIENTE_PAGO' as const,
+      estado: 'PENDIENTE_PAGO',
       fechaActualizacion: fecha.toISOString(),
       historial: [
         ...dec.historial,
@@ -320,10 +327,10 @@ export class SobretasaService {
           fecha: fecha.toISOString(),
           funcionario: funcionario || 'Secretaría de Hacienda Departamental',
           cargo: 'Auditor Tributario',
-          accion: 'APROBACION' as const,
-          observacion: obs || 'Declaración verificada y liquidada conforme a la Ley 2093 de 2021. Se habilita para pago.',
+          accion: 'APROBACION',
+          observacion: obs || 'Declaración verificada y liquidada conforme a la Ley 2093 de 2021. Se habilita para pago oficial.',
           estadoAnterior: dec.estado,
-          estadoNuevo: 'PENDIENTE_PAGO' as const,
+          estadoNuevo: 'PENDIENTE_PAGO',
         },
       ],
     };
@@ -331,19 +338,20 @@ export class SobretasaService {
     list[idx] = actual;
     this.declaraciones.set(list);
     this.storage.saveDeclaraciones(list);
+    return true;
   }
 
-  // Observar / Requerir Declaración -> Pasa a OBSERVADO
-  observarDeclaracion(id: string, funcionario: string, motivoObservacion: string): void {
+  // Observar / Requerir Declaración -> Pasa a OBSERVADO / REQUERIDO
+  observarDeclaracion(id: string, funcionario: string, motivoObservacion: string): boolean {
     const list = [...this.declaraciones()];
     const idx = list.findIndex((d) => d.id === id);
-    if (idx === -1) return;
+    if (idx === -1) return false;
 
     const dec = list[idx];
     const fecha = new Date();
-    const actual = {
+    const actual: DeclaracionSobretasa = {
       ...dec,
-      estado: 'OBSERVADO' as const,
+      estado: 'OBSERVADO',
       observacionesFiscalizacion: motivoObservacion,
       fechaActualizacion: fecha.toISOString(),
       historial: [
@@ -352,10 +360,10 @@ export class SobretasaService {
           fecha: fecha.toISOString(),
           funcionario: funcionario || 'Fiscalizador de Hacienda',
           cargo: 'Auditor de Rentas',
-          accion: 'OBSERVACION' as const,
+          accion: 'REQUERIMIENTO',
           observacion: motivoObservacion,
           estadoAnterior: dec.estado,
-          estadoNuevo: 'OBSERVADO' as const,
+          estadoNuevo: 'OBSERVADO',
         },
       ],
     };
@@ -363,9 +371,43 @@ export class SobretasaService {
     list[idx] = actual;
     this.declaraciones.set(list);
     this.storage.saveDeclaraciones(list);
+    return true;
   }
 
-  // Simular Pago PSE
+  // Rechazar Declaración -> Pasa a RECHAZADO
+  rechazarDeclaracion(id: string, motivoRechazo: string, funcionario: string = 'Fiscalizador de Hacienda'): boolean {
+    const list = [...this.declaraciones()];
+    const idx = list.findIndex((d) => d.id === id);
+    if (idx === -1) return false;
+
+    const dec = list[idx];
+    const fecha = new Date();
+    const actual: DeclaracionSobretasa = {
+      ...dec,
+      estado: 'RECHAZADO',
+      observacionesFiscalizacion: motivoRechazo,
+      fechaActualizacion: fecha.toISOString(),
+      historial: [
+        ...dec.historial,
+        {
+          fecha: fecha.toISOString(),
+          funcionario: funcionario || 'Fiscalizador de Hacienda',
+          cargo: 'Auditor de Rentas',
+          accion: 'RECHAZO',
+          observacion: motivoRechazo || 'Declaración rechazada por inconsistencias normativas insubsanables.',
+          estadoAnterior: dec.estado,
+          estadoNuevo: 'RECHAZADO',
+        },
+      ],
+    };
+
+    list[idx] = actual;
+    this.declaraciones.set(list);
+    this.storage.saveDeclaraciones(list);
+    return true;
+  }
+
+  // Procesar Pago PSE
   pagarPse(id: string, banco: string): { exito: boolean; ref: string; cus: string } {
     const list = [...this.declaraciones()];
     const idx = list.findIndex((d) => d.id === id);
@@ -408,6 +450,65 @@ export class SobretasaService {
     this.declaraciones.set(list);
     this.storage.saveDeclaraciones(list);
     return { exito: true, ref, cus };
+  }
+
+  // Procesar Pago Ventanilla Asobancario
+  procesarPagoAsobancario(
+    id: string,
+    datos: {
+      banco: string;
+      referencia: string;
+      fecha?: string;
+    }
+  ): boolean {
+    const list = [...this.declaraciones()];
+    const idx = list.findIndex((d) => d.id === id);
+    if (idx === -1) return false;
+
+    const dec = list[idx];
+    const fechaActual = datos.fecha ? new Date(datos.fecha).toISOString() : new Date().toISOString();
+    const ref = datos.referencia || `REC-ASOB-${Date.now().toString().slice(-8)}`;
+
+    const actual: DeclaracionSobretasa = {
+      ...dec,
+      estado: 'PAGADO_APROBADO',
+      comprobantePagoRef: ref,
+      fechaActualizacion: fechaActual,
+      pago: {
+        metodo: 'ASOBANCARIO_VENTANILLA',
+        referenciaPago: ref,
+        codigoCus: ref,
+        banco: datos.banco || 'Banco Agrario de Colombia',
+        fechaPago: fechaActual,
+        valorPagado: dec.totalPagar,
+        estadoPago: 'APROBADO',
+      },
+      historial: [
+        ...dec.historial,
+        {
+          fecha: fechaActual,
+          funcionario: 'Archivo Asobancario 2001 - Ventanilla Bancaria',
+          cargo: 'Convenio Recaudador Departamental',
+          accion: 'PAGO_REGISTRADO',
+          observacion: `Consignación bancaria verificada en ${datos.banco} por valor de $${dec.totalPagar.toLocaleString('es-CO')} COP. Comprobante No. ${ref}.`,
+          estadoAnterior: dec.estado,
+          estadoNuevo: 'PAGADO_APROBADO',
+        },
+      ],
+    };
+
+    list[idx] = actual;
+    this.declaraciones.set(list);
+    this.storage.saveDeclaraciones(list);
+    return true;
+  }
+
+  // Buscar por Radicado
+  buscarPorRadicado(radicado: string): DeclaracionSobretasa | undefined {
+    const query = radicado.trim().toUpperCase();
+    return this.declaraciones().find(
+      (d) => d.numeroRadicado.toUpperCase() === query || d.id === query || (d.comprobantePagoRef || '').toUpperCase() === query
+    );
   }
 
   // Agregar nuevo Mayorista al catálogo

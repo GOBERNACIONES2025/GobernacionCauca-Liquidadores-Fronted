@@ -1,68 +1,100 @@
-<div class="space-y-6">
+<main class="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 sm:py-5 min-w-0 bg-slate-50 relative h-full space-y-4">
   
+  <!-- NOTIFICACION TOAST -->
+  @if (mensajeExito()) {
+    <div class="bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-md flex items-center justify-between text-xs font-semibold animate-fade-in">
+      <span>{{ mensajeExito() }}</span>
+      <button (click)="mensajeExito.set(null)" class="text-white/80 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  }
+
   <!-- Page Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
     <div>
-      <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-        Bandeja de Fiscalización y Cruce SICOM
+      <h1 class="text-[17px] sm:text-[18px] font-bold text-slate-900 m-0 leading-snug">
+        Bandeja de Fiscalización y Cruce SICOM (Sobretasa a Combustibles)
       </h1>
-      <p class="text-xs text-slate-500 mt-0.5">
+      <p class="text-[12px] text-slate-400 mt-0.5">
         Auditoría de despachos de mayoristas, validación con Ministerio de Minas y determinación de aprobaciones
       </p>
     </div>
 
-    <div class="flex items-center gap-2">
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-[#0f4984]">
-        <i class="fa-solid fa-satellite-dish"></i>
-        <span>Servicio Web SICOM Activo</span>
-      </span>
+    <!-- Buscador -->
+    <div class="w-full sm:w-72">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </div>
+        <input
+          type="text"
+          [ngModel]="busquedaTexto()"
+          (ngModelChange)="busquedaTexto.set($event)"
+          placeholder="Buscar radicado, mayorista, NIT..."
+          class="w-full pl-9 pr-4 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
+        />
+      </div>
     </div>
   </div>
 
-  <!-- Layout Dividido: Bandeja a la izquierda, Detalle y Acciones a la derecha -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-    
-    <!-- Columna Izquierda: Bandeja de Declaraciones (4 cols) -->
-    <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-xs p-4 space-y-4">
+  <!-- SUBTABS POR ESTADO -->
+  <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+    <div class="p-3 bg-slate-50 border-b border-slate-200/80 flex items-center gap-1.5 overflow-x-auto text-xs">
+      <button
+        (click)="setFiltroEstado('EN_REVISION')"
+        class="px-3 py-1 rounded-lg font-bold transition cursor-pointer"
+        [ngClass]="filtroEstado() === 'EN_REVISION' ? 'bg-amber-500 text-white' : 'bg-white text-slate-600 border border-slate-200'"
+      >
+        Pendientes de Revisión ({{ totalRevision() }})
+      </button>
+
+      <button
+        (click)="setFiltroEstado('OBSERVADO')"
+        class="px-3 py-1 rounded-lg font-bold transition cursor-pointer"
+        [ngClass]="filtroEstado() === 'OBSERVADO' ? 'bg-rose-600 text-white' : 'bg-white text-slate-600 border border-slate-200'"
+      >
+        Requeridos / Observados ({{ totalObservados() }})
+      </button>
+
+      <button
+        (click)="setFiltroEstado('PENDIENTE_PAGO')"
+        class="px-3 py-1 rounded-lg font-bold transition cursor-pointer"
+        [ngClass]="filtroEstado() === 'PENDIENTE_PAGO' ? 'bg-blue-600 text-white' : 'bg-white text-slate-600 border border-slate-200'"
+      >
+        Aprobados / Listos para Pago ({{ totalPendientesPago() }})
+      </button>
+
+      <button
+        (click)="setFiltroEstado('PAGADO_APROBADO')"
+        class="px-3 py-1 rounded-lg font-bold transition cursor-pointer"
+        [ngClass]="filtroEstado() === 'PAGADO_APROBADO' ? 'bg-emerald-700 text-white' : 'bg-white text-slate-600 border border-slate-200'"
+      >
+        Pagados / Conciliados ({{ totalPagados() }})
+      </button>
+
+      <button
+        (click)="setFiltroEstado('TODOS')"
+        class="px-3 py-1 rounded-lg font-bold transition cursor-pointer"
+        [ngClass]="filtroEstado() === 'TODOS' ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 border border-slate-200'"
+      >
+        Ver Todos ({{ sobretasaService.declaraciones().length }})
+      </button>
+    </div>
+
+    <!-- Layout Dividido: Bandeja a la izquierda, Detalle a la derecha -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
       
-      <!-- Buscador y Filtro -->
-      <div class="space-y-2">
-        <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-          <input
-            type="text"
-            [(ngModel)]="busquedaTexto"
-            placeholder="Buscar por radicado o mayorista..."
-            class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:border-[#0f4984] focus:outline-hidden"
-          />
-        </div>
-
-        <div class="flex items-center justify-between">
-          <span class="text-[11px] font-bold text-slate-500 uppercase">Filtrar Estado:</span>
-          <select
-            [(ngModel)]="filtroEstado"
-            class="px-2.5 py-1 rounded-lg border border-slate-300 text-xs bg-white text-slate-700 font-medium focus:border-[#0f4984] focus:outline-hidden"
-          >
-            <option value="TODOS">Todos</option>
-            <option value="EN_REVISION">En Revisión</option>
-            <option value="PENDIENTE_PAGO">Pendiente Pago</option>
-            <option value="PAGADO_APROBADO">Pagado</option>
-            <option value="OBSERVADO">Observado</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Lista de Declaraciones -->
-      <div class="divide-y divide-slate-100 max-h-[600px] overflow-y-auto pr-1">
-        <div *ngIf="declaracionesFiscalizacion().length === 0" class="py-8 text-center text-xs text-slate-400">
-          No hay declaraciones que coincidan con los filtros.
+      <!-- Columna Izquierda: Lista de Declaraciones (5 cols) -->
+      <div class="lg:col-span-5 border-r border-slate-200 divide-y divide-slate-100 max-h-[640px] overflow-y-auto">
+        <div *ngIf="declaracionesFiscalizacion().length === 0" class="py-12 text-center text-xs text-slate-400">
+          <i class="fa-solid fa-folder-open text-2xl mb-1 text-slate-300 block"></i>
+          No hay declaraciones en este filtro.
         </div>
 
         <div
           *ngFor="let dec of declaracionesFiscalizacion()"
           (click)="seleccionarDeclaracion(dec)"
-          class="p-3.5 rounded-xl cursor-pointer transition-all hover:bg-slate-50"
-          [ngClass]="declaracionSeleccionada()?.id === dec.id ? 'bg-blue-50/70 border border-blue-200' : ''"
+          class="p-4 cursor-pointer transition-all hover:bg-slate-50 border-l-4"
+          [ngClass]="declaracionSeleccionada()?.id === dec.id ? 'bg-blue-50/70 border-l-[#0f4984]' : 'border-l-transparent'"
         >
           <div class="flex items-center justify-between">
             <span class="font-mono font-bold text-xs text-slate-900">{{ dec.numeroRadicado }}</span>
@@ -72,94 +104,112 @@
                 'bg-emerald-100 text-emerald-800': dec.estado === 'PAGADO_APROBADO',
                 'bg-amber-100 text-amber-800': dec.estado === 'PENDIENTE_PAGO',
                 'bg-blue-100 text-blue-800': dec.estado === 'EN_REVISION',
-                'bg-rose-100 text-rose-800': dec.estado === 'OBSERVADO'
+                'bg-rose-100 text-rose-800': dec.estado === 'OBSERVADO' || dec.estado === 'REQUERIDO' || dec.estado === 'RECHAZADO'
               }"
             >
               {{ dec.estado }}
             </span>
           </div>
 
-          <p class="text-xs font-semibold text-slate-800 mt-1 truncate">{{ dec.mayorista.razonSocial }}</p>
+          <div class="flex items-center gap-2 mt-1">
+            <p class="text-xs font-semibold text-slate-800 truncate flex-1">{{ dec.mayorista.razonSocial }}</p>
+            <!-- Badge Reevaluación si fue subsanado -->
+            <span *ngIf="dec.observacionesSubsanacion && dec.estado === 'EN_REVISION'"
+                  class="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-purple-100 text-purple-900 border border-purple-300 shrink-0">
+              <i class="fa-solid fa-rotate-left mr-0.5"></i> Reevaluación
+            </span>
+          </div>
 
           <div class="flex items-center justify-between mt-2 text-[11px] text-slate-500 font-mono">
-            <span>{{ formatGal(dec.totalGalonesGeneral) }}</span>
-            <span class="font-black text-slate-900">{{ formatCop(dec.totalPagar) }}</span>
+            <span>{{ dec.totalGalonesGeneral | number }} Gal</span>
+            <span class="font-black text-emerald-800">{{ formatCop(dec.totalPagar) }}</span>
           </div>
 
           <div class="flex items-center justify-between mt-1 text-[10px] text-slate-400">
-            <span>Mes {{ dec.periodoMes }}/{{ dec.periodoAnio }}</span>
-            <span>{{ dec.despachos.length }} Despachos</span>
+            <span>Periodo {{ dec.periodoMes }}/{{ dec.periodoAnio }}</span>
+            <span>{{ dec.despachos.length }} Guías &middot; {{ dec.mayorista.codigoSicomPlanta }}</span>
           </div>
         </div>
       </div>
 
-    </div>
-
-    <!-- Columna Derecha: Detalle de Declaración, Validación SICOM y Acciones (7 cols) -->
-    <div class="lg:col-span-7 space-y-6">
-      
-      <div *ngIf="declaracionSeleccionada(); let dec; else sinSeleccion" class="space-y-6">
-        
-        <!-- Header del Detalle Seleccionado -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+      <!-- Columna Derecha: Detalle, Validación SICOM y Acciones (7 cols) -->
+      <div class="lg:col-span-7 p-5 space-y-5 max-h-[640px] overflow-y-auto">
+        <div *ngIf="declaracionSeleccionada(); let dec; else sinSeleccion" class="space-y-5">
+          
+          <!-- Header del Detalle -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-lg font-black text-slate-900 font-mono">{{ dec.numeroRadicado }}</span>
+                <span class="text-base font-black text-slate-900 font-mono">{{ dec.numeroRadicado }}</span>
                 <span
-                  class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase"
+                  class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase"
                   [ngClass]="{
                     'bg-emerald-100 text-emerald-800': dec.estado === 'PAGADO_APROBADO',
                     'bg-amber-100 text-amber-800': dec.estado === 'PENDIENTE_PAGO',
                     'bg-blue-100 text-blue-800': dec.estado === 'EN_REVISION',
-                    'bg-rose-100 text-rose-800': dec.estado === 'OBSERVADO'
+                    'bg-rose-100 text-rose-800': dec.estado === 'OBSERVADO' || dec.estado === 'REQUERIDO' || dec.estado === 'RECHAZADO'
                   }"
                 >
                   {{ dec.estado }}
+                </span>
+                <span *ngIf="dec.observacionesSubsanacion && dec.estado === 'EN_REVISION'" class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-900 border border-purple-300">
+                  Subsanado / Para Reevaluación
                 </span>
                 <span *ngIf="dec.esExtemporanea" class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
                   Extemporánea
                 </span>
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
-                {{ dec.mayorista.razonSocial }} • NIT: {{ dec.mayorista.nit }}
+                {{ dec.mayorista.razonSocial }} &middot; NIT: {{ dec.mayorista.nit }}
               </p>
             </div>
 
-            <!-- Botón Ver Formulario Oficial -->
-            <button
-              type="button"
-              (click)="mostrarModalFormulario.set(true)"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
-            >
-              <i class="fa-solid fa-file-invoice text-rose-600"></i>
-              <span>Formulario Oficial</span>
-            </button>
+            <div class="flex items-center gap-1.5">
+              <button
+                type="button"
+                (click)="abrirFormulario(dec)"
+                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                title="Ver Formulario Oficial PDF"
+              >
+                <i class="fa-solid fa-file-invoice text-rose-600"></i>
+                <span>PDF</span>
+              </button>
+
+              <button
+                type="button"
+                (click)="abrirAuditoriaModal(dec)"
+                class="px-3 py-1.5 rounded-lg bg-[#0f4984] hover:bg-[#0a274d] text-white text-xs font-bold transition cursor-pointer flex items-center gap-1"
+                title="Auditoría y Dictamen"
+              >
+                <i class="fa-solid fa-scale-balanced text-xs"></i>
+                <span>Auditar</span>
+              </button>
+            </div>
           </div>
 
           <!-- Alerta de observaciones si está OBSERVADO -->
-          <div *ngIf="dec.estado === 'OBSERVADO'" class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1 text-xs">
+          <div *ngIf="dec.observacionesFiscalizacion" class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1 text-xs">
             <span class="font-bold flex items-center gap-1.5">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>Causal de Observación Activa:</span>
+              <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+              <span>Requerimiento / Causal de Observación Activa:</span>
             </span>
-            <p class="text-rose-800">{{ dec.observacionesFiscalizacion }}</p>
+            <p class="text-rose-800 leading-relaxed font-medium">{{ dec.observacionesFiscalizacion }}</p>
           </div>
 
           <!-- Alerta de Subsanación si existe -->
-          <div *ngIf="dec.observacionesSubsanacion" class="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-900 space-y-1 text-xs">
+          <div *ngIf="dec.observacionesSubsanacion" class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-950 space-y-1 text-xs">
             <span class="font-bold flex items-center gap-1.5">
-              <i class="fa-solid fa-wrench"></i>
-              <span>Subsanación Presentada por el Mayorista:</span>
+              <i class="fa-solid fa-wrench text-purple-600"></i>
+              <span>Subsanación y Aclaración Presentada por el Mayorista:</span>
             </span>
-            <p class="text-blue-800">{{ dec.observacionesSubsanacion }}</p>
+            <p class="text-purple-900 leading-relaxed font-medium">{{ dec.observacionesSubsanacion }}</p>
           </div>
 
-          <!-- Cuadrícula de Totales de la Liquidación -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl text-xs">
+          <!-- Totales de la Liquidación -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl text-xs">
             <div>
               <span class="text-slate-500 text-[10px] uppercase font-semibold block">Total Galones</span>
-              <span class="font-mono font-bold text-slate-900 text-sm">{{ formatGal(dec.totalGalonesGeneral) }}</span>
+              <span class="font-mono font-bold text-slate-900 text-sm">{{ dec.totalGalonesGeneral | number }} Gl</span>
             </div>
             <div>
               <span class="text-slate-500 text-[10px] uppercase font-semibold block">Porción Municipal</span>
@@ -167,185 +217,169 @@
             </div>
             <div>
               <span class="text-slate-500 text-[10px] uppercase font-semibold block">Porción Deptal</span>
-              <span class="font-mono font-bold text-emerald-700 text-sm">{{ formatCop(dec.totalDepartamental) }}</span>
+              <span class="font-mono font-bold text-blue-700 text-sm">{{ formatCop(dec.totalDepartamental) }}</span>
             </div>
             <div>
               <span class="text-slate-500 text-[10px] uppercase font-semibold block">Total a Pagar</span>
-              <span class="font-mono font-black text-[#0f4984] text-base">{{ formatCop(dec.totalPagar) }}</span>
+              <span class="font-mono font-black text-emerald-800 text-sm">{{ formatCop(dec.totalPagar) }}</span>
             </div>
           </div>
 
-          <!-- Barra de Acciones Principales de Fiscalización -->
-          <div class="pt-2 flex flex-wrap items-center gap-2.5">
-            
-            <!-- 1. Botón Validar contra SICOM MinMinas -->
+          <!-- Barra de Acciones Directas -->
+          <div class="flex flex-wrap items-center gap-2">
             <button
               type="button"
               (click)="abrirValidacionSicom()"
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 text-[#0f4984] border border-blue-200 hover:bg-blue-100 text-xs font-bold transition-colors cursor-pointer"
             >
               <i class="fa-solid fa-satellite-dish"></i>
-              <span>Validar contra SICOM MinMinas</span>
+              <span>Validar con SICOM MinMinas</span>
             </button>
 
-            <!-- 2. Botón Aprobar (Pasa a PENDIENTE_PAGO) -->
+            <button
+              *ngIf="dec.estado === 'EN_REVISION' || dec.estado === 'OBSERVADO'"
+              type="button"
+              (click)="abrirAuditoriaModal(dec)"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+            >
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>Devolver / Requerir</span>
+            </button>
+
             <button
               *ngIf="dec.estado === 'EN_REVISION' || dec.estado === 'OBSERVADO'"
               type="button"
               (click)="aprobarDirecto()"
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
             >
               <i class="fa-solid fa-circle-check"></i>
               <span>Aprobar Liquidación</span>
             </button>
 
-            <!-- 3. Botón Observar / Requerir -->
-            <button
-              *ngIf="dec.estado === 'EN_REVISION'"
-              type="button"
-              (click)="abrirObservacion()"
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>Observar / Requerir</span>
-            </button>
-
-            <!-- 4. Simulador Recaudo PSE (cuando está en PENDIENTE_PAGO) -->
             <button
               *ngIf="dec.estado === 'PENDIENTE_PAGO'"
               type="button"
-              (click)="mostrarModalPse.set(true)"
-              class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black shadow-xs transition-colors cursor-pointer"
+              (click)="abrirAsobancario(dec)"
+              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-colors cursor-pointer"
             >
-              <i class="fa-solid fa-credit-card"></i>
-              <span>Simular Recaudo PSE</span>
+              <i class="fa-solid fa-building-columns"></i>
+              <span>Relacionar Pago Bancario</span>
             </button>
           </div>
-        </div>
 
-        <!-- Tabla de Despachos Detallados con Estado SICOM -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-4">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-sm font-bold text-slate-900">Guías de Transporte Registradas ({{ dec.despachos.length }})</h2>
-              <p class="text-xs text-slate-500">Comprobación de destino a estaciones de servicio del Cauca</p>
+          <!-- Tabla de Despachos Compacta -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden">
+            <div class="bg-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200 text-xs font-bold text-slate-700">
+              <span>Guías de Transporte Registradas ({{ dec.despachos.length }})</span>
+              <span *ngIf="dec.validacionSicomCompleta" class="text-emerald-700 font-bold text-[11px]">
+                <i class="fa-solid fa-check-double mr-1"></i> Cruzado con SICOM
+              </span>
             </div>
-            <span *ngIf="dec.validacionSicomCompleta" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-              <i class="fa-solid fa-check-double text-emerald-600"></i>
-              <span>100% Cruzado SICOM</span>
-            </span>
+            <div class="overflow-x-auto max-h-48 overflow-y-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-50 text-slate-500 uppercase text-[9.5px] border-b border-slate-200">
+                  <tr>
+                    <th class="py-2 px-3">No. Guía</th>
+                    <th class="py-2 px-3">Placa</th>
+                    <th class="py-2 px-3">EDS Destino</th>
+                    <th class="py-2 px-3">Tipo</th>
+                    <th class="py-2 px-3 text-right">Galones</th>
+                    <th class="py-2 px-3 text-right">Total</th>
+                    <th class="py-2 px-3 text-center">SICOM</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr *ngFor="let d of dec.despachos" class="hover:bg-slate-50">
+                    <td class="py-1.5 px-3 font-mono font-bold">{{ d.codigoGuiaSicom }}</td>
+                    <td class="py-1.5 px-3 font-mono font-semibold text-amber-800">{{ d.placaVehiculo }}</td>
+                    <td class="py-1.5 px-3 text-slate-700 truncate max-w-[120px]">{{ d.estacionServicio?.nombreComercial || d.codigoSicomEds }}</td>
+                    <td class="py-1.5 px-3 font-bold">{{ d.tipoCombustible }}</td>
+                    <td class="py-1.5 px-3 text-right font-mono">{{ d.galonesDespachados | number }}</td>
+                    <td class="py-1.5 px-3 text-right font-mono font-bold">{{ formatCop(d.totalItem) }}</td>
+                    <td class="py-1.5 px-3 text-center">
+                      <i *ngIf="d.validadoSicom || dec.validacionSicomCompleta" class="fa-solid fa-circle-check text-emerald-600"></i>
+                      <i *ngIf="!d.validadoSicom && !dec.validacionSicomCompleta" class="fa-regular fa-circle text-slate-300"></i>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
-          <div class="border border-slate-200 rounded-xl overflow-x-auto max-h-72 overflow-y-auto">
-            <table class="w-full text-xs text-left border-collapse">
-              <thead class="sticky top-0 bg-slate-100 text-slate-700 font-bold border-b border-slate-200 z-10">
-                <tr>
-                  <th class="py-2.5 px-3">No. Guía</th>
-                  <th class="py-2.5 px-3">Fecha</th>
-                  <th class="py-2.5 px-3">Placa</th>
-                  <th class="py-2.5 px-3">EDS Destino</th>
-                  <th class="py-2.5 px-3">Combustible</th>
-                  <th class="py-2.5 px-3 text-right">Galones</th>
-                  <th class="py-2.5 px-3 text-right">Total Item</th>
-                  <th class="py-2.5 px-3 text-center">SICOM</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr *ngFor="let d of dec.despachos" class="hover:bg-slate-50">
-                  <td class="py-2 px-3 font-mono font-bold text-slate-800">{{ d.codigoGuiaSicom }}</td>
-                  <td class="py-2 px-3 text-slate-600">{{ d.fechaDespacho }}</td>
-                  <td class="py-2 px-3 font-mono font-semibold">{{ d.placaVehiculo }}</td>
-                  <td class="py-2 px-3 text-slate-700">
-                    {{ d.estacionServicio?.nombreComercial || d.codigoSicomEds }}
-                    <span class="text-[10px] text-slate-400 block">{{ d.estacionServicio?.municipio }}</span>
-                  </td>
-                  <td class="py-2 px-3">
-                    <span class="px-2 py-0.5 rounded text-[10px] font-bold"
-                          [ngClass]="{
-                            'bg-blue-100 text-blue-800': d.tipoCombustible === 'GMC',
-                            'bg-purple-100 text-purple-800': d.tipoCombustible === 'GME',
-                            'bg-amber-100 text-amber-800': d.tipoCombustible === 'ACPM'
-                          }">
-                      {{ d.tipoCombustible }}
-                    </span>
-                  </td>
-                  <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">{{ formatGal(d.galonesDespachados) }}</td>
-                  <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">{{ formatCop(d.totalItem) }}</td>
-                  <td class="py-2 px-3 text-center">
-                    <i *ngIf="d.validadoSicom || dec.validacionSicomCompleta" class="fa-solid fa-circle-check text-emerald-600 text-sm" title="Guía Verificada en SICOM"></i>
-                    <i *ngIf="!d.validadoSicom && !dec.validacionSicomCompleta" class="fa-regular fa-circle text-slate-400 text-sm" title="Pendiente de Verificación"></i>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Trazabilidad Histórica de la Declaración -->
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-3">
-          <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-clock-rotate-left text-[#0f4984]"></i>
-            <span>Historial y Trazabilidad de Auditoría</span>
-          </h2>
-
-          <div class="relative pl-6 space-y-4 border-l-2 border-slate-200 ml-2 text-xs">
-            <div *ngFor="let h of dec.historial" class="relative">
-              <span class="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-[#0f4984] border-2 border-white"></span>
-              <div class="space-y-0.5">
-                <div class="flex items-center gap-2">
-                  <span class="font-bold text-slate-900">{{ h.funcionario }}</span>
-                  <span class="text-[10px] text-slate-400">({{ h.cargo }})</span>
-                  <span class="text-[10px] text-slate-400 ml-auto">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+          <!-- Historial de Auditoría -->
+          <div class="border border-slate-200 rounded-xl p-3.5 space-y-2.5">
+            <span class="text-[11px] font-bold uppercase text-slate-500 block">Trazabilidad de Eventos:</span>
+            <div class="relative pl-5 space-y-3 border-l border-slate-200 ml-1 text-xs">
+              <div *ngFor="let h of dec.historial" class="relative">
+                <span class="absolute -left-[24px] top-1 w-2.5 h-2.5 rounded-full bg-[#0f4984]"></span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <strong class="text-slate-800 text-[11px]">{{ h.funcionario }}</strong>
+                    <span class="text-[10px] text-slate-400 font-mono ml-auto">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                  <p class="text-slate-600 text-[10.5px] mt-0.5 leading-snug">{{ h.observacion }}</p>
                 </div>
-                <p class="text-slate-600 text-[11px]">{{ h.observacion }}</p>
               </div>
             </div>
           </div>
+
         </div>
 
+        <ng-template #sinSeleccion>
+          <div class="py-20 text-center text-slate-400">
+            <i class="fa-solid fa-hand-pointer text-3xl mb-2 text-slate-300 block"></i>
+            Seleccione una declaración de la bandeja para auditar guías y dictaminar aprobación o requerimiento.
+          </div>
+        </ng-template>
       </div>
 
-      <ng-template #sinSeleccion>
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-12 text-center text-slate-400">
-          <i class="fa-solid fa-hand-pointer text-3xl mb-2 text-slate-300 block"></i>
-          Selecciona una declaración de la bandeja para auditar guías de despacho y liquidaciones.
-        </div>
-      </ng-template>
-
     </div>
-
   </div>
 
-  <!-- Modales -->
-  <!-- 1. Modal SICOM Interoperabilidad -->
-  <app-sicom-validador-modal
-    *ngIf="mostrarModalSicom() && declaracionSeleccionada()"
-    [declaracion]="declaracionSeleccionada()!"
-    (cerrar)="mostrarModalSicom.set(false)"
-    (validacionCompletada)="onSicomCompletado()"
-  />
+</main>
 
-  <!-- 2. Modal de Requerimiento / Observación -->
-  <app-observacion-modal
-    *ngIf="mostrarModalObservacion() && declaracionSeleccionada()"
-    [declaracion]="declaracionSeleccionada()!"
-    (cerrar)="mostrarModalObservacion.set(false)"
-    (observacionGuardada)="onObservacionCompletada()"
-  />
+<!-- MODALES -->
+<!-- 1. Modal SICOM Interoperabilidad -->
+<app-sicom-validador-modal
+  *ngIf="mostrarModalSicom() && declaracionSeleccionada()"
+  [declaracion]="declaracionSeleccionada()!"
+  (cerrar)="mostrarModalSicom.set(false)"
+  (validacionCompletada)="onSicomCompletado()"
+/>
 
-  <!-- 3. Modal Formulario Oficial -->
-  <app-formulario-oficial-modal
-    *ngIf="mostrarModalFormulario() && declaracionSeleccionada()"
-    [declaracion]="declaracionSeleccionada()!"
-    (cerrar)="mostrarModalFormulario.set(false)"
-  />
+<!-- 2. Modal Auditoría y Dictamen -->
+<app-sobretasa-auditoria-modal
+  *ngIf="mostrarModalAuditoria() && declaracionSeleccionada()"
+  [declaracion]="declaracionSeleccionada()!"
+  [esFuncionario]="true"
+  (aprobar)="onAprobarDesdeModal($event)"
+  (requerir)="onRequerirDesdeModal($event)"
+  (rechazar)="onRechazarDesdeModal($event)"
+  (validarSicom)="abrirValidacionSicom()"
+  (verFormulario)="abrirFormulario($event)"
+  (cerrar)="mostrarModalAuditoria.set(false)"
+/>
 
-  <!-- 4. Modal PSE Simulator -->
-  <app-pse-modal
-    *ngIf="mostrarModalPse() && declaracionSeleccionada()"
-    [declaracion]="declaracionSeleccionada()!"
-    (cerrar)="mostrarModalPse.set(false)"
-    (pagoCompletado)="onPagoCompletado()"
-  />
+<!-- 3. Modal Formulario Oficial PDF -->
+<app-formulario-oficial-modal
+  *ngIf="mostrarModalFormulario() && declaracionSeleccionada()"
+  [declaracion]="declaracionSeleccionada()!"
+  (cerrar)="mostrarModalFormulario.set(false)"
+/>
 
-</div>
+<!-- 4. Modal Asobancario Pago en Ventanilla -->
+<app-sobretasa-asobancario-modal
+  *ngIf="mostrarModalAsobancario() && declaracionSeleccionada()"
+  [declaracion]="declaracionSeleccionada()!"
+  (pagoRegistrado)="onPagoAsobancario($event)"
+  (cerrar)="mostrarModalAsobancario.set(false)"
+/>
+
+<!-- 5. Modal Subsanación -->
+<app-sobretasa-subsanar-modal
+  *ngIf="mostrarModalSubsanar() && declaracionSeleccionada()"
+  [declaracion]="declaracionSeleccionada()!"
+  [edsCatalog]="sobretasaService.edsCatalog()"
+  (subsanar)="onSubsanarGuardado($event)"
+  (cerrar)="mostrarModalSubsanar.set(false)"
+/>

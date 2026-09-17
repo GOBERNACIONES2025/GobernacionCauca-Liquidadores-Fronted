@@ -1,0 +1,339 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-3 sm:p-6 overflow-y-auto">
+  <div class="relative w-full max-w-4xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[92vh] animate-in fade-in zoom-in duration-200">
+    
+    <!-- HEADER -->
+    <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-blue-300">
+          <i class="fa-solid fa-folder-open text-lg"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-bold tracking-tight">Expediente de Sobretasa a Combustibles</h2>
+            <span class="font-mono font-black text-amber-300">{{ declaracion.numeroRadicado }}</span>
+          </div>
+          <p class="text-[11px] text-slate-300">
+            {{ declaracion.mayorista.razonSocial }} &middot; NIT: {{ declaracion.mayorista.nit }} &middot; Periodo {{ declaracion.periodoMes }}/{{ declaracion.periodoAnio }}
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase"
+          [ngClass]="{
+            'bg-amber-100 text-amber-900 border border-amber-300': declaracion.estado === 'EN_REVISION',
+            'bg-rose-100 text-rose-900 border border-rose-300': declaracion.estado === 'OBSERVADO' || declaracion.estado === 'REQUERIDO' || declaracion.estado === 'RECHAZADO',
+            'bg-blue-100 text-blue-900 border border-blue-300': declaracion.estado === 'PENDIENTE_PAGO',
+            'bg-emerald-100 text-emerald-900 border border-emerald-300': declaracion.estado === 'PAGADO_APROBADO'
+          }"
+        >
+          {{ declaracion.estado }}
+        </span>
+        <button
+          type="button"
+          (click)="cerrar.emit()"
+          class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center cursor-pointer transition-colors"
+        >
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="flex-1 overflow-y-auto p-6 bg-slate-50 space-y-5 text-xs text-slate-800">
+      
+      <!-- ALERTA SI ESTA OBSERVADO / REQUERIDO -->
+      <div *ngIf="declaracion.observacionesFiscalizacion"
+           class="p-4 rounded-xl border"
+           [ngClass]="declaracion.estado === 'RECHAZADO' ? 'bg-slate-100 border-slate-300 text-slate-800' : 'bg-rose-50 border-rose-300 text-rose-950'">
+        <h4 class="font-bold uppercase text-[10.5px] flex items-center gap-1.5 mb-1">
+          <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+          <span>Observación Emitida por Rentas Departamentales:</span>
+        </h4>
+        <p class="text-xs leading-relaxed font-medium">
+          "{{ declaracion.observacionesFiscalizacion }}"
+        </p>
+      </div>
+
+      <!-- ALERTA SI FUE SUBSANADO -->
+      <div *ngIf="declaracion.observacionesSubsanacion" class="bg-blue-50 border border-blue-300 rounded-xl p-4 text-blue-950">
+        <h4 class="font-bold uppercase text-[10.5px] flex items-center gap-1.5 mb-1">
+          <i class="fa-solid fa-wrench text-blue-600"></i>
+          <span>Subsanación y Aclaración Presentada por el Mayorista:</span>
+        </h4>
+        <p class="text-xs leading-relaxed font-medium">
+          "{{ declaracion.observacionesSubsanacion }}"
+        </p>
+      </div>
+
+      <!-- 1. DATOS GENERALES Y RESUMEN FINANCIERO -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-slate-400 text-[10px] uppercase font-bold block">Sujeto Pasivo Mayorista</span>
+          <strong class="text-slate-900 block mt-0.5">{{ declaracion.mayorista.nombreComercial }}</strong>
+          <span class="text-[10px] text-slate-500 font-mono">Planta: {{ declaracion.mayorista.codigoSicomPlanta }} ({{ declaracion.mayorista.municipioPlanta }})</span>
+        </div>
+
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-slate-400 text-[10px] uppercase font-bold block">Volumen y Despachos</span>
+          <strong class="text-slate-900 font-mono text-sm block mt-0.5">{{ declaracion.totalGalonesGeneral | number }} Galones</strong>
+          <span class="text-[10px] text-slate-500">{{ declaracion.despachos.length }} Guías registradas &middot; GMC: {{ declaracion.totalGalonesGMC | number }}, GME: {{ declaracion.totalGalonesGME | number }}, ACPM: {{ declaracion.totalGalonesACPM | number }}</span>
+        </div>
+
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs">
+          <span class="text-slate-400 text-[10px] uppercase font-bold block">Total Liquidado a Pagar</span>
+          <strong class="text-base font-black text-emerald-800 font-mono block mt-0.5">{{ formatMoney(declaracion.totalPagar) }}</strong>
+          <span class="text-[10px] text-slate-500">Mun: {{ formatMoney(declaracion.totalMunicipal) }} &middot; Dept: {{ formatMoney(declaracion.totalDepartamental) }}</span>
+        </div>
+      </div>
+
+      <!-- 2. TABLA DE GUIAS Y DESPACHOS -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div class="flex items-center justify-between">
+          <h4 class="font-bold text-[#0f3b73] uppercase text-[11px] tracking-wide flex items-center gap-2">
+            <i class="fa-solid fa-truck-droplet text-amber-600"></i>
+            <span>Detalle de Guías de Despacho SICOM ({{ declaracion.despachos.length }})</span>
+          </h4>
+          <span *ngIf="declaracion.validacionSicomCompleta" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800">
+            <i class="fa-solid fa-check-double text-emerald-600"></i>
+            <span>100% Cruzado SICOM</span>
+          </span>
+        </div>
+
+        <div class="border border-slate-200 rounded-xl overflow-x-auto max-h-60 overflow-y-auto">
+          <table class="w-full text-xs text-left border-collapse">
+            <thead class="sticky top-0 bg-slate-100 text-slate-700 font-bold border-b border-slate-200 z-10">
+              <tr>
+                <th class="py-2.5 px-3">No. Guía</th>
+                <th class="py-2.5 px-3">Fecha</th>
+                <th class="py-2.5 px-3">Placa</th>
+                <th class="py-2.5 px-3">EDS Destino</th>
+                <th class="py-2.5 px-3">Combustible</th>
+                <th class="py-2.5 px-3 text-right">Galones</th>
+                <th class="py-2.5 px-3 text-right">Total Item</th>
+                <th class="py-2.5 px-3 text-center">SICOM</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr *ngFor="let d of declaracion.despachos" class="hover:bg-slate-50">
+                <td class="py-2 px-3 font-mono font-bold text-slate-800">{{ d.codigoGuiaSicom }}</td>
+                <td class="py-2 px-3 text-slate-600">{{ d.fechaDespacho }}</td>
+                <td class="py-2 px-3 font-mono font-semibold">{{ d.placaVehiculo }}</td>
+                <td class="py-2 px-3 text-slate-700">
+                  {{ d.estacionServicio?.nombreComercial || d.codigoSicomEds }}
+                  <span class="text-[10px] text-slate-400 block">{{ d.estacionServicio?.municipio }}</span>
+                </td>
+                <td class="py-2 px-3">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                        [ngClass]="{
+                          'bg-blue-100 text-blue-800': d.tipoCombustible === 'GMC',
+                          'bg-purple-100 text-purple-800': d.tipoCombustible === 'GME',
+                          'bg-amber-100 text-amber-800': d.tipoCombustible === 'ACPM'
+                        }">
+                    {{ d.tipoCombustible }}
+                  </span>
+                </td>
+                <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">{{ d.galonesDespachados | number }}</td>
+                <td class="py-2 px-3 text-right font-mono font-bold text-slate-900">{{ formatMoney(d.totalItem) }}</td>
+                <td class="py-2 px-3 text-center">
+                  <i *ngIf="d.validadoSicom || declaracion.validacionSicomCompleta" class="fa-solid fa-circle-check text-emerald-600 text-sm" title="Guía Verificada en SICOM"></i>
+                  <i *ngIf="!d.validadoSicom && !declaracion.validacionSicomCompleta" class="fa-regular fa-circle text-slate-400 text-sm" title="Pendiente de Verificación"></i>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. TRAZABILIDAD HISTORICA / HISTORIAL AUDITORIA -->
+      <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-3">
+        <h4 class="font-bold text-[#0f3b73] uppercase text-[11px] tracking-wide flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
+          <span>Trazabilidad y Cronología del Expediente</span>
+        </h4>
+
+        <div class="relative pl-6 space-y-4 border-l-2 border-slate-200 ml-2">
+          <div *ngFor="let h of declaracion.historial" class="relative">
+            <span class="absolute -left-[31px] top-0.5 w-3.5 h-3.5 rounded-full bg-[#0f4984] border-2 border-white"></span>
+            <div class="space-y-0.5">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-900">{{ h.funcionario }}</span>
+                <span class="text-[10px] text-slate-400">({{ h.cargo }})</span>
+                <span class="text-[10px] text-slate-400 ml-auto font-mono">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <p class="text-slate-600 text-[11px] leading-relaxed">{{ h.observacion }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SI ESTA EN MODO ACCION (APROBAR, REQUERIR O RECHAZAR) -->
+      <div *ngIf="modoAccion() !== 'DETALLE'" class="bg-white border-2 rounded-xl p-4 sm:p-5 shadow-md space-y-3 animate-in fade-in"
+           [ngClass]="{
+             'border-emerald-500 bg-emerald-50/20': modoAccion() === 'APROBAR',
+             'border-amber-500 bg-amber-50/20': modoAccion() === 'REQUERIR',
+             'border-rose-500 bg-rose-50/20': modoAccion() === 'RECHAZAR'
+           }">
+        <h4 class="font-bold text-xs uppercase flex items-center gap-2"
+            [ngClass]="{
+              'text-emerald-900': modoAccion() === 'APROBAR',
+              'text-amber-900': modoAccion() === 'REQUERIR',
+              'text-rose-900': modoAccion() === 'RECHAZAR'
+            }">
+          <i *ngIf="modoAccion() === 'APROBAR'" class="fa-solid fa-circle-check text-emerald-600"></i>
+          <i *ngIf="modoAccion() === 'REQUERIR'" class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+          <i *ngIf="modoAccion() === 'RECHAZAR'" class="fa-solid fa-circle-xmark text-rose-600"></i>
+          <span>
+            {{ modoAccion() === 'APROBAR' ? 'Confirmar Aprobación de Declaración' : modoAccion() === 'REQUERIR' ? 'Devolver Declaración para Subsanación del Cliente' : 'Rechazar Declaración' }}
+          </span>
+        </h4>
+
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1 text-[11px]">
+            {{ modoAccion() === 'APROBAR' ? 'Dictamen de Aprobación (Opcional)' : 'Motivo y Detalle del Requerimiento / Causal *' }}
+          </label>
+          <textarea
+            [(ngModel)]="observacionTexto"
+            rows="3"
+            class="w-full text-xs p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:outline-none resize-none"
+            [placeholder]="modoAccion() === 'REQUERIR' ? 'Especifique la discrepancia en galones, tarifa municipal o soporte SICOM que el contribuyente debe corregir...' : 'Observación formal...'"
+          ></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            (click)="cancelarAccion()"
+            class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+          >
+            Cancelar
+          </button>
+          
+          <button
+            *ngIf="modoAccion() === 'APROBAR'"
+            type="button"
+            (click)="confirmarAprobar()"
+            class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-sm transition-colors cursor-pointer"
+          >
+            Aprobar y Habilitar para Pago
+          </button>
+
+          <button
+            *ngIf="modoAccion() === 'REQUERIR'"
+            type="button"
+            (click)="confirmarRequerir()"
+            [disabled]="!observacionTexto.trim()"
+            class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white shadow-sm transition-colors cursor-pointer"
+          >
+            Devolver al Mayorista con Requerimiento
+          </button>
+
+          <button
+            *ngIf="modoAccion() === 'RECHAZAR'"
+            type="button"
+            (click)="confirmarRechazar()"
+            [disabled]="!observacionTexto.trim()"
+            class="px-5 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white shadow-sm transition-colors cursor-pointer"
+          >
+            Confirmar Rechazo
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER CON ACCIONES -->
+    <div class="bg-slate-100 border-t border-slate-200 px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 shrink-0">
+      
+      <!-- Botón Formulario PDF -->
+      <button
+        type="button"
+        (click)="verFormulario.emit(declaracion)"
+        class="px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-800 border border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+      >
+        <i class="fa-solid fa-file-invoice-dollar text-[#0f4984]"></i>
+        <span>Ver Formulario Oficial PDF</span>
+      </button>
+
+      <!-- Botones Contextuales según Rol y Estado -->
+      <div class="flex items-center gap-2">
+        
+        <!-- MODO FUNCIONARIO: APROBAR / REQUERIR / VALIDAR SICOM -->
+        @if (esFuncionario && modoAccion() === 'DETALLE') {
+          <button
+            type="button"
+            (click)="validarSicom.emit(declaracion.id)"
+            class="px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 text-[#0f4984] border border-blue-200 hover:bg-blue-100 transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <i class="fa-solid fa-satellite-dish"></i>
+            <span>Validar SICOM</span>
+          </button>
+
+          <button
+            *ngIf="declaracion.estado === 'EN_REVISION' || declaracion.estado === 'OBSERVADO'"
+            type="button"
+            (click)="iniciarRequerimiento()"
+            class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>Devolver / Requerir</span>
+          </button>
+
+          <button
+            *ngIf="declaracion.estado === 'EN_REVISION' || declaracion.estado === 'OBSERVADO'"
+            type="button"
+            (click)="iniciarAprobacion()"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+          >
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Aprobar Liquidación</span>
+          </button>
+        }
+
+        <!-- MODO CLIENTE / CIUDADANO -->
+        @if (!esFuncionario && modoAccion() === 'DETALLE') {
+          <button
+            *ngIf="declaracion.estado === 'OBSERVADO' || declaracion.estado === 'REQUERIDO'"
+            type="button"
+            (click)="subsanar.emit(declaracion)"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <i class="fa-solid fa-pen-to-square"></i>
+            <span>Subsanar y Editar Despachos</span>
+          </button>
+
+          <button
+            *ngIf="declaracion.estado === 'PENDIENTE_PAGO'"
+            type="button"
+            (click)="pagarPse.emit(declaracion)"
+            class="px-4 py-2 rounded-xl text-xs font-bold bg-[#0f4984] hover:bg-[#0a274d] text-white shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <i class="fa-solid fa-credit-card"></i>
+            <span>Pagar PSE</span>
+          </button>
+
+          <button
+            *ngIf="declaracion.estado === 'PENDIENTE_PAGO'"
+            type="button"
+            (click)="pagarAsobancario.emit(declaracion)"
+            class="px-3.5 py-2 rounded-xl text-xs font-bold bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <i class="fa-solid fa-building-columns"></i>
+            <span>Relacionar Banco</span>
+          </button>
+        }
+
+        <button
+          type="button"
+          (click)="cerrar.emit()"
+          class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+        >
+          Cerrar
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>

@@ -9,9 +9,13 @@ export type TipoCombustible = 'GMC' | 'GME' | 'ACPM';
 export type EstadoDeclaracion = 
   | 'BORRADOR'
   | 'EN_REVISION'
+  | 'REQUERIDO'
+  | 'OBSERVADO'
   | 'PENDIENTE_PAGO'
   | 'PAGADO_APROBADO'
-  | 'OBSERVADO';
+  | 'RECHAZADO';
+
+export type MetodoPagoSobretasa = 'PSE' | 'ASOBANCARIO_VENTANILLA' | 'TRANSFERENCIA_BANCOLOMBIA';
 
 export interface DistribuidorMayorista {
   id: string;
@@ -56,20 +60,21 @@ export interface DespachoItem {
 }
 
 export interface RegistroPagoSobretasa {
-  metodo: 'PSE' | 'ASOBANCARIO_VENTANILLA' | 'TRANSFERENCIA_BANCOLOMBIA';
+  metodo: MetodoPagoSobretasa;
   referenciaPago: string;
   codigoCus?: string;
   banco: string;
   fechaPago: string;
   valorPagado: number;
-  estadoPago: 'APROBADO' | 'PENDIENTE';
+  estadoPago: 'APROBADO' | 'PENDIENTE' | 'RECHAZADO';
+  comprobanteUrl?: string;
 }
 
 export interface HistorialFiscalizacionSobretasa {
   fecha: string;
   funcionario: string;
   cargo: string;
-  accion: 'RADICACION' | 'VALIDACION_SICOM' | 'APROBACION' | 'OBSERVACION' | 'SUBSANACION' | 'PAGO_REGISTRADO';
+  accion: 'RADICACION' | 'VALIDACION_SICOM' | 'APROBACION' | 'REQUERIMIENTO' | 'OBSERVACION' | 'SUBSANACION' | 'PAGO_REGISTRADO' | 'RECHAZO';
   observacion: string;
   estadoAnterior?: EstadoDeclaracion;
   estadoNuevo: EstadoDeclaracion;

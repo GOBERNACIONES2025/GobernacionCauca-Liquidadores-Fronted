@@ -2,18 +2,30 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SobretasaService } from '../../../application/sobretasa.service';
-import { DeclaracionSobretasa } from '../../../domain/models/sobretasa-gasolina.models';
+import { DeclaracionSobretasa, DespachoItem } from '../../../domain/models/sobretasa-gasolina.models';
 import {
   formatGalones,
   formatMoneyCop,
   TARIFAS_SOBRETASA_2026,
 } from '../../../domain/calculator/sobretasa-tax-calculator';
 import { FormularioOficialModalComponent } from '../../components/formulario-oficial-modal/formulario-oficial-modal';
+import { PseModalComponent } from '../../components/pse-modal/pse-modal';
+import { SobretasaAuditoriaModalComponent } from '../../components/auditoria-modal/auditoria-modal.component';
+import { SobretasaAsobancarioModalComponent } from '../../components/asobancario-modal/asobancario-modal.component';
+import { SobretasaSubsanarModalComponent } from '../../components/subsanar-modal/subsanar-modal.component';
 
 @Component({
   selector: 'app-sobretasa-declaraciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, FormularioOficialModalComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    FormularioOficialModalComponent,
+    PseModalComponent,
+    SobretasaAuditoriaModalComponent,
+    SobretasaAsobancarioModalComponent,
+    SobretasaSubsanarModalComponent,
+  ],
   templateUrl: './sobretasa-declaraciones.html',
 })
 export class SobretasaDeclaracionesComponent {
@@ -21,8 +33,12 @@ export class SobretasaDeclaracionesComponent {
 
   tarifas = TARIFAS_SOBRETASA_2026;
 
+  // Notificación
+  readonly mensajeExito = signal<string | null>(null);
+
   // Modales
-  declaracionSeleccionadaParaFormulario = signal<DeclaracionSobretasa | null>(null);
+  readonly modalActivo = signal<'FORMULARIO' | 'AUDITORIA' | 'PSE' | 'ASOBANCARIO' | 'SUBSANAR' | null>(null);
+  readonly declaracionSeleccionada = signal<DeclaracionSobretasa | null>(null);
 
   // Filtros
   filtroMayorista = 'TODOS';
@@ -53,7 +69,11 @@ export class SobretasaDeclaracionesComponent {
     }
 
     if (this.filtroEstado !== 'TODOS') {
-      list = list.filter((d) => d.estado === this.filtroEstado);
+      if (this.filtroEstado === 'OBSERVADO') {
+        list = list.filter((d) => d.estado === 'OBSERVADO' || d.estado === 'REQUERIDO');
+      } else {
+        list = list.filter((d) => d.estado === this.filtroEstado);
+      }
     }
 
     if (this.filtroMes !== 'TODOS') {
@@ -63,11 +83,74 @@ export class SobretasaDeclaracionesComponent {
 
     if (this.busquedaRadicado.trim()) {
       const q = this.busquedaRadicado.toLowerCase().trim();
-      list = list.filter((d) => d.numeroRadicado.toLowerCase().includes(q));
+      list = list.filter((d) => d.numeroRadicado.toLowerCase().includes(q) || d.mayorista.razonSocial.toLowerCase().includes(q));
     }
 
     return list;
   });
+
+  abrirFormulario(dec: DeclaracionSobretasa): void {
+    this.declaracionSeleccionada.set(dec);
+    this.modalActivo.set('FORMULARIO');
+  }
+
+  abrirAuditoria(dec: DeclaracionSobretasa): void {
+    this.declaracionSeleccionada.set(dec);
+    this.modalActivo.set('AUDITORIA');
+  }
+
+  abrirPse(dec: DeclaracionSobretasa): void {
+    this.declaracionSeleccionada.set(dec);
+    this.modalActivo.set('PSE');
+  }
+
+  abrirAsobancario(dec: DeclaracionSobretasa): void {
+    this.declaracionSeleccionada.set(dec);
+    this.modalActivo.set('ASOBANCARIO');
+  }
+
+  abrirSubsanar(dec: DeclaracionSobretasa): void {
+    this.declaracionSeleccionada.set(dec);
+    this.modalActivo.set('SUBSANAR');
+  }
+
+  cerrarModales(): void {
+    this.modalActivo.set(null);
+    this.declaracionSeleccionada.set(null);
+  }
+
+  onAprobar(evt: { id: string; observacion: string }): void {
+    this.sobretasaService.aprobarDeclaracion(evt.id, 'Dr. Carlos Alberto Medina (Auditor)', evt.observacion);
+    this.cerrarModales();
+    this.mensajeExito.set(`Declaración aprobada exitosamente.`);
+  }
+
+  onRequerir(evt: { id: string; motivo: string }): void {
+    this.sobretasaService.observarDeclaracion(evt.id, 'Dr. Carlos Alberto Medina (Auditor)', evt.motivo);
+    this.cerrarModales();
+    this.mensajeExito.set(`Declaración devuelta al mayorista con requerimiento.`);
+  }
+
+  onRechazar(evt: { id: string; motivo: string }): void {
+    this.sobretasaService.rechazarDeclaracion(evt.id, evt.motivo, 'Dr. Carlos Alberto Medina (Auditor)');
+    this.cerrarModales();
+    this.mensajeExito.set(`Declaración rechazada.`);
+  }
+
+  onPagoAsobancario(data: { metodo: 'ASOBANCARIO_VENTANILLA'; banco: string; referencia: string; fecha: string }): void {
+    const sel = this.declaracionSeleccionada();
+    if (!sel) return;
+
+    this.sobretasaService.procesarPagoAsobancario(sel.id, data);
+    this.cerrarModales();
+    this.mensajeExito.set(`Pago bancario registrado satisfactoriamente.`);
+  }
+
+  onSubsanarGuardado(data: { id: string; despachos: DespachoItem[]; motivo: string }): void {
+    this.sobretasaService.subsanarDeclaracion(data.id, data.despachos, data.motivo);
+    this.cerrarModales();
+    this.mensajeExito.set(`Declaración subsanada y actualizada.`);
+  }
 
   exportarCsv(): void {
     const list = this.declaracionesFiltradas();
@@ -95,7 +178,7 @@ export class SobretasaDeclaracionesComponent {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `reporte_sobretasa_cauca_${Date.now()}.csv`);
+    link.setAttribute('download', `expediente_sobretasa_cauca_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

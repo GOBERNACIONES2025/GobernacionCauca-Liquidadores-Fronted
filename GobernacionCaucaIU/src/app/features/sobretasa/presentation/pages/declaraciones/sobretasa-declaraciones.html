@@ -1,5 +1,13 @@
 <div class="space-y-6">
   
+  <!-- Notificación Toast -->
+  @if (mensajeExito()) {
+    <div class="bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-md flex items-center justify-between text-xs font-semibold animate-fade-in">
+      <span>{{ mensajeExito() }}</span>
+      <button (click)="mensajeExito.set(null)" class="text-white/80 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  }
+
   <!-- Page Header -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
@@ -61,7 +69,7 @@
         <option value="EN_REVISION">En Revisión</option>
         <option value="PENDIENTE_PAGO">Pendiente de Pago</option>
         <option value="PAGADO_APROBADO">Pagado y Aprobado</option>
-        <option value="OBSERVADO">Observado</option>
+        <option value="OBSERVADO">Observado / Requerido</option>
       </select>
     </div>
 
@@ -98,7 +106,7 @@
             <th class="py-3 px-4 text-right">Departamental</th>
             <th class="py-3 px-4 text-right">Total Liquidado</th>
             <th class="py-3 px-4 text-center">Estado</th>
-            <th class="py-3 px-4 text-center">Formulario</th>
+            <th class="py-3 px-4 text-right">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -115,10 +123,10 @@
             <td class="py-3 px-4 font-medium text-slate-800">{{ d.mayorista.nombreComercial }}</td>
             <td class="py-3 px-4 text-slate-600">{{ getNombreMes(d.periodoMes) }} / {{ d.periodoAnio }}</td>
             <td class="py-3 px-4 text-slate-600">{{ d.fechaRadicacion | date:'dd/MM/yyyy' }}</td>
-            <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">{{ formatGal(d.totalGalonesGeneral) }}</td>
+            <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">{{ d.totalGalonesGeneral | number }}</td>
             <td class="py-3 px-4 text-right font-mono text-slate-700">{{ formatCop(d.totalMunicipal) }}</td>
             <td class="py-3 px-4 text-right font-mono text-slate-700">{{ formatCop(d.totalDepartamental) }}</td>
-            <td class="py-3 px-4 text-right font-mono font-black text-slate-900">{{ formatCop(d.totalPagar) }}</td>
+            <td class="py-3 px-4 text-right font-mono font-black text-emerald-800">{{ formatCop(d.totalPagar) }}</td>
             <td class="py-3 px-4 text-center">
               <span
                 class="inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
@@ -126,21 +134,52 @@
                   'bg-emerald-100 text-emerald-800 border border-emerald-300': d.estado === 'PAGADO_APROBADO',
                   'bg-amber-100 text-amber-800 border border-amber-300': d.estado === 'PENDIENTE_PAGO',
                   'bg-blue-100 text-blue-800 border border-blue-300': d.estado === 'EN_REVISION',
-                  'bg-rose-100 text-rose-800 border border-rose-300': d.estado === 'OBSERVADO'
+                  'bg-rose-100 text-rose-800 border border-rose-300': d.estado === 'OBSERVADO' || d.estado === 'REQUERIDO' || d.estado === 'RECHAZADO'
                 }"
               >
                 {{ d.estado }}
               </span>
             </td>
-            <td class="py-3 px-4 text-center">
+            <td class="py-3 px-4 text-right whitespace-nowrap">
               <button
                 type="button"
-                (click)="declaracionSeleccionadaParaFormulario.set(d)"
-                class="p-1.5 rounded-lg text-[#0f4984] hover:bg-blue-50 transition-colors cursor-pointer"
+                (click)="abrirFormulario(d)"
+                class="px-2.5 py-1 rounded bg-slate-100 text-slate-800 border border-slate-300 font-bold text-[11px] hover:bg-slate-200 cursor-pointer mr-1"
                 title="Ver Formulario Oficial Ley 2093 de 2021"
               >
-                <i class="fa-solid fa-file-invoice text-base"></i>
+                <i class="fa-solid fa-file-invoice-dollar mr-1 text-[#0f4984]"></i>
+                <span>PDF</span>
               </button>
+
+              <button
+                type="button"
+                (click)="abrirAuditoria(d)"
+                class="px-2.5 py-1 rounded bg-blue-50 text-[#0f4984] border border-blue-200 font-bold text-[11px] hover:bg-blue-100 cursor-pointer mr-1"
+                title="Ver Expediente Completo"
+              >
+                <i class="fa-solid fa-eye mr-1"></i>
+                <span>Auditar</span>
+              </button>
+
+              @if (d.estado === 'PENDIENTE_PAGO') {
+                <button
+                  type="button"
+                  (click)="abrirPse(d)"
+                  class="px-2.5 py-1 rounded bg-[#0f4984] text-white font-bold text-[11px] hover:bg-[#0a274d] cursor-pointer mr-1"
+                >
+                  Pagar
+                </button>
+              }
+
+              @if (d.estado === 'OBSERVADO' || d.estado === 'REQUERIDO') {
+                <button
+                  type="button"
+                  (click)="abrirSubsanar(d)"
+                  class="px-2.5 py-1 rounded bg-amber-600 text-white font-bold text-[11px] hover:bg-amber-700 cursor-pointer"
+                >
+                  Subsanar
+                </button>
+              }
             </td>
           </tr>
         </tbody>
@@ -148,11 +187,49 @@
     </div>
   </div>
 
-  <!-- Modal Formulario Oficial -->
-  <app-formulario-oficial-modal
-    *ngIf="declaracionSeleccionadaParaFormulario()"
-    [declaracion]="declaracionSeleccionadaParaFormulario()!"
-    (cerrar)="declaracionSeleccionadaParaFormulario.set(null)"
-  />
-
 </div>
+
+<!-- MODALES -->
+@if (modalActivo() === 'FORMULARIO' && declaracionSeleccionada()) {
+  <app-formulario-oficial-modal
+    [declaracion]="declaracionSeleccionada()!"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'AUDITORIA' && declaracionSeleccionada()) {
+  <app-sobretasa-auditoria-modal
+    [declaracion]="declaracionSeleccionada()!"
+    [esFuncionario]="true"
+    (aprobar)="onAprobar($event)"
+    (requerir)="onRequerir($event)"
+    (rechazar)="onRechazar($event)"
+    (verFormulario)="abrirFormulario($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'PSE' && declaracionSeleccionada()) {
+  <app-pse-modal
+    [declaracion]="declaracionSeleccionada()!"
+    (cerrar)="cerrarModales()"
+    (pagoCompletado)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'ASOBANCARIO' && declaracionSeleccionada()) {
+  <app-sobretasa-asobancario-modal
+    [declaracion]="declaracionSeleccionada()!"
+    (pagoRegistrado)="onPagoAsobancario($event)"
+    (cerrar)="cerrarModales()"
+  />
+}
+
+@if (modalActivo() === 'SUBSANAR' && declaracionSeleccionada()) {
+  <app-sobretasa-subsanar-modal
+    [declaracion]="declaracionSeleccionada()!"
+    [edsCatalog]="sobretasaService.edsCatalog()"
+    (subsanar)="onSubsanarGuardado($event)"
+    (cerrar)="cerrarModales()"
+  />
+}

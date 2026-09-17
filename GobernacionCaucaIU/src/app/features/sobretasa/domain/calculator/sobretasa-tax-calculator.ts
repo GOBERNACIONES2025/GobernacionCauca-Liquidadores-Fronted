@@ -229,8 +229,11 @@ export function formatMoneyCop(val: number): string {
   }).format(val || 0);
 }
 
+export const formatCurrencyCop = formatMoneyCop;
+
 export function formatGalones(val: number): string {
   return new Intl.NumberFormat('es-CO', {
     maximumFractionDigits: 0,
   }).format(val || 0) + ' Gl';
 }
+
