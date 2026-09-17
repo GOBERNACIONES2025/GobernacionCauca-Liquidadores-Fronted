@@ -17,8 +17,7 @@
   <!-- BARRA SUPERIOR DE HERRAMIENTAS (NO SE IMPRIME) -->
   <div class="bg-white border border-slate-300 rounded-xl px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-sm print:hidden">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md"
-           [ngClass]="wizardService.liquidacionGeneradaExitosa() ? 'bg-emerald-700' : 'bg-blue-900'">
+      <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white shrink-0 shadow-md bg-blue-900">
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
@@ -26,33 +25,30 @@
       <div>
         <div class="flex items-center gap-2">
           <h2 class="text-base font-black tracking-tight text-slate-900 uppercase">
-            {{ wizardService.liquidacionGeneradaExitosa() ? 'Formulario Oficial de Liquidación - Emitido' : 'Simulación de Formulario Oficial de Liquidación' }}
+            Simulación y Preliquidación Estimada
           </h2>
-          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border"
-                [ngClass]="wizardService.liquidacionGeneradaExitosa() ? 'bg-emerald-100 text-emerald-900 border-emerald-400' : 'bg-amber-100 text-amber-900 border-amber-400'">
-            {{ wizardService.liquidacionGeneradaExitosa() ? 'OFICIAL - VIGENTE' : 'VISTA PREVIA DE LIQUIDACIÓN' }}
+          <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border bg-amber-100 text-amber-900 border-amber-400">
+            SIMULACIÓN INFORMATIVA
           </span>
         </div>
         <p class="text-xs text-slate-600 mt-0.5">
-          Formato idéntico al documento tributario oficial expedido por la Gobernación del Departamento del Cauca.
+          Proyección estimada de cálculo tributario conforme a la Ley 223 de 1995. Sujeta a revisión y liquidación oficial por la Gobernación del Cauca.
         </p>
       </div>
     </div>
 
-    <!-- Botones de Acción -->
+    <!-- Botón Recalcular -->
     <div class="flex items-center gap-2 self-end md:self-auto">
-      @if (!wizardService.liquidacionGeneradaExitosa()) {
-        <button 
-          (click)="cargarSimulacion()" 
-          [disabled]="isSimulating()"
-          type="button"
-          class="px-4 py-2 text-xs font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-300 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50">
-          <svg class="w-4 h-4" [ngClass]="{'animate-spin': isSimulating()}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Recalcular
-        </button>
-      }
+      <button 
+        (click)="cargarSimulacion()" 
+        [disabled]="isSimulating()"
+        type="button"
+        class="px-4 py-2 text-xs font-bold text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-300 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50 cursor-pointer">
+        <svg class="w-4 h-4" [ngClass]="{'animate-spin': isSimulating()}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Recalcular Simulación
+      </button>
     </div>
   </div>
 
@@ -78,7 +74,7 @@
         <div class="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 opacity-[0.04]">
           <div class="text-center">
             <span class="text-[110px] font-black uppercase rotate-[-25deg] tracking-widest block text-slate-950">SIMULACIÓN</span>
-            <span class="text-3xl font-bold uppercase rotate-[-25deg] tracking-wider block text-slate-900">SIN VALIDEZ DE RECAUDO HASTA GENERACIÓN OFICIAL</span>
+            <span class="text-2xl font-bold uppercase rotate-[-25deg] tracking-wider block text-slate-900">SIMULACIÓN ESTIMADA - NO VÁLIDO PARA RECAUDO BANCARIO HASTA APROBACIÓN POR GOBERNACIÓN</span>
           </div>
         </div>
       }
@@ -122,7 +118,7 @@
             <div class="p-1.5 flex justify-between items-center">
               <span class="text-[8px] font-bold uppercase text-slate-600">[01] No. Liquidación:</span>
               <span class="font-mono font-black text-xs text-blue-950">
-                {{ wizardService.liquidacionGeneradaExitosa() ? ('LIQ-' + (wizardService.idLiquidacionFinal() || resumen.numeroLiquidacion)) : (resumen.numeroLiquidacion || 'SIM-PREVIA') }}
+                SIMULACIÓN
               </span>
             </div>
             <div class="p-1.5 flex justify-between items-center">
@@ -156,7 +152,7 @@
           <div class="p-2">
             <div class="text-[8px] font-bold uppercase text-slate-500">[07] Estado del Documento</div>
             <div class="font-bold text-xs uppercase mt-0.5" [ngClass]="wizardService.liquidacionGeneradaExitosa() ? 'text-emerald-700' : 'text-amber-800'">
-              {{ wizardService.liquidacionGeneradaExitosa() ? 'OFICIAL VIGENTE' : 'PRE-LIQUIDACIÓN (SIM)' }}
+              PRE-LIQUIDACIÓN (SIMULACIÓN)
             </div>
             @if (resumen.esExtemporaneo) {
               <div class="inline-block mt-0.5 text-[8px] font-black uppercase text-red-700 bg-red-100 border border-red-200 px-1 py-0.2 rounded">
@@ -509,179 +505,77 @@
         </div>
 
         <!-- ==================================================== -->
-        <!-- 9. TALÓN DE PAGO Y DESPRENDIBLE BANCARIO OFICIAL     -->
         <!-- ==================================================== -->
-        <div class="pt-4">
-          <!-- Línea punteada de corte estilo factura real -->
-          <div class="relative flex items-center justify-center my-3 select-none">
-            <div class="border-t-2 border-dashed border-slate-600 w-full"></div>
-            <span class="bg-white px-3 text-[9px] font-black uppercase tracking-widest text-slate-600 flex items-center gap-1 shrink-0 border border-slate-300 rounded-full">
-              ✄ CORTAR AQUÍ (COPIA BANCO / COMPROBANTE OFICIAL DE RECAUDO)
-            </span>
-          </div>
-
+        <!-- 9. RESUMEN FINAL DE LA SIMULACIÓN Y AVISO NORMATIVO  -->
+        <!-- ==================================================== -->
+        <div class="pt-3">
           <div class="border-2 border-slate-900 bg-white">
             
-            <!-- Cabecera del Talón Bancario -->
-            <div class="bg-slate-800 text-white px-3 py-1.5 flex flex-col sm:flex-row justify-between items-center gap-1 text-[9px]">
+            <!-- Cabecera del Resumen -->
+            <div class="bg-blue-950 text-white px-3 py-1.5 flex flex-col sm:flex-row justify-between items-center gap-1 text-[9px]">
               <div class="font-black uppercase tracking-wider flex items-center gap-2">
-                <span class="w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[8px] font-black">✓</span>
-                GOBERNACIÓN DEL CAUCA &bull; TALÓN OFICIAL DE RECAUDO BANCARIO
+                <span class="w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-900 flex items-center justify-center text-[8px] font-black">i</span>
+                GOBERNACIÓN DEL CAUCA &bull; RESUMEN CONSOLIDADO DE PRELIQUIDACIÓN ESTIMADA
               </div>
               <div class="font-mono font-bold text-amber-300">
-                FORMULARIO: {{ wizardService.liquidacionGeneradaExitosa() ? ('LIQ-' + (wizardService.idLiquidacionFinal() || resumen.numeroLiquidacion)) : (resumen.numeroLiquidacion || 'SIM-PREVIA') }}
+                RADICADO: {{ datosRadicacion().numeroRadicado }}
               </div>
             </div>
 
-            <div class="p-3 grid grid-cols-12 gap-3 items-center">
+            <div class="p-4 grid grid-cols-12 gap-4 items-stretch">
               
-              <!-- Datos de Recaudo (7 cols) -->
-              <div class="col-span-12 sm:col-span-7 space-y-1.5 text-xs">
-                <div class="grid grid-cols-2 gap-2 text-[10px]">
-                  <div>
-                    <span class="text-slate-500 font-bold uppercase text-[8px] block">Contribuyente:</span>
-                    <span class="font-bold text-slate-950 truncate block">{{ datosContribuyente().nombre || 'CONTRIBUYENTE' }}</span>
+              <!-- Aviso Normativo / Sin Código de Barras (7 cols) -->
+              <div class="col-span-12 sm:col-span-7 flex flex-col justify-between">
+                <div class="border border-amber-300 bg-amber-50/80 p-3.5 rounded-lg flex items-start gap-3">
+                  <div class="p-2 bg-amber-200 text-amber-900 rounded-lg shrink-0 mt-0.5">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                   </div>
                   <div>
-                    <span class="text-slate-500 font-bold uppercase text-[8px] block">Identificación:</span>
-                    <span class="font-mono font-bold text-slate-900">{{ datosContribuyente().numeroIdentificacion || 'N/A' }}</span>
+                    <div class="text-xs font-black uppercase text-amber-950 tracking-wide">
+                      DOCUMENTO ESTIMADO - PENDIENTE DE REVISIÓN OFICIAL
+                    </div>
+                    <p class="text-[10px] text-amber-900 mt-1 leading-relaxed">
+                      Este cálculo corresponde a una <strong>simulación previa informativa</strong> generada en el sistema según los actos e intervinientes cargados. <strong>No contiene código de barras para recaudo bancario</strong> ni habilita el pago ante entidades financieras.
+                    </p>
+                    <p class="text-[10px] text-amber-800 mt-1 font-medium">
+                      Para continuar con el trámite, haga clic en el botón <strong>"Radicar Solicitud"</strong>. Los funcionarios fiscalizadores de la Gobernación del Cauca revisarán el expediente y expedirán la Liquidación Oficial definitiva.
+                    </p>
                   </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-2 text-[10px]">
-                  <div>
-                    <span class="text-slate-500 font-bold uppercase text-[8px] block">No. Radicación / Trámite:</span>
-                    <span class="font-mono font-bold text-slate-900">{{ datosRadicacion().numeroRadicado }}</span>
-                  </div>
+                <div class="grid grid-cols-2 gap-2 text-[10px] mt-2 px-1">
                   <div>
                     <span class="text-slate-500 font-bold uppercase text-[8px] block">Fecha Límite Oportuna:</span>
                     <span class="font-mono font-black text-red-700">{{ fechaLimiteOportunaFormatted() }}</span>
                   </div>
                   <div>
-                    <span class="text-slate-500 font-bold uppercase text-[8px] block">Vence Recibo de Pago:</span>
-                    <span class="font-mono font-bold text-slate-800">{{ fechaVencimientoFormatted() }}</span>
-                  </div>
-                </div>
-
-                <!-- Código de Barras Real Renderizado en SVG -->
-                <div class="pt-2 border-t border-slate-200">
-                  <div class="bg-white p-2 border border-slate-300 rounded flex flex-col items-center">
-                    <!-- SVG Barcode con líneas auténticas GS1-128 -->
-                    <svg viewBox="0 0 420 50" class="w-full h-10 select-none" preserveAspectRatio="none">
-                      <!-- Barras SVG con anchos variables auténticos de código de barras 128 -->
-                      <g fill="#0f172a">
-                        <!-- Quiet zone / Start code -->
-                        <rect x="0" y="0" width="3" height="42" />
-                        <rect x="5" y="0" width="1" height="42" />
-                        <rect x="8" y="0" width="4" height="42" />
-                        <rect x="15" y="0" width="2" height="42" />
-                        <rect x="19" y="0" width="1" height="42" />
-                        <rect x="22" y="0" width="3" height="42" />
-                        <rect x="28" y="0" width="2" height="42" />
-                        <rect x="33" y="0" width="4" height="42" />
-                        <rect x="39" y="0" width="1" height="42" />
-                        <rect x="42" y="0" width="3" height="42" />
-                        <rect x="48" y="0" width="1" height="42" />
-                        <rect x="52" y="0" width="4" height="42" />
-                        <rect x="58" y="0" width="2" height="42" />
-                        <rect x="63" y="0" width="3" height="42" />
-                        <rect x="68" y="0" width="1" height="42" />
-                        <rect x="72" y="0" width="4" height="42" />
-                        <rect x="78" y="0" width="2" height="42" />
-                        <rect x="83" y="0" width="1" height="42" />
-                        <rect x="87" y="0" width="3" height="42" />
-                        <rect x="93" y="0" width="4" height="42" />
-                        <rect x="100" y="0" width="1" height="42" />
-                        <rect x="104" y="0" width="3" height="42" />
-                        <rect x="110" y="0" width="2" height="42" />
-                        <rect x="115" y="0" width="4" height="42" />
-                        <rect x="122" y="0" width="1" height="42" />
-                        <rect x="126" y="0" width="3" height="42" />
-                        <rect x="132" y="0" width="2" height="42" />
-                        <rect x="137" y="0" width="1" height="42" />
-                        <rect x="141" y="0" width="4" height="42" />
-                        <rect x="148" y="0" width="3" height="42" />
-                        <rect x="154" y="0" width="1" height="42" />
-                        <rect x="158" y="0" width="2" height="42" />
-                        <rect x="163" y="0" width="4" height="42" />
-                        <rect x="170" y="0" width="1" height="42" />
-                        <rect x="174" y="0" width="3" height="42" />
-                        <rect x="180" y="0" width="2" height="42" />
-                        <rect x="185" y="0" width="4" height="42" />
-                        <rect x="192" y="0" width="1" height="42" />
-                        <rect x="196" y="0" width="3" height="42" />
-                        <rect x="202" y="0" width="2" height="42" />
-                        <rect x="207" y="0" width="1" height="42" />
-                        <rect x="211" y="0" width="4" height="42" />
-                        <rect x="218" y="0" width="2" height="42" />
-                        <rect x="223" y="0" width="3" height="42" />
-                        <rect x="229" y="0" width="1" height="42" />
-                        <rect x="233" y="0" width="4" height="42" />
-                        <rect x="240" y="0" width="2" height="42" />
-                        <rect x="245" y="0" width="1" height="42" />
-                        <rect x="249" y="0" width="3" height="42" />
-                        <rect x="255" y="0" width="4" height="42" />
-                        <rect x="262" y="0" width="1" height="42" />
-                        <rect x="266" y="0" width="3" height="42" />
-                        <rect x="272" y="0" width="2" height="42" />
-                        <rect x="277" y="0" width="4" height="42" />
-                        <rect x="284" y="0" width="1" height="42" />
-                        <rect x="288" y="0" width="3" height="42" />
-                        <rect x="294" y="0" width="2" height="42" />
-                        <rect x="299" y="0" width="1" height="42" />
-                        <rect x="303" y="0" width="4" height="42" />
-                        <rect x="310" y="0" width="2" height="42" />
-                        <rect x="315" y="0" width="3" height="42" />
-                        <rect x="321" y="0" width="1" height="42" />
-                        <rect x="325" y="0" width="4" height="42" />
-                        <rect x="332" y="0" width="2" height="42" />
-                        <rect x="337" y="0" width="1" height="42" />
-                        <rect x="341" y="0" width="3" height="42" />
-                        <rect x="347" y="0" width="4" height="42" />
-                        <rect x="354" y="0" width="1" height="42" />
-                        <rect x="358" y="0" width="3" height="42" />
-                        <rect x="364" y="0" width="2" height="42" />
-                        <rect x="369" y="0" width="4" height="42" />
-                        <rect x="376" y="0" width="1" height="42" />
-                        <rect x="380" y="0" width="3" height="42" />
-                        <rect x="386" y="0" width="2" height="42" />
-                        <rect x="391" y="0" width="1" height="42" />
-                        <rect x="395" y="0" width="4" height="42" />
-                        <rect x="402" y="0" width="3" height="42" />
-                        <rect x="408" y="0" width="1" height="42" />
-                        <rect x="412" y="0" width="3" height="42" />
-                        <rect x="418" y="0" width="2" height="42" />
-                      </g>
-                    </svg>
-                    <!-- Cadena GS1-128 Oficial -->
-                    <span class="font-mono text-[9px] font-bold text-slate-800 tracking-wider select-all mt-1">
-                      {{ codigoBarrasTexto() }}
-                    </span>
+                    <span class="text-slate-500 font-bold uppercase text-[8px] block">Vigencia Fiscal Aplicada:</span>
+                    <span class="font-mono font-bold text-slate-800">{{ datosRadicacion().vigenciaFiscal }}</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Total a Pagar y Espacio Timbre Banco (5 cols) -->
-              <div class="col-span-12 sm:col-span-5 flex flex-col justify-between h-full space-y-3">
-                
-                <!-- Caja Total -->
-                <div class="border-2 border-slate-900 bg-slate-50 p-2.5 text-center">
-                  <span class="text-[9px] font-black uppercase tracking-wider text-slate-700 block">VALOR TOTAL A PAGAR EN BANCO:</span>
-                  <span class="font-mono font-black text-xl text-blue-950 block mt-0.5">
+              <!-- Total Estimado a Pagar (5 cols) -->
+              <div class="col-span-12 sm:col-span-5 flex flex-col justify-between border-2 border-slate-900 bg-slate-50 p-4 text-center rounded">
+                <div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-slate-700 block">
+                    VALOR TOTAL ESTIMADO DE LA PRELIQUIDACIÓN:
+                  </span>
+                  <span class="font-mono font-black text-2xl text-blue-950 block mt-2">
                     {{ resumen.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}
                   </span>
-                </div>
-
-                <!-- Caja Sello de Caja / Timbre de Recaudo -->
-                <div class="border-2 border-dashed border-slate-400 bg-slate-50/50 p-3 h-24 flex flex-col items-center justify-center text-center">
-                  <span class="text-[8px] font-bold uppercase text-slate-400 tracking-wider">
-                    ESPACIO RESERVADO PARA TIMBRE DE CAJA O SELLO BANCARIO RECAUDADOR
-                  </span>
-                  <span class="text-[7px] text-slate-400 mt-1">
-                    Banco de Bogotá &bull; Banco Agrario &bull; Bancolombia &bull; Red Aval &bull; PSE
+                  <span class="text-[9px] text-slate-600 font-semibold block mt-1 leading-tight">
+                    {{ totalEnLetras() }}
                   </span>
                 </div>
 
+                <div class="border-t border-slate-200 pt-2 mt-3 text-center">
+                  <span class="text-[8px] text-slate-400 font-bold uppercase block tracking-wider">
+                    Sujeto a verificación fiscal departamental &bull; Gobernación del Cauca
+                  </span>
+                </div>
               </div>
 
             </div>
@@ -699,85 +593,64 @@
   <!-- BARRA INFERIOR DE ACCIÓN (NO SE IMPRIME)            -->
   <!-- ==================================================== -->
   <div class="bg-slate-100 border border-slate-300 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-center gap-3 print:hidden shadow-sm">
-    @if (!wizardService.liquidacionGeneradaExitosa()) {
-      <button 
-        (click)="retroceder()" 
-        [disabled]="isGenerating() || isSimulating() || isCompleting()" 
-        type="button"
-        class="px-5 py-2.5 text-slate-700 font-bold text-xs hover:text-slate-900 transition-colors disabled:opacity-50 flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        Volver a Intervinientes
-      </button>
+    <button 
+      (click)="retroceder()" 
+      [disabled]="isCompleting() || isSimulating()" 
+      type="button"
+      class="px-5 py-2.5 text-slate-700 font-bold text-xs hover:text-slate-900 transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+      </svg>
+      Volver a Intervinientes
+    </button>
 
-      <div class="flex items-center gap-3 flex-wrap justify-end">
-        <!-- Acción para Entidades (Notarías / Cámaras) o reenvío de trámite subsanado -->
+    <div class="flex items-center gap-3 flex-wrap justify-end">
+      @if (wizardService.estadoSolicitudId() === 2) {
+        <span class="text-xs font-semibold text-blue-800 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+          </svg>
+          Solicitud ya radicada en revisión técnica
+        </span>
         <button 
-          (click)="radicarParaRevision()" 
-          [disabled]="isGenerating() || isSimulating() || isCompleting()" 
+          (click)="irASolicitudes()" 
+          type="button" 
+          class="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer">
+          Ir a Mis Solicitudes
+        </button>
+      } @else if (wizardService.estadoSolicitudId() === 4) {
+        <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+          <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          Trámite liquidado oficialmente
+        </span>
+        <button 
+          (click)="irALiquidaciones()" 
+          type="button" 
+          class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow transition-all cursor-pointer">
+          Ir a Mis Liquidaciones
+        </button>
+      } @else {
+        <button 
+          (click)="radicarSolicitud()" 
+          [disabled]="isCompleting() || isSimulating()" 
           type="button"
-          class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-700/20 flex items-center gap-2 disabled:opacity-70">
+          class="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-emerald-700/20 flex items-center gap-2 disabled:opacity-70 cursor-pointer">
           @if (isCompleting()) {
             <svg class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Radicando...
+            Radicando Solicitud...
           } @else {
             <svg class="w-4 h-4 text-emerald-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {{ wizardService.estadoSolicitudId() === 5 ? 'Reenviar a Revisión Gobernación' : 'Radicar para Revisión' }}
+            {{ wizardService.estadoSolicitudId() === 5 ? 'Reenviar a Revisión Gobernación' : 'Radicar Solicitud' }}
           }
         </button>
-
-        <!-- Acción directa para Gobernación / Administrador -->
-        <button 
-          (click)="generarLiquidacionOficial()" 
-          [disabled]="isGenerating() || isSimulating() || isCompleting()" 
-          type="button"
-          class="px-6 py-2.5 bg-blue-900 hover:bg-blue-950 text-white font-black text-xs rounded-xl transition-all shadow-lg shadow-blue-900/30 flex items-center gap-2 disabled:opacity-70">
-          @if (isGenerating()) {
-            <svg class="animate-spin -ml-1 mr-1 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Generando Oficial...
-          } @else {
-            <span>Aprobar y Generar Liquidación</span>
-            <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          }
-        </button>
-      </div>
-    } @else {
-      <button 
-        (click)="irABandeja()" 
-        type="button"
-        class="px-6 py-2.5 text-slate-700 font-bold text-xs hover:text-slate-900 transition-colors">
-        ← Ir a mis Liquidaciones
-      </button>
-
-      <button 
-        (click)="descargarLiquidacion()" 
-        [disabled]="isGenerating()" 
-        type="button"
-        class="px-8 py-3 bg-emerald-700 text-white font-black text-xs rounded-xl hover:bg-emerald-800 transition-all shadow-lg shadow-emerald-700/30 flex items-center gap-3 disabled:opacity-70">
-        @if (isGenerating()) {
-          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Descargando PDF...
-        } @else {
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Descargar PDF Oficial
-        }
-      </button>
-    }
+      }
+    </div>
   </div>
 </div>

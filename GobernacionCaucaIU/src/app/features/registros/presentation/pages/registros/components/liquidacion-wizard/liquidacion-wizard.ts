@@ -1,6 +1,6 @@
 import { Component, inject, Output, EventEmitter, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LiquidacionWizardService } from '../../services/liquidacion-wizard.service';
 import { StepRadicacionComponent } from '../wizard-steps/step-radicacion/step-radicacion';
 import { StepDocumentoComponent } from '../wizard-steps/step-documento/step-documento';
@@ -38,6 +38,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class LiquidacionWizardComponent implements OnInit {
   wizardService = inject(LiquidacionWizardService);
   route = inject(ActivatedRoute);
+  router = inject(Router);
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
   toast = inject(ToastService);
   
@@ -109,7 +110,7 @@ export class LiquidacionWizardComponent implements OnInit {
     { id: 2, name: 'Documento' },
     { id: 3, name: 'Actos' },
     { id: 4, name: 'Intervinientes' },
-    { id: 5, name: 'Liquidación' }
+    { id: 5, name: 'Simulación' }
   ];
 
   isCompleted(stepId: number): boolean {

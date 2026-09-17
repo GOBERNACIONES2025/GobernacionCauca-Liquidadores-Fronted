@@ -226,7 +226,7 @@ export class StepIntervinientesComponent implements OnInit {
     // Aplanar los intervinientes
     const todosIntervinientes = actos.flatMap(acto => 
       acto.intervinientes.map(i => ({
-        actoId: Number(acto.idTemp), // El backend envió el id en idTemp durante la recarga!
+        actoId: Number(acto.idTemp),
         contribuyenteId: i.contribuyenteId!,
         rolIntervinienteId: i.rolId,
         porcentajeParticipacion: i.porcentaje
@@ -237,15 +237,11 @@ export class StepIntervinientesComponent implements OnInit {
 
     // 1. Guardar Intervinientes
     this.solicitudesFacade.registrarIntervinientes(solicitudId, { intervinientes: todosIntervinientes }).pipe(
-      // 2. Completar Solicitud (Estado 2: EN_REVISION, EtapaActual: 4)
+      // 2. Simular Liquidación en memoria (sin radicar ni generar liquidación oficial)
       concatMap(resIntv => {
         if (!resIntv.success) {
           throw new Error(resIntv.message || 'Error al guardar los intervinientes');
         }
-        return this.solicitudesFacade.completarSolicitud(solicitudId);
-      }),
-      // 3. Simular Liquidación
-      concatMap(resComp => {
         return this.generacionFacade.simularLiquidacion(solicitudId);
       }),
       finalize(() => this.isSimulating.set(false))
@@ -253,17 +249,15 @@ export class StepIntervinientesComponent implements OnInit {
       next: (simRes) => {
         if (simRes && simRes.success && simRes.data) {
           this.wizardService.liquidacionSimulada.set(simRes.data);
-          this.wizardService.estadoSolicitudId.set(2);
-          this.wizardService.estadoSolicitudNombre.set('En Revisión');
           this.wizardService.etapaGuardada.set(4);
           this.wizardService.currentStep.set(5);
-          this.toastService.success('Liquidación calculada exitosamente.');
+          this.toastService.success('Simulación calculada exitosamente. Verifique el resumen para radicar la solicitud.');
         } else {
-          this.toastService.error(simRes?.message || 'Error al calcular la liquidación');
+          this.toastService.error(simRes?.message || 'Error al calcular la simulación');
         }
       },
       error: (err) => {
-        const msg = err?.error?.message || err?.error?.detail || err?.message || 'Error al calcular la liquidación';
+        const msg = err?.error?.message || err?.error?.detail || err?.message || 'Error al calcular la simulación';
         this.toastService.error(msg);
       }
     });

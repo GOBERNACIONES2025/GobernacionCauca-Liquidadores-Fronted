@@ -22,7 +22,6 @@ export class StepLiquidacionComponent implements OnInit {
   toast = inject(ToastService);
   router = inject(Router);
 
-  isGenerating = signal<boolean>(false);
   isSimulating = signal<boolean>(false);
   isCompleting = signal<boolean>(false);
 
@@ -99,15 +98,7 @@ export class StepLiquidacionComponent implements OnInit {
   codigoSeguridadHex = computed(() => {
     const rad = this.wizardService.radicadoGenerado() || 'RAD-0000';
     const id = this.wizardService.solicitudId() || 101;
-    return `CAUCA-${id.toString(16).toUpperCase()}-99B2-C10E-${rad.replace(/\D/g, '') || '2026'}`;
-  });
-
-  // Código de barras estructurado GS1-128
-  codigoBarrasTexto = computed(() => {
-    const rad = (this.datosRadicacion().numeroRadicado || '00000000').replace(/\D/g, '').padStart(10, '0');
-    const valor = Math.round(this.wizardService.liquidacionSimulada()?.granTotalPagar || 0).toString().padStart(8, '0');
-    const fecha = new Date().toISOString().slice(0,10).replace(/-/g, '');
-    return `(415)7709998000018(8020)${rad}(3900)${valor}(96)${fecha}`;
+    return `CAUCA-SIM-${id.toString(16).toUpperCase()}-99B2-C10E-${rad.replace(/\D/g, '') || '2026'}`;
   });
 
   datosContribuyente = computed(() => this.wizardService.paso1Form.value);
@@ -116,14 +107,11 @@ export class StepLiquidacionComponent implements OnInit {
     const p1 = this.wizardService.paso1Form.value;
     const sim = this.wizardService.liquidacionSimulada();
 
-    // 1. Obtener el año directamente de la simulación o del servicio si está disponible
     let anioReal: number | string | null = sim?.vigenciaAnio || this.wizardService.vigenciaAnio() || null;
 
-    // 2. Si no se tiene aún el año, buscar en el catálogo de vigencias según el ID seleccionado
     const vigenciaId = p1.vigenciaFiscal || sim?.vigenciaId || this.wizardService.vigenciaFiscal();
     if (!anioReal && vigenciaId) {
       if (typeof vigenciaId === 'number' && vigenciaId > 1900) {
-        // En caso de que ya sea un año calendario directo (ej. 2026)
         anioReal = vigenciaId;
       } else {
         const vEncontrada = this.vigenciasFacade.vigencias().find(v => v.id === vigenciaId);
@@ -133,7 +121,6 @@ export class StepLiquidacionComponent implements OnInit {
       }
     }
 
-    // 3. Fallback de seguridad: fecha de radicado o año actual
     if (!anioReal) {
       const fecha = p1.fechaRadicado || this.wizardService.fechaRadicado() || sim?.fechaRadicacion;
       if (fecha) {
@@ -156,13 +143,12 @@ export class StepLiquidacionComponent implements OnInit {
   });
 
   ngOnInit() {
-    // Asegurar que el catálogo de vigencias esté cargado para resolver nombres/años
     if (this.vigenciasFacade.vigencias().length === 0) {
       this.vigenciasFacade.cargarVigencias(1, 100);
     }
 
-    // Siempre refrescamos la simulación al entrar al Paso 5 a menos que la liquidación oficial ya haya sido generada
-    if (!this.wizardService.liquidacionGeneradaExitosa()) {
+    // Refrescar simulación al entrar al paso 5 si no se tiene
+    if (!this.wizardService.liquidacionSimulada()) {
       this.cargarSimulacion();
     }
   }
@@ -178,25 +164,23 @@ export class StepLiquidacionComponent implements OnInit {
       next: (res: any) => {
         if (res.success && res.data) {
           this.wizardService.liquidacionSimulada.set(res.data);
-          if (res.data.vigenciaAnio) {
-            this.wizardService.vigenciaAnio.set(res.data.vigenciaAnio);
-          }
+          this.toast.success('Simulación actualizada.');
         } else {
-          this.toast.error(res.message || 'Error al simular la liquidación');
+          this.toast.error(res?.message || 'Error al obtener la simulación.');
         }
       },
       error: (err: any) => {
-        const msg = err?.error?.message || err?.error?.detail || 'Error de servidor al simular liquidación';
+        const msg = err?.error?.message || err?.error?.detail || 'Error al obtener la simulación.';
         this.toast.error(msg);
       }
     });
   }
 
   // Lista consolidada de intervinientes
-  intervinientesTotales = computed(() => {
-    const actosExp = this.wizardService.actosExpediente();
+  intervinientesTotales = computed(() => this.intervinientesConsolidados());
+  intervinientesConsolidados = computed(() => {
     const simulacion = this.wizardService.liquidacionSimulada();
-    
+    const actosExp = this.wizardService.actosExpediente();
     const result: Array<{
       actoNombre: string;
       documento: string;
@@ -234,7 +218,7 @@ export class StepLiquidacionComponent implements OnInit {
     return result;
   });
 
-  // Lista consolidada de exenciones evaluadas con su estado exacto
+  // Lista consolidada de exenciones evaluadas
   exencionesEvaluadasConsolidadas = computed(() => {
     const simulacion = this.wizardService.liquidacionSimulada();
     const actosExp = this.wizardService.actosExpediente();
@@ -279,7 +263,6 @@ export class StepLiquidacionComponent implements OnInit {
       }
     }
 
-    // Fallback con datos locales si aún no retorna lista el backend
     if (list.length === 0) {
       for (const acto of actosExp) {
         if (acto.exencionesNombres && acto.exencionesNombres.length > 0) {
@@ -325,70 +308,11 @@ export class StepLiquidacionComponent implements OnInit {
     this.wizardService.currentStep.set(4);
   }
 
-  generarLiquidacionOficial() {
-    const solicitudId = this.wizardService.solicitudId();
-    if (!solicitudId) {
-      this.toast.error('No hay solicitud para liquidar.');
-      return;
-    }
-
-    this.isGenerating.set(true);
-    this.generacionFacade.generarLiquidacion({ solicitudId }).subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.wizardService.liquidacionGeneradaExitosa.set(true);
-          this.wizardService.idLiquidacionFinal.set(res.data);
-          this.wizardService.estadoSolicitudId.set(4); // 4: LIQUIDADA
-          this.wizardService.estadoSolicitudNombre.set('Liquidada');
-          this.wizardService.etapaGuardada.set(5);
-          this.toast.success(`¡Liquidación oficial generada exitosamente con radicado ${this.wizardService.radicadoGenerado()}!`);
-        } else {
-          this.toast.error(res.message || 'Error al generar liquidación');
-        }
-        this.isGenerating.set(false);
-      },
-      error: (err) => {
-        const errorMsg = err?.error?.message || err?.error?.detail || 'Error de servidor al generar liquidación oficial';
-        this.toast.error(errorMsg);
-        this.isGenerating.set(false);
-      }
-    });
-  }
-
-  descargarLiquidacion() {
-    const id = this.wizardService.idLiquidacionFinal();
-    if (!id) return;
-    
-    this.isGenerating.set(true);
-    this.generacionFacade.descargarPdf(id).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Liquidacion_${id}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        this.toast.success('Descarga iniciada');
-        this.isGenerating.set(false);
-      },
-      error: () => {
-        this.toast.error('Error al descargar el PDF');
-        this.isGenerating.set(false);
-      }
-    });
-  }
-
   totalEnLetras = computed(() => {
     const sim = this.wizardService.liquidacionSimulada();
     const valor = sim ? Math.round(sim.granTotalPagar) : 0;
     return this.convertirNumeroALetras(valor);
   });
-
-  imprimirDocumento() {
-    window.print();
-  }
 
   private convertirNumeroALetras(numero: number): string {
     if (numero === 0) return 'CERO PESOS M/CTE';
@@ -445,7 +369,7 @@ export class StepLiquidacionComponent implements OnInit {
     return ('SON: ' + texto.trim() + ' PESOS M/CTE').toUpperCase();
   }
 
-  radicarParaRevision() {
+  radicarSolicitud() {
     const solicitudId = this.wizardService.solicitudId();
     if (!solicitudId) {
       this.toast.error('No hay solicitud para radicar.');
@@ -458,22 +382,26 @@ export class StepLiquidacionComponent implements OnInit {
         if (res.success) {
           this.wizardService.estadoSolicitudId.set(2);
           this.wizardService.estadoSolicitudNombre.set('En Revisión');
-          this.toast.success('Trámite radicado exitosamente ante la Gobernación del Cauca para revisión técnica.');
-          this.router.navigate(['/registros/solicitudes']);
+          this.toast.success('¡Solicitud radicada exitosamente ante la Gobernación del Cauca para su revisión técnica!');
+          this.router.navigate(['/registros/entidades/solicitudes']);
         } else {
           this.toast.error(res.message || 'No se pudo radicar la solicitud.');
         }
         this.isCompleting.set(false);
       },
       error: (err) => {
-        const errorMsg = err?.error?.message || err?.error?.detail || 'Error al radicar solicitud.';
+        const errorMsg = err?.error?.message || err?.error?.detail || 'Error al radicar la solicitud.';
         this.toast.error(errorMsg);
         this.isCompleting.set(false);
       }
     });
   }
 
-  irABandeja() {
-    this.router.navigate(['/registros/liquidaciones']);
+  irASolicitudes() {
+    this.router.navigate(['/registros/entidades/solicitudes']);
+  }
+
+  irALiquidaciones() {
+    this.router.navigate(['/registros/entidades/liquidaciones']);
   }
 }

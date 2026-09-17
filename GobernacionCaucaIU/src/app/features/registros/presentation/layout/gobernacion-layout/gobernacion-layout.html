@@ -1,0 +1,26 @@
+<div data-theme="tema-registros" class="flex flex-col h-screen w-full bg-slate-50 overflow-hidden font-sans text-slate-800">
+  <!-- Topbar Gobernación -->
+  <app-gobernacion-topbar (toggleSidebar)="toggleSidebar()"></app-gobernacion-topbar>
+
+  <!-- Content Area -->
+  <div class="flex flex-1 overflow-hidden relative bg-slate-100">
+    <!-- Sidebar Gobernación -->
+    <div 
+      (mouseenter)="isSidebarHovered.set(true)"
+      (mouseleave)="isSidebarHovered.set(false)"
+      class="shrink-0 h-full transition-all duration-300 overflow-hidden shadow-xs z-10"
+      [class.w-64]="!isSidebarCollapsed() || isSidebarHovered()"
+      [class.w-16]="isSidebarCollapsed() && !isSidebarHovered()"
+    >
+      <app-gobernacion-sidebar 
+        [isCollapsed]="isSidebarCollapsed() && !isSidebarHovered()" 
+        (toggleCollapse)="toggleSidebar()">
+      </app-gobernacion-sidebar>
+    </div>
+
+    <!-- Main Page Content -->
+    <main class="flex-1 overflow-y-auto relative bg-slate-50/50 flex flex-col h-full">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

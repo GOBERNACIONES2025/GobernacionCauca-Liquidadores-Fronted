@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
-import { RegistrosLayoutComponent } from './presentation/layout/registros-layout/registros-layout';
 import { ConfiguracionLayoutComponent } from './presentation/layout/configuracion-layout/configuracion-layout';
+import { EntidadesLayoutComponent } from './presentation/layout/entidades-layout/entidades-layout';
+import { GobernacionLayoutComponent } from './presentation/layout/gobernacion-layout/gobernacion-layout';
+
+// Paginas de Configuracion (Centralizadas en Gobernacion)
 import { Departamentos } from './presentation/pages/configuracion/territorio/departamentos/departamentos';
 import { Municipios } from './presentation/pages/configuracion/territorio/municipios/municipios';
 import { EstadosNorma } from './presentation/pages/configuracion/normatividad/estados-norma/estados-norma';
@@ -30,7 +33,6 @@ import { Contribuyentes } from './presentation/pages/configuracion/contribuyente
 import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/configuracion/entidades/entidades-tipo-acto-permitido/entidades-tipo-acto-permitido';
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
-import { Registros } from './presentation/pages/registros/registros';
 import { ConsultaCiudadanaSharedComponent } from '../../shared/components/consulta-ciudadana/consulta-ciudadana-shared';
 
 export const registrosRoutes: Routes = [
@@ -40,7 +42,53 @@ export const registrosRoutes: Routes = [
   },
   {
     path: '',
-    component: RegistrosLayoutComponent,
+    redirectTo: 'entidades/login',
+    pathMatch: 'full'
+  },
+  // =========================================================================
+  // 1. PORTAL DE ENTIDADES EXTERNAS (Notarías / Cámaras / Juzgados)
+  // =========================================================================
+  {
+    path: 'entidades/login',
+    loadComponent: () => import('./presentation/pages/entidades/entidades-login/entidades-login').then(m => m.EntidadesLoginComponent)
+  },
+  {
+    path: 'entidades',
+    component: EntidadesLayoutComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: 'solicitudes',
+        pathMatch: 'full'
+      },
+      {
+        path: 'solicitudes',
+        loadComponent: () => import('./presentation/pages/entidades/entidades-solicitudes/entidades-solicitudes').then(m => m.EntidadesSolicitudesComponent)
+      },
+      {
+        path: 'solicitudes/wizard',
+        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
+      },
+      {
+        path: 'solicitudes/wizard/:id',
+        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
+      },
+      {
+        path: 'liquidaciones',
+        loadComponent: () => import('./presentation/pages/entidades/entidades-liquidaciones/entidades-liquidaciones').then(m => m.EntidadesLiquidacionesComponent)
+      }
+    ]
+  },
+  // =========================================================================
+  // 2. PORTAL DE LA GOBERNACIÓN DEL CAUCA (Fiscalización y Rentas)
+  // =========================================================================
+  {
+    path: 'gobernacion/login',
+    loadComponent: () => import('./presentation/pages/gobernacion/gobernacion-login/gobernacion-login').then(m => m.GobernacionLoginComponent)
+  },
+  {
+    path: 'gobernacion',
+    component: GobernacionLayoutComponent,
     children: [
       {
         path: '',
@@ -53,24 +101,13 @@ export const registrosRoutes: Routes = [
       },
       {
         path: 'solicitudes',
-        loadComponent: () => import('./presentation/pages/registros/solicitudes-list/solicitudes-list').then(m => m.SolicitudesListComponent)
-      },
-      {
-        path: 'solicitudes/wizard',
-        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
-      },
-      {
-        path: 'solicitudes/wizard/:id',
-        loadComponent: () => import('./presentation/pages/registros/components/liquidacion-wizard/liquidacion-wizard').then(m => m.LiquidacionWizardComponent)
+        loadComponent: () => import('./presentation/pages/gobernacion/gobernacion-solicitudes/gobernacion-solicitudes').then(m => m.GobernacionSolicitudesComponent)
       },
       {
         path: 'liquidaciones',
-        loadComponent: () => import('./presentation/pages/registros/liquidaciones-list/liquidaciones-list').then(m => m.LiquidacionesListComponent)
+        loadComponent: () => import('./presentation/pages/gobernacion/gobernacion-liquidaciones/gobernacion-liquidaciones').then(m => m.GobernacionLiquidacionesComponent)
       },
-      {
-        path: 'reliquidaciones',
-        loadComponent: () => import('./presentation/pages/registros/reliquidaciones-gestion/reliquidaciones-gestion').then(m => m.ReliquidacionesGestionComponent)
-      },
+      // CONFIGURACIÓN Y PARAMETRIZACIÓN NORMATIVA (EXCLUSIVO GOBERNACIÓN)
       {
         path: 'configuracion',
         component: ConfiguracionLayoutComponent,
@@ -80,131 +117,41 @@ export const registrosRoutes: Routes = [
             redirectTo: 'territorio/departamento',
             pathMatch: 'full'
           },
-          {
-            path: 'territorio/departamento',
-            component: Departamentos
-          },
-          {
-            path: 'territorio/municipio',
-            component: Municipios
-          },
-          {
-            path: 'inmuebles/inmuebles',
-            component: InmueblesComponent
-          },
-          {
-            path: 'normatividad/estado-norma',
-            component: EstadosNorma
-          },
-          {
-            path: 'normatividad/tipo-norma',
-            component: TiposNorma
-          },
-          {
-            path: 'normatividad/vigencia',
-            component: Vigencias
-          },
-          {
-            path: 'normatividad/normas',
-            component: Normas
-          },
-          {
-            path: 'entidades/tipo-entidad',
-            component: TiposEntidadRegistro
-          },
-          {
-            path: 'entidades/entidades',
-            component: EntidadesRegistro
-          },
-          {
-            path: 'entidades/actos-permitidos',
-            component: EntidadesTipoActoPermitidoComponent
-          },
-          {
-            path: 'actos-registrales/categoria-acto',
-            component: CategoriasActo
-          },
-          {
-            path: 'actos-registrales/naturaleza-acto',
-            component: NaturalezasActo
-          },
-          {
-            path: 'actos-registrales/tipo-acto',
-            component: TiposActoRegistro
-          },
-          {
-            path: 'tarifas/tipo-calculo',
-            component: TiposCalculoTarifa
-          },
-          {
-            path: 'tarifas/tarifas',
-            component: Tarifas
-          },
-          {
-            path: 'tarifas/extemporaneidad',
-            component: ConfiguracionExtemporaneidadComponent
-          },
-          {
-            path: 'tarifas/tasas-mora',
-            component: TasasInteresMoraComponent
-          },
-          {
-            path: 'exenciones/tipo-beneficiario',
-            component: TiposBeneficiarioExencionComponent
-          },
-          {
-            path: 'exenciones/exenciones',
-            component: Exenciones
-          },
-          {
-            path: 'contribuyentes/directorio',
-            component: Contribuyentes
-          },
-          {
-            path: 'contribuyentes/tipo-persona',
-            component: TiposPersona
-          },
-          {
-            path: 'contribuyentes/tipo-documento',
-            component: TiposIdentificacion
-          },
-          {
-            path: 'intervinientes/roles-interviniente',
-            component: RolesInterviniente
-          },
-          {
-            path: 'liquidacion/estados-liquidacion',
-            component: EstadosLiquidacion
-          },
-          {
-            path: 'pagos/estados-pago',
-            component: EstadosPago
-          },
-          {
-            path: 'radicacion/estados-solicitud',
-            component: EstadosSolicitud
-          },
-          {
-            path: 'seguridad/roles',
-            component: RolesComponent
-          },
-          {
-            path: 'seguridad/usuarios',
-            component: UsuariosComponent
-          }
+          { path: 'territorio/departamento', component: Departamentos },
+          { path: 'territorio/municipio', component: Municipios },
+          { path: 'inmuebles/inmuebles', component: InmueblesComponent },
+          { path: 'normatividad/estado-norma', component: EstadosNorma },
+          { path: 'normatividad/tipo-norma', component: TiposNorma },
+          { path: 'normatividad/vigencia', component: Vigencias },
+          { path: 'normatividad/normas', component: Normas },
+          { path: 'entidades/tipo-entidad', component: TiposEntidadRegistro },
+          { path: 'entidades/entidades', component: EntidadesRegistro },
+          { path: 'entidades/actos-permitidos', component: EntidadesTipoActoPermitidoComponent },
+          { path: 'actos-registrales/categoria-acto', component: CategoriasActo },
+          { path: 'actos-registrales/naturaleza-acto', component: NaturalezasActo },
+          { path: 'actos-registrales/tipo-acto', component: TiposActoRegistro },
+          { path: 'tarifas/tipo-calculo', component: TiposCalculoTarifa },
+          { path: 'tarifas/tarifas', component: Tarifas },
+          { path: 'tarifas/extemporaneidad', component: ConfiguracionExtemporaneidadComponent },
+          { path: 'tarifas/tasas-mora', component: TasasInteresMoraComponent },
+          { path: 'exenciones/tipo-beneficiario', component: TiposBeneficiarioExencionComponent },
+          { path: 'exenciones/exenciones', component: Exenciones },
+          { path: 'contribuyentes/directorio', component: Contribuyentes },
+          { path: 'contribuyentes/tipo-persona', component: TiposPersona },
+          { path: 'contribuyentes/tipo-documento', component: TiposIdentificacion },
+          { path: 'intervinientes/roles-interviniente', component: RolesInterviniente },
+          { path: 'liquidacion/estados-liquidacion', component: EstadosLiquidacion },
+          { path: 'pagos/estados-pago', component: EstadosPago },
+          { path: 'radicacion/estados-solicitud', component: EstadosSolicitud },
+          { path: 'seguridad/roles', component: RolesComponent },
+          { path: 'seguridad/usuarios', component: UsuariosComponent }
         ]
       }
     ]
-  }
+  },
+  // Redirecciones de compatibilidad
+  { path: 'dashboard', redirectTo: 'gobernacion/dashboard', pathMatch: 'full' },
+  { path: 'configuracion', redirectTo: 'gobernacion/configuracion', pathMatch: 'prefix' },
+  { path: 'solicitudes', redirectTo: 'entidades/solicitudes', pathMatch: 'prefix' },
+  { path: 'liquidaciones', redirectTo: 'entidades/liquidaciones', pathMatch: 'prefix' }
 ];
-
-
-
-
-
-
-
-
-
-
-
