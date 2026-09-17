@@ -1,0 +1,318 @@
+<div class="space-y-6">
+
+  <!-- ENCABEZADO -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold text-slate-900">Módulo de Pagos y Recaudo</h1>
+        <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300">
+          Tesorería Departamental
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">Control de pagos aplicados, cartera pendiente y conciliación bancaria</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="exportar()"
+      class="px-3.5 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+      </svg>
+      <span>Imprimir Informe</span>
+    </button>
+  </div>
+
+  <!-- TARJETAS DE RESUMEN RECAUDO -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
+      <div class="space-y-1">
+        <span class="text-xs text-emerald-100 uppercase font-bold tracking-wider block">Total Recaudo Efectivo</span>
+        <h2 class="text-2xl font-black font-mono tracking-tight">{{ storage.formatCOP(facade.totalPagadoRecaudado()) }}</h2>
+        <span class="text-xs text-emerald-200 block">{{ facade.pagosRealizados().length }} pagos aplicados en tesorería</span>
+      </div>
+      <div class="p-3 bg-white/10 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white shadow-md flex items-center justify-between">
+      <div class="space-y-1">
+        <span class="text-xs text-amber-100 uppercase font-bold tracking-wider block">Cartera Pendiente de Cobro</span>
+        <h2 class="text-2xl font-black font-mono tracking-tight">{{ storage.formatCOP(facade.totalPendienteRecaudar()) }}</h2>
+        <span class="text-xs text-amber-200 block">{{ facade.liquidacionesPendientes().length }} liquidaciones pendientes</span>
+      </div>
+      <div class="p-3 bg-white/10 rounded-xl">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- PESTAÑAS DE PAGOS -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    
+    <!-- Header Tabs -->
+    <div class="flex items-center border-b border-slate-200 bg-slate-50 px-4">
+      <button
+        type="button"
+        (click)="facade.setTab('PENDIENTES')"
+        class="py-3.5 px-4 text-xs font-bold border-b-2 transition cursor-pointer flex items-center gap-2"
+        [ngClass]="facade.tabActiva() === 'PENDIENTES' ? 'border-amber-600 text-amber-900 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800'"
+      >
+        <span>Pagos Pendientes</span>
+        <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded-full text-[10px] font-mono font-bold">{{ facade.liquidacionesPendientes().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="facade.setTab('REALIZADOS')"
+        class="py-3.5 px-4 text-xs font-bold border-b-2 transition cursor-pointer flex items-center gap-2"
+        [ngClass]="facade.tabActiva() === 'REALIZADOS' ? 'border-emerald-600 text-emerald-900 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800'"
+      >
+        <span>Pagos Realizados</span>
+        <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-mono font-bold">{{ facade.pagosRealizados().length }}</span>
+      </button>
+
+      <button
+        type="button"
+        (click)="facade.setTab('CONCILIACION')"
+        class="py-3.5 px-4 text-xs font-bold border-b-2 transition cursor-pointer flex items-center gap-2"
+        [ngClass]="facade.tabActiva() === 'CONCILIACION' ? 'border-blue-600 text-blue-900 bg-white' : 'border-transparent text-slate-500 hover:text-slate-800'"
+      >
+        <span>Conciliación Bancaria</span>
+        <span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full text-[10px] font-bold">PSE / Bancos</span>
+      </button>
+    </div>
+
+    <!-- Filtros de la pestaña -->
+    <div class="p-4 border-b border-slate-100 bg-white grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+      <div class="sm:col-span-2">
+        <input
+          type="text"
+          [(ngModel)]="textoBusqueda"
+          (ngModelChange)="onBuscar()"
+          placeholder="Buscar por Liquidación, Contribuyente, N° Pago o Referencia..."
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      @if (facade.tabActiva() === 'REALIZADOS') {
+        <div>
+          <select
+            [(ngModel)]="medioSeleccionado"
+            (ngModelChange)="onFiltrarMedio()"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="TODOS">Todos los Medios de Pago</option>
+            <option value="PSE">PSE en Línea</option>
+            <option value="BANCO_AGRARIO">Banco Agrario</option>
+            <option value="BANCOLOMBIA">Bancolombia</option>
+            <option value="BANCO_OCCIDENTE">Banco de Occidente</option>
+            <option value="TRANSFERENCIA_BANCARIA">Transferencia</option>
+          </select>
+        </div>
+      }
+
+      <div>
+        <button
+          type="button"
+          (click)="onLimpiar()"
+          class="w-full py-2 border border-slate-300 text-slate-700 hover:bg-slate-50 rounded-lg font-semibold transition cursor-pointer"
+        >
+          Limpiar Filtros
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENIDO SEGÚN TAB -->
+    <div class="p-0">
+      
+      <!-- TAB: PENDIENTES -->
+      @if (facade.tabActiva() === 'PENDIENTES') {
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-800 text-white font-bold text-[11px] uppercase tracking-wider">
+              <tr>
+                <th class="py-3 px-4">Liquidación</th>
+                <th class="py-3 px-3">Contribuyente</th>
+                <th class="py-3 px-3">Contrato / Objeto</th>
+                <th class="py-3 px-3 text-right">Valor a Pagar</th>
+                <th class="py-3 px-2">Fecha Límite</th>
+                <th class="py-3 px-2 text-center">Estado</th>
+                <th class="py-3 px-4 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+              @for (liq of facade.liquidacionesPendientes(); track liq.id) {
+                <tr class="hover:bg-amber-50/40 transition">
+                  <td class="py-3 px-4 font-mono font-bold text-[#1b53ad]">
+                    <a [routerLink]="['/estampillas/liquidaciones', liq.id]" class="hover:underline">
+                      {{ liq.numeroLiquidacion }}
+                    </a>
+                  </td>
+                  <td class="py-3 px-3">
+                    <span class="font-bold text-slate-900 block truncate max-w-xs">{{ liq.contribuyenteNombre }}</span>
+                    <span class="text-[10px] text-slate-400 font-mono">{{ liq.contribuyenteDocumento }}</span>
+                  </td>
+                  <td class="py-3 px-3">
+                    <span class="font-bold text-slate-800 font-mono block">{{ liq.numeroContrato }}</span>
+                    <span class="text-[11px] text-slate-500 line-clamp-1">{{ liq.objetoContrato }}</span>
+                  </td>
+                  <td class="py-3 px-3 text-right font-mono font-black text-amber-900 text-sm">
+                    {{ storage.formatCOP(liq.totalPagar) }}
+                  </td>
+                  <td class="py-3 px-2 font-mono text-slate-600">
+                    {{ liq.fechaLimitePago }}
+                  </td>
+                  <td class="py-3 px-2 text-center">
+                    <app-estampillas-badge [estado]="liq.estado" />
+                  </td>
+                  <td class="py-3 px-4 text-right">
+                    <button
+                      type="button"
+                      (click)="abrirModalPago(liq)"
+                      class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-xs transition cursor-pointer flex items-center gap-1 ml-auto"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Registrar Pago</span>
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="py-12 text-center text-slate-400">
+                    <p class="font-bold text-slate-600">No hay liquidaciones pendientes de pago en este momento</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- TAB: REALIZADOS -->
+      @if (facade.tabActiva() === 'REALIZADOS') {
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-800 text-white font-bold text-[11px] uppercase tracking-wider">
+              <tr>
+                <th class="py-3 px-4">N° Recaudo / Pago</th>
+                <th class="py-3 px-3">Liquidación</th>
+                <th class="py-3 px-3">Contribuyente</th>
+                <th class="py-3 px-2">Medio de Pago</th>
+                <th class="py-3 px-2">Referencia / CUS</th>
+                <th class="py-3 px-3 text-right">Valor Recaudado</th>
+                <th class="py-3 px-3">Fecha y Hora</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-200 bg-white">
+              @for (p of facade.pagosRealizados(); track p.id) {
+                <tr class="hover:bg-emerald-50/40 transition">
+                  <td class="py-3 px-4 font-mono font-bold text-emerald-700">
+                    {{ p.numeroPago }}
+                  </td>
+                  <td class="py-3 px-3 font-mono font-bold text-blue-900">
+                    <a [routerLink]="['/estampillas/liquidaciones', p.liquidacionId]" class="hover:underline">
+                      {{ p.numeroLiquidacion }}
+                    </a>
+                  </td>
+                  <td class="py-3 px-3 font-bold text-slate-900">
+                    {{ p.contribuyenteNombre }}
+                  </td>
+                  <td class="py-3 px-2">
+                    <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-bold font-mono">
+                      {{ p.medioPagoNombre }}
+                    </span>
+                  </td>
+                  <td class="py-3 px-2 font-mono text-slate-600">
+                    {{ p.numeroReferencia }}
+                  </td>
+                  <td class="py-3 px-3 text-right font-mono font-black text-emerald-800 text-sm">
+                    {{ storage.formatCOP(p.valorPagado) }}
+                  </td>
+                  <td class="py-3 px-3 font-mono text-slate-500">
+                    {{ p.fechaPago }} {{ p.horaPago }}
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="7" class="py-12 text-center text-slate-400">
+                    <p class="font-bold text-slate-600">No hay pagos registrados con los criterios seleccionados</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- TAB: CONCILIACIÓN BANCARIA -->
+      @if (facade.tabActiva() === 'CONCILIACION') {
+        <div class="p-6 space-y-6">
+          <div class="border-b pb-3">
+            <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Conciliación de Cuentas Recaudadoras de Estampillas</h3>
+            <p class="text-xs text-slate-500">Estado de saldos bancarios y convenios de recaudo autorizados</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-800 text-xs">Banco Agrario de Colombia</span>
+                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">En Línea</span>
+              </div>
+              <span class="font-mono text-xs text-slate-500 block">Cuenta: CTA-CTE 450-99812-3</span>
+              <div class="pt-2 border-t border-slate-200">
+                <span class="text-[10px] text-slate-400 uppercase font-bold block">Recaudo Conciliado:</span>
+                <span class="text-base font-black font-mono text-emerald-800">{{ storage.formatCOP(facade.totalPagadoRecaudado() * 0.55) }}</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-800 text-xs">Bancolombia S.A.</span>
+                <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">En Línea</span>
+              </div>
+              <span class="font-mono text-xs text-slate-500 block">Cuenta: CTA-CTE 210-00445-9</span>
+              <div class="pt-2 border-t border-slate-200">
+                <span class="text-[10px] text-slate-400 uppercase font-bold block">Recaudo Conciliado:</span>
+                <span class="text-base font-black font-mono text-emerald-800">{{ storage.formatCOP(facade.totalPagadoRecaudado() * 0.35) }}</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-800 text-xs">Red PSE / Pasarela Digital</span>
+                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-[10px] font-bold rounded">Activa</span>
+              </div>
+              <span class="font-mono text-xs text-slate-500 block">Convenio ACH Colombia No. 9812</span>
+              <div class="pt-2 border-t border-slate-200">
+                <span class="text-[10px] text-slate-400 uppercase font-bold block">Recaudo Conciliado:</span>
+                <span class="text-base font-black font-mono text-emerald-800">{{ storage.formatCOP(facade.totalPagadoRecaudado() * 0.10) }}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      }
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL REGISTRO DE PAGO -->
+<app-registrar-pago-modal
+  [isOpen]="facade.isModalPagoOpen()"
+  [liquidacion]="facade.liquidacionSeleccionadaParaPago()"
+  (close)="facade.cerrarModalRegistroPago()"
+  (pagoRegistrado)="aplicarPago($event)"
+/>

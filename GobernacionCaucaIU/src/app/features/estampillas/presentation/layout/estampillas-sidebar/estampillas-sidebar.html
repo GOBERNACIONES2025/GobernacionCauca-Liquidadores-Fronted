@@ -1,0 +1,376 @@
+<aside class="bg-[#0f172a] text-slate-300 flex flex-col justify-between shrink-0 h-screen transition-all duration-300 z-10 w-full select-none border-r border-slate-800">
+
+  <!-- Header del Sidebar (Logo & Módulo) -->
+  <div class="p-4 border-b border-slate-800/80 flex items-center gap-3 shrink-0">
+    <div class="h-9 w-9 bg-emerald-600 rounded-lg flex items-center justify-center text-white shadow-md shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    </div>
+    @if (!isCollapsed()) {
+      <div class="flex flex-col min-w-0">
+        <span class="text-xs font-black tracking-widest text-emerald-400 uppercase leading-none truncate">Estampillas</span>
+        <span class="text-[10px] text-slate-400 font-medium truncate mt-0.5">Gobernación del Cauca</span>
+      </div>
+    }
+  </div>
+
+  <!-- Navegación Dinámica -->
+  <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-1 custom-scrollbar">
+
+    <!-- Dashboard -->
+    <a
+      routerLink="/estampillas/dashboard"
+      routerLinkActive="bg-[#1b53ad] text-white font-bold shadow-xs border-l-4 border-emerald-400"
+      class="flex items-center gap-3 px-3 py-2.5 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white rounded-lg transition border-l-4 border-transparent group"
+      [title]="isCollapsed() ? 'Dashboard Principal' : ''"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0 text-slate-400 group-hover:text-emerald-400">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />
+      </svg>
+      @if (!isCollapsed()) {
+        <span class="truncate">Dashboard</span>
+      }
+    </a>
+
+    <!-- SECCIÓN ESTAMPILLAS (WIZARD & CONSULTA) -->
+    <div>
+      <button
+        type="button"
+        (click)="toggleSection('estampillas')"
+        class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition"
+        [title]="isCollapsed() ? 'Estampillas' : ''"
+      >
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0 text-amber-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          @if (!isCollapsed()) {
+            <span class="uppercase tracking-wider text-[11px]">Estampillas</span>
+          }
+        </div>
+        @if (!isCollapsed()) {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" [class.rotate-180]="isSectionOpen('estampillas')">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        }
+      </button>
+
+      @if (!isCollapsed() && isSectionOpen('estampillas')) {
+        <div class="pl-7 pr-1 pt-1 space-y-1">
+          <!-- LIQUIDAR (WIZARD) DESTACADO -->
+          <a
+            routerLink="/estampillas/liquidar"
+            routerLinkActive="bg-emerald-600/30 text-emerald-300 font-bold border-l-2 border-emerald-400"
+            class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Liquidar Estampilla</span>
+            <span class="px-1.5 py-0.2 bg-emerald-500 text-slate-900 text-[10px] font-black rounded uppercase">7 Pasos</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/liquidaciones"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Liquidaciones</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ liquidacionesFacade.kpis().totalLiquidacionesGeneradas }}</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/consultar"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Consultar Liquidación</span>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- SECCIÓN CONTRIBUYENTES -->
+    <div>
+      <button
+        type="button"
+        (click)="toggleSection('contribuyentes')"
+        class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition"
+        [title]="isCollapsed() ? 'Contribuyentes' : ''"
+      >
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0 text-sky-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+          </svg>
+          @if (!isCollapsed()) {
+            <span class="uppercase tracking-wider text-[11px]">Contribuyentes</span>
+          }
+        </div>
+        @if (!isCollapsed()) {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" [class.rotate-180]="isSectionOpen('contribuyentes')">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        }
+      </button>
+
+      @if (!isCollapsed() && isSectionOpen('contribuyentes')) {
+        <div class="pl-7 pr-1 pt-1 space-y-1">
+          <a
+            routerLink="/estampillas/contribuyentes"
+            [routerLinkActiveOptions]="{ exact: true }"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Personas y Empresas</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ liquidacionesFacade.kpis().totalContribuyentes }}</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/contribuyentes/nuevo"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">+ Registrar Contribuyente</span>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- SECCIÓN CONTRATOS / ACTOS -->
+    <div>
+      <button
+        type="button"
+        (click)="toggleSection('contratos')"
+        class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition"
+        [title]="isCollapsed() ? 'Contratos y Actos' : ''"
+      >
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0 text-violet-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+          </svg>
+          @if (!isCollapsed()) {
+            <span class="uppercase tracking-wider text-[11px]">Contratos / Actos</span>
+          }
+        </div>
+        @if (!isCollapsed()) {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" [class.rotate-180]="isSectionOpen('contratos')">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        }
+      </button>
+
+      @if (!isCollapsed() && isSectionOpen('contratos')) {
+        <div class="pl-7 pr-1 pt-1 space-y-1">
+          <a
+            routerLink="/estampillas/contratos"
+            [routerLinkActiveOptions]="{ exact: true }"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Consultar Contratos</span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ liquidacionesFacade.kpis().totalContratos }}</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/contratos/nuevo"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">+ Registrar Contrato</span>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- SECCIÓN PAGOS -->
+    <div>
+      <button
+        type="button"
+        (click)="toggleSection('pagos')"
+        class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition"
+        [title]="isCollapsed() ? 'Pagos y Recaudo' : ''"
+      >
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0 text-emerald-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6H2.25m0 0H3m1.5 0h16.5m0 0h.75m-.75 0v11.25c0 .621-.504 1.125-1.125 1.125H5.625c-.621 0-1.125-.504-1.125-1.125V6m18 0a2.25 2.25 0 0 0-2.25-2.25H4.875A2.25 2.25 0 0 0 2.625 6m18 0H2.25" />
+          </svg>
+          @if (!isCollapsed()) {
+            <span class="uppercase tracking-wider text-[11px]">Pagos & Recaudo</span>
+          }
+        </div>
+        @if (!isCollapsed()) {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" [class.rotate-180]="isSectionOpen('pagos')">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        }
+      </button>
+
+      @if (!isCollapsed() && isSectionOpen('pagos')) {
+        <div class="pl-7 pr-1 pt-1 space-y-1">
+          <a
+            routerLink="/estampillas/pagos/pendientes"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Pagos Pendientes</span>
+            <span class="px-1.5 py-0.2 bg-amber-500/30 text-amber-300 text-[10px] font-bold rounded">Cartera</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/pagos/realizados"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Pagos Realizados</span>
+            <span class="text-[10px] text-emerald-400 font-mono">OK</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/pagos/conciliacion"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Conciliación Bancaria</span>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- SECCIÓN REPORTES -->
+    <div>
+      <button
+        type="button"
+        (click)="toggleSection('reportes')"
+        class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition"
+        [title]="isCollapsed() ? 'Reportes' : ''"
+      >
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0 text-amber-500">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+          </svg>
+          @if (!isCollapsed()) {
+            <span class="uppercase tracking-wider text-[11px]">Reportes</span>
+          }
+        </div>
+        @if (!isCollapsed()) {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" [class.rotate-180]="isSectionOpen('reportes')">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        }
+      </button>
+
+      @if (!isCollapsed() && isSectionOpen('reportes')) {
+        <div class="pl-7 pr-1 pt-1 space-y-1">
+          <a
+            routerLink="/estampillas/reportes/recaudo"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Recaudo y Estampillas</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/reportes/liquidaciones"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Liquidaciones Emitidas</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/reportes/estadisticas"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Estadísticas Territoriales</span>
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- SECCIÓN ADMINISTRACIÓN -->
+    <div>
+      <button
+        type="button"
+        (click)="toggleSection('administracion')"
+        class="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition"
+        [title]="isCollapsed() ? 'Administración' : ''"
+      >
+        <div class="flex items-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0 text-slate-400">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.559.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.894.149c-.424.07-.764.383-.929.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.398.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.506-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 0 1 .12-1.45l.773-.773a1.125 1.125 0 0 1 1.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894Z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          @if (!isCollapsed()) {
+            <span class="uppercase tracking-wider text-[11px]">Administración</span>
+          }
+        </div>
+        @if (!isCollapsed()) {
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-slate-500 transition-transform duration-200" [class.rotate-180]="isSectionOpen('administracion')">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        }
+      </button>
+
+      @if (!isCollapsed() && isSectionOpen('administracion')) {
+        <div class="pl-7 pr-1 pt-1 space-y-1">
+          <a
+            routerLink="/estampillas/administracion/estampillas"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Configurar Estampillas</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/administracion/tarifas"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Tarifas y Vigencias</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/administracion/vigencias"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Vigencias Fiscales</span>
+          </a>
+
+          <a
+            routerLink="/estampillas/administracion/parametros"
+            routerLinkActive="bg-blue-900/40 text-blue-300 font-bold border-l-2 border-blue-400"
+            class="flex items-center px-3 py-1.5 text-xs text-slate-300 hover:text-white hover:bg-slate-800 rounded-md transition"
+          >
+            <span class="truncate">Parámetros & Demo</span>
+          </a>
+        </div>
+      }
+    </div>
+
+  </nav>
+
+  <!-- Pie del Sidebar: Botón Colapsar y Versión Demo -->
+  <div class="p-3 border-t border-slate-800/80 bg-slate-950/40 shrink-0 space-y-2">
+    @if (!isCollapsed()) {
+      <div class="px-2 py-1 bg-slate-800/60 rounded-md border border-slate-700/50 flex items-center justify-between text-[10px]">
+        <span class="text-slate-400 font-mono">Modo Demo Local</span>
+        <span class="text-emerald-400 font-bold">100% Frontend</span>
+      </div>
+    }
+
+    <button
+      (click)="toggleCollapse.emit()"
+      class="flex items-center gap-3 px-3 py-2 text-xs text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg w-full transition cursor-pointer"
+      [title]="isCollapsed() ? 'Expandir menú' : 'Contraer menú'"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5 shrink-0" [class.rotate-180]="isCollapsed()">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+      </svg>
+      @if (!isCollapsed()) {
+        <span>Contraer menú</span>
+      }
+    </button>
+  </div>
+
+</aside>

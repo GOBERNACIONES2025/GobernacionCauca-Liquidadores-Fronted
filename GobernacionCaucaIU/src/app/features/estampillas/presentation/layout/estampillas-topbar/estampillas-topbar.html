@@ -1,0 +1,172 @@
+<header class="h-16 bg-[#1b53ad] text-white flex items-center justify-between px-4 z-20 border-b border-blue-900 shadow-sm shrink-0 w-full relative">
+  
+  <!-- Lado Izquierdo: Botón Toggle, Logo Institucional, Módulo y Breadcrumbs -->
+  <div class="flex items-center space-x-3">
+    <!-- Botón Toggle Menú -->
+    <button 
+      (click)="toggleSidebar.emit()"
+      type="button"
+      class="p-2 rounded-lg bg-blue-900/40 text-blue-100 hover:text-white hover:bg-blue-900/80 focus:outline-none transition cursor-pointer"
+      title="Alternar Menú"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor" class="w-5 h-5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+      </svg>
+    </button>
+
+    <!-- Logo y Título -->
+    <a routerLink="/estampillas/dashboard" class="flex items-center space-x-2.5 cursor-pointer group" title="Ir al Dashboard de Estampillas">
+      <div class="h-9 px-2 py-0.5 bg-white rounded-lg flex items-center justify-center shadow-xs">
+        <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-7 w-auto object-contain" />
+      </div>
+      <div class="flex flex-col">
+        <span class="text-xs font-black tracking-widest text-emerald-300 uppercase leading-none">Estampillas</span>
+        <span class="text-[9px] text-blue-200 uppercase font-medium leading-none mt-0.5">Rentas Departamentales</span>
+      </div>
+    </a>
+
+    <!-- Breadcrumb Dinámico en Header -->
+    <div class="hidden md:flex items-center pl-4 ml-4 border-l border-white/20">
+      <app-breadcrumb theme="dark" />
+    </div>
+  </div>
+
+  <!-- Lado Derecho: Accesos Rápidos, Selector de Usuario Demo y Menú de Perfil -->
+  <div class="flex items-center space-x-3">
+    
+    <!-- Botón Rápido: Liquidar Estampilla -->
+    <a
+      routerLink="/estampillas/liquidar"
+      class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold shadow-xs transition"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>Nueva Liquidación</span>
+    </a>
+
+    <!-- Notificaciones Mock -->
+    <button 
+      type="button" 
+      class="relative p-2 text-blue-200 hover:text-white hover:bg-blue-800/50 rounded-lg transition cursor-pointer"
+      title="Notificaciones Tributarias"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+      <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-black text-slate-900 shadow-xs">3</span>
+    </button>
+
+    <!-- Menú Desplegable de Usuario Activo y Roles Mock -->
+    <div class="relative">
+      <button
+        (click)="toggleProfileMenu()"
+        type="button"
+        class="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-blue-800/60 transition focus:outline-none cursor-pointer text-left"
+      >
+        <div class="w-8 h-8 rounded-full bg-emerald-500 text-slate-900 font-extrabold text-xs flex items-center justify-center shadow-xs">
+          {{ userInitials() }}
+        </div>
+        <div class="hidden sm:flex flex-col text-left">
+          <span class="text-xs font-bold text-white leading-tight truncate max-w-[140px]">{{ currentUser().nombre }}</span>
+          <span class="text-[10px] text-emerald-300 font-mono leading-none mt-0.5">{{ currentUser().rol }}</span>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-blue-200">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      <!-- Dropdown -->
+      @if (isProfileMenuOpen()) {
+        <div class="absolute right-0 mt-2 w-64 bg-slate-900 rounded-xl shadow-2xl py-2 border border-slate-700 z-50 text-xs animate-fadeIn">
+          
+          <div class="px-4 py-2.5 border-b border-slate-800">
+            <span class="font-bold text-white block text-sm">{{ currentUser().nombre }}</span>
+            <span class="text-[11px] text-slate-400 block">{{ currentUser().cargo }}</span>
+            <span class="inline-block mt-1.5 px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold rounded-full border border-emerald-500/30">
+              ROL: {{ currentUser().rol }}
+            </span>
+          </div>
+
+          <!-- Selector de Usuario Demo Rápido -->
+          <div class="px-3 py-2 border-b border-slate-800">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Cambiar Usuario Demo:</span>
+            <div class="space-y-1">
+              @for (u of configFacade.usuarios(); track u.id) {
+                <button
+                  type="button"
+                  (click)="seleccionarUsuarioDemo(u)"
+                  class="w-full text-left px-2 py-1.5 rounded text-xs flex items-center justify-between transition cursor-pointer"
+                  [ngClass]="currentUser().id === u.id ? 'bg-blue-600 text-white font-bold' : 'text-slate-300 hover:bg-slate-800'"
+                >
+                  <div class="flex items-center gap-1.5 truncate">
+                    <span class="w-1.5 h-1.5 rounded-full" [ngClass]="currentUser().id === u.id ? 'bg-emerald-400' : 'bg-slate-600'"></span>
+                    <span class="truncate">{{ u.nombre }}</span>
+                  </div>
+                  <span class="text-[9px] px-1 py-0.2 bg-slate-800 rounded font-mono text-slate-400">{{ u.rol.substring(0, 4) }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Acciones -->
+          <div class="py-1">
+            <a
+              routerLink="/estampillas/administracion/parametros"
+              (click)="isProfileMenuOpen.set(false)"
+              class="block px-4 py-2 text-slate-200 hover:bg-slate-800 transition"
+            >
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                </svg>
+                <span>Parámetros del Sistema</span>
+              </div>
+            </a>
+
+            <!-- Botón Reiniciar Demo -->
+            <button
+              type="button"
+              (click)="reiniciarDemo()"
+              class="w-full text-left px-4 py-2 text-amber-300 hover:bg-slate-800 transition cursor-pointer flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Reiniciar Datos DEMO</span>
+            </button>
+
+            <!-- Ir a la Plataforma Principal -->
+            <a
+              routerLink="/"
+              (click)="isProfileMenuOpen.set(false)"
+              class="block px-4 py-2 text-slate-300 hover:bg-slate-800 transition"
+            >
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                <span>Portal Gobernación Cauca</span>
+              </div>
+            </a>
+          </div>
+
+          <div class="border-t border-slate-800 pt-1">
+            <button
+              (click)="logout(); isProfileMenuOpen.set(false)"
+              type="button"
+              class="w-full text-left px-4 py-2 text-rose-400 hover:bg-slate-800 font-medium transition cursor-pointer flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+
+  </div>
+</header>

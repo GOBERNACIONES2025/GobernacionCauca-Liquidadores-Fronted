@@ -1,0 +1,777 @@
+<div class="space-y-6 max-w-5xl mx-auto pb-12">
+
+  <!-- ENCABEZADO DEL PROCESO WIZARD -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold text-slate-900">Proceso de Liquidación de Estampillas</h1>
+        <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 font-mono">
+          Vigencia Fiscal 2026
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Flujo guiado en 7 pasos para determinación del hecho generador, liquidación de tributos y expedición oficial
+      </p>
+    </div>
+
+    <a
+      routerLink="/estampillas/liquidaciones"
+      class="px-3.5 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition self-start sm:self-auto"
+    >
+      ← Ver Liquidaciones Emitidas
+    </a>
+  </div>
+
+  <!-- BARRA DE PASOS INTERACTIVA (1 al 7) -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 overflow-x-auto">
+    <div class="flex items-center justify-between min-w-[720px] relative">
+      
+      <!-- Línea conectora de fondo -->
+      <div class="absolute left-6 right-6 top-1/2 -translate-y-1/2 h-1 bg-slate-200 z-0"></div>
+      
+      <!-- Paso 1: Contribuyente -->
+      <div 
+        (click)="irAPaso(1)"
+        class="relative z-10 flex flex-col items-center gap-1.5 cursor-pointer group"
+      >
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all shadow-xs"
+          [ngClass]="{
+            'bg-[#1b53ad] text-white ring-4 ring-blue-100 scale-105': wizard.pasoActual() === 1,
+            'bg-emerald-600 text-white': wizard.pasoActual() > 1,
+            'bg-slate-200 text-slate-500': wizard.pasoActual() < 1
+          }">
+          @if (wizard.pasoActual() > 1) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+          } @else { 1 }
+        </div>
+        <span class="text-[11px] font-bold" [ngClass]="wizard.pasoActual() === 1 ? 'text-[#1b53ad]' : 'text-slate-500'">Contribuyente</span>
+      </div>
+
+      <!-- Paso 2: Acto / Contrato -->
+      <div 
+        (click)="irAPaso(2)"
+        class="relative z-10 flex flex-col items-center gap-1.5 cursor-pointer group"
+      >
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all shadow-xs"
+          [ngClass]="{
+            'bg-[#1b53ad] text-white ring-4 ring-blue-100 scale-105': wizard.pasoActual() === 2,
+            'bg-emerald-600 text-white': wizard.pasoActual() > 2,
+            'bg-slate-200 text-slate-500': wizard.pasoActual() < 2
+          }">
+          @if (wizard.pasoActual() > 2) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+          } @else { 2 }
+        </div>
+        <span class="text-[11px] font-bold" [ngClass]="wizard.pasoActual() === 2 ? 'text-[#1b53ad]' : 'text-slate-500'">Acto / Contrato</span>
+      </div>
+
+      <!-- Paso 3: Estampillas -->
+      <div 
+        (click)="irAPaso(3)"
+        class="relative z-10 flex flex-col items-center gap-1.5 cursor-pointer group"
+      >
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all shadow-xs"
+          [ngClass]="{
+            'bg-[#1b53ad] text-white ring-4 ring-blue-100 scale-105': wizard.pasoActual() === 3,
+            'bg-emerald-600 text-white': wizard.pasoActual() > 3,
+            'bg-slate-200 text-slate-500': wizard.pasoActual() < 3
+          }">
+          @if (wizard.pasoActual() > 3) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+          } @else { 3 }
+        </div>
+        <span class="text-[11px] font-bold" [ngClass]="wizard.pasoActual() === 3 ? 'text-[#1b53ad]' : 'text-slate-500'">Estampillas</span>
+      </div>
+
+      <!-- Paso 4: Base Gravable -->
+      <div 
+        (click)="irAPaso(4)"
+        class="relative z-10 flex flex-col items-center gap-1.5 cursor-pointer group"
+      >
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all shadow-xs"
+          [ngClass]="{
+            'bg-[#1b53ad] text-white ring-4 ring-blue-100 scale-105': wizard.pasoActual() === 4,
+            'bg-emerald-600 text-white': wizard.pasoActual() > 4,
+            'bg-slate-200 text-slate-500': wizard.pasoActual() < 4
+          }">
+          @if (wizard.pasoActual() > 4) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+          } @else { 4 }
+        </div>
+        <span class="text-[11px] font-bold" [ngClass]="wizard.pasoActual() === 4 ? 'text-[#1b53ad]' : 'text-slate-500'">Base Gravable</span>
+      </div>
+
+      <!-- Paso 5: Exenciones -->
+      <div 
+        (click)="irAPaso(5)"
+        class="relative z-10 flex flex-col items-center gap-1.5 cursor-pointer group"
+      >
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all shadow-xs"
+          [ngClass]="{
+            'bg-[#1b53ad] text-white ring-4 ring-blue-100 scale-105': wizard.pasoActual() === 5,
+            'bg-emerald-600 text-white': wizard.pasoActual() > 5,
+            'bg-slate-200 text-slate-500': wizard.pasoActual() < 5
+          }">
+          @if (wizard.pasoActual() > 5) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+          } @else { 5 }
+        </div>
+        <span class="text-[11px] font-bold" [ngClass]="wizard.pasoActual() === 5 ? 'text-[#1b53ad]' : 'text-slate-500'">Exenciones</span>
+      </div>
+
+      <!-- Paso 6: Liquidación -->
+      <div 
+        (click)="irAPaso(6)"
+        class="relative z-10 flex flex-col items-center gap-1.5 cursor-pointer group"
+      >
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all shadow-xs"
+          [ngClass]="{
+            'bg-[#1b53ad] text-white ring-4 ring-blue-100 scale-105': wizard.pasoActual() === 6,
+            'bg-emerald-600 text-white': wizard.pasoActual() > 6,
+            'bg-slate-200 text-slate-500': wizard.pasoActual() < 6
+          }">
+          @if (wizard.pasoActual() > 6) {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" /></svg>
+          } @else { 6 }
+        </div>
+        <span class="text-[11px] font-bold" [ngClass]="wizard.pasoActual() === 6 ? 'text-[#1b53ad]' : 'text-slate-500'">Desglose</span>
+      </div>
+
+      <!-- Paso 7: Revisión & Confirmar -->
+      <div 
+        (click)="irAPaso(7)"
+        class="relative z-10 flex flex-col items-center gap-1.5 cursor-pointer group"
+      >
+        <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all shadow-xs"
+          [ngClass]="{
+            'bg-emerald-600 text-white ring-4 ring-emerald-100 scale-105 font-black': wizard.pasoActual() === 7,
+            'bg-slate-200 text-slate-500': wizard.pasoActual() < 7
+          }">
+          7
+        </div>
+        <span class="text-[11px] font-bold" [ngClass]="wizard.pasoActual() === 7 ? 'text-emerald-700 font-extrabold' : 'text-slate-500'">Confirmación</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONTENEDOR CENTRAL DEL PASO ACTIVO -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 sm:p-8 space-y-6">
+
+    <!-- ========================================== -->
+    <!-- PASO 1: SELECCIÓN DE CONTRIBUYENTE         -->
+    <!-- ========================================== -->
+    @if (wizard.pasoActual() === 1) {
+      <div class="space-y-5 animate-fadeIn">
+        <div class="border-b border-slate-100 pb-3">
+          <span class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider">Paso 1 de 7</span>
+          <h2 class="text-lg font-extrabold text-slate-900">Búsqueda y Selección del Contribuyente</h2>
+          <p class="text-xs text-slate-500">Seleccione el sujeto pasivo sobre el cual recae la obligación tributaria de estampillas</p>
+        </div>
+
+        <!-- Buscador -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700">Buscar por Razón Social, Nombre, Cédula o NIT:</label>
+          <div class="relative">
+            <input
+              type="text"
+              [ngModel]="busquedaContribuyenteTexto()"
+              (ngModelChange)="busquedaContribuyenteTexto.set($event)"
+              placeholder="Escriba el nombre de la empresa o número de documento..."
+              class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Contribuyente Seleccionado -->
+        @if (wizard.contribuyenteSeleccionado(); as c) {
+          <div class="bg-blue-50/70 border-2 border-blue-400 rounded-xl p-4 flex items-center justify-between shadow-xs">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl bg-[#1b53ad] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                ✓
+              </div>
+              <div class="space-y-0.5">
+                <span class="text-[10px] font-extrabold text-blue-900 uppercase tracking-wider block">Contribuyente Seleccionado:</span>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900">{{ c.nombreCompleto }}</h3>
+                <p class="text-xs text-slate-600">
+                  <span class="font-mono font-bold">{{ c.tipoDocumento }}: {{ c.numeroDocumento }}@if (c.digitoVerificacion) {-{{ c.digitoVerificacion }}}</span> | Municipio: <strong class="text-slate-800">{{ c.municipioNombre }}</strong> | Estado: <strong class="text-emerald-700">{{ c.estado }}</strong>
+                </p>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 bg-emerald-600 text-white font-bold rounded-lg text-xs shadow-xs shrink-0">
+              Seleccionado
+            </span>
+          </div>
+        }
+
+        <!-- Listado de sugerencias de contribuyentes -->
+        <div class="space-y-2 pt-2">
+          <span class="text-xs font-bold text-slate-600 block">Listado de Contribuyentes Disponibles:</span>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
+            @for (c of contribuyentesFiltrados; track c.id) {
+              <div
+                (click)="seleccionarContribuyenteYPaso(c)"
+                class="p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between"
+                [ngClass]="wizard.contribuyenteSeleccionado()?.id === c.id 
+                  ? 'border-blue-600 bg-blue-50/80 shadow-xs' 
+                  : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
+              >
+                <div class="space-y-0.5 min-w-0 pr-2">
+                  <span class="font-bold text-slate-900 block text-xs truncate">{{ c.nombreCompleto }}</span>
+                  <span class="text-[11px] text-slate-500 font-mono block">
+                    {{ c.tipoDocumento }}: {{ c.numeroDocumento }}@if (c.digitoVerificacion) {-{{ c.digitoVerificacion }}}
+                  </span>
+                  <span class="text-[10px] text-slate-400 block">{{ c.municipioNombre }} • {{ c.tipoContribuyente }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="px-2.5 py-1 rounded-lg text-xs font-bold shrink-0 transition"
+                  [ngClass]="wizard.contribuyenteSeleccionado()?.id === c.id 
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                >
+                  {{ wizard.contribuyenteSeleccionado()?.id === c.id ? 'Elegido' : 'Elegir' }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- PASO 2: SELECCIÓN DE ACTO / CONTRATO       -->
+    <!-- ========================================== -->
+    @if (wizard.pasoActual() === 2) {
+      <div class="space-y-5 animate-fadeIn">
+        <div class="border-b border-slate-100 pb-3">
+          <span class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider">Paso 2 de 7</span>
+          <h2 class="text-lg font-extrabold text-slate-900">Selección del Acto, Contrato o Documento</h2>
+          <p class="text-xs text-slate-500">Hecho generador gravado correspondiente al contribuyente seleccionado</p>
+        </div>
+
+        <!-- Contribuyente Cabecera -->
+        @if (wizard.contribuyenteSeleccionado(); as c) {
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs">
+            <div>
+              <span class="text-slate-500 text-[10px] uppercase font-bold block">Contribuyente:</span>
+              <strong class="text-slate-900">{{ c.nombreCompleto }}</strong> ({{ c.tipoDocumento }}: {{ c.numeroDocumento }})
+            </div>
+            <button (click)="irAPaso(1)" class="text-blue-700 font-bold hover:underline">Cambiar</button>
+          </div>
+        }
+
+        <!-- Contrato Seleccionado Card -->
+        @if (wizard.contratoSeleccionado(); as ct) {
+          <div class="bg-emerald-50/70 border-2 border-emerald-400 rounded-xl p-4 space-y-2 shadow-xs">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider block">Contrato Seleccionado:</span>
+                <h3 class="text-base font-black text-slate-900 font-mono">{{ ct.numeroContrato }}</h3>
+              </div>
+              <div class="text-right">
+                <span class="text-[10px] text-slate-500 uppercase font-bold block">Valor del Contrato:</span>
+                <span class="text-lg font-black font-mono text-emerald-800">{{ storage.formatCOP(ct.valorContrato) }}</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-700 leading-snug border-t border-emerald-200 pt-2">
+              <strong class="text-slate-900">Objeto:</strong> {{ ct.objeto }}
+            </p>
+            <div class="text-[11px] text-slate-500 flex gap-4 pt-1">
+              <span>Entidad: <strong>{{ ct.entidadContratante }}</strong></span>
+              <span>Municipio: <strong>{{ ct.municipioNombre }}</strong></span>
+              <span>Vigencia: <strong class="font-mono">{{ ct.vigencia }}</strong></span>
+            </div>
+          </div>
+        }
+
+        <!-- Listado de Contratos -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700">Seleccione un contrato del listado:</span>
+            <a routerLink="/estampillas/contratos/nuevo" target="_blank" class="text-xs text-blue-600 hover:underline font-bold">+ Registrar Nuevo Contrato</a>
+          </div>
+
+          <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+            @for (ct of contratosFiltrados; track ct.id) {
+              <div
+                (click)="seleccionarContratoYPaso(ct)"
+                class="p-3.5 rounded-xl border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                [ngClass]="wizard.contratoSeleccionado()?.id === ct.id 
+                  ? 'border-emerald-600 bg-emerald-50/50 shadow-xs' 
+                  : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'"
+              >
+                <div class="space-y-0.5">
+                  <div class="flex items-center gap-2">
+                    <span class="font-mono font-extrabold text-blue-900 text-xs">{{ ct.numeroContrato }}</span>
+                    <span class="px-2 py-0.2 bg-slate-100 text-slate-700 rounded text-[10px] font-bold">{{ ct.tipoContratoNombre }}</span>
+                  </div>
+                  <p class="text-xs text-slate-700 line-clamp-1 max-w-xl">{{ ct.objeto }}</p>
+                  <span class="text-[10px] text-slate-400 block">{{ ct.entidadContratante }} • {{ ct.municipioNombre }}</span>
+                </div>
+
+                <div class="text-right shrink-0 flex sm:flex-col items-center sm:items-end justify-between">
+                  <span class="font-mono font-extrabold text-slate-900 text-xs sm:text-sm block">
+                    {{ storage.formatCOP(ct.valorContrato) }}
+                  </span>
+                  <button
+                    type="button"
+                    class="px-3 py-1 rounded-lg text-xs font-bold mt-1"
+                    [ngClass]="wizard.contratoSeleccionado()?.id === ct.id 
+                      ? 'bg-emerald-600 text-white' 
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'"
+                  >
+                    {{ wizard.contratoSeleccionado()?.id === ct.id ? 'Seleccionado' : 'Elegir' }}
+                  </button>
+                </div>
+              </div>
+            } @empty {
+              <div class="p-8 text-center text-slate-400 border border-dashed rounded-xl">
+                No hay contratos disponibles para este contribuyente. Registre uno para continuar.
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- PASO 3: SELECCIÓN DE ESTAMPILLAS           -->
+    <!-- ========================================== -->
+    @if (wizard.pasoActual() === 3) {
+      <div class="space-y-5 animate-fadeIn">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <span class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider">Paso 3 de 7</span>
+            <h2 class="text-lg font-extrabold text-slate-900">Selección de Estampillas Aplicables</h2>
+            <p class="text-xs text-slate-500">Seleccione las estampillas departamentales que gravan este tipo de acto</p>
+          </div>
+
+          <button
+            type="button"
+            (click)="wizard.seleccionarTodasEstampillas()"
+            class="px-3 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-bold transition cursor-pointer"
+          >
+            {{ wizard.estampillasSeleccionadas().length === wizard.catalogoEstampillas().length ? 'Deseleccionar Todas' : 'Seleccionar Todas' }}
+          </button>
+        </div>
+
+        <!-- Grid de Estampillas Departamentales -->
+        <div class="space-y-3">
+          @for (est of wizard.catalogoEstampillas(); track est.id) {
+            <label
+              class="flex items-start gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer select-none"
+              [ngClass]="wizard.estampillasSeleccionadas().some(e => e.id === est.id)
+                ? 'border-blue-600 bg-blue-50/50 shadow-xs'
+                : 'border-slate-200 hover:border-slate-300 bg-white'"
+            >
+              <input
+                type="checkbox"
+                [checked]="wizard.estampillasSeleccionadas().some(e => e.id === est.id)"
+                (change)="wizard.toggleEstampilla(est)"
+                class="mt-1 w-5 h-5 text-blue-600 rounded border-slate-300 focus:ring-blue-500"
+              />
+
+              <div class="space-y-1 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-extrabold text-slate-900 text-sm">{{ est.nombre }}</span>
+                  <span class="px-2 py-0.5 bg-blue-600 text-white font-mono font-extrabold text-xs rounded-full">
+                    Tarifa: {{ est.tarifaPorcentaje }}%
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600 leading-snug">{{ est.descripcion }}</p>
+                <div class="text-[11px] text-slate-500 pt-1 flex items-center gap-3">
+                  <span>Norma: <strong class="text-slate-700">{{ est.fundamentoLegal }}</strong></span>
+                  <span>•</span>
+                  <span>Base: <strong class="text-slate-700">{{ est.tipoBase }}</strong></span>
+                </div>
+              </div>
+            </label>
+          }
+        </div>
+
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
+          <span class="text-slate-600">Estampillas seleccionadas para el acto:</span>
+          <span class="font-extrabold text-blue-900 font-mono">{{ wizard.estampillasSeleccionadas().length }} de {{ wizard.catalogoEstampillas().length }}</span>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- PASO 4: DETERMINACIÓN DE BASE GRAVABLE     -->
+    <!-- ========================================== -->
+    @if (wizard.pasoActual() === 4) {
+      <div class="space-y-5 animate-fadeIn">
+        <div class="border-b border-slate-100 pb-3">
+          <span class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider">Paso 4 de 7</span>
+          <h2 class="text-lg font-extrabold text-slate-900">Determinación de la Base Gravable</h2>
+          <p class="text-xs text-slate-500">Cálculo de deducciones de ley y base gravable neta gravable</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          
+          <!-- Controles de Base -->
+          <div class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-200">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Valor Bruto del Contrato (COP)</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold">$</span>
+                <input
+                  type="number"
+                  [ngModel]="wizard.valorContratoBase()"
+                  (ngModelChange)="wizard.setValorContratoBase($event)"
+                  class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg font-mono font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Deducciones de Ley / Amortizaciones (COP)</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold">$</span>
+                <input
+                  type="number"
+                  [ngModel]="wizard.deduccionesDescuentos()"
+                  (ngModelChange)="wizard.setDeduccionesDescuentos($event)"
+                  placeholder="0"
+                  class="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg font-mono text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+              <span class="text-[11px] text-slate-400 mt-1 block">Aportes exentos, amortizaciones de anticipos u otros conceptos de ley</span>
+            </div>
+          </div>
+
+          <!-- Resumen Matemático Base -->
+          <div class="bg-blue-50/60 p-5 rounded-xl border border-blue-200 space-y-3 flex flex-col justify-between">
+            <div class="space-y-2">
+              <span class="text-xs font-bold uppercase text-blue-900 tracking-wider block">Fórmula de Liquidación Departamental</span>
+              <div class="space-y-1.5 text-xs text-slate-700">
+                <div class="flex justify-between">
+                  <span>Valor Contrato:</span>
+                  <span class="font-mono font-bold">{{ storage.formatCOP(wizard.valorContratoBase()) }}</span>
+                </div>
+                <div class="flex justify-between text-slate-500">
+                  <span>(-) Deducciones:</span>
+                  <span class="font-mono">- {{ storage.formatCOP(wizard.deduccionesDescuentos()) }}</span>
+                </div>
+                <div class="pt-2 border-t border-blue-200 flex justify-between text-sm font-extrabold text-blue-900">
+                  <span>(=) Base Gravable Neta:</span>
+                  <span class="font-mono">{{ storage.formatCOP(wizard.resultadoCalculo().baseGravableNeta) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-3 bg-white rounded-lg border border-blue-100 text-xs">
+              <span class="text-[11px] text-slate-500 block">Proyección del Impuesto (Sin Exención):</span>
+              <span class="text-base font-mono font-black text-emerald-700">{{ storage.formatCOP(wizard.resultadoCalculo().totalImpuesto) }}</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- PASO 5: EXENCIONES Y EXCLUSIONES           -->
+    <!-- ========================================== -->
+    @if (wizard.pasoActual() === 5) {
+      <div class="space-y-5 animate-fadeIn">
+        <div class="border-b border-slate-100 pb-3">
+          <span class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider">Paso 5 de 7</span>
+          <h2 class="text-lg font-extrabold text-slate-900">Exenciones y Beneficios Normativos</h2>
+          <p class="text-xs text-slate-500">Verifique si el contribuyente o contrato cumple los requisitos para exención legal</p>
+        </div>
+
+        <!-- Pregunta Aplica Exención -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+          <div>
+            <span class="font-bold text-slate-800 text-sm block">¿Aplica beneficio o exención tributaria?</span>
+            <span class="text-xs text-slate-500">Según ordenanzas departamentales o estatuto tributario</span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="wizard.setAplicaExencion(false)"
+              class="px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
+              [ngClass]="!wizard.aplicaExencion() ? 'bg-slate-800 text-white shadow-xs' : 'bg-white border border-slate-300 text-slate-700'"
+            >
+              No Aplica
+            </button>
+            <button
+              type="button"
+              (click)="wizard.setAplicaExencion(true)"
+              class="px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer"
+              [ngClass]="wizard.aplicaExencion() ? 'bg-emerald-600 text-white shadow-xs' : 'bg-white border border-slate-300 text-slate-700'"
+            >
+              Sí Aplica Exención
+            </button>
+          </div>
+        </div>
+
+        @if (wizard.aplicaExencion()) {
+          <div class="space-y-4 p-5 bg-emerald-50/40 rounded-xl border border-emerald-200">
+            
+            <!-- Selector Presets del Catálogo -->
+            <div>
+              <label class="block text-xs font-bold text-slate-800 mb-1">Seleccionar Tipo de Exención Normativa:</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                @for (ex of wizard.catalogoExenciones(); track ex.id) {
+                  <div
+                    (click)="wizard.seleccionarExencionPreset(ex)"
+                    class="p-3 bg-white rounded-lg border transition cursor-pointer flex items-center justify-between"
+                    [ngClass]="wizard.exencionSeleccionada()?.id === ex.id ? 'border-emerald-600 ring-2 ring-emerald-200' : 'border-slate-200 hover:border-slate-300'"
+                  >
+                    <div>
+                      <span class="font-bold text-slate-900 text-xs block">{{ ex.nombre }}</span>
+                      <span class="text-[10px] text-slate-500 line-clamp-1">{{ ex.fundamentoLegal }}</span>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-full shrink-0">
+                      {{ ex.porcentajeAplicable }}%
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <!-- Porcentaje Exento -->
+              <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1">Porcentaje Exento (%)</label>
+                <input
+                  type="number"
+                  [ngModel]="wizard.porcentajeExencion()"
+                  (ngModelChange)="wizard.setPorcentajeExencion($event)"
+                  min="0"
+                  max="100"
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono font-bold text-slate-900 bg-white"
+                />
+              </div>
+
+              <!-- Documento Soporte -->
+              <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1">Documento Soporte / Radicado</label>
+                <input
+                  type="text"
+                  [ngModel]="wizard.documentoSoporteExencion()"
+                  (ngModelChange)="wizard.documentoSoporteExencion.set($event)"
+                  placeholder="Ej: Radicado Solicitud No. 2026-4402"
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-800 bg-white"
+                />
+              </div>
+            </div>
+
+            <!-- Resumen Ahorro Exención -->
+            <div class="bg-white p-3.5 rounded-lg border border-emerald-200 text-xs flex items-center justify-between">
+              <div>
+                <span class="text-slate-500 block text-[11px]">Ahorro Estimado por Exención Aplicada:</span>
+                <span class="font-extrabold text-emerald-800 font-mono text-sm sm:text-base">
+                  {{ storage.formatCOP(wizard.resultadoCalculo().totalExencionesAhorro) }}
+                </span>
+              </div>
+              <div class="text-right">
+                <span class="text-slate-500 block text-[11px]">Nuevo Total con Descuento:</span>
+                <span class="font-extrabold text-blue-900 font-mono text-sm sm:text-base">
+                  {{ storage.formatCOP(wizard.resultadoCalculo().totalPagar) }}
+                </span>
+              </div>
+            </div>
+
+          </div>
+        }
+
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- PASO 6: DESGLOSE Y LIQUIDACIÓN DETALLADA   -->
+    <!-- ========================================== -->
+    @if (wizard.pasoActual() === 6) {
+      <div class="space-y-5 animate-fadeIn">
+        <div class="border-b border-slate-100 pb-3">
+          <span class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider">Paso 6 de 7</span>
+          <h2 class="text-lg font-extrabold text-slate-900">Desglose Detallado de la Liquidación</h2>
+          <p class="text-xs text-slate-500">Comprobante preliminar con cálculo discriminado por cada concepto</p>
+        </div>
+
+        <!-- Tabla de Conceptos Calculados -->
+        <div class="border border-slate-200 rounded-xl overflow-hidden shadow-xs">
+          <table class="w-full text-xs text-left">
+            <thead class="bg-slate-800 text-white font-bold text-[11px] uppercase">
+              <tr>
+                <th class="py-2.5 px-3">Estampilla / Concepto</th>
+                <th class="py-2.5 px-2 text-right">Base Gravable</th>
+                <th class="py-2.5 px-2 text-right">% Exención</th>
+                <th class="py-2.5 px-2 text-center">Tarifa</th>
+                <th class="py-2.5 px-3 text-right">Valor Impuesto</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              @for (c of wizard.resultadoCalculo().conceptos; track c.estampillaId) {
+                <tr class="hover:bg-slate-50">
+                  <td class="py-2.5 px-3">
+                    <span class="font-bold text-slate-900 block">{{ c.estampillaNombre }}</span>
+                    <span class="text-[10px] text-slate-400 block">{{ c.fundamentoLegal }}</span>
+                  </td>
+                  <td class="py-2.5 px-2 text-right font-mono">{{ storage.formatCOP(c.baseGravableFinal) }}</td>
+                  <td class="py-2.5 px-2 text-right font-mono font-semibold" [ngClass]="c.porcentajeExencion > 0 ? 'text-amber-700' : 'text-slate-400'">
+                    {{ c.porcentajeExencion }}%
+                  </td>
+                  <td class="py-2.5 px-2 text-center font-mono font-bold text-blue-900">{{ c.tarifaPorcentaje }}%</td>
+                  <td class="py-2.5 px-3 text-right font-mono font-black text-emerald-800">{{ storage.formatCOP(c.valorImpuesto) }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot class="bg-slate-50 font-bold border-t-2 border-slate-200">
+              <tr>
+                <td colspan="4" class="py-3 px-3 text-right text-slate-900 uppercase font-extrabold">
+                  Total a Pagar Impuesto de Estampillas:
+                </td>
+                <td class="py-3 px-3 text-right font-black font-mono text-base text-emerald-900">
+                  {{ storage.formatCOP(wizard.resultadoCalculo().totalPagar) }}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="p-3 bg-slate-100 rounded-xl text-xs">
+          <span class="font-bold text-slate-500 uppercase text-[10px] block">Son:</span>
+          <span class="font-bold font-mono text-slate-900">{{ wizard.resultadoCalculo().totalPagarLetras }}</span>
+        </div>
+
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- PASO 7: REVISIÓN Y CONFIRMACIÓN            -->
+    <!-- ========================================== -->
+    @if (wizard.pasoActual() === 7) {
+      <div class="space-y-6 animate-fadeIn">
+        <div class="border-b border-slate-100 pb-3">
+          <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider">Paso 7 de 7 — Confirmación Final</span>
+          <h2 class="text-lg font-extrabold text-slate-900">Revisión y Expedición de la Liquidación Oficial</h2>
+          <p class="text-xs text-slate-500">Revise la totalidad de los datos antes de emitir y asentar el consecutivo oficial</p>
+        </div>
+
+        <!-- Resumen 360 de la liquidación -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          
+          <!-- Contribuyente y Hecho Generador -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+            <span class="font-bold text-slate-800 uppercase text-[11px] block border-b pb-1">Sujeto Pasivo y Contrato</span>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Contribuyente:</span>
+              <strong class="text-slate-900">{{ wizard.contribuyenteSeleccionado()?.nombreCompleto }}</strong>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Documento / NIT:</span>
+              <span class="font-mono font-bold text-slate-800">{{ wizard.contribuyenteSeleccionado()?.tipoDocumento }} {{ wizard.contribuyenteSeleccionado()?.numeroDocumento }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">N° Contrato:</span>
+              <span class="font-mono font-bold text-blue-900">{{ wizard.contratoSeleccionado()?.numeroContrato }}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block text-[10px]">Valor del Contrato:</span>
+              <span class="font-mono font-bold text-slate-900">{{ storage.formatCOP(wizard.valorContratoBase()) }}</span>
+            </div>
+          </div>
+
+          <!-- Resumen de Impuesto y Exención -->
+          <div class="bg-blue-50/60 p-4 rounded-xl border border-blue-200 space-y-2">
+            <span class="font-bold text-blue-900 uppercase text-[11px] block border-b border-blue-200 pb-1">Determinación Tributaria</span>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Base Gravable Neta:</span>
+              <span class="font-mono font-bold text-slate-900">{{ storage.formatCOP(wizard.resultadoCalculo().baseGravableNeta) }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Estampillas Liquidadas:</span>
+              <span class="font-bold text-slate-900">{{ wizard.estampillasSeleccionadas().length }} conceptos</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Exención Aplicada:</span>
+              <span class="font-bold text-slate-900">{{ wizard.aplicaExencion() ? wizard.porcentajeExencion() + '%' : 'Ninguna' }}</span>
+            </div>
+            <div class="pt-2 border-t border-blue-200 flex justify-between items-center text-sm font-black text-emerald-900">
+              <span>TOTAL A PAGAR:</span>
+              <span class="font-mono text-base">{{ storage.formatCOP(wizard.resultadoCalculo().totalPagar) }}</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Declaración Jurada -->
+        <div class="bg-amber-50/70 border border-amber-300 rounded-xl p-4 space-y-2">
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              [ngModel]="wizard.declaracionJuradaAceptada()"
+              (ngModelChange)="wizard.setDeclaracionJurada($event)"
+              class="mt-0.5 w-5 h-5 text-emerald-600 rounded border-amber-400 focus:ring-emerald-500"
+            />
+            <div class="text-xs text-amber-900 leading-snug">
+              <strong class="block text-slate-900 font-bold">Declaración Jurada de Liquidación</strong>
+              Declaro bajo la gravedad de juramento que la información y documentos registrados son verídicos y se ajustan rigurosamente al Estatuto Tributario y Ordenanzas Departamentales de la Gobernación del Cauca.
+            </div>
+          </label>
+        </div>
+
+      </div>
+    }
+
+    <!-- BOTONES DE NAVEGACIÓN DEL WIZARD (PIE INFERIOR) -->
+    <div class="flex items-center justify-between pt-6 border-t border-slate-200">
+      
+      <!-- Botón Retroceder -->
+      <button
+        type="button"
+        [disabled]="wizard.pasoActual() === 1 || wizard.procesando()"
+        (click)="retroceder()"
+        class="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-30 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+      >
+        <span>← Anterior</span>
+      </button>
+
+      <!-- Botón Siguiente ó Confirmar -->
+      @if (wizard.pasoActual() < 7) {
+        <button
+          type="button"
+          (click)="avanzar()"
+          class="px-6 py-2.5 bg-[#1b53ad] hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+        >
+          <span>Siguiente Paso →</span>
+        </button>
+      } @else {
+        <button
+          type="button"
+          [disabled]="!wizard.declaracionJuradaAceptada() || wizard.procesando()"
+          (click)="confirmarLiquidacion()"
+          class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white rounded-xl text-xs font-black shadow-lg hover:shadow-xl transition flex items-center gap-2 cursor-pointer"
+        >
+          @if (wizard.procesando()) {
+            <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>Generando Liquidación Oficial...</span>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>CONFIRMAR Y GENERAR LIQUIDACIÓN OFICIAL</span>
+          }
+        </button>
+      }
+
+    </div>
+
+  </div>
+
+</div>

@@ -11,9 +11,9 @@ export class AuthStateService {
 
   // Mapa de URLs base por cada módulo de impuesto
   readonly moduleApiUrls = signal<Record<string, string>>({
-    LOGIN: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
-    AUTOMOTORES: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
-    REGISTROS: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5098/api/v1`,
+    LOGIN: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:35498`,
+    AUTOMOTORES: `http://192.168.25.175:5023/api`,
+    REGISTROS: `http://192.168.25.175:5023/api/v1`,
   });
 
   // Signal computado para verificar si hay sesión activa

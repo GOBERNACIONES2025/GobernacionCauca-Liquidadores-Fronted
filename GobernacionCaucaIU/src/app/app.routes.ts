@@ -35,6 +35,10 @@ export const routes: Routes = [
     loadChildren: () => import('./features/pasaportes/pasaportes.routes').then(m => m.pasaportesRoutes)
   },
   {
+    path: 'estampillas',
+    loadChildren: () => import('./features/estampillas/estampillas.routes').then(m => m.estampillasRoutes)
+  },
+  {
     path: 'licores',
     loadChildren: () => import('./features/licores/licores.routes').then(m => m.licoresRoutes)
   },

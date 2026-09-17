@@ -1,0 +1,377 @@
+@if (detalle360(); as d) {
+  <div class="space-y-6">
+
+    <!-- ENCABEZADO Y PERFIL 360° -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-6 relative overflow-hidden">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        
+        <!-- Datos Principales -->
+        <div class="flex items-start gap-4">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-xl flex items-center justify-center shadow-md shrink-0">
+            {{ d.contribuyente.tipoPersona === 'JURIDICA' ? 'EMP' : 'PER' }}
+          </div>
+          <div class="space-y-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-xl font-bold text-slate-900">{{ d.contribuyente.nombreCompleto }}</h1>
+              <app-estampillas-badge [estado]="d.contribuyente.estado" />
+            </div>
+            
+            <div class="flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+              <span class="font-mono font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                {{ d.contribuyente.tipoDocumento }}: {{ d.contribuyente.numeroDocumento }}@if (d.contribuyente.digitoVerificacion) {-{{ d.contribuyente.digitoVerificacion }}}
+              </span>
+              <span>•</span>
+              <span class="font-medium text-slate-700">{{ d.contribuyente.municipioNombre }}, Cauca</span>
+              <span>•</span>
+              <span class="text-slate-600">{{ d.contribuyente.correoElectronico }}</span>
+              <span>•</span>
+              <span class="font-mono">{{ d.contribuyente.telefono }}</span>
+            </div>
+
+            <p class="text-xs text-slate-400 pt-1">
+              Régimen: <strong class="text-slate-700">{{ d.contribuyente.tipoContribuyente }}</strong> | Registrado el: {{ d.contribuyente.fechaRegistro }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Acciones Directas -->
+        <div class="flex items-center gap-2.5 shrink-0">
+          <a
+            [routerLink]="['/estampillas/liquidar']"
+            [queryParams]="{ contribuyenteId: d.contribuyente.id }"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Liquidar Estampilla</span>
+          </a>
+
+          <a
+            [routerLink]="['/estampillas/contribuyentes/editar', d.contribuyente.id]"
+            class="px-3 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-semibold transition"
+          >
+            Editar Datos
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Resumen Financiero Rápido -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 pt-6 border-t border-slate-100 text-xs">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/60">
+          <span class="text-slate-500 block text-[11px]">Total Contratos ({{ d.contratos.length }}):</span>
+          <span class="font-mono font-extrabold text-slate-900 text-sm sm:text-base">{{ storage.formatCOP(d.totalContratosMonto) }}</span>
+        </div>
+        <div class="bg-blue-50/60 p-3 rounded-xl border border-blue-100">
+          <span class="text-blue-700 block text-[11px]">Total Liquidado ({{ d.liquidaciones.length }}):</span>
+          <span class="font-mono font-extrabold text-blue-900 text-sm sm:text-base">{{ storage.formatCOP(d.totalLiquidadoMonto) }}</span>
+        </div>
+        <div class="bg-emerald-50/60 p-3 rounded-xl border border-emerald-100">
+          <span class="text-emerald-700 block text-[11px]">Total Recaudado ({{ d.pagos.length }}):</span>
+          <span class="font-mono font-extrabold text-emerald-900 text-sm sm:text-base">{{ storage.formatCOP(d.totalPagadoMonto) }}</span>
+        </div>
+        <div class="bg-amber-50/60 p-3 rounded-xl border border-amber-100">
+          <span class="text-amber-700 block text-[11px]">Saldo Pendiente / Cartera:</span>
+          <span class="font-mono font-extrabold text-amber-900 text-sm sm:text-base">{{ storage.formatCOP(d.saldoPendienteMonto) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑAS 360° -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      
+      <!-- Barra de Tabs -->
+      <div class="flex items-center border-b border-slate-200 bg-slate-50 px-4">
+        <button
+          type="button"
+          (click)="setTab('CONTRATOS')"
+          class="py-3.5 px-4 text-xs font-bold border-b-2 transition cursor-pointer flex items-center gap-2"
+          [ngClass]="activeTab() === 'CONTRATOS' ? 'border-[#1b53ad] text-[#1b53ad] bg-white' : 'border-transparent text-slate-500 hover:text-slate-800'"
+        >
+          <span>Contratos y Actos</span>
+          <span class="px-1.5 py-0.2 bg-slate-200 rounded-full text-[10px] font-mono">{{ d.contratos.length }}</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setTab('LIQUIDACIONES')"
+          class="py-3.5 px-4 text-xs font-bold border-b-2 transition cursor-pointer flex items-center gap-2"
+          [ngClass]="activeTab() === 'LIQUIDACIONES' ? 'border-[#1b53ad] text-[#1b53ad] bg-white' : 'border-transparent text-slate-500 hover:text-slate-800'"
+        >
+          <span>Liquidaciones</span>
+          <span class="px-1.5 py-0.2 bg-slate-200 rounded-full text-[10px] font-mono">{{ d.liquidaciones.length }}</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setTab('PAGOS')"
+          class="py-3.5 px-4 text-xs font-bold border-b-2 transition cursor-pointer flex items-center gap-2"
+          [ngClass]="activeTab() === 'PAGOS' ? 'border-[#1b53ad] text-[#1b53ad] bg-white' : 'border-transparent text-slate-500 hover:text-slate-800'"
+        >
+          <span>Pagos Aplicados</span>
+          <span class="px-1.5 py-0.2 bg-slate-200 rounded-full text-[10px] font-mono">{{ d.pagos.length }}</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="setTab('TIMELINE')"
+          class="py-3.5 px-4 text-xs font-bold border-b-2 transition cursor-pointer flex items-center gap-2"
+          [ngClass]="activeTab() === 'TIMELINE' ? 'border-[#1b53ad] text-[#1b53ad] bg-white' : 'border-transparent text-slate-500 hover:text-slate-800'"
+        >
+          <span>Timeline Histórico</span>
+          <span class="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded-full text-[10px] font-bold">360°</span>
+        </button>
+      </div>
+
+      <!-- CONTENIDO DE PESTAÑAS -->
+      <div class="p-6">
+
+        <!-- TAB 1: CONTRATOS -->
+        @if (activeTab() === 'CONTRATOS') {
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-sm font-bold text-slate-800">Contratos Suscritos con el Departamento</h2>
+              <a
+                routerLink="/estampillas/contratos/nuevo"
+                class="text-xs text-blue-700 hover:underline font-bold"
+              >
+                + Registrar Contrato
+              </a>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="py-2.5 px-3">N° Contrato</th>
+                    <th class="py-2.5 px-2">Tipo</th>
+                    <th class="py-2.5 px-3">Entidad Contratante / Objeto</th>
+                    <th class="py-2.5 px-2 text-right">Valor Contrato</th>
+                    <th class="py-2.5 px-2 text-center">Estado</th>
+                    <th class="py-2.5 px-3 text-right">Acción</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (ct of d.contratos; track ct.id) {
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="py-3 px-3 font-mono font-bold text-blue-900">
+                        {{ ct.numeroContrato }}
+                      </td>
+                      <td class="py-3 px-2 text-slate-700">
+                        {{ ct.tipoContratoNombre }}
+                      </td>
+                      <td class="py-3 px-3">
+                        <span class="font-bold text-slate-800 block">{{ ct.entidadContratante }}</span>
+                        <span class="text-[11px] text-slate-500 line-clamp-1">{{ ct.objeto }}</span>
+                      </td>
+                      <td class="py-3 px-2 text-right font-mono font-bold text-slate-900">
+                        {{ storage.formatCOP(ct.valorContrato) }}
+                      </td>
+                      <td class="py-3 px-2 text-center">
+                        <app-estampillas-badge [estado]="ct.estado" />
+                      </td>
+                      <td class="py-3 px-3 text-right">
+                        <a
+                          [routerLink]="['/estampillas/liquidar']"
+                          [queryParams]="{ contribuyenteId: d.contribuyente.id, contratoId: ct.id }"
+                          class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold shadow-xs transition inline-flex items-center gap-1"
+                        >
+                          Liquidar
+                        </a>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="6" class="py-8 text-center text-slate-400">
+                        No hay contratos registrados para este contribuyente.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- TAB 2: LIQUIDACIONES -->
+        @if (activeTab() === 'LIQUIDACIONES') {
+          <div class="space-y-4">
+            <h2 class="text-sm font-bold text-slate-800">Liquidaciones de Estampillas Emitidas</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="py-2.5 px-3">N° Liquidación</th>
+                    <th class="py-2.5 px-2">Vigencia</th>
+                    <th class="py-2.5 px-2">Contrato</th>
+                    <th class="py-2.5 px-2 text-right">Total a Pagar</th>
+                    <th class="py-2.5 px-2">Fecha Límite</th>
+                    <th class="py-2.5 px-2 text-center">Estado</th>
+                    <th class="py-2.5 px-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (liq of d.liquidaciones; track liq.id) {
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="py-3 px-3 font-mono font-bold text-[#1b53ad]">
+                        <a [routerLink]="['/estampillas/liquidaciones', liq.id]" class="hover:underline">
+                          {{ liq.numeroLiquidacion }}
+                        </a>
+                      </td>
+                      <td class="py-3 px-2 font-mono">{{ liq.vigencia }}</td>
+                      <td class="py-3 px-2 font-mono text-slate-700">{{ liq.numeroContrato }}</td>
+                      <td class="py-3 px-2 text-right font-mono font-bold text-slate-900">{{ storage.formatCOP(liq.totalPagar) }}</td>
+                      <td class="py-3 px-2 font-mono text-slate-600">{{ liq.fechaLimitePago }}</td>
+                      <td class="py-3 px-2 text-center">
+                        <app-estampillas-badge [estado]="liq.estado" />
+                      </td>
+                      <td class="py-3 px-3 text-right">
+                        <div class="flex items-center justify-end gap-1.5">
+                          @if (liq.estado === 'PENDIENTE_PAGO' || liq.estado === 'GENERADA') {
+                            <button
+                              type="button"
+                              (click)="abrirPago(liq)"
+                              class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold shadow-xs transition cursor-pointer"
+                            >
+                              Pagar
+                            </button>
+                          }
+                          <a
+                            [routerLink]="['/estampillas/liquidaciones', liq.id]"
+                            class="p-1 text-slate-500 hover:text-blue-700 hover:bg-slate-100 rounded"
+                            title="Ver Documento"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </a>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="7" class="py-8 text-center text-slate-400">
+                        No hay liquidaciones registradas para este contribuyente.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- TAB 3: PAGOS -->
+        @if (activeTab() === 'PAGOS') {
+          <div class="space-y-4">
+            <h2 class="text-sm font-bold text-slate-800">Recaudos y Pagos Aplicados</h2>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px]">
+                  <tr>
+                    <th class="py-2.5 px-3">N° Pago</th>
+                    <th class="py-2.5 px-2">Liquidación</th>
+                    <th class="py-2.5 px-2">Fecha y Hora</th>
+                    <th class="py-2.5 px-2">Medio de Pago</th>
+                    <th class="py-2.5 px-2">Referencia / CUS</th>
+                    <th class="py-2.5 px-3 text-right">Valor Recaudado</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (p of d.pagos; track p.id) {
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="py-3 px-3 font-mono font-bold text-emerald-700">{{ p.numeroPago }}</td>
+                      <td class="py-3 px-2 font-mono text-slate-800 font-semibold">{{ p.numeroLiquidacion }}</td>
+                      <td class="py-3 px-2 text-slate-600">{{ p.fechaPago }} {{ p.horaPago }}</td>
+                      <td class="py-3 px-2">
+                        <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-bold font-mono">
+                          {{ p.medioPagoNombre }}
+                        </span>
+                      </td>
+                      <td class="py-3 px-2 font-mono text-slate-600">{{ p.numeroReferencia }}</td>
+                      <td class="py-3 px-3 text-right font-mono font-black text-emerald-800">{{ storage.formatCOP(p.valorPagado) }}</td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="6" class="py-8 text-center text-slate-400">
+                        No hay pagos registrados para este contribuyente.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- TAB 4: TIMELINE HISTÓRICO 360° -->
+        @if (activeTab() === 'TIMELINE') {
+          <div class="space-y-6">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Línea de Tiempo Tributaria y Eventos</h2>
+              <p class="text-xs text-slate-500">Trazabilidad cronológica integral de trámites y pagos</p>
+            </div>
+
+            <div class="relative pl-6 space-y-6 border-l-2 border-slate-200 ml-4">
+              @for (ev of timelineEventos(); track ev.referencia + ev.fecha) {
+                <div class="relative group">
+                  
+                  <!-- Ícono del evento en la línea -->
+                  <div class="absolute -left-[31px] top-0 w-6 h-6 rounded-full border-2 border-white shadow-xs flex items-center justify-center text-[10px]"
+                    [ngClass]="{
+                      'bg-emerald-500 text-white': ev.tipo === 'PAGO',
+                      'bg-blue-600 text-white': ev.tipo === 'LIQUIDACION',
+                      'bg-purple-600 text-white': ev.tipo === 'CONTRATO',
+                      'bg-slate-700 text-white': ev.tipo === 'CREACION',
+                      'bg-rose-500 text-white': ev.tipo === 'ANULACION'
+                    }">
+                    @if (ev.tipo === 'PAGO') { $ }
+                    @else if (ev.tipo === 'LIQUIDACION') { L }
+                    @else if (ev.tipo === 'CONTRATO') { C }
+                    @else if (ev.tipo === 'CREACION') { + }
+                    @else { X }
+                  </div>
+
+                  <!-- Card del Evento -->
+                  <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-4 space-y-1 hover:border-blue-300 transition">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="font-bold text-slate-900 text-sm">{{ ev.titulo }}</span>
+                      <span class="font-mono text-slate-500 font-semibold bg-white px-2 py-0.5 rounded border border-slate-200">{{ ev.fecha }}</span>
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed">{{ ev.descripcion }}</p>
+                    @if (ev.monto) {
+                      <div class="pt-2 text-xs font-mono font-bold text-slate-900">
+                        Monto Involucrado: <span class="text-[#1b53ad]">{{ storage.formatCOP(ev.monto) }}</span>
+                      </div>
+                    }
+                  </div>
+
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+
+    </div>
+
+  </div>
+} @else {
+  <div class="bg-white rounded-xl p-12 text-center text-slate-500 space-y-3">
+    <p class="font-bold text-base">Contribuyente no encontrado</p>
+    <a routerLink="/estampillas/contribuyentes" class="text-xs text-blue-600 hover:underline">
+      ← Volver al listado de contribuyentes
+    </a>
+  </div>
+}
+
+<!-- MODAL REGISTRO DE PAGO -->
+<app-registrar-pago-modal
+  [isOpen]="pagosFacade.isModalPagoOpen()"
+  [liquidacion]="pagosFacade.liquidacionSeleccionadaParaPago()"
+  (close)="pagosFacade.cerrarModalRegistroPago()"
+  (pagoRegistrado)="aplicarPago($event)"
+/>

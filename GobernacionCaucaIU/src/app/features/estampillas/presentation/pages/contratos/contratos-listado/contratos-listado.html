@@ -1,0 +1,238 @@
+<div class="space-y-6">
+
+  <!-- ENCABEZADO -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold text-slate-900">Módulo de Contratos y Actos Administrativos</h1>
+        <span class="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 text-xs font-bold border border-purple-200">
+          {{ facade.totalElementos() }} Contratos
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">Catálogo de hechos generadores gravados con Estampillas Departamentales del Cauca</p>
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <button
+        type="button"
+        (click)="exportarVisual()"
+        class="px-3.5 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        <span>Imprimir / Exportar</span>
+      </button>
+
+      <a
+        routerLink="/estampillas/contratos/nuevo"
+        class="px-4 py-2 bg-[#1b53ad] hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Nuevo Contrato</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- FILTROS Y BÚSQUEDA -->
+  <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      
+      <div class="lg:col-span-2">
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Buscar Contrato</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            [(ngModel)]="textoBusqueda"
+            (ngModelChange)="onBuscar()"
+            placeholder="N° Contrato, Contratista, Objeto o Entidad..."
+            class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tipo de Acto</label>
+        <select
+          [(ngModel)]="tipoSeleccionado"
+          (ngModelChange)="onFiltrarTipo()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="TODOS">Todos los tipos</option>
+          <option value="OBRA_PUBLICA">Obra Pública</option>
+          <option value="PRESTACION_SERVICIOS">Prestación de Servicios</option>
+          <option value="SUMINISTRO">Suministro</option>
+          <option value="CONVENIO_INTERADMINISTRATIVO">Convenio Interadministrativo</option>
+          <option value="ACTO_ADMINISTRATIVO">Acto Administrativo</option>
+          <option value="ORDEN_COMPRA">Orden de Compra</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Vigencia Fiscal</label>
+        <select
+          [(ngModel)]="vigenciaSeleccionada"
+          (ngModelChange)="onFiltrarVigencia()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option [value]="0">Todas las vigencias</option>
+          <option [value]="2026">2026 (Actual)</option>
+          <option [value]="2025">2025</option>
+          <option [value]="2024">2024</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Estado</label>
+        <select
+          [(ngModel)]="estadoSeleccionado"
+          (ngModelChange)="onFiltrarEstado()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="TODOS">Todos los estados</option>
+          <option value="EN_EJECUCION">En Ejecución</option>
+          <option value="LIQUIDADO">Liquidado</option>
+          <option value="TERMINADO">Terminado</option>
+        </select>
+      </div>
+
+    </div>
+
+    @if (textoBusqueda || tipoSeleccionado !== 'TODOS' || vigenciaSeleccionada !== 0 || estadoSeleccionado !== 'TODOS') {
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+        <span class="text-slate-500">Filtros activos</span>
+        <button
+          type="button"
+          (click)="onLimpiar()"
+          class="text-blue-700 hover:text-blue-900 font-bold hover:underline cursor-pointer"
+        >
+          Limpiar Filtros
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- TABLA DE CONTRATOS -->
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left">
+        <thead class="bg-slate-800 text-white font-bold text-[11px] uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-4">N° Contrato</th>
+            <th class="py-3 px-3">Contratista / Contribuyente</th>
+            <th class="py-3 px-3">Entidad Contratante & Objeto</th>
+            <th class="py-3 px-3 text-right">Valor Contrato</th>
+            <th class="py-3 px-2 text-center">Vigencia</th>
+            <th class="py-3 px-2 text-center">Estado</th>
+            <th class="py-3 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          @for (ct of facade.contratosPaginados(); track ct.id) {
+            <tr class="hover:bg-blue-50/40 transition">
+              
+              <td class="py-3 px-4 font-mono font-bold text-[#1b53ad]">
+                {{ ct.numeroContrato }}
+                <span class="block text-[10px] text-slate-400 font-sans font-normal">{{ ct.tipoContratoNombre }}</span>
+              </td>
+
+              <td class="py-3 px-3">
+                <a [routerLink]="['/estampillas/contribuyentes', ct.contribuyenteId]" class="font-bold text-slate-900 hover:underline block truncate max-w-xs">
+                  {{ ct.contribuyenteNombre }}
+                </a>
+                <span class="text-[10px] text-slate-400 font-mono">{{ ct.contribuyenteTipoDoc }}: {{ ct.contribuyenteDocumento }}</span>
+              </td>
+
+              <td class="py-3 px-3">
+                <span class="font-bold text-slate-800 block truncate max-w-sm">{{ ct.entidadContratante }}</span>
+                <span class="text-[11px] text-slate-500 line-clamp-1 max-w-sm">{{ ct.objeto }}</span>
+              </td>
+
+              <td class="py-3 px-3 text-right font-mono font-extrabold text-slate-900 text-sm">
+                {{ storage.formatCOP(ct.valorContrato) }}
+              </td>
+
+              <td class="py-3 px-2 text-center font-mono font-bold text-slate-700">
+                {{ ct.vigencia }}
+              </td>
+
+              <td class="py-3 px-2 text-center">
+                <app-estampillas-badge [estado]="ct.estado" />
+              </td>
+
+              <td class="py-3 px-4 text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  <a
+                    [routerLink]="['/estampillas/liquidar']"
+                    [queryParams]="{ contribuyenteId: ct.contribuyenteId, contratoId: ct.id }"
+                    class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold shadow-xs transition inline-flex items-center gap-1 cursor-pointer"
+                    title="Liquidar Estampillas para este Contrato"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Liquidar</span>
+                  </a>
+
+                  <button
+                    type="button"
+                    (click)="eliminar(ct)"
+                    class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                    title="Eliminar Contrato"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="py-12 text-center text-slate-400">
+                <p class="font-bold text-slate-600">No se encontraron contratos con los filtros seleccionados</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    @if (facade.totalPaginas() > 1) {
+      <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+        <span>
+          Página <strong class="text-slate-900">{{ facade.paginaActual() }}</strong> de <strong class="text-slate-900">{{ facade.totalPaginas() }}</strong>
+        </span>
+
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            [disabled]="facade.paginaActual() === 1"
+            (click)="facade.setPagina(facade.paginaActual() - 1)"
+            class="px-3 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-40 transition font-semibold cursor-pointer"
+          >
+            ← Anterior
+          </button>
+          <button
+            type="button"
+            [disabled]="facade.paginaActual() === facade.totalPaginas()"
+            (click)="facade.setPagina(facade.paginaActual() + 1)"
+            class="px-3 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-40 transition font-semibold cursor-pointer"
+          >
+            Siguiente →
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
