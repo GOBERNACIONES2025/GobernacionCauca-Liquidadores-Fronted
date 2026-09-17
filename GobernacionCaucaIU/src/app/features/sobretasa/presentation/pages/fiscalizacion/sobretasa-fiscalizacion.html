@@ -12,10 +12,10 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
     <div>
       <h1 class="text-[17px] sm:text-[18px] font-bold text-slate-900 m-0 leading-snug">
-        Bandeja de Fiscalización y Cruce SICOM (Sobretasa a Combustibles)
+        Bandeja de Aprobación y Fiscalización de Sobretasa (Combustibles)
       </h1>
       <p class="text-[12px] text-slate-400 mt-0.5">
-        Auditoría de despachos de mayoristas, validación con Ministerio de Minas y determinación de aprobaciones
+        Auditoría de despachos mayoristas, confrontación SICOM MinMinas y dictamen de pre-liquidaciones (Ley 2093 de 2021)
       </p>
     </div>
 
@@ -29,15 +29,17 @@
           type="text"
           [ngModel]="busquedaTexto()"
           (ngModelChange)="busquedaTexto.set($event)"
-          placeholder="Buscar radicado, mayorista, NIT..."
-          class="w-full pl-9 pr-4 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase"
+          placeholder="Buscar por radicado, mayorista, NIT..."
+          class="w-full pl-9 pr-4 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-[#0f4984] focus:outline-none uppercase"
         />
       </div>
     </div>
   </div>
 
-  <!-- SUBTABS POR ESTADO -->
+  <!-- TABLE CONTAINER -->
   <div class="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden">
+    
+    <!-- SUBTABS POR ESTADO -->
     <div class="p-3 bg-slate-50 border-b border-slate-200/80 flex items-center gap-1.5 overflow-x-auto text-xs">
       <button
         (click)="setFiltroEstado('EN_REVISION')"
@@ -80,274 +82,144 @@
       </button>
     </div>
 
-    <!-- Layout Dividido: Bandeja a la izquierda, Detalle a la derecha -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-0">
-      
-      <!-- Columna Izquierda: Lista de Declaraciones (5 cols) -->
-      <div class="lg:col-span-5 border-r border-slate-200 divide-y divide-slate-100 max-h-[640px] overflow-y-auto">
-        <div *ngIf="declaracionesFiscalizacion().length === 0" class="py-12 text-center text-xs text-slate-400">
-          <i class="fa-solid fa-folder-open text-2xl mb-1 text-slate-300 block"></i>
-          No hay declaraciones en este filtro.
-        </div>
+    <!-- TABLA COMPLETA FULL-WIDTH -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs text-slate-700">
+        <thead class="bg-slate-50 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200/80">
+          <tr>
+            <th class="py-3 px-4">Radicado</th>
+            <th class="py-3 px-4">Fecha Solicitud</th>
+            <th class="py-3 px-4">Mayorista / Contribuyente</th>
+            <th class="py-3 px-4">Periodo</th>
+            <th class="py-3 px-4 text-center">Despachos</th>
+            <th class="py-3 px-4 text-right">Galones</th>
+            <th class="py-3 px-4 text-right">Porción Deptal</th>
+            <th class="py-3 px-4 text-right">Total Liquidado</th>
+            <th class="py-3 px-4 text-center">Estado</th>
+            <th class="py-3 px-4 text-right">Dictamen Fiscal</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (dec of declaracionesFiscalizacion(); track dec.id) {
+            <tr class="hover:bg-slate-50 transition-colors">
+              <!-- Radicado -->
+              <td class="py-3 px-4">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-mono font-bold text-[#0f4984] text-xs">{{ dec.numeroRadicado }}</span>
+                  <span *ngIf="dec.observacionesSubsanacion && dec.estado === 'EN_REVISION'"
+                        class="px-1.5 py-0.5 rounded text-[9px] font-black bg-purple-100 text-purple-900 border border-purple-300"
+                        title="Declaración con subsanación enviada para reevaluación">
+                    <i class="fa-solid fa-rotate-left mr-0.5"></i> Reevaluación
+                  </span>
+                  <span *ngIf="dec.esExtemporanea" class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-rose-100 text-rose-800">
+                    Extemporánea
+                  </span>
+                </div>
+              </td>
 
-        <div
-          *ngFor="let dec of declaracionesFiscalizacion()"
-          (click)="seleccionarDeclaracion(dec)"
-          class="p-4 cursor-pointer transition-all hover:bg-slate-50 border-l-4"
-          [ngClass]="declaracionSeleccionada()?.id === dec.id ? 'bg-blue-50/70 border-l-[#0f4984]' : 'border-l-transparent'"
-        >
-          <div class="flex items-center justify-between">
-            <span class="font-mono font-bold text-xs text-slate-900">{{ dec.numeroRadicado }}</span>
-            <span
-              class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-              [ngClass]="{
-                'bg-emerald-100 text-emerald-800': dec.estado === 'PAGADO_APROBADO',
-                'bg-amber-100 text-amber-800': dec.estado === 'PENDIENTE_PAGO',
-                'bg-blue-100 text-blue-800': dec.estado === 'EN_REVISION',
-                'bg-rose-100 text-rose-800': dec.estado === 'OBSERVADO' || dec.estado === 'REQUERIDO' || dec.estado === 'RECHAZADO'
-              }"
-            >
-              {{ dec.estado }}
-            </span>
-          </div>
+              <!-- Fecha -->
+              <td class="py-3 px-4 text-slate-500 text-[11px] whitespace-nowrap">
+                {{ dec.fechaRadicacion | date:'dd/MM/yyyy HH:mm' }}
+              </td>
 
-          <div class="flex items-center gap-2 mt-1">
-            <p class="text-xs font-semibold text-slate-800 truncate flex-1">{{ dec.mayorista.razonSocial }}</p>
-            <!-- Badge Reevaluación si fue subsanado -->
-            <span *ngIf="dec.observacionesSubsanacion && dec.estado === 'EN_REVISION'"
-                  class="px-1.5 py-0.5 rounded text-[9.5px] font-black bg-purple-100 text-purple-900 border border-purple-300 shrink-0">
-              <i class="fa-solid fa-rotate-left mr-0.5"></i> Reevaluación
-            </span>
-          </div>
+              <!-- Mayorista -->
+              <td class="py-3 px-4">
+                <strong class="text-slate-900 block truncate max-w-[200px]">{{ dec.mayorista.razonSocial }}</strong>
+                <span class="text-[10px] text-slate-400 font-mono">NIT: {{ dec.mayorista.nit }} &middot; Planta {{ dec.mayorista.codigoSicomPlanta }}</span>
+              </td>
 
-          <div class="flex items-center justify-between mt-2 text-[11px] text-slate-500 font-mono">
-            <span>{{ dec.totalGalonesGeneral | number }} Gal</span>
-            <span class="font-black text-emerald-800">{{ formatCop(dec.totalPagar) }}</span>
-          </div>
+              <!-- Periodo -->
+              <td class="py-3 px-4 text-slate-700 font-medium">
+                Mes {{ dec.periodoMes }}/{{ dec.periodoAnio }}
+              </td>
 
-          <div class="flex items-center justify-between mt-1 text-[10px] text-slate-400">
-            <span>Periodo {{ dec.periodoMes }}/{{ dec.periodoAnio }}</span>
-            <span>{{ dec.despachos.length }} Guías &middot; {{ dec.mayorista.codigoSicomPlanta }}</span>
-          </div>
-        </div>
-      </div>
+              <!-- Despachos & SICOM -->
+              <td class="py-3 px-4 text-center">
+                <span class="font-mono font-bold text-slate-800">{{ dec.despachos.length }}</span>
+                <span *ngIf="dec.validacionSicomCompleta" class="block text-[10px] text-emerald-600 font-bold" title="100% Cruzado con SICOM">
+                  <i class="fa-solid fa-circle-check"></i> SICOM
+                </span>
+              </td>
 
-      <!-- Columna Derecha: Detalle, Validación SICOM y Acciones (7 cols) -->
-      <div class="lg:col-span-7 p-5 space-y-5 max-h-[640px] overflow-y-auto">
-        <div *ngIf="declaracionSeleccionada(); let dec; else sinSeleccion" class="space-y-5">
-          
-          <!-- Header del Detalle -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-base font-black text-slate-900 font-mono">{{ dec.numeroRadicado }}</span>
-                <span
-                  class="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase"
+              <!-- Galones -->
+              <td class="py-3 px-4 text-right font-mono font-bold text-slate-800">
+                {{ formatGal(dec.totalGalonesGeneral) }}
+              </td>
+
+              <!-- Porcion Departamental -->
+              <td class="py-3 px-4 text-right font-mono text-slate-600">
+                {{ formatCop(dec.totalDepartamental) }}
+              </td>
+
+              <!-- Total a Pagar -->
+              <td class="py-3 px-4 text-right font-mono font-bold text-emerald-800">
+                {{ formatCop(dec.totalPagar) }}
+              </td>
+
+              <!-- Estado -->
+              <td class="py-3 px-4 text-center">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
                   [ngClass]="{
-                    'bg-emerald-100 text-emerald-800': dec.estado === 'PAGADO_APROBADO',
-                    'bg-amber-100 text-amber-800': dec.estado === 'PENDIENTE_PAGO',
-                    'bg-blue-100 text-blue-800': dec.estado === 'EN_REVISION',
-                    'bg-rose-100 text-rose-800': dec.estado === 'OBSERVADO' || dec.estado === 'REQUERIDO' || dec.estado === 'RECHAZADO'
+                    'bg-amber-100 text-amber-900 border border-amber-300': dec.estado === 'EN_REVISION',
+                    'bg-rose-100 text-rose-900 border border-rose-300': dec.estado === 'OBSERVADO' || dec.estado === 'REQUERIDO' || dec.estado === 'RECHAZADO',
+                    'bg-blue-100 text-blue-900 border border-blue-300': dec.estado === 'PENDIENTE_PAGO',
+                    'bg-emerald-100 text-emerald-900 border border-emerald-300': dec.estado === 'PAGADO_APROBADO'
                   }"
                 >
                   {{ dec.estado }}
                 </span>
-                <span *ngIf="dec.observacionesSubsanacion && dec.estado === 'EN_REVISION'" class="px-2 py-0.5 rounded text-[10px] font-black bg-purple-100 text-purple-900 border border-purple-300">
-                  Subsanado / Para Reevaluación
-                </span>
-                <span *ngIf="dec.esExtemporanea" class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800">
-                  Extemporánea
-                </span>
-              </div>
-              <p class="text-xs text-slate-500 mt-0.5">
-                {{ dec.mayorista.razonSocial }} &middot; NIT: {{ dec.mayorista.nit }}
-              </p>
-            </div>
+              </td>
 
-            <div class="flex items-center gap-1.5">
-              <button
-                type="button"
-                (click)="abrirFormulario(dec)"
-                class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer flex items-center gap-1"
-                title="Ver Formulario Oficial PDF"
-              >
-                <i class="fa-solid fa-file-invoice text-rose-600"></i>
-                <span>PDF</span>
-              </button>
+              <!-- Acciones / Dictamen Fiscal -->
+              <td class="py-3 px-4 text-right whitespace-nowrap">
+                <div class="inline-flex items-center gap-1.5 justify-end">
+                  
+                  <!-- Ver PDF Oficial Formulario -->
+                  <button
+                    type="button"
+                    (click)="abrirFormulario(dec)"
+                    class="px-2.5 py-1.5 rounded-md text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300 hover:bg-slate-200 transition cursor-pointer"
+                    title="Ver Formulario Oficial Ley 2093 de 2021"
+                  >
+                    <i class="fa-solid fa-file-invoice-dollar mr-1 text-[#0f4984]"></i>
+                    <span>PDF</span>
+                  </button>
 
-              <button
-                type="button"
-                (click)="abrirAuditoriaModal(dec)"
-                class="px-3 py-1.5 rounded-lg bg-[#0f4984] hover:bg-[#0a274d] text-white text-xs font-bold transition cursor-pointer flex items-center gap-1"
-                title="Auditoría y Dictamen"
-              >
-                <i class="fa-solid fa-scale-balanced text-xs"></i>
-                <span>Auditar</span>
-              </button>
-            </div>
-          </div>
+                  <!-- Auditar Radicado Modal -->
+                  <button
+                    type="button"
+                    (click)="abrirAuditoriaModal(dec)"
+                    class="px-3 py-1.5 rounded-md text-xs font-bold transition cursor-pointer shadow-xs flex items-center gap-1"
+                    [ngClass]="dec.estado === 'EN_REVISION' ? 'bg-[#0f4984] hover:bg-[#0a274d] text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-700'"
+                  >
+                    <i class="fa-solid fa-scale-balanced text-xs"></i>
+                    <span>{{ dec.estado === 'EN_REVISION' ? 'Auditar Radicado' : 'Ver Expediente' }}</span>
+                  </button>
 
-          <!-- Alerta de observaciones si está OBSERVADO -->
-          <div *ngIf="dec.observacionesFiscalizacion" class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1 text-xs">
-            <span class="font-bold flex items-center gap-1.5">
-              <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
-              <span>Requerimiento / Causal de Observación Activa:</span>
-            </span>
-            <p class="text-rose-800 leading-relaxed font-medium">{{ dec.observacionesFiscalizacion }}</p>
-          </div>
-
-          <!-- Alerta de Subsanación si existe -->
-          <div *ngIf="dec.observacionesSubsanacion" class="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-purple-950 space-y-1 text-xs">
-            <span class="font-bold flex items-center gap-1.5">
-              <i class="fa-solid fa-wrench text-purple-600"></i>
-              <span>Subsanación y Aclaración Presentada por el Mayorista:</span>
-            </span>
-            <p class="text-purple-900 leading-relaxed font-medium">{{ dec.observacionesSubsanacion }}</p>
-          </div>
-
-          <!-- Totales de la Liquidación -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl text-xs">
-            <div>
-              <span class="text-slate-500 text-[10px] uppercase font-semibold block">Total Galones</span>
-              <span class="font-mono font-bold text-slate-900 text-sm">{{ dec.totalGalonesGeneral | number }} Gl</span>
-            </div>
-            <div>
-              <span class="text-slate-500 text-[10px] uppercase font-semibold block">Porción Municipal</span>
-              <span class="font-mono font-bold text-amber-700 text-sm">{{ formatCop(dec.totalMunicipal) }}</span>
-            </div>
-            <div>
-              <span class="text-slate-500 text-[10px] uppercase font-semibold block">Porción Deptal</span>
-              <span class="font-mono font-bold text-blue-700 text-sm">{{ formatCop(dec.totalDepartamental) }}</span>
-            </div>
-            <div>
-              <span class="text-slate-500 text-[10px] uppercase font-semibold block">Total a Pagar</span>
-              <span class="font-mono font-black text-emerald-800 text-sm">{{ formatCop(dec.totalPagar) }}</span>
-            </div>
-          </div>
-
-          <!-- Barra de Acciones Directas -->
-          <div class="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              (click)="abrirValidacionSicom()"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 text-[#0f4984] border border-blue-200 hover:bg-blue-100 text-xs font-bold transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-satellite-dish"></i>
-              <span>Validar con SICOM MinMinas</span>
-            </button>
-
-            <button
-              *ngIf="dec.estado === 'EN_REVISION' || dec.estado === 'OBSERVADO'"
-              type="button"
-              (click)="abrirAuditoriaModal(dec)"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>Devolver / Requerir</span>
-            </button>
-
-            <button
-              *ngIf="dec.estado === 'EN_REVISION' || dec.estado === 'OBSERVADO'"
-              type="button"
-              (click)="aprobarDirecto()"
-              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-circle-check"></i>
-              <span>Aprobar Liquidación</span>
-            </button>
-
-            <button
-              *ngIf="dec.estado === 'PENDIENTE_PAGO'"
-              type="button"
-              (click)="abrirAsobancario(dec)"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold transition-colors cursor-pointer"
-            >
-              <i class="fa-solid fa-building-columns"></i>
-              <span>Relacionar Pago Bancario</span>
-            </button>
-          </div>
-
-          <!-- Tabla de Despachos Compacta -->
-          <div class="border border-slate-200 rounded-xl overflow-hidden">
-            <div class="bg-slate-100 px-3 py-2 flex items-center justify-between border-b border-slate-200 text-xs font-bold text-slate-700">
-              <span>Guías de Transporte Registradas ({{ dec.despachos.length }})</span>
-              <span *ngIf="dec.validacionSicomCompleta" class="text-emerald-700 font-bold text-[11px]">
-                <i class="fa-solid fa-check-double mr-1"></i> Cruzado con SICOM
-              </span>
-            </div>
-            <div class="overflow-x-auto max-h-48 overflow-y-auto">
-              <table class="w-full text-xs text-left">
-                <thead class="bg-slate-50 text-slate-500 uppercase text-[9.5px] border-b border-slate-200">
-                  <tr>
-                    <th class="py-2 px-3">No. Guía</th>
-                    <th class="py-2 px-3">Placa</th>
-                    <th class="py-2 px-3">EDS Destino</th>
-                    <th class="py-2 px-3">Tipo</th>
-                    <th class="py-2 px-3 text-right">Galones</th>
-                    <th class="py-2 px-3 text-right">Total</th>
-                    <th class="py-2 px-3 text-center">SICOM</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  <tr *ngFor="let d of dec.despachos" class="hover:bg-slate-50">
-                    <td class="py-1.5 px-3 font-mono font-bold">{{ d.codigoGuiaSicom }}</td>
-                    <td class="py-1.5 px-3 font-mono font-semibold text-amber-800">{{ d.placaVehiculo }}</td>
-                    <td class="py-1.5 px-3 text-slate-700 truncate max-w-[120px]">{{ d.estacionServicio?.nombreComercial || d.codigoSicomEds }}</td>
-                    <td class="py-1.5 px-3 font-bold">{{ d.tipoCombustible }}</td>
-                    <td class="py-1.5 px-3 text-right font-mono">{{ d.galonesDespachados | number }}</td>
-                    <td class="py-1.5 px-3 text-right font-mono font-bold">{{ formatCop(d.totalItem) }}</td>
-                    <td class="py-1.5 px-3 text-center">
-                      <i *ngIf="d.validadoSicom || dec.validacionSicomCompleta" class="fa-solid fa-circle-check text-emerald-600"></i>
-                      <i *ngIf="!d.validadoSicom && !dec.validacionSicomCompleta" class="fa-regular fa-circle text-slate-300"></i>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Historial de Auditoría -->
-          <div class="border border-slate-200 rounded-xl p-3.5 space-y-2.5">
-            <span class="text-[11px] font-bold uppercase text-slate-500 block">Trazabilidad de Eventos:</span>
-            <div class="relative pl-5 space-y-3 border-l border-slate-200 ml-1 text-xs">
-              <div *ngFor="let h of dec.historial" class="relative">
-                <span class="absolute -left-[24px] top-1 w-2.5 h-2.5 rounded-full bg-[#0f4984]"></span>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <strong class="text-slate-800 text-[11px]">{{ h.funcionario }}</strong>
-                    <span class="text-[10px] text-slate-400 font-mono ml-auto">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
-                  </div>
-                  <p class="text-slate-600 text-[10.5px] mt-0.5 leading-snug">{{ h.observacion }}</p>
                 </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        <ng-template #sinSeleccion>
-          <div class="py-20 text-center text-slate-400">
-            <i class="fa-solid fa-hand-pointer text-3xl mb-2 text-slate-300 block"></i>
-            Seleccione una declaración de la bandeja para auditar guías y dictaminar aprobación o requerimiento.
-          </div>
-        </ng-template>
-      </div>
-
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="10" class="py-12 text-center text-slate-400">
+                <i class="fa-solid fa-folder-open text-2xl mb-1 block text-slate-300"></i>
+                <p class="font-bold text-slate-700 text-sm">No hay radicados en este filtro de fiscalización</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
+
   </div>
 
 </main>
 
-<!-- MODALES -->
-<!-- 1. Modal SICOM Interoperabilidad -->
-<app-sicom-validador-modal
-  *ngIf="mostrarModalSicom() && declaracionSeleccionada()"
-  [declaracion]="declaracionSeleccionada()!"
-  (cerrar)="mostrarModalSicom.set(false)"
-  (validacionCompletada)="onSicomCompletado()"
-/>
+<!-- ========================================================================= -->
+<!-- MODALES DEL SISTEMA -->
+<!-- ========================================================================= -->
 
-<!-- 2. Modal Auditoría y Dictamen -->
+<!-- 1. Modal Auditoría y Dictamen Fiscal -->
 <app-sobretasa-auditoria-modal
   *ngIf="mostrarModalAuditoria() && declaracionSeleccionada()"
   [declaracion]="declaracionSeleccionada()!"
@@ -360,11 +232,19 @@
   (cerrar)="mostrarModalAuditoria.set(false)"
 />
 
-<!-- 3. Modal Formulario Oficial PDF -->
+<!-- 2. Modal Formulario Oficial PDF (Ley 2093) -->
 <app-formulario-oficial-modal
   *ngIf="mostrarModalFormulario() && declaracionSeleccionada()"
   [declaracion]="declaracionSeleccionada()!"
   (cerrar)="mostrarModalFormulario.set(false)"
+/>
+
+<!-- 3. Modal SICOM Interoperabilidad -->
+<app-sicom-validador-modal
+  *ngIf="mostrarModalSicom() && declaracionSeleccionada()"
+  [declaracion]="declaracionSeleccionada()!"
+  (cerrar)="mostrarModalSicom.set(false)"
+  (validacionCompletada)="onSicomCompletado()"
 />
 
 <!-- 4. Modal Asobancario Pago en Ventanilla -->
