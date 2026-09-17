@@ -68,8 +68,11 @@ export class Home {
     {
       id: 'estampillas',
       title: 'Estampillas',
-      description: 'Adquisición y pago de estampillas prodesarrollo departamental.',
+      description: 'Liquidación oficial, contratos, convenios, pagos y certificados tributarios.',
       icon: '/estampillas.svg',
+      routeAdmin: '/estampillas/dashboard',
+      routeCitizen: '/estampillas/dashboard',
+      isNew: true,
     },
     {
       id: 'licores',

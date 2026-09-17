@@ -1,0 +1,291 @@
+<div class="space-y-6">
+
+  <!-- ENCABEZADO -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold text-slate-900">Consulta y Gestión de Liquidaciones</h1>
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 text-xs font-bold border border-blue-200">
+          {{ facade.totalElementos() }} Expedidas
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">Control de actos de liquidación oficial de estampillas departamentales y estados de recaudo</p>
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <button
+        type="button"
+        (click)="exportarVisual()"
+        class="px-3.5 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        <span>Imprimir Reporte</span>
+      </button>
+
+      <a
+        routerLink="/estampillas/liquidar"
+        class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Nueva Liquidación</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- FILTROS AVANZADOS MULTICRITERIO -->
+  <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+      
+      <!-- Búsqueda Texto -->
+      <div class="lg:col-span-2">
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Buscar Liquidación</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            [(ngModel)]="textoBusqueda"
+            (ngModelChange)="onBuscar()"
+            placeholder="N° Liquidación (LIQ-2026-...), Contribuyente, NIT..."
+            class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <!-- Filtro Estado -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Estado</label>
+        <select
+          [(ngModel)]="estadoSeleccionado"
+          (ngModelChange)="onFiltrarEstado()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="TODOS">Todos los estados</option>
+          <option value="PENDIENTE_PAGO">Pendiente de Pago</option>
+          <option value="PAGADA">Pagada</option>
+          <option value="GENERADA">Generada</option>
+          <option value="VENCIDA">Vencida</option>
+          <option value="ANULADA">Anulada</option>
+        </select>
+      </div>
+
+      <!-- Filtro Vigencia -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Vigencia</label>
+        <select
+          [(ngModel)]="vigenciaSeleccionada"
+          (ngModelChange)="onFiltrarVigencia()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option [value]="0">Todas las vigencias</option>
+          <option [value]="2026">2026 (Actual)</option>
+          <option [value]="2025">2025</option>
+          <option [value]="2024">2024</option>
+        </select>
+      </div>
+
+      <!-- Fecha Desde -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Fecha Desde</label>
+        <input
+          type="date"
+          [(ngModel)]="fechaDesde"
+          (ngModelChange)="onFiltrarFechas()"
+          class="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-xs text-slate-700 bg-white"
+        />
+      </div>
+
+      <!-- Fecha Hasta -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Fecha Hasta</label>
+        <input
+          type="date"
+          [(ngModel)]="fechaHasta"
+          (ngModelChange)="onFiltrarFechas()"
+          class="w-full px-2.5 py-2 border border-slate-300 rounded-lg text-xs text-slate-700 bg-white"
+        />
+      </div>
+
+    </div>
+
+    @if (textoBusqueda || estadoSeleccionado !== 'TODOS' || vigenciaSeleccionada !== 0 || fechaDesde || fechaHasta) {
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+        <span class="text-slate-500">Filtrando {{ facade.totalElementos() }} registros</span>
+        <button
+          type="button"
+          (click)="onLimpiar()"
+          class="text-blue-700 hover:text-blue-900 font-bold hover:underline cursor-pointer"
+        >
+          Limpiar Filtros
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- TABLA DE LIQUIDACIONES -->
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left">
+        <thead class="bg-slate-800 text-white font-bold text-[11px] uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-4">N° Liquidación</th>
+            <th class="py-3 px-3">Contribuyente / Sujeto Pasivo</th>
+            <th class="py-3 px-3">Contrato Asociado</th>
+            <th class="py-3 px-2">Vigencia</th>
+            <th class="py-3 px-3 text-right">Total a Pagar</th>
+            <th class="py-3 px-2">Fecha Límite</th>
+            <th class="py-3 px-2 text-center">Estado</th>
+            <th class="py-3 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          @for (liq of facade.liquidacionesPaginadas(); track liq.id) {
+            <tr class="hover:bg-blue-50/40 transition">
+              
+              <!-- Número Liquidación -->
+              <td class="py-3 px-4 font-mono font-extrabold text-[#1b53ad]">
+                <a [routerLink]="['/estampillas/liquidaciones', liq.id]" class="hover:underline flex items-center gap-1.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span>{{ liq.numeroLiquidacion }}</span>
+                </a>
+                <span class="text-[10px] text-slate-400 font-sans font-normal block">{{ liq.fechaGeneracion }}</span>
+              </td>
+
+              <!-- Contribuyente -->
+              <td class="py-3 px-3">
+                <a [routerLink]="['/estampillas/contribuyentes', liq.contribuyenteId]" class="font-bold text-slate-900 hover:underline block truncate max-w-xs">
+                  {{ liq.contribuyenteNombre }}
+                </a>
+                <span class="text-[10px] text-slate-400 font-mono">{{ liq.contribuyenteTipoDoc }}: {{ liq.contribuyenteDocumento }}</span>
+              </td>
+
+              <!-- Contrato -->
+              <td class="py-3 px-3 font-mono text-slate-800">
+                <span class="font-bold">{{ liq.numeroContrato }}</span>
+                <span class="text-[10px] text-slate-400 font-sans block truncate max-w-[160px]">{{ liq.tipoContratoNombre }}</span>
+              </td>
+
+              <!-- Vigencia -->
+              <td class="py-3 px-2 font-mono font-bold text-slate-700">
+                {{ liq.vigencia }}
+              </td>
+
+              <!-- Total a Pagar -->
+              <td class="py-3 px-3 text-right font-mono font-black text-slate-900 text-sm">
+                {{ storage.formatCOP(liq.totalPagar) }}
+              </td>
+
+              <!-- Fecha Límite -->
+              <td class="py-3 px-2 font-mono" [ngClass]="liq.estado === 'VENCIDA' ? 'text-rose-600 font-bold' : 'text-slate-600'">
+                {{ liq.fechaLimitePago }}
+              </td>
+
+              <!-- Estado -->
+              <td class="py-3 px-2 text-center">
+                <app-estampillas-badge [estado]="liq.estado" />
+              </td>
+
+              <!-- Acciones -->
+              <td class="py-3 px-4 text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  
+                  <!-- Registrar Pago si está pendiente -->
+                  @if (liq.estado === 'PENDIENTE_PAGO' || liq.estado === 'GENERADA') {
+                    <button
+                      type="button"
+                      (click)="abrirModalPago(liq)"
+                      class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold shadow-xs transition cursor-pointer"
+                      title="Registrar Pago de Estampillas"
+                    >
+                      Pagar
+                    </button>
+                  }
+
+                  <!-- Ver Detalle / Imprimir -->
+                  <a
+                    [routerLink]="['/estampillas/liquidaciones', liq.id]"
+                    class="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-slate-100 rounded transition"
+                    title="Ver Documento Oficial e Imprimir"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </a>
+
+                  <!-- Anular si no está pagada -->
+                  @if (liq.estado !== 'PAGADA' && liq.estado !== 'ANULADA') {
+                    <button
+                      type="button"
+                      (click)="anular(liq)"
+                      class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                      title="Anular Liquidación"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    </button>
+                  }
+
+                </div>
+              </td>
+
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="py-12 text-center text-slate-400">
+                <p class="font-bold text-slate-600">No se encontraron liquidaciones con los filtros seleccionados</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    @if (facade.totalPaginas() > 1) {
+      <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+        <span>
+          Página <strong class="text-slate-900">{{ facade.paginaActual() }}</strong> de <strong class="text-slate-900">{{ facade.totalPaginas() }}</strong>
+        </span>
+
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            [disabled]="facade.paginaActual() === 1"
+            (click)="facade.setPagina(facade.paginaActual() - 1)"
+            class="px-3 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-40 transition font-semibold cursor-pointer"
+          >
+            ← Anterior
+          </button>
+          <button
+            type="button"
+            [disabled]="facade.paginaActual() === facade.totalPaginas()"
+            (click)="facade.setPagina(facade.paginaActual() + 1)"
+            class="px-3 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-40 transition font-semibold cursor-pointer"
+          >
+            Siguiente →
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
+
+<!-- MODAL REGISTRO DE PAGO -->
+<app-registrar-pago-modal
+  [isOpen]="pagosFacade.isModalPagoOpen()"
+  [liquidacion]="pagosFacade.liquidacionSeleccionadaParaPago()"
+  (close)="pagosFacade.cerrarModalRegistroPago()"
+  (pagoRegistrado)="aplicarPago($event)"
+/>

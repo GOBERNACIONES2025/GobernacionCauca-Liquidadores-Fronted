@@ -1,0 +1,366 @@
+<div class="space-y-6">
+
+  <!-- ENCABEZADO -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold text-slate-900">Catálogo de Estampillas Departamentales</h1>
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-bold border border-blue-200">
+          Gobernación del Cauca
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">Configuración de tributos, ordenanzas departamentales, tarifas y destinación específica</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="abrirModalNuevo()"
+      class="px-4 py-2 bg-[#1b53ad] hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-md transition flex items-center gap-2 cursor-pointer self-start sm:self-auto"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      <span>+ Nueva Estampilla</span>
+    </button>
+  </div>
+
+  <!-- TARJETAS DE ESTADÍSTICAS RÁPIDAS -->
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">Total Estampillas</span>
+        <span class="text-2xl font-black font-mono text-slate-900">{{ facade.estampillas().length }}</span>
+      </div>
+      <div class="p-2.5 bg-blue-50 text-[#1b53ad] rounded-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] text-emerald-600 font-bold uppercase tracking-wider block">Activas en Liquidación</span>
+        <span class="text-2xl font-black font-mono text-emerald-700">{{ facade.estampillasActivas().length }}</span>
+      </div>
+      <div class="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] text-amber-600 font-bold uppercase tracking-wider block">Carga Impositiva Total</span>
+        <span class="text-2xl font-black font-mono text-amber-700">{{ sumaTarifasActivas | number:'1.2-2' }}%</span>
+      </div>
+      <div class="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider block">Vigencia Fiscal</span>
+        <span class="text-2xl font-black font-mono text-slate-900">2026</span>
+      </div>
+      <div class="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- FILTROS Y TABLA -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+    
+    <!-- Filtros -->
+    <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div class="w-full sm:w-80">
+        <input
+          type="text"
+          [(ngModel)]="textoBusqueda"
+          (ngModelChange)="onBuscar()"
+          placeholder="Buscar por código, nombre o descripción..."
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        />
+      </div>
+
+      <div class="flex items-center gap-3 w-full sm:w-auto">
+        <select
+          [(ngModel)]="estadoFiltro"
+          (ngModelChange)="onFiltrarEstado()"
+          class="px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="TODOS">Todos los Estados</option>
+          <option value="ACTIVA">Solo Activas</option>
+          <option value="INACTIVA">Solo Inactivas</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left">
+        <thead class="bg-slate-800 text-white font-bold text-[11px] uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-4">Código</th>
+            <th class="py-3 px-4">Nombre / Denominación Legal</th>
+            <th class="py-3 px-3">Fundamento Legal</th>
+            <th class="py-3 px-3 text-center">Tarifa %</th>
+            <th class="py-3 px-3">Base Imponible</th>
+            <th class="py-3 px-3">Cuenta Recaudo</th>
+            <th class="py-3 px-2 text-center">Estado</th>
+            <th class="py-3 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          @for (item of facade.estampillas(); track item.id) {
+            <tr class="hover:bg-slate-50 transition">
+              <td class="py-3 px-4 font-mono font-bold text-blue-900">
+                {{ item.codigo }}
+              </td>
+              <td class="py-3 px-4">
+                <span class="font-bold text-slate-900 block">{{ item.nombre }}</span>
+                <span class="text-[11px] text-slate-500 line-clamp-1">{{ item.descripcion }}</span>
+              </td>
+              <td class="py-3 px-3 font-mono text-[11px] text-slate-600">
+                {{ item.fundamentoLegal }}
+              </td>
+              <td class="py-3 px-3 text-center font-mono font-black text-blue-900 text-sm">
+                {{ item.tarifaPorcentaje | number:'1.2-2' }}%
+              </td>
+              <td class="py-3 px-3 font-mono text-[10px] text-slate-600">
+                {{ item.tipoBase }}
+              </td>
+              <td class="py-3 px-3 text-[11px] text-slate-600">
+                <span class="block font-medium">{{ item.bancoDestino }}</span>
+                <span class="font-mono text-[10px] text-slate-400">{{ item.cuentaBancariaRecaudo }}</span>
+              </td>
+              <td class="py-3 px-2 text-center">
+                <app-estampillas-badge [estado]="item.estado" />
+              </td>
+              <td class="py-3 px-4 text-right">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    type="button"
+                    (click)="abrirModalEditar(item)"
+                    title="Editar Estampilla"
+                    class="p-1.5 hover:bg-blue-50 text-blue-700 rounded-md transition cursor-pointer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </button>
+
+                  <button
+                    type="button"
+                    (click)="toggleEstado(item)"
+                    [title]="item.estado === 'ACTIVA' ? 'Inactivar' : 'Activar'"
+                    class="p-1.5 rounded-md transition cursor-pointer"
+                    [ngClass]="item.estado === 'ACTIVA' ? 'hover:bg-red-50 text-red-600' : 'hover:bg-emerald-50 text-emerald-600'"
+                  >
+                    @if (item.estado === 'ACTIVA') {
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                      </svg>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    }
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="py-12 text-center text-slate-400">
+                <p class="font-bold text-slate-600">No se encontraron estampillas con los filtros aplicados</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL CREACIÓN / EDICIÓN DE ESTAMPILLA -->
+@if (isModalOpen()) {
+  <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+      
+      <div class="px-6 py-4 bg-slate-800 text-white flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-sm">
+            {{ editingEstampilla() ? 'Editar Estampilla Departamental' : 'Nueva Estampilla Departamental' }}
+          </h3>
+          <p class="text-[11px] text-slate-300">Definición de tributo según Estatuto Tributario del Departamento del Cauca</p>
+        </div>
+        <button
+          type="button"
+          (click)="cerrarModal()"
+          class="text-slate-400 hover:text-white p-1 rounded-lg transition"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="guardar()" class="p-6 space-y-4">
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Código Oficial *</label>
+            <input
+              type="text"
+              formControlName="codigo"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg uppercase font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ej: EST-001"
+            />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block font-bold text-slate-700 mb-1">Nombre Oficial de la Estampilla *</label>
+            <input
+              type="text"
+              formControlName="nombre"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ej: Estampilla Pro-Universidad del Cauca"
+            />
+          </div>
+        </div>
+
+        <div class="text-xs">
+          <label class="block font-bold text-slate-700 mb-1">Descripción / Destinación *</label>
+          <textarea
+            formControlName="descripcion"
+            rows="2"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            placeholder="Destinación de los recursos recaudados..."
+          ></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Fundamento Legal (Ordenanza / Ley) *</label>
+            <input
+              type="text"
+              formControlName="fundamentoLegal"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ej: Ordenanza 012 de 2021"
+            />
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tipo de Base Imponible *</label>
+            <select
+              formControlName="tipoBase"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="VALOR_BRUTO_CONTRATO">Valor Bruto del Contrato</option>
+              <option value="VALOR_NETO_FACTURA">Valor Neto de Facturación</option>
+              <option value="HONORARIOS">Honorarios / Prestación de Servicios</option>
+              <option value="TRAMITE_ESPECIFICO">Trámite Específico Fijo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Tarifa Porcentual (%) *</label>
+            <div class="relative">
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                max="100"
+                formControlName="tarifaPorcentaje"
+                class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+              <span class="absolute right-3 top-2 font-bold text-slate-400">%</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Vigencia Fiscal *</label>
+            <input
+              type="number"
+              formControlName="vigencia"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Estado *</label>
+            <select
+              formControlName="estado"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            >
+              <option value="ACTIVA">ACTIVA</option>
+              <option value="INACTIVA">INACTIVA</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Banco Destino de Recaudo *</label>
+            <input
+              type="text"
+              formControlName="bancoDestino"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Cuenta Bancaria Oficial *</label>
+            <input
+              type="text"
+              formControlName="cuentaBancariaRecaudo"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-700">
+            <input
+              type="checkbox"
+              formControlName="requiereExencionValidada"
+              class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+            />
+            <span class="font-medium">Requiere acto administrativo para aplicar exenciones tributarias</span>
+          </label>
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="cerrarModal()"
+            class="px-4 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="px-5 py-2 bg-[#1b53ad] hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-md transition cursor-pointer"
+          >
+            Guardar Estampilla
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+}

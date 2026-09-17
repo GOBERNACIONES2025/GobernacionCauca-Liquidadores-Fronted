@@ -1,0 +1,280 @@
+<div class="space-y-6 max-w-4xl mx-auto">
+
+  <!-- Encabezado Formulario -->
+  <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+    <div>
+      <h1 class="text-xl font-bold text-slate-900">
+        {{ isEditing() ? 'Editar Contribuyente' : 'Registrar Nuevo Contribuyente' }}
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Ingrese los datos tributarios, de contacto y de identificación del sujeto pasivo
+      </p>
+    </div>
+
+    <a
+      routerLink="/estampillas/contribuyentes"
+      class="px-3.5 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition"
+    >
+      ← Volver al Listado
+    </a>
+  </div>
+
+  <form [formGroup]="contribuyenteForm" (ngSubmit)="onSubmit()" class="space-y-6 text-xs">
+
+    <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-xs">1</span>
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Información Básica y Naturaleza Jurídica</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Tipo Persona -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tipo de Persona <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="tipoPersona"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="JURIDICA">Persona Jurídica (Empresa)</option>
+            <option value="NATURAL">Persona Natural</option>
+            <option value="CONSORCIO">Consorcio</option>
+            <option value="UNION_TEMPORAL">Unión Temporal</option>
+          </select>
+        </div>
+
+        <!-- Tipo Documento -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tipo de Documento <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="tipoDocumento"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="NIT">NIT - Número de Identificación Tributaria</option>
+            <option value="CC">CC - Cédula de Ciudadanía</option>
+            <option value="CE">CE - Cédula de Extranjería</option>
+            <option value="PASAPORTE">Pasaporte</option>
+          </select>
+        </div>
+
+        <!-- Número de Documento + DV -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Número de Documento / NIT <span class="text-rose-500">*</span></label>
+          <div class="flex items-center gap-1.5">
+            <input
+              type="text"
+              formControlName="numeroDocumento"
+              placeholder="Ej: 900123456"
+              class="w-full px-3 py-2 border rounded-lg font-mono font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              [ngClass]="contribuyenteForm.get('numeroDocumento')?.invalid && contribuyenteForm.get('numeroDocumento')?.touched ? 'border-rose-400 bg-rose-50' : 'border-slate-300'"
+            />
+            @if (contribuyenteForm.get('tipoDocumento')?.value === 'NIT') {
+              <div class="flex items-center gap-1 shrink-0">
+                <span class="font-bold text-slate-500">-</span>
+                <input
+                  type="text"
+                  [value]="digitoVerificacionCalculado()"
+                  readonly
+                  placeholder="DV"
+                  class="w-12 px-2 py-2 border border-slate-300 bg-slate-100 rounded-lg text-center font-mono font-extrabold text-blue-900 shadow-inner"
+                  title="Dígito de Verificación calculado automáticamente según algoritmo DIAN Módulo 11"
+                />
+              </div>
+            }
+          </div>
+          @if (contribuyenteForm.get('numeroDocumento')?.invalid && contribuyenteForm.get('numeroDocumento')?.touched) {
+            <span class="text-[10px] text-rose-600 mt-1 block">Ingrese un documento válido (mínimo 5 dígitos numéricos).</span>
+          }
+        </div>
+      </div>
+
+      <!-- Campos condicionales Persona Jurídica vs Natural -->
+      @if (!isNatural()) {
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Razón Social / Nombre Comercial <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            formControlName="razonSocial"
+            placeholder="Ej: Constructora Macizo Colombiano S.A.S."
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Primer Nombre <span class="text-rose-500">*</span></label>
+            <input
+              type="text"
+              formControlName="primerNombre"
+              placeholder="Ej: Carlos"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Segundo Nombre</label>
+            <input
+              type="text"
+              formControlName="segundoNombre"
+              placeholder="Ej: Alberto"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Primer Apellido <span class="text-rose-500">*</span></label>
+            <input
+              type="text"
+              formControlName="primerApellido"
+              placeholder="Ej: Bolaños"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label class="block font-medium text-slate-600 mb-1">Segundo Apellido</label>
+            <input
+              type="text"
+              formControlName="segundoApellido"
+              placeholder="Ej: Mosquera"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- SECCIÓN 2: DATOS DE CONTACTO Y UBICACIÓN -->
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">2</span>
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Ubicación Territorial y Contacto</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Dirección -->
+        <div class="sm:col-span-2">
+          <label class="block font-bold text-slate-700 mb-1">Dirección de Notificación <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            formControlName="direccion"
+            placeholder="Ej: Carrera 6 # 4-22 Edificio Boulevard"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Municipio -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Municipio <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="municipioId"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            @for (m of configFacade.municipios(); track m.id) {
+              <option [value]="m.id">{{ m.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Teléfono -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Teléfono / Celular <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            formControlName="telefono"
+            placeholder="Ej: 312-780-9944 ó (602) 824-3310"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Correo Electrónico -->
+        <div class="sm:col-span-2">
+          <label class="block font-bold text-slate-700 mb-1">Correo Electrónico <span class="text-rose-500">*</span></label>
+          <input
+            type="email"
+            formControlName="correoElectronico"
+            placeholder="Ej: facturacion@empresa.com"
+            class="w-full px-3 py-2 border rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            [ngClass]="contribuyenteForm.get('correoElectronico')?.invalid && contribuyenteForm.get('correoElectronico')?.touched ? 'border-rose-400 bg-rose-50' : 'border-slate-300'"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 3: INFORMACIÓN TRIBUTARIA Y ESTADO -->
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-800 font-bold flex items-center justify-center text-xs">3</span>
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Clasificación Tributaria y Estado</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Tipo Contribuyente -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Régimen / Tipo Contribuyente <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="tipoContribuyente"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="GRAN_CONTRIBUYENTE">Gran Contribuyente</option>
+            <option value="REGIMEN_ORDINARIO">Régimen Ordinario</option>
+            <option value="REGIMEN_SIMPLE">Régimen Simple de Tributación</option>
+            <option value="PERSONA_NATURAL">Persona Natural</option>
+            <option value="ENTIDAD_PUBLICA">Entidad Pública</option>
+          </select>
+        </div>
+
+        <!-- Responsable IVA -->
+        <div class="flex items-center pt-6">
+          <label class="relative flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" formControlName="esResponsableIVA" class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500" />
+            <span class="font-bold text-slate-800">Responsable de IVA</span>
+          </label>
+        </div>
+
+        <!-- Estado -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Estado en Plataforma <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="estado"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold"
+          >
+            <option value="ACTIVO">ACTIVO</option>
+            <option value="INACTIVO">INACTIVO</option>
+            <option value="BLOQUEADO">BLOQUEADO</option>
+          </select>
+        </div>
+
+        <!-- Observaciones -->
+        <div class="sm:col-span-3">
+          <label class="block font-medium text-slate-600 mb-1">Observaciones / Notas Tributarias (Opcional)</label>
+          <textarea
+            formControlName="observaciones"
+            rows="2"
+            placeholder="Información adicional relevante del contribuyente..."
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+      <a
+        routerLink="/estampillas/contribuyentes"
+        class="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-semibold transition"
+      >
+        Cancelar
+      </a>
+      <button
+        type="submit"
+        [disabled]="contribuyenteForm.invalid || facade.loading()"
+        class="px-6 py-2.5 bg-[#1b53ad] hover:bg-blue-800 disabled:opacity-50 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>{{ isEditing() ? 'Actualizar Contribuyente' : 'Guardar y Registrar Contribuyente' }}</span>
+      </button>
+    </div>
+
+  </form>
+
+</div>

@@ -1,0 +1,122 @@
+<div class="space-y-6 max-w-4xl mx-auto">
+
+  <!-- ENCABEZADO -->
+  <div class="text-center space-y-2 py-4">
+    <div class="w-12 h-12 bg-blue-100 text-[#1b53ad] rounded-2xl mx-auto flex items-center justify-center shadow-xs">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+    </div>
+    <h1 class="text-2xl font-black text-slate-900">Consulta Ciudadana de Liquidaciones</h1>
+    <p class="text-xs text-slate-500 max-w-lg mx-auto">
+      Verifique el estado oficial, validez y monto de pago de cualquier liquidación de estampillas emitida por la Gobernación del Cauca.
+    </p>
+  </div>
+
+  <!-- CAJA DE BÚSQUEDA -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 space-y-4">
+    
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1">Criterio de Consulta</label>
+        <select
+          [(ngModel)]="tipoFiltro"
+          class="w-full px-3 py-2.5 border border-slate-300 rounded-xl text-xs bg-white text-slate-800 font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="NUMERO_LIQUIDACION">Número de Liquidación (LIQ-2026-...)</option>
+          <option value="NIT">NIT o Documento de Identidad</option>
+          <option value="CONTRATO">Número de Contrato (CT-2026-...)</option>
+        </select>
+      </div>
+
+      <div class="sm:col-span-2">
+        <label class="block text-xs font-bold text-slate-700 mb-1">Dato de Búsqueda</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="text"
+            [(ngModel)]="criterioBusqueda"
+            (keyup.enter)="buscar()"
+            [placeholder]="tipoFiltro === 'NUMERO_LIQUIDACION' ? 'Ej: LIQ-2026-000001' : (tipoFiltro === 'NIT' ? 'Ej: 900123456' : 'Ej: CT-2026-00452')"
+            class="w-full px-4 py-2.5 border border-slate-300 rounded-xl text-xs font-mono font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+          <button
+            type="button"
+            (click)="buscar()"
+            class="px-6 py-2.5 bg-[#1b53ad] hover:bg-blue-800 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition shrink-0 cursor-pointer"
+          >
+            Consultar
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RESULTADOS -->
+  @if (haBuscado()) {
+    <div class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-sm font-bold text-slate-900">
+          Resultados de la Consulta ({{ resultados().length }})
+        </h2>
+        @if (resultados().length > 0) {
+          <button (click)="limpiar()" class="text-xs text-blue-600 hover:underline">Nueva Consulta</button>
+        }
+      </div>
+
+      <div class="space-y-3">
+        @for (liq of resultados(); track liq.id) {
+          <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-5 hover:border-blue-300 transition space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block">Liquidación Oficial</span>
+                <span class="text-base font-black font-mono text-[#1b53ad]">{{ liq.numeroLiquidacion }}</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <app-estampillas-badge [estado]="liq.estado" />
+                <span class="text-xs font-mono font-bold text-slate-500">Vigencia {{ liq.vigencia }}</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-700">
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Contribuyente:</span>
+                <span class="font-bold text-slate-900">{{ liq.contribuyenteNombre }}</span>
+                <span class="text-[11px] text-slate-500 block font-mono">{{ liq.contribuyenteDocumento }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Contrato / Acto:</span>
+                <span class="font-bold text-slate-900 font-mono">{{ liq.numeroContrato }}</span>
+                <span class="text-[11px] text-slate-500 block truncate">{{ liq.entidadContratante }}</span>
+              </div>
+              <div class="sm:text-right">
+                <span class="text-slate-400 block text-[10px] uppercase font-bold">Total Liquidado a Pagar:</span>
+                <span class="text-base font-black font-mono text-emerald-800">{{ storage.formatCOP(liq.totalPagar) }}</span>
+                <span class="text-[10px] text-slate-400 block">Límite: {{ liq.fechaLimitePago }}</span>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+              <a
+                [routerLink]="['/estampillas/liquidaciones', liq.id]"
+                class="px-4 py-1.5 bg-blue-50 text-[#1b53ad] hover:bg-blue-100 rounded-lg text-xs font-bold transition flex items-center gap-1.5"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Ver Comprobante Oficial</span>
+              </a>
+            </div>
+          </div>
+        } @empty {
+          <div class="bg-white rounded-xl p-8 text-center text-slate-400 border border-dashed">
+            <p class="font-bold text-slate-700">No se encontraron liquidaciones con los datos suministrados.</p>
+            <p class="text-xs text-slate-400 mt-1">Verifique que el número de liquidación o NIT estén escritos correctamente.</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+</div>

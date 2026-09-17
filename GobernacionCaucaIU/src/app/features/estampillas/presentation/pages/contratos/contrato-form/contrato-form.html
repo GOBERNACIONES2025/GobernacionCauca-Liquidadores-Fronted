@@ -1,0 +1,278 @@
+<div class="space-y-6 max-w-4xl mx-auto">
+
+  <!-- Encabezado Formulario -->
+  <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+    <div>
+      <h1 class="text-xl font-bold text-slate-900">
+        {{ isEditing() ? 'Editar Contrato / Acto' : 'Registrar Nuevo Contrato / Acto Administrativo' }}
+      </h1>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Definición del hecho generador, contratista y monto gravable con Estampillas Departamentales
+      </p>
+    </div>
+
+    <a
+      routerLink="/estampillas/contratos"
+      class="px-3.5 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold transition"
+    >
+      ← Volver a Contratos
+    </a>
+  </div>
+
+  <form [formGroup]="contratoForm" (ngSubmit)="onSubmit()" class="space-y-6 text-xs">
+
+    <!-- SECCIÓN 1: SELECCIÓN DEL CONTRATISTA (CONTRIBUYENTE) -->
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-xs">1</span>
+          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Contratista / Sujeto Pasivo <span class="text-rose-500">*</span></h2>
+        </div>
+        <a
+          routerLink="/estampillas/contribuyentes/nuevo"
+          target="_blank"
+          class="text-xs text-blue-600 hover:underline font-semibold"
+        >
+          + Crear Nuevo Contribuyente
+        </a>
+      </div>
+
+      <!-- Buscador predictivo de Contribuyente -->
+      @if (!contribuyenteSeleccionado()) {
+        <div class="space-y-2">
+          <label class="block font-bold text-slate-700">Buscar Contribuyente por Nombre, Razón Social o NIT</label>
+          <div class="relative">
+            <input
+              type="text"
+              [value]="busquedaContribuyente()"
+              (input)="busquedaContribuyente.set($any($event.target).value); showContribuyenteDropdown.set(true)"
+              (focus)="showContribuyenteDropdown.set(true)"
+              placeholder="Escriba el nombre de la empresa o persona..."
+              class="w-full px-3.5 py-2.5 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <!-- Resultados dropdown -->
+          @if (showContribuyenteDropdown()) {
+            <div class="border border-slate-200 rounded-xl bg-white shadow-xl max-h-56 overflow-y-auto divide-y divide-slate-100">
+              @for (c of contribuyentesFiltrados; track c.id) {
+                <div
+                  (click)="seleccionarContribuyente(c)"
+                  class="p-3 hover:bg-blue-50/70 transition flex items-center justify-between cursor-pointer"
+                >
+                  <div>
+                    <span class="font-bold text-slate-900 block text-xs">{{ c.nombreCompleto }}</span>
+                    <span class="text-[11px] text-slate-500">{{ c.tipoDocumento }}: {{ c.numeroDocumento }} | {{ c.municipioNombre }}</span>
+                  </div>
+                  <span class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-bold">
+                    {{ c.tipoPersona }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <!-- Card Contribuyente Seleccionado -->
+        <div class="bg-blue-50/60 border border-blue-200 rounded-xl p-4 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#1b53ad] text-white flex items-center justify-center font-bold text-xs shrink-0">
+              OK
+            </div>
+            <div>
+              <span class="text-[10px] uppercase font-bold text-blue-800 tracking-wider block">Contratista Seleccionado:</span>
+              <h3 class="text-sm font-extrabold text-slate-900">{{ contribuyenteSeleccionado()?.nombreCompleto }}</h3>
+              <p class="text-xs text-slate-600">
+                NIT / Doc: <strong class="font-mono">{{ contribuyenteSeleccionado()?.tipoDocumento }} {{ contribuyenteSeleccionado()?.numeroDocumento }}</strong> | Municipio: {{ contribuyenteSeleccionado()?.municipioNombre }}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="contribuyenteSeleccionado.set(null)"
+            class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer"
+          >
+            Cambiar Contratista
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- SECCIÓN 2: INFORMACIÓN DEL CONTRATO / ACTO -->
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center text-xs">2</span>
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Información del Hecho Generador</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- N° Contrato -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Número de Contrato / Acto <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            formControlName="numeroContrato"
+            placeholder="Ej: CT-2026-00452"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono font-bold text-blue-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Tipo de Acto -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Tipo de Acto / Contrato <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="tipoContrato"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="PRESTACION_SERVICIOS">Prestación de Servicios</option>
+            <option value="OBRA_PUBLICA">Obra Pública</option>
+            <option value="SUMINISTRO">Suministro</option>
+            <option value="CONVENIO_INTERADMINISTRATIVO">Convenio Interadministrativo</option>
+            <option value="ACTO_ADMINISTRATIVO">Acto Administrativo</option>
+            <option value="ORDEN_COMPRA">Orden de Compra</option>
+            <option value="CONSULTORIA">Consultoría</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+
+        <!-- Entidad Contratante -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Entidad Contratante <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            formControlName="entidadContratante"
+            placeholder="Ej: Gobernación del Cauca - Secretaría de Infraestructura"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <!-- Valor del Contrato -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Valor Total del Contrato (COP) <span class="text-rose-500">*</span></label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 font-bold">$</span>
+            <input
+              type="number"
+              formControlName="valorContrato"
+              class="w-full pl-8 pr-3 py-2 border rounded-lg font-mono font-extrabold text-sm text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              [ngClass]="contratoForm.get('valorContrato')?.invalid && contratoForm.get('valorContrato')?.touched ? 'border-rose-400 bg-rose-50' : 'border-slate-300'"
+            />
+          </div>
+          <span class="text-[11px] font-mono text-emerald-700 font-bold mt-1 block">
+            {{ storage.formatCOP(contratoForm.get('valorContrato')?.value) }}
+          </span>
+        </div>
+
+        <!-- Municipio Ejecución -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Municipio de Ejecución <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="municipioId"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            @for (m of configFacade.municipios(); track m.id) {
+              <option [value]="m.id">{{ m.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Vigencia -->
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Vigencia Fiscal <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="vigencia"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold"
+          >
+            <option [value]="2026">2026</option>
+            <option [value]="2025">2025</option>
+            <option [value]="2024">2024</option>
+          </select>
+        </div>
+
+        <!-- Objeto del Contrato -->
+        <div class="sm:col-span-3">
+          <label class="block font-bold text-slate-700 mb-1">Objeto del Contrato / Acto <span class="text-rose-500">*</span></label>
+          <textarea
+            formControlName="objeto"
+            rows="3"
+            placeholder="Descripción detallada del objeto contractual..."
+            class="w-full px-3 py-2 border rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+            [ngClass]="contratoForm.get('objeto')?.invalid && contratoForm.get('objeto')?.touched ? 'border-rose-400 bg-rose-50' : 'border-slate-300'"
+          ></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN 3: FECHAS Y ESTADO -->
+    <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs p-6 space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-800 font-bold flex items-center justify-center text-xs">3</span>
+        <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wide">Plazos y Vigencia Contractual</h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Fecha Suscripción <span class="text-rose-500">*</span></label>
+          <input
+            type="date"
+            formControlName="fechaSuscripcion"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Fecha de Inicio <span class="text-rose-500">*</span></label>
+          <input
+            type="date"
+            formControlName="fechaInicio"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Fecha de Terminación <span class="text-rose-500">*</span></label>
+          <input
+            type="date"
+            formControlName="fechaTerminacion"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Estado del Contrato <span class="text-rose-500">*</span></label>
+          <select
+            formControlName="estado"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold"
+          >
+            <option value="EN_EJECUCION">EN EJECUCIÓN</option>
+            <option value="LIQUIDADO">LIQUIDADO</option>
+            <option value="TERMINADO">TERMINADO</option>
+            <option value="SUSPENDIDO">SUSPENDIDO</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+      <a
+        routerLink="/estampillas/contratos"
+        class="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-lg text-xs font-semibold transition"
+      >
+        Cancelar
+      </a>
+      <button
+        type="submit"
+        [disabled]="contratoForm.invalid || !contribuyenteSeleccionado() || facade.loading()"
+        class="px-6 py-2.5 bg-[#1b53ad] hover:bg-blue-800 disabled:opacity-50 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>{{ isEditing() ? 'Actualizar Contrato' : 'Registrar Contrato' }}</span>
+      </button>
+    </div>
+
+  </form>
+
+</div>

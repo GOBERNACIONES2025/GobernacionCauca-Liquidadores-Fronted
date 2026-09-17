@@ -1,0 +1,281 @@
+<div class="space-y-6">
+
+  <!-- ENCABEZADO DE VISTA -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
+    <div>
+      <div class="flex items-center gap-2">
+        <h1 class="text-xl font-bold text-slate-900">Módulo de Contribuyentes</h1>
+        <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 text-xs font-bold border border-blue-200">
+          {{ facade.totalElementos() }} Registrados
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">Directorio de Sujetos Pasivos para liquidación de Estampillas Departamentales del Cauca</p>
+    </div>
+
+    <div class="flex items-center gap-2.5">
+      <button
+        type="button"
+        (click)="exportarVisual()"
+        class="px-3.5 py-2 border border-slate-300 hover:bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+        </svg>
+        <span>Imprimir / Exportar</span>
+      </button>
+
+      <a
+        routerLink="/estampillas/contribuyentes/nuevo"
+        class="px-4 py-2 bg-[#1b53ad] hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-md hover:shadow-lg transition flex items-center gap-2 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>Nuevo Contribuyente</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- BARRA DE BÚSQUEDA Y FILTROS AVANZADOS -->
+  <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      
+      <!-- Búsqueda Texto -->
+      <div class="lg:col-span-2">
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Buscar Contribuyente</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            [(ngModel)]="textoBusqueda"
+            (ngModelChange)="onBuscar()"
+            placeholder="Buscar por Nombre, Razón Social, NIT o CC..."
+            class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <!-- Filtro Tipo Persona -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tipo Persona</label>
+        <select
+          [(ngModel)]="tipoSeleccionado"
+          (ngModelChange)="onFiltrarTipo()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="TODOS">Todos los tipos</option>
+          <option value="JURIDICA">Persona Jurídica (Empresa)</option>
+          <option value="NATURAL">Persona Natural</option>
+          <option value="CONSORCIO">Consorcio</option>
+          <option value="UNION_TEMPORAL">Unión Temporal</option>
+        </select>
+      </div>
+
+      <!-- Filtro Municipio -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Municipio</label>
+        <select
+          [(ngModel)]="municipioSeleccionado"
+          (ngModelChange)="onFiltrarMunicipio()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="TODOS">Todos los Municipios</option>
+          @for (m of configFacade.municipios(); track m.id) {
+            <option [value]="m.id">{{ m.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro Estado -->
+      <div>
+        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Estado</label>
+        <select
+          [(ngModel)]="estadoSeleccionado"
+          (ngModelChange)="onFiltrarEstado()"
+          class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white text-slate-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="TODOS">Todos los estados</option>
+          <option value="ACTIVO">Activo</option>
+          <option value="INACTIVO">Inactivo</option>
+        </select>
+      </div>
+
+    </div>
+
+    @if (textoBusqueda || tipoSeleccionado !== 'TODOS' || municipioSeleccionado !== 'TODOS' || estadoSeleccionado !== 'TODOS') {
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+        <span class="text-slate-500">Mostrando resultados filtrados</span>
+        <button
+          type="button"
+          (click)="onLimpiar()"
+          class="text-blue-700 hover:text-blue-900 font-bold hover:underline cursor-pointer"
+        >
+          Limpiar Filtros
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- TABLA DE CONTRIBUYENTES -->
+  <div class="bg-white rounded-xl border border-slate-200/80 shadow-xs overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left">
+        <thead class="bg-slate-800 text-white font-bold text-[11px] uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-4">Documento / NIT</th>
+            <th class="py-3 px-3">Nombre / Razón Social</th>
+            <th class="py-3 px-3">Tipo Persona</th>
+            <th class="py-3 px-3">Municipio</th>
+            <th class="py-3 px-3">Contacto</th>
+            <th class="py-3 px-3 text-center">Estado</th>
+            <th class="py-3 px-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 bg-white">
+          @for (c of facade.contribuyentesPaginados(); track c.id) {
+            <tr class="hover:bg-blue-50/40 transition">
+              
+              <!-- Documento / NIT con DV -->
+              <td class="py-3 px-4 font-mono font-bold text-slate-900">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 bg-slate-100 rounded text-[10px] text-slate-600 font-sans font-bold">
+                    {{ c.tipoDocumento }}
+                  </span>
+                  <span>{{ c.numeroDocumento }}@if (c.digitoVerificacion) {-{{ c.digitoVerificacion }}}</span>
+                </div>
+              </td>
+
+              <!-- Nombre Completo / Razón Social -->
+              <td class="py-3 px-3">
+                <a [routerLink]="['/estampillas/contribuyentes', c.id]" class="font-bold text-[#1b53ad] hover:underline block truncate max-w-xs">
+                  {{ c.nombreCompleto }}
+                </a>
+                <span class="text-[10px] text-slate-400 block truncate">{{ c.tipoContribuyente }}</span>
+              </td>
+
+              <!-- Tipo Persona -->
+              <td class="py-3 px-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold"
+                  [ngClass]="{
+                    'bg-purple-50 text-purple-700 border border-purple-200': c.tipoPersona === 'JURIDICA',
+                    'bg-sky-50 text-sky-700 border border-sky-200': c.tipoPersona === 'NATURAL',
+                    'bg-amber-50 text-amber-700 border border-amber-200': c.tipoPersona === 'CONSORCIO' || c.tipoPersona === 'UNION_TEMPORAL'
+                  }">
+                  {{ c.tipoPersona }}
+                </span>
+              </td>
+
+              <!-- Municipio -->
+              <td class="py-3 px-3 text-slate-700 font-medium">
+                {{ c.municipioNombre }}
+              </td>
+
+              <!-- Contacto -->
+              <td class="py-3 px-3 text-slate-600">
+                <div class="text-[11px] truncate max-w-[160px]">{{ c.correoElectronico }}</div>
+                <div class="text-[10px] text-slate-400 font-mono">{{ c.telefono }}</div>
+              </td>
+
+              <!-- Estado -->
+              <td class="py-3 px-3 text-center">
+                <app-estampillas-badge [estado]="c.estado" />
+              </td>
+
+              <!-- Acciones -->
+              <td class="py-3 px-4 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  
+                  <!-- Liquidar Directamente -->
+                  <a
+                    [routerLink]="['/estampillas/liquidar']"
+                    [queryParams]="{ contribuyenteId: c.id }"
+                    class="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[11px] font-bold shadow-xs transition flex items-center gap-1 cursor-pointer"
+                    title="Liquidar Estampilla para este contribuyente"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    <span>Liquidar</span>
+                  </a>
+
+                  <!-- Ver Historial 360 -->
+                  <a
+                    [routerLink]="['/estampillas/contribuyentes', c.id]"
+                    class="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-slate-100 rounded transition"
+                    title="Ver Historial 360°"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </a>
+
+                  <!-- Eliminar -->
+                  <button
+                    type="button"
+                    (click)="eliminar(c)"
+                    class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
+                    title="Eliminar Contribuyente"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+
+                </div>
+              </td>
+
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="py-12 text-center text-slate-400">
+                <div class="flex flex-col items-center justify-center space-y-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p class="font-bold text-slate-600">No se encontraron contribuyentes con los filtros seleccionados</p>
+                  <button (click)="onLimpiar()" class="text-xs text-blue-600 font-semibold hover:underline">
+                    Restablecer búsqueda
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginación -->
+    @if (facade.totalPaginas() > 1) {
+      <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+        <span>
+          Página <strong class="text-slate-900">{{ facade.paginaActual() }}</strong> de <strong class="text-slate-900">{{ facade.totalPaginas() }}</strong>
+        </span>
+
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            [disabled]="facade.paginaActual() === 1"
+            (click)="facade.setPagina(facade.paginaActual() - 1)"
+            class="px-3 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-40 transition font-semibold cursor-pointer"
+          >
+            ← Anterior
+          </button>
+          <button
+            type="button"
+            [disabled]="facade.paginaActual() === facade.totalPaginas()"
+            (click)="facade.setPagina(facade.paginaActual() + 1)"
+            class="px-3 py-1 border border-slate-300 rounded bg-white hover:bg-slate-100 disabled:opacity-40 transition font-semibold cursor-pointer"
+          >
+            Siguiente →
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+</div>
