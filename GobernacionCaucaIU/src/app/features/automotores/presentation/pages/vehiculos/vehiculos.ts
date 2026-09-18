@@ -10,11 +10,12 @@ import { VehiculoWizardComponent } from '../../../presentation/components/vehicu
 import { AuditoriaVehiculoValidator } from '../../../application/validators/vehiculos/auditoria-vehiculo.validator';
 import { FieldError } from '../../../application/validators/validation-result';
 import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
+import { TableSearchComponent } from '../../../../../shared/components/table-search/table-search';
 
 @Component({
   selector: 'app-vehiculos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, VehiculoWizardComponent, BreadcrumbComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, VehiculoWizardComponent, BreadcrumbComponent, TableSearchComponent],
   templateUrl: './vehiculos.html'
 })
 export class Vehiculos implements OnInit, OnDestroy {
@@ -321,6 +322,14 @@ export class Vehiculos implements OnInit, OnDestroy {
   onFiltroTextoChange(val: string): void {
     this.facade.filtroTexto.set(val);
     this.searchSubject.next(val);
+  }
+
+  onSearchVehiculos(term: string): void {
+    this.facade.setFiltroTexto(term);
+  }
+
+  onClearSearchVehiculos(): void {
+    this.facade.setFiltroTexto('');
   }
 
   // ─── Métodos delegados al wizard ──────────────────────────────────────────

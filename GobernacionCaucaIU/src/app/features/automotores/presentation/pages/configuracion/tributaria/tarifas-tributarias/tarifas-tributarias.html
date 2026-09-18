@@ -1,0 +1,694 @@
+<div class="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Encabezado de la página -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+          <i class="fa-solid fa-coins text-[10px]"></i>
+          Reglas Tributarias
+        </span>
+        <span class="text-xs text-slate-400">•</span>
+        <span class="text-xs font-medium text-slate-500">general.TarifasTributarias</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-sm shadow-emerald-500/20">
+          <i class="fa-solid fa-scale-balanced text-sm"></i>
+        </div>
+        Tarifas Tributarias
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1">
+        Configuración de rangos de base gravable y porcentajes tarifarios por vigencia, norma, clase, servicio y combustible.
+      </p>
+    </div>
+
+    <!-- Botón Crear -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <button
+        type="button"
+        (click)="facade.cargarTarifas()"
+        class="p-2.5 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition shadow-xs cursor-pointer"
+        title="Recargar datos"
+      >
+        <i class="fa-solid fa-rotate-right text-sm" [class.fa-spin]="facade.loading()"></i>
+      </button>
+
+      <button
+        type="button"
+        (click)="abrirCrear()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm hover:shadow transition cursor-pointer"
+      >
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>Nueva Tarifa</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs / Tarjetas Informativas -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-layer-group"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Tarifas</p>
+        <p class="text-2xl font-bold text-slate-800">{{ facade.totalTarifas() }}</p>
+        <p class="text-[11px] text-slate-500">Rangos registrados</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tarifas Activas</p>
+        <p class="text-2xl font-bold text-emerald-700">{{ facade.totalActivas() }}</p>
+        <p class="text-[11px] text-emerald-600">Disponibles para liquidar</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Tarifas Inactivas</p>
+        <p class="text-2xl font-bold text-slate-600">{{ facade.totalInactivas() }}</p>
+        <p class="text-[11px] text-slate-400">Históricas / Deshabilitadas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Búsqueda y Filtros Dinámicos (Sin datos quemados) -->
+  <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3">
+      <!-- Búsqueda por texto -->
+      <div class="lg:col-span-2 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </div>
+        <input
+          type="text"
+          [ngModel]="facade.searchTerm()"
+          (ngModelChange)="onSearch($event)"
+          placeholder="Buscar por base, rango..."
+          class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 transition"
+        />
+      </div>
+
+      <!-- Filtro Vigencia Fiscal (Dinámico) -->
+      <div>
+        <select
+          [ngModel]="facade.vigenciaFiltro()"
+          (ngModelChange)="onFilterVigencia($event)"
+          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-emerald-600 transition"
+        >
+          <option value="TODOS">Todas las Vigencias</option>
+          @for (v of facade.vigencias(); track v.id) {
+            <option [value]="v.id">{{ v.anio || v.nombre || v.id }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro Clase de Vehículo (Dinámico) -->
+      <div>
+        <select
+          [ngModel]="facade.claseFiltro()"
+          (ngModelChange)="onFilterClase($event)"
+          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-emerald-600 transition"
+        >
+          <option value="TODOS">Todas las Clases</option>
+          @for (c of facade.clasesVehiculo(); track c.id) {
+            <option [value]="c.id">{{ c.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro Servicio (Dinámico) -->
+      <div>
+        <select
+          [ngModel]="facade.servicioFiltro()"
+          (ngModelChange)="onFilterServicio($event)"
+          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-emerald-600 transition"
+        >
+          <option value="TODOS">Todos los Servicios</option>
+          @for (s of facade.serviciosVehiculo(); track s.id) {
+            <option [value]="s.id">{{ s.nombre }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro Estado -->
+      <div>
+        <select
+          [ngModel]="facade.estadoFiltro()"
+          (ngModelChange)="onFilterEstado($event)"
+          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-emerald-600 transition"
+        >
+          <option value="TODOS">Todos los Estados</option>
+          <option value="ACTIVOS">Solo Activos</option>
+          <option value="INACTIVOS">Solo Inactivos</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Datos Principal -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+    @if (facade.loading()) {
+      <div class="p-12 text-center text-slate-400">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
+        <p class="text-xs">Cargando tarifas tributarias desde el servidor...</p>
+      </div>
+    } @else if (facade.tarifas().length === 0) {
+      <div class="p-12 text-center text-slate-400 space-y-3">
+        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-300 text-2xl">
+          <i class="fa-solid fa-scale-balanced"></i>
+        </div>
+        <p class="text-sm font-semibold text-slate-600">No se encontraron tarifas tributarias</p>
+        <p class="text-xs text-slate-400">Intente modificar los filtros de búsqueda o registre una nueva tarifa tributaria.</p>
+        <button
+          type="button"
+          (click)="abrirCrear()"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+        >
+          <i class="fa-solid fa-plus"></i>
+          Crear primera tarifa
+        </button>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+              <th class="py-3.5 px-4">Orden</th>
+              <th class="py-3.5 px-4">Vigencia</th>
+              <th class="py-3.5 px-4">Clase / Servicio</th>
+              <th class="py-3.5 px-4">Combustible</th>
+              <th class="py-3.5 px-4">Rango Base Gravable (COP)</th>
+              <th class="py-3.5 px-4 text-center">Tarifa (%)</th>
+              <th class="py-3.5 px-4 text-center">Estado</th>
+              <th class="py-3.5 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @for (item of facade.tarifas(); track item.id) {
+              <tr class="hover:bg-slate-50/60 transition-colors group">
+                <!-- Orden / Rango -->
+                <td class="py-3 px-4 font-bold text-slate-700">
+                  <span class="w-6 h-6 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center text-[11px]">
+                    #{{ item.ordenRango }}
+                  </span>
+                </td>
+
+                <!-- Vigencia Fiscal -->
+                <td class="py-3 px-4 font-semibold text-slate-800">
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-800 text-[11px] font-bold border border-blue-200/60">
+                    <i class="fa-regular fa-calendar text-[10px]"></i>
+                    {{ facade.getVigenciaLabel(item.vigenciaFiscalId) }}
+                  </span>
+                </td>
+
+                <!-- Clase & Servicio -->
+                <td class="py-3 px-4">
+                  <p class="font-medium text-slate-800">{{ facade.getClaseLabel(item.claseVehiculoId) }}</p>
+                  <p class="text-[11px] text-slate-400">{{ facade.getServicioLabel(item.servicioVehiculoId) }}</p>
+                </td>
+
+                <!-- Combustible -->
+                <td class="py-3 px-4 text-slate-600">
+                  <span class="inline-flex items-center gap-1 text-[11px]">
+                    <i class="fa-solid fa-gas-pump text-[10px] text-slate-400"></i>
+                    {{ facade.getCombustibleLabel(item.combustibleId) }}
+                  </span>
+                </td>
+
+                <!-- Rango Base Gravable -->
+                <td class="py-3 px-4">
+                  <div class="font-mono text-[11px] text-slate-800 font-semibold">
+                    ${{ item.baseGravableDesde | number:'1.0-0' }} - ${{ item.baseGravableHasta | number:'1.0-0' }}
+                  </div>
+                  <div class="text-[10px] text-slate-400">COP</div>
+                </td>
+
+                <!-- Porcentaje Tarifa -->
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs">
+                    {{ item.porcentajeTarifa }}%
+                  </span>
+                </td>
+
+                <!-- Estado Activa / Inactiva Switch -->
+                <td class="py-3 px-4 text-center">
+                  <button
+                    type="button"
+                    (click)="toggleActiva(item)"
+                    [title]="item.activa ? 'Desactivar tarifa' : 'Activar tarifa'"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer"
+                    [class.bg-emerald-100]="item.activa"
+                    [class.text-emerald-800]="item.activa"
+                    [class.bg-slate-100]="!item.activa"
+                    [class.text-slate-500]="!item.activa"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full" [class.bg-emerald-600]="item.activa" [class.bg-slate-400]="!item.activa"></span>
+                    {{ item.activa ? 'Activa' : 'Inactiva' }}
+                  </button>
+                </td>
+
+                <!-- Acciones -->
+                <td class="py-3 px-4 text-right">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <!-- Ver Detalles -->
+                    <button
+                      type="button"
+                      (click)="abrirDetalles(item)"
+                      class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                      title="Ver detalles completos"
+                    >
+                      <i class="fa-solid fa-eye text-xs"></i>
+                    </button>
+
+                    <!-- Editar -->
+                    <button
+                      type="button"
+                      (click)="abrirEditar(item)"
+                      class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                      title="Editar tarifa"
+                    >
+                      <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    </button>
+
+                    <!-- Eliminar -->
+                    <button
+                      type="button"
+                      (click)="abrirConfirmarEliminar(item)"
+                      class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      title="Eliminar tarifa"
+                    >
+                      <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="flex flex-col sm:flex-row items-center justify-between p-4 border-t border-slate-100 gap-3 text-xs text-slate-500">
+        <div>
+          Mostrando <span class="font-semibold text-slate-700">{{ facade.tarifas().length }}</span> de <span class="font-semibold text-slate-700">{{ facade.totalTarifas() }}</span> registros
+        </div>
+
+        <div class="flex items-center gap-2">
+          <label class="text-[11px] text-slate-400">Por página:</label>
+          <select
+            [ngModel]="facade.pageSize()"
+            (ngModelChange)="onPageSizeChange($event)"
+            class="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none"
+          >
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+
+          <div class="flex items-center gap-1 ml-2">
+            <button
+              type="button"
+              [disabled]="facade.pageNumber() <= 1"
+              (click)="onPageChange(facade.pageNumber() - 1)"
+              class="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <span class="px-3 py-1 font-semibold text-slate-700">Página {{ facade.pageNumber() }}</span>
+            <button
+              type="button"
+              [disabled]="facade.tarifas().length < facade.pageSize()"
+              (click)="onPageChange(facade.pageNumber() + 1)"
+              class="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SLIDE-OVER DRAWER: CREAR / EDITAR TARIFA TRIBUTARIA                       -->
+<!-- ========================================================================= -->
+@if (isSlideOverOpen()) {
+  <div class="fixed inset-0 z-50 flex justify-end">
+    <!-- Backdrop -->
+    <div
+      (click)="cerrarSlideOver()"
+      class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-300"
+    ></div>
+
+    <!-- Drawer Content -->
+    <div class="relative w-full max-w-xl bg-white h-full shadow-2xl flex flex-col z-10 overflow-hidden animate-slide-in">
+      <!-- Header -->
+      <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
+            <i class="fa-solid" [class.fa-plus]="!isEditMode()" [class.fa-pen-to-square]="isEditMode()"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-800">
+              {{ isEditMode() ? 'Editar Tarifa Tributaria' : 'Nueva Tarifa Tributaria' }}
+            </h2>
+            <p class="text-xs text-slate-400">Configuración paramétrica de porcentajes por base gravable</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          (click)="cerrarSlideOver()"
+          class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition"
+        >
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Body / Form -->
+      <form [formGroup]="tarifaForm" (ngSubmit)="guardarTarifa()" class="flex-1 overflow-y-auto p-6 space-y-5">
+        <!-- Vigencia Fiscal y Norma Tributaria -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              Vigencia Fiscal <span class="text-rose-500">*</span>
+            </label>
+            <select
+              formControlName="vigenciaFiscalId"
+              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 transition"
+            >
+              <option [ngValue]="null" disabled>Seleccione vigencia</option>
+              @for (v of facade.vigencias(); track v.id) {
+                <option [value]="v.id">{{ v.anio || v.nombre || v.id }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">
+              Norma Tributaria <span class="text-rose-500">*</span>
+            </label>
+            <select
+              formControlName="normaTributariaId"
+              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 transition"
+            >
+              <option [ngValue]="null" disabled>Seleccione norma</option>
+              @for (n of facade.normas(); track n.id) {
+                <option [value]="n.id">{{ n.nombre || n.codigo || 'Norma #' + n.id }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Departamento -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            Departamento <span class="text-rose-500">*</span>
+          </label>
+          <select
+            formControlName="departamentoId"
+            class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-emerald-600 transition"
+          >
+            <option [ngValue]="null" disabled>Seleccione departamento</option>
+            @for (d of facade.departamentos(); track d.id) {
+              <option [value]="d.id">{{ d.nombre }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Especificaciones Vehiculares: Clase, Servicio, Combustible -->
+        <div class="p-4 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-3">
+          <p class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-car text-emerald-600"></i>
+            Segmentación Vehicular
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Clase Vehículo *</label>
+              <select
+                formControlName="claseVehiculoId"
+                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600 transition"
+              >
+                <option [ngValue]="null" disabled>Seleccione clase</option>
+                @for (c of facade.clasesVehiculo(); track c.id) {
+                  <option [value]="c.id">{{ c.nombre }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Servicio *</label>
+              <select
+                formControlName="servicioVehiculoId"
+                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600 transition"
+              >
+                <option [ngValue]="null" disabled>Seleccione servicio</option>
+                @for (s of facade.serviciosVehiculo(); track s.id) {
+                  <option [value]="s.id">{{ s.nombre }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Combustible *</label>
+              <select
+                formControlName="combustibleId"
+                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-emerald-600 transition"
+              >
+                <option [ngValue]="null" disabled>Seleccione combustible</option>
+                @for (comb of facade.combustibles(); track comb.id) {
+                  <option [value]="comb.id">{{ comb.nombre }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rangos de Base Gravable (Desde - Hasta) y Porcentaje de Tarifa -->
+        <div class="p-4 bg-emerald-50/40 rounded-xl border border-emerald-200/60 space-y-3">
+          <p class="text-xs font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-money-bill-wave text-emerald-600"></i>
+            Parámetros de Liquidación
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Base Gravable Desde ($ COP) *</label>
+              <input
+                type="number"
+                formControlName="baseGravableDesde"
+                placeholder="0"
+                class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600 transition"
+              />
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Base Gravable Hasta ($ COP) *</label>
+              <input
+                type="number"
+                formControlName="baseGravableHasta"
+                placeholder="Ej. 54000000"
+                class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600 transition"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Porcentaje Tarifa (%) *</label>
+              <div class="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  formControlName="porcentajeTarifa"
+                  placeholder="Ej. 1.5"
+                  class="w-full pl-3 pr-8 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-emerald-700 focus:outline-none focus:border-emerald-600 transition"
+                />
+                <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-slate-400 pointer-events-none">%</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Orden del Rango *</label>
+              <input
+                type="number"
+                formControlName="ordenRango"
+                placeholder="1"
+                class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-emerald-600 transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado Activo -->
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <div>
+            <p class="text-xs font-bold text-slate-700">Estado de la Tarifa</p>
+            <p class="text-[11px] text-slate-400">Si está inactiva no se aplicará para nuevos cálculos de liquidación</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" formControlName="activa" class="sr-only peer" />
+            <div class="w-10 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+          </label>
+        </div>
+      </form>
+
+      <!-- Footer Buttons -->
+      <div class="p-4 border-t border-slate-100 bg-slate-50 flex items-center justify-end gap-2.5">
+        <button
+          type="button"
+          (click)="cerrarSlideOver()"
+          class="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="guardarTarifa()"
+          [disabled]="facade.loading()"
+          class="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+        >
+          @if (facade.loading()) {
+            <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+          }
+          <span>{{ isEditMode() ? 'Actualizar Tarifa' : 'Guardar Tarifa' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL DETALLES COMPLETOS                                                  -->
+<!-- ========================================================================= -->
+@if (isDetailsModalOpen() && selectedItem()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div (click)="cerrarDetallesModal()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
+
+    <div class="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl p-6 z-10 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <i class="fa-solid fa-file-lines text-sm"></i>
+          </div>
+          <h3 class="text-sm font-bold text-slate-800">Detalles de la Tarifa Tributaria</h3>
+        </div>
+        <button (click)="cerrarDetallesModal()" class="text-slate-400 hover:text-slate-600">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="p-3 bg-slate-50 rounded-xl">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">ID Tarifa</span>
+          <span class="font-mono font-bold text-slate-800">#{{ selectedItem()!.id }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Vigencia Fiscal</span>
+          <span class="font-bold text-slate-800">{{ facade.getVigenciaLabel(selectedItem()!.vigenciaFiscalId) }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl col-span-2">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Norma Tributaria</span>
+          <span class="font-semibold text-slate-800">{{ facade.getNormaLabel(selectedItem()!.normaTributariaId) }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Departamento</span>
+          <span class="font-semibold text-slate-800">{{ facade.getDepartamentoLabel(selectedItem()!.departamentoId) }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Clase Vehicular</span>
+          <span class="font-semibold text-slate-800">{{ facade.getClaseLabel(selectedItem()!.claseVehiculoId) }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Servicio</span>
+          <span class="font-semibold text-slate-800">{{ facade.getServicioLabel(selectedItem()!.servicioVehiculoId) }}</span>
+        </div>
+        <div class="p-3 bg-slate-50 rounded-xl">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Combustible</span>
+          <span class="font-semibold text-slate-800">{{ facade.getCombustibleLabel(selectedItem()!.combustibleId) }}</span>
+        </div>
+        <div class="p-3 bg-emerald-50 rounded-xl col-span-2">
+          <span class="text-emerald-700 block text-[10px] uppercase font-bold">Rango y Porcentaje</span>
+          <div class="flex items-center justify-between mt-1">
+            <span class="font-mono font-bold text-slate-800 text-sm">
+              ${{ selectedItem()!.baseGravableDesde | number:'1.0-0' }} - ${{ selectedItem()!.baseGravableHasta | number:'1.0-0' }}
+            </span>
+            <span class="px-3 py-1 bg-emerald-600 text-white font-extrabold text-sm rounded-lg">
+              {{ selectedItem()!.porcentajeTarifa }}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button
+          type="button"
+          (click)="cerrarDetallesModal()"
+          class="px-4 py-2 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN                                      -->
+<!-- ========================================================================= -->
+@if (itemParaEliminar()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div (click)="cerrarConfirmarEliminar()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
+
+    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 z-10 text-center space-y-4">
+      <div class="w-14 h-14 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto text-2xl">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+
+      <div>
+        <h3 class="text-base font-bold text-slate-800">¿Eliminar Tarifa Tributaria?</h3>
+        <p class="text-xs text-slate-500 mt-1">
+          Esta acción eliminará físicamente la tarifa tributaria del sistema. Esta acción no se puede deshacer.
+        </p>
+      </div>
+
+      <div class="p-3 bg-slate-50 rounded-xl text-left text-xs text-slate-600 space-y-1">
+        <p><strong class="text-slate-800">Vigencia:</strong> {{ facade.getVigenciaLabel(itemParaEliminar()!.vigenciaFiscalId) }}</p>
+        <p><strong class="text-slate-800">Clase:</strong> {{ facade.getClaseLabel(itemParaEliminar()!.claseVehiculoId) }}</p>
+        <p><strong class="text-slate-800">Tarifa:</strong> {{ itemParaEliminar()!.porcentajeTarifa }}% (Rango #{{ itemParaEliminar()!.ordenRango }})</p>
+      </div>
+
+      <div class="flex items-center justify-center gap-3 pt-2">
+        <button
+          type="button"
+          (click)="cerrarConfirmarEliminar()"
+          class="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarEliminacion()"
+          [disabled]="facade.loading()"
+          class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition cursor-pointer flex items-center gap-1.5"
+        >
+          @if (facade.loading()) {
+            <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+          }
+          <span>Confirmar Eliminación</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}

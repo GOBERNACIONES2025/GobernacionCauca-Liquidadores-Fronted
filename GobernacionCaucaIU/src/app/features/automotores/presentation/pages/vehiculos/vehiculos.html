@@ -132,18 +132,14 @@
         
         <!-- Filter Header -->
         <div class="p-3.5 border-b border-slate-200 flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center flex-wrap shrink-0">
-          <div class="relative flex-1 sm:flex-none sm:w-[220px] md:w-[260px]">
-            <span class="absolute left-[9px] top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
-              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-            </span>
-            <input 
-              type="text" 
-              [ngModel]="facade.filtroTexto()" 
-              (ngModelChange)="onFiltroTextoChange($event)"
-              (keyup.enter)="facade.setFiltroTexto(facade.filtroTexto())"
-              placeholder="Buscar placa, propietario, CC..." 
-              class="w-full h-8 rounded-md border border-slate-200 pl-[30px] pr-2.5 text-[13px] text-slate-900 bg-white outline-none focus:border-[#1e3a7b] focus:ring-1 focus:ring-[#1e3a7b] transition-all">
-          </div>
+          <!-- Buscador Unificado con Componente TableSearch (Mismo de Registros) -->
+          <app-table-search
+            placeholder="Buscar placa, propietario, CC..."
+            [value]="facade.filtroTexto()"
+            [loading]="facade.loading()"
+            (search)="onSearchVehiculos($event)"
+            (clear)="onClearSearchVehiculos()"
+          ></app-table-search>
 
           <div class="flex items-center gap-2 flex-wrap flex-1 sm:flex-none">
             <select 

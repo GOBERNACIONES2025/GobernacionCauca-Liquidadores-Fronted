@@ -73,4 +73,13 @@ export class CatalogoApiService {
 
     return this.api.get<ApiResponse<LineaDto[]>>('/catalogo/lineas', { params }, 'AUTOMOTORES');
   }
+
+  getVigencias(): Observable<ApiResponse<any[]> | any[]> {
+    return this.api.get<any>('/Vigencias', {}, 'AUTOMOTORES');
+  }
+
+  getNormas(): Observable<ApiResponse<any[]> | any[]> {
+    return this.api.get<any>('/Normas', {}, 'AUTOMOTORES');
+  }
 }
+

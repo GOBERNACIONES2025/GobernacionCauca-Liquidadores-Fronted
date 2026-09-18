@@ -23,6 +23,8 @@ import { TiposVinculoPage } from './presentation/pages/configuracion/transito/ti
 import { TiposDocumentoPage } from './presentation/pages/configuracion/contribuyentes/tipos-documento';
 import { NaturalezasJuridicasPage } from './presentation/pages/configuracion/contribuyentes/naturalezas-juridicas';
 import { PendientesAprobacionPage } from './presentation/pages/configuracion/control/pendientes-aprobacion';
+import { TarifasTributariasPage } from './presentation/pages/configuracion/tributaria/tarifas-tributarias/tarifas-tributarias';
+import { ExencionesTributariasPage } from './presentation/pages/configuracion/tributaria/exenciones-tributarias/exenciones-tributarias';
 
 export const automotoresRoutes: Routes = [
   {
@@ -64,6 +66,21 @@ export const automotoresRoutes: Routes = [
         pathMatch: 'full'
       },
       {
+        path: 'reglas-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/tarifas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'tarifas-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/tarifas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'exenciones-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/exenciones',
+        pathMatch: 'full'
+      },
+      {
         path: 'valores-estatales',
         component: ValoresEstatalesPage
       },
@@ -79,6 +96,27 @@ export const automotoresRoutes: Routes = [
             path: '',
             redirectTo: 'territorio/departamentos',
             pathMatch: 'full'
+          },
+          {
+            path: 'reglas-tributarias',
+            redirectTo: 'reglas-tributarias/tarifas',
+            pathMatch: 'full'
+          },
+          {
+            path: 'reglas-tributarias/tarifas',
+            component: TarifasTributariasPage
+          },
+          {
+            path: 'reglas-tributarias/exenciones',
+            component: ExencionesTributariasPage
+          },
+          {
+            path: 'tributaria/tarifas',
+            component: TarifasTributariasPage
+          },
+          {
+            path: 'tributaria/exenciones',
+            component: ExencionesTributariasPage
           },
           {
             path: 'territorio/departamentos',
@@ -157,3 +195,4 @@ export const automotoresRoutes: Routes = [
     ]
   }
 ];
+

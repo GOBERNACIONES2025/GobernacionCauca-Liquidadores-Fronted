@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { filter } from 'rxjs/operators';
 import { CatalogoVehicularFacade } from '../../../../application/facades/catalogo-vehicular.facade';
 import { ValoresEstatalesFacade } from '../../../../application/facades/valores-estatales.facade';
+import { TarifasTributariasFacade } from '../../../../application/facades/tarifas-tributarias.facade';
+import { ExencionesTributariasFacade } from '../../../../application/facades/exenciones-tributarias.facade';
 
 export interface CatalogItem {
   name: string;
@@ -30,6 +32,8 @@ export interface CatalogGroup {
 export class AutomotoresConfigSidebar {
   public facade = inject(CatalogoVehicularFacade);
   public valoresFacade = inject(ValoresEstatalesFacade);
+  public tarifasFacade = inject(TarifasTributariasFacade);
+  public exencionesFacade = inject(ExencionesTributariasFacade);
   private router = inject(Router);
 
   readonly closeSidebar = output<void>();
@@ -159,6 +163,22 @@ export class AutomotoresConfigSidebar {
           name: 'Directorio de Propietarios',
           route: '/automotores/contribuyentes-index',
           count: this.facade.totalPropietarios()
+        }
+      ]
+    },
+    {
+      name: 'Reglas Tributarias',
+      icon: 'coins',
+      items: [
+        {
+          name: 'Tarifas Tributarias',
+          route: '/automotores/configuracion/reglas-tributarias/tarifas',
+          count: this.tarifasFacade.totalTarifas()
+        },
+        {
+          name: 'Exenciones Tributarias',
+          route: '/automotores/configuracion/reglas-tributarias/exenciones',
+          count: this.exencionesFacade.totalExenciones()
         }
       ]
     },

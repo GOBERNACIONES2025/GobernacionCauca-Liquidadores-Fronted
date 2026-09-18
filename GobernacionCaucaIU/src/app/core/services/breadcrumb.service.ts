@@ -293,6 +293,9 @@ export class BreadcrumbService {
         return { label: 'Contribuyentes', url: '/automotores/configuracion/contribuyentes/tipos-documento' };
       case 'control':
         return { label: 'Control', url: '/automotores/configuracion/control/pendientes-aprobacion' };
+      case 'reglas-tributarias':
+      case 'tributaria':
+        return { label: 'Reglas Tributarias', url: '/automotores/configuracion/reglas-tributarias/tarifas' };
       case 'valores-estatales':
         return { label: 'Valores Estatales', url: '/automotores/configuracion/valores-estatales' };
       default:
@@ -316,6 +319,8 @@ export class BreadcrumbService {
       'tipos-documento': 'Tipos de Documento',
       'naturalezas-juridicas': 'Naturalezas Jurídicas',
       'pendientes-aprobacion': 'Pendientes de Aprobación',
+      'tarifas': 'Tarifas Tributarias',
+      'exenciones': 'Exenciones Tributarias',
       'uvt': 'UVT Histórico',
       'tasas': 'Tasas de Interés',
       'salarios': 'Salario Mínimo'
