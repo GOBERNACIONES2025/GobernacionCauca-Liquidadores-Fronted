@@ -2,8 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
+import { LiquidacionListadoDto, SolicitudReliquidacionDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { ToastService } from '../../../../../../core/services/toast.service';
-import { LiquidacionListadoDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
 
@@ -33,7 +33,7 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   isLoading = signal<boolean>(false);
 
   // Modal Decision Reliquidacion
-  selectedReliquidacion = signal<any | null>(null);
+  selectedReliquidacion = signal<SolicitudReliquidacionDto | any | null>(null);
   showAprobarReliquidacionModal = signal<boolean>(false);
   showRechazarReliquidacionModal = signal<boolean>(false);
   motivoResolucion = signal<string>('');
@@ -145,6 +145,34 @@ export class GobernacionLiquidacionesComponent implements OnInit {
     });
   }
 
+  // --- Helpers de Formato Visual para Reliquidaciones ---
+  getCausalLabel(causal: string | null | undefined): string {
+    if (!causal) return 'Revisión General';
+    switch (causal.toUpperCase()) {
+      case 'ERROR_BASE_GRAVABLE': return 'Error en Base Gravable';
+      case 'ERROR_SUJETO_PASIVO': return 'Error en Sujeto Pasivo';
+      case 'ERROR_TARIFA': return 'Error en Tarifa Aplicada';
+      case 'DOCUMENTO_ACLARATORIO': return 'Documento Aclaratorio';
+      case 'CAMBIO_ACTO_CUANTIA': return 'Modificación de Acto / Cuantía';
+      case 'CAMBIO_ACTOS': return 'Modificación de Actos';
+      case 'EXENCION_NO_APLICADA': return 'Exención No Aplicada';
+      default: return causal.replace(/_/g, ' ');
+    }
+  }
+
+  getCausalBadgeClass(causal: string | null | undefined): string {
+    if (!causal) return 'bg-slate-100 text-slate-700 border-slate-200';
+    switch (causal.toUpperCase()) {
+      case 'ERROR_BASE_GRAVABLE': return 'bg-amber-50 text-amber-800 border-amber-200';
+      case 'ERROR_SUJETO_PASIVO': return 'bg-blue-50 text-blue-800 border-blue-200';
+      case 'ERROR_TARIFA': return 'bg-purple-50 text-purple-800 border-purple-200';
+      case 'DOCUMENTO_ACLARATORIO': return 'bg-indigo-50 text-indigo-800 border-indigo-200';
+      case 'EXENCION_NO_APLICADA': return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+      case 'CAMBIO_ACTO_CUANTIA': return 'bg-orange-50 text-orange-800 border-orange-200';
+      default: return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  }
+
   // --- RELIQUIDACION ---
   abrirAprobarReliquidacion(item: any): void {
     this.selectedReliquidacion.set(item);
@@ -155,7 +183,8 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   confirmarAprobarReliquidacion(): void {
     const it = this.selectedReliquidacion();
     if (!it) return;
-    this.facade.aprobarReliquidacion(it.id || it.liquidacionId, this.motivoResolucion()).subscribe({
+    const targetId = it.liquidacionId || it.id;
+    this.facade.aprobarReliquidacion(targetId, this.motivoResolucion()).subscribe({
       next: (res) => {
         this.toast.success(`Reliquidación aprobada. Nuevo título expedido: #${res.data}`);
         this.showAprobarReliquidacionModal.set(false);
@@ -177,7 +206,8 @@ export class GobernacionLiquidacionesComponent implements OnInit {
       this.toast.warning('Debe motivar la causal de rechazo');
       return;
     }
-    this.facade.rechazarReliquidacion(it.id || it.liquidacionId, this.motivoResolucion()).subscribe({
+    const targetId = it.liquidacionId || it.id;
+    this.facade.rechazarReliquidacion(targetId, this.motivoResolucion()).subscribe({
       next: () => {
         this.toast.success('Reliquidación rechazada formalmente. Título original vigente.');
         this.showRechazarReliquidacionModal.set(false);
@@ -197,7 +227,8 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   confirmarAprobarAnulacion(): void {
     const it = this.selectedAnulacion();
     if (!it) return;
-    this.facade.aprobarAnulacion(it.id || it.liquidacionId, this.motivoResolucion()).subscribe({
+    const targetId = it.liquidacionId || it.id;
+    this.facade.aprobarAnulacion(targetId, this.motivoResolucion()).subscribe({
       next: () => {
         this.toast.success('Liquidación anulada formalmente');
         this.showAprobarAnulacionModal.set(false);
@@ -219,7 +250,8 @@ export class GobernacionLiquidacionesComponent implements OnInit {
       this.toast.warning('Debe motivar el rechazo');
       return;
     }
-    this.facade.rechazarAnulacion(it.id || it.liquidacionId, this.motivoResolucion()).subscribe({
+    const targetId = it.liquidacionId || it.id;
+    this.facade.rechazarAnulacion(targetId, this.motivoResolucion()).subscribe({
       next: () => {
         this.toast.success('Solicitud de anulación rechazada');
         this.showRechazarAnulacionModal.set(false);

@@ -99,7 +99,7 @@ export interface RadicacionLiquidacionListadoDto {
   solicitudId: number;
   numeroRadicado: string;
   fechaRadicacion: string;
-  observacion: string;
+  observacion?: string | null;
 }
 
 export interface EstadoLiquidacionListadoDto {
@@ -170,6 +170,7 @@ export interface SolicitarReliquidacionRequest {
 }
 
 export interface SolicitudReliquidacionDto {
+  id?: number;
   liquidacionId: number;
   numeroLiquidacion: string;
   fechaLiquidacion: string;
@@ -181,6 +182,7 @@ export interface SolicitudReliquidacionDto {
   nombreEntidadRegistro?: string;
   causal?: string;
   motivo?: string;
+  documentoAclaratorio?: string;
   fechaSolicitud: string;
 }
 

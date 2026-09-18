@@ -1,4 +1,4 @@
-<div class="p-6 space-y-6 max-w-7xl mx-auto">
+﻿<div class="p-6 space-y-6 max-w-7xl mx-auto">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
     <div>
@@ -82,15 +82,25 @@
                     <span>Recibo PDF</span>
                   </button>
 
-                  <!-- Solicitar Reliquidación -->
-                  <button
-                    (click)="abrirModalReliquidacion(item)"
-                    class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition cursor-pointer"
-                    title="Solicitar corrección o reliquidación motivada"
-                  >
-                    <i class="fa-solid fa-rotate"></i>
-                    <span>Reliquidar</span>
-                  </button>
+                                    <!-- Solicitar Reliquidación (Bloqueo si ya está en trámite) -->
+                  @if (estaEnTramiteReliquidacion(item)) {
+                    <span 
+                      class="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 rounded-lg cursor-not-allowed shadow-2xs"
+                      title="Esta liquidación ya tiene una solicitud de reliquidación en trámite pendiente de resolución por la Gobernación del Cauca"
+                    >
+                      <i class="fa-solid fa-hourglass-half text-amber-700"></i>
+                      <span>En Trámite</span>
+                    </span>
+                  } @else {
+                    <button
+                      (click)="abrirModalReliquidacion(item)"
+                      class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition cursor-pointer"
+                      title="Solicitar corrección o reliquidación motivada"
+                    >
+                      <i class="fa-solid fa-rotate"></i>
+                      <span>Reliquidar</span>
+                    </button>
+                  }
 
                   <!-- Solicitar Anulación -->
                   <button

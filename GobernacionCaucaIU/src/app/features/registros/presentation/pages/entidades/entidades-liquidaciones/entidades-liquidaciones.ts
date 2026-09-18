@@ -128,6 +128,13 @@ export class EntidadesLiquidacionesComponent implements OnInit {
     this.showAnulacionModal.set(true);
   }
 
+  estaEnTramiteReliquidacion(item: LiquidacionListadoDto): boolean {
+    const obs = item.radicacion?.observacion;
+    if (!obs) return false;
+    const lower = obs.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return lower.includes('reliquidacion en tramite');
+  }
+
   enviarSolicitudAnulacion(): void {
     const liq = this.selectedLiquidacion();
     if (!liq || !this.anulacionMotivo().trim()) {
