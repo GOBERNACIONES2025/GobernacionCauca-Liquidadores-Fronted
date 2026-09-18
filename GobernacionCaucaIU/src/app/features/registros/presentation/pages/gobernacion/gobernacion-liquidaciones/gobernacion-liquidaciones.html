@@ -100,17 +100,25 @@
                   <td class="py-3.5 px-4">
                     <span [class]="'inline-flex items-center px-2 py-0.5 rounded-md font-semibold text-[10px] border ' + getCausalBadgeClass(item.causal)">
                       <i class="fa-solid fa-triangle-exclamation mr-1 text-[9px]"></i>
-                      {{ getCausalLabel(item.causal) }}
+                      {{ item.causalNombre || getCausalLabel(item.causal) }}
                     </span>
                   </td>
                   <td class="py-3.5 px-4 max-w-xs">
                     <div class="text-slate-700 text-xs font-normal" [title]="item.motivo">
                       {{ item.motivo || 'Sin justificación aportada' }}
                     </div>
-                    <div class="flex items-center gap-2 mt-1">
-                      @if (item.documentoAclaratorio) {
+                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                      @if (item.numeroDocumentoAclaratorio || item.documentoAclaratorio) {
                         <span class="inline-flex items-center px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-mono border border-slate-200">
-                          <i class="fa-solid fa-paperclip mr-1 text-[9px] text-slate-400"></i> Doc: {{ item.documentoAclaratorio }}
+                          <i class="fa-solid fa-file-signature mr-1 text-[9px] text-slate-500"></i> Doc: {{ item.numeroDocumentoAclaratorio || item.documentoAclaratorio }}
+                          @if (item.fechaDocumentoAclaratorio) {
+                            <span class="text-slate-400 ml-1">({{ item.fechaDocumentoAclaratorio | date:'dd/MM/yyyy' }})</span>
+                          }
+                        </span>
+                      }
+                      @if (item.nombreArchivoSoporte) {
+                        <span class="inline-flex items-center px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded text-[10px] font-mono border border-blue-200" [title]="item.rutaArchivoSoporte || item.nombreArchivoSoporte">
+                          <i class="fa-solid fa-paperclip mr-1 text-[9px] text-blue-600"></i> {{ item.nombreArchivoSoporte }}
                         </span>
                       }
                       <span class="text-[10px] text-slate-400">
@@ -160,12 +168,30 @@
                   <td class="py-3.5 px-4 font-mono font-bold text-slate-800">{{ item.numeroRadicado || ('Sol #' + item.solicitudId) }}</td>
                   <td class="py-3.5 px-4 font-mono text-rose-900 font-semibold">{{ item.numeroLiquidacion || ('Liquidación #' + item.liquidacionId) }}</td>
                   <td class="py-3.5 px-4">
-                    <span class="inline-flex px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-semibold text-[10px]">
-                      {{ item.causal || 'Desistimiento' }}
+                    <span class="inline-flex items-center px-2 py-0.5 bg-rose-100 text-rose-800 rounded font-semibold text-[10px] border border-rose-200">
+                      <i class="fa-solid fa-ban mr-1 text-[9px]"></i>
+                      {{ item.causalNombre || item.causal || 'Desistimiento' }}
                     </span>
                   </td>
-                  <td class="py-3.5 px-4 text-slate-600 max-w-xs truncate" [title]="item.motivo">
-                    {{ item.motivo || 'Sin justificación' }}
+                  <td class="py-3.5 px-4 text-slate-600 max-w-xs">
+                    <div class="truncate text-xs text-slate-800 font-medium" [title]="item.motivo">
+                      {{ item.motivo || 'Sin justificación' }}
+                    </div>
+                    <div class="flex flex-wrap items-center gap-1.5 mt-1">
+                      @if (item.documentoSoporte) {
+                        <span class="inline-flex items-center px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[10px] font-mono border border-slate-200">
+                          <i class="fa-solid fa-file-lines mr-1 text-[9px] text-slate-400"></i> {{ item.documentoSoporte }}
+                        </span>
+                      }
+                      @if (item.nombreArchivoSoporte) {
+                        <span class="inline-flex items-center px-1.5 py-0.5 bg-blue-50 text-blue-800 rounded text-[10px] font-mono border border-blue-200" [title]="item.rutaArchivoSoporte || item.nombreArchivoSoporte">
+                          <i class="fa-solid fa-paperclip mr-1 text-[9px] text-blue-600"></i> {{ item.nombreArchivoSoporte }}
+                        </span>
+                      }
+                      <span class="text-[10px] text-slate-400">
+                        {{ item.fechaSolicitud | date:'dd/MM/yyyy HH:mm' }}
+                      </span>
+                    </div>
                   </td>
                   <td class="py-3.5 px-4 text-right space-x-2">
                     <button (click)="abrirAprobarAnulacion(item)" class="px-2.5 py-1 text-[11px] font-bold bg-rose-700 hover:bg-rose-800 text-white rounded-lg transition cursor-pointer">

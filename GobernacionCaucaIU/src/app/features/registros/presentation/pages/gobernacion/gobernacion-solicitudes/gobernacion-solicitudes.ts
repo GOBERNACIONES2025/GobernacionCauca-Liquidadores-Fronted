@@ -94,10 +94,13 @@ export class GobernacionSolicitudesComponent implements OnInit {
       next: (res) => {
         this.isLoading.set(false);
         if (res.data) {
-          this.selectedSolicitud.set(res.data);
+          const data: any = res.data;
+          data.id = data.solicitudId || data.id || id;
+          data.solicitudId = data.id;
+          this.selectedSolicitud.set(data);
           this.showFiscalizarModal.set(true);
           // Ejecuta preliquidación automática
-          this.simularPreliquidacion(id);
+          this.simularPreliquidacion(data.id);
         }
       },
       error: () => {
@@ -127,11 +130,17 @@ export class GobernacionSolicitudesComponent implements OnInit {
     const sol = this.selectedSolicitud();
     if (!sol) return;
 
+    const solId = sol.solicitudId || sol.id;
+    if (!solId) {
+      this.toast.error('No se encontró el identificador del expediente');
+      return;
+    }
+
     this.isAprobando.set(true);
-    this.generacionFacade.generarLiquidacion({ solicitudId: sol.id }).subscribe({
+    this.generacionFacade.generarLiquidacion({ solicitudId: solId }).subscribe({
       next: (res) => {
         this.isAprobando.set(false);
-        this.toast.success(`¡Liquidación oficial generada exitosamente! ID: ${res.data}`);
+        this.toast.success(`¡Liquidación oficial generada exitosamente! ID: #${res.data}`);
         this.showFiscalizarModal.set(false);
         this.cargarSolicitudes();
       },
@@ -154,7 +163,13 @@ export class GobernacionSolicitudesComponent implements OnInit {
       return;
     }
 
-    this.facade.devolverSolicitud(sol.id, this.motivoDevolucion()).subscribe({
+    const solId = sol.solicitudId || sol.id;
+    if (!solId) {
+      this.toast.error('No se encontró el identificador del expediente');
+      return;
+    }
+
+    this.facade.devolverSolicitud(solId, this.motivoDevolucion().trim()).subscribe({
       next: () => {
         this.toast.success('Expediente devuelto a la entidad externa con requerimiento');
         this.showDevolverModal.set(false);

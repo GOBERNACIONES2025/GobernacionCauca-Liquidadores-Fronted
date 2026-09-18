@@ -52,6 +52,14 @@ export class LiquidacionWizardService {
   vigenciaFiscal = signal<number | null>(null);
   vigenciaAnio = signal<number | null>(null);
 
+  // Estado para trámite de Reliquidación
+  modoReliquidacion = signal<boolean>(false);
+  reliquidacionLiquidacionId = signal<number | null>(null);
+  reliquidacionCausalId = signal<number | null>(null);
+  reliquidacionMotivo = signal<string>('');
+  reliquidacionDoc = signal<string>('');
+  reliquidacionFechaDoc = signal<string>('');
+
   // Estado global transversal
   tipoTramite = signal<'Liquidacion' | 'Reliquidacion' | 'Anulacion'>('Liquidacion');
 
@@ -60,7 +68,10 @@ export class LiquidacionWizardService {
   estadoSolicitudNombre = signal<string>('Radicada');
   
   // Banderas de control de mutabilidad
-  esSoloLectura = computed(() => [4, 6, 7].includes(this.estadoSolicitudId()) || this.liquidacionGeneradaExitosa());
+  esSoloLectura = computed(() => {
+    if (this.modoReliquidacion()) return false;
+    return [4, 6, 7].includes(this.estadoSolicitudId()) || this.liquidacionGeneradaExitosa();
+  });
   esEditable = computed(() => !this.esSoloLectura());
   
   // ===================== FORMULARIOS =====================
@@ -145,6 +156,13 @@ export class LiquidacionWizardService {
   // MÃ‰TODOS DE UTILIDAD
 
   resetWizard() {
+    this.modoReliquidacion.set(false);
+    this.reliquidacionLiquidacionId.set(null);
+    this.reliquidacionCausalId.set(null);
+    this.reliquidacionMotivo.set('');
+    this.reliquidacionDoc.set('');
+    this.reliquidacionFechaDoc.set('');
+    this.tipoTramite.set('Liquidacion');
     this.currentStep.set(1);
     this.solicitudId.set(null);
     this.etapaGuardada.set(0);
@@ -219,7 +237,9 @@ export class LiquidacionWizardService {
     this.estadoSolicitudId.set(solicitud.estadoSolicitudId || 1);
     this.estadoSolicitudNombre.set(solicitud.nombreEstado || 'Radicada');
 
-    if (solicitud.estadoSolicitudId === 4) {
+    if (this.modoReliquidacion()) {
+      this.liquidacionGeneradaExitosa.set(false);
+    } else if (solicitud.estadoSolicitudId === 4) {
       this.liquidacionGeneradaExitosa.set(true);
     }
 
@@ -227,8 +247,14 @@ export class LiquidacionWizardService {
     
     // Asignar el paso actual según la etapa guardada (nunca superando el paso 5)
     // Si ya completó hasta intervinientes (etapa 4), abrir en el paso 4 o mantener el paso actual si ya navegaba
-    const nextStep = solicitud.etapaActual >= 4 ? 4 : Math.min(solicitud.etapaActual + 1, 5);
-    this.currentStep.set(nextStep);
+    if (this.modoReliquidacion()) {
+      if (this.currentStep() > 5 || this.currentStep() === 0) {
+        this.currentStep.set(1);
+      }
+    } else {
+      const nextStep = solicitud.etapaActual >= 4 ? 4 : Math.min(solicitud.etapaActual + 1, 5);
+      this.currentStep.set(nextStep);
+    }
 
     // Poblar Paso 1
     if (solicitud.numeroRadicado) {

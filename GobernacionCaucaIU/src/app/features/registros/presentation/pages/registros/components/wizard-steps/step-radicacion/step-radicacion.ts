@@ -50,6 +50,13 @@ export class StepRadicacionComponent implements OnInit {
         }
       }
     });
+
+    if (this.wizardService.modoReliquidacion()) {
+      this.wizardService.paso1Form.get('numeroRadicado')?.disable({ emitEvent: false });
+      this.wizardService.paso1Form.get('fechaRadicado')?.disable({ emitEvent: false });
+      this.wizardService.paso1Form.get('vigenciaFiscal')?.disable({ emitEvent: false });
+      this.wizardService.paso1Form.get('departamentoId')?.disable({ emitEvent: false });
+    }
   }
 
   buscarContribuyente() {
@@ -146,7 +153,7 @@ export class StepRadicacionComponent implements OnInit {
   }
 
   continuar() {
-    if (this.wizardService.esSoloLectura()) {
+    if (this.wizardService.esSoloLectura() || this.wizardService.modoReliquidacion()) {
       this.wizardService.currentStep.set(2);
       return;
     }
@@ -157,7 +164,7 @@ export class StepRadicacionComponent implements OnInit {
     }
 
     if (this.wizardService.paso1Form.valid) {
-      const formValue = this.wizardService.paso1Form.value;
+      const formValue = this.wizardService.paso1Form.getRawValue();
       
       const crearDto = {
         numeroRadicado: formValue.numeroRadicado,

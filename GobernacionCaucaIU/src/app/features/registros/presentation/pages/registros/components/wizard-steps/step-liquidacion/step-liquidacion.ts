@@ -369,6 +369,52 @@ export class StepLiquidacionComponent implements OnInit {
     return ('SON: ' + texto.trim() + ' PESOS M/CTE').toUpperCase();
   }
 
+  radicarReliquidacion() {
+    const liqId = this.wizardService.reliquidacionLiquidacionId();
+    this.isCompleting.set(true);
+
+    // Si ya está en trámite (estadoSolicitudId === 3), los actos ya fueron persistidos en BD
+    if (this.wizardService.estadoSolicitudId() === 3) {
+      this.isCompleting.set(false);
+      this.toast.success('Modificaciones registradas exitosamente. El expediente está en revisión por la Gobernación.');
+      this.router.navigate(['/registros/entidades/liquidaciones']);
+      return;
+    }
+
+    if (!liqId) {
+      this.isCompleting.set(false);
+      this.toast.error('No se encontró el identificador de la liquidación de origen.');
+      return;
+    }
+
+    const payload = {
+      causalReliquidacionId: this.wizardService.reliquidacionCausalId(),
+      motivo: this.wizardService.reliquidacionMotivo() || 'Reliquidación modificada a través de Asistente (Wizard)',
+      numeroDocumentoAclaratorio: this.wizardService.reliquidacionDoc() || null,
+      fechaDocumentoAclaratorio: this.wizardService.reliquidacionFechaDoc() || null,
+      nombreArchivoSoporte: this.wizardService.documentoSoporteFile?.name || (this.wizardService.documentoSoporteNombre() || null),
+      tipoArchivoSoporte: this.wizardService.documentoSoporteFile?.type || null,
+      rutaArchivoSoporte: this.wizardService.documentoSoporteFile ? `ftp://servidor_ftp/reliquidaciones/${Date.now()}_${this.wizardService.documentoSoporteFile.name}` : null
+    };
+
+    this.generacionFacade.solicitarReliquidacion(liqId, payload).subscribe({
+      next: () => {
+        this.isCompleting.set(false);
+        this.toast.success('Solicitud de reliquidación radicada exitosamente ante la Gobernación del Cauca.');
+        this.router.navigate(['/registros/entidades/liquidaciones']);
+      },
+      error: (err) => {
+        this.isCompleting.set(false);
+        if (err?.error?.code === 'Liquidacion.ReliquidacionEnTramite' || err?.error?.message?.includes('en curso') || err?.error?.message?.includes('en trámite')) {
+          this.toast.success('Modificaciones registradas. El expediente se encuentra en trámite en la Gobernación.');
+          this.router.navigate(['/registros/entidades/liquidaciones']);
+        } else {
+          this.toast.error(err?.error?.message || 'Error al radicar la solicitud de reliquidación.');
+        }
+      }
+    });
+  }
+
   radicarSolicitud() {
     const solicitudId = this.wizardService.solicitudId();
     if (!solicitudId) {

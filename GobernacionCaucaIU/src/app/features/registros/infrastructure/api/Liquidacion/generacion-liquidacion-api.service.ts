@@ -1,3 +1,25 @@
+
+export interface SolicitarReliquidacionRequest {
+  causalReliquidacionId?: number | null;
+  causal?: string | null;
+  motivo: string;
+  numeroDocumentoAclaratorio?: string | null;
+  fechaDocumentoAclaratorio?: string | null;
+  nombreArchivoSoporte?: string | null;
+  rutaArchivoSoporte?: string | null;
+  tipoArchivoSoporte?: string | null;
+}
+
+export interface SolicitarAnulacionRequest {
+  causalAnulacionId?: number | null;
+  causal?: string | null;
+  motivo: string;
+  documentoSoporte?: string | null;
+  nombreArchivoSoporte?: string | null;
+  rutaArchivoSoporte?: string | null;
+  tipoArchivoSoporte?: string | null;
+}
+
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../../core/services/base-api.service';
@@ -56,17 +78,21 @@ export class GeneracionLiquidacionApiService {
   // --- SOLICITUDES DE RELIQUIDACIÓN (ENTIDADES) ---
   solicitarReliquidacion(
     liquidacionId: number, 
-    causal: string, 
-    motivo: string, 
+    causalOrReq: string | SolicitarReliquidacionRequest, 
+    motivo?: string, 
     docAclaratorio?: string
   ): Observable<ApiResponse<number>> {
+    const payload = typeof causalOrReq === 'string'
+      ? {
+          causal: causalOrReq,
+          motivo: motivo || '',
+          numeroDocumentoAclaratorio: docAclaratorio || null
+        }
+      : causalOrReq;
+
     return this.api.post<ApiResponse<number>>(
       `${this.baseUrl}/${liquidacionId}/solicitar-reliquidacion`, 
-      { 
-        causal: causal, 
-        motivo: motivo, 
-        numeroDocumentoAclaratorio: docAclaratorio || null 
-      }, 
+      payload, 
       {}, 
       'REGISTROS'
     );
@@ -75,17 +101,21 @@ export class GeneracionLiquidacionApiService {
   // --- SOLICITUDES DE ANULACIÓN (ENTIDADES) ---
   solicitarAnulacion(
     liquidacionId: number, 
-    causal: string, 
-    motivo: string, 
+    causalOrReq: string | SolicitarAnulacionRequest, 
+    motivo?: string, 
     docSoporte?: string
   ): Observable<ApiResponse<number>> {
+    const payload = typeof causalOrReq === 'string'
+      ? {
+          causal: causalOrReq,
+          motivo: motivo || '',
+          documentoSoporte: docSoporte || null
+        }
+      : causalOrReq;
+
     return this.api.post<ApiResponse<number>>(
       `${this.baseUrl}/${liquidacionId}/solicitar-anulacion`, 
-      { 
-        causal: causal, 
-        motivo: motivo, 
-        documentoSoporte: docSoporte || null 
-      }, 
+      payload, 
       {}, 
       'REGISTROS'
     );

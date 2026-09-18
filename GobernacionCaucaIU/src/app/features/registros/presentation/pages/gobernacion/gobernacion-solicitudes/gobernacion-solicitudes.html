@@ -211,7 +211,7 @@
               <div class="py-8 text-center text-slate-400">
                 <p>Presione el botón para simular la preliquidación según tarifas vigentes</p>
                 <button 
-                  (click)="simularPreliquidacion(selectedSolicitud()!.id)"
+                  (click)="simularPreliquidacion(selectedSolicitud()!.solicitudId || selectedSolicitud()!.id)"
                   class="mt-2 px-3 py-1 bg-blue-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
                 >
                   Recalcular Simulación

@@ -26,6 +26,8 @@ import { RolesFacade } from '../../../../application/facades/Seguridad/roles.fac
 import { UsuariosFacade } from '../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesIntervinienteFacade } from '../../../../application/facades/Intervinientes/roles-interviniente.facade';
 import { EstadosLiquidacionFacade } from '../../../../application/facades/Liquidacion/estados-liquidacion.facade';
+import { CausalesReliquidacionFacade } from '../../../../application/facades/Liquidacion/causales-reliquidacion.facade';
+import { CausalesAnulacionFacade } from '../../../../application/facades/Liquidacion/causales-anulacion.facade';
 import { EstadosPagoFacade } from '../../../../application/facades/Pagos/estados-pago.facade';
 import { EstadosSolicitudFacade } from '../../../../application/facades/Radicacion/estados-solicitud.facade';
 import { EntidadesTipoActoPermitidoFacade } from '../../../../application/facades/Registro/entidades-tipo-acto-permitido.facade';
@@ -78,6 +80,8 @@ export class ConfigSidebar {
   private usuariosFacade = inject(UsuariosFacade);
   private rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
   private estadosLiquidacionFacade = inject(EstadosLiquidacionFacade);
+  public causalesReliquidacionFacade = inject(CausalesReliquidacionFacade);
+  public causalesAnulacionFacade = inject(CausalesAnulacionFacade);
   private estadosPagoFacade = inject(EstadosPagoFacade);
   private estadosSolicitudFacade = inject(EstadosSolicitudFacade);
   private entidadesTipoActoPermitidoFacade = inject(EntidadesTipoActoPermitidoFacade);

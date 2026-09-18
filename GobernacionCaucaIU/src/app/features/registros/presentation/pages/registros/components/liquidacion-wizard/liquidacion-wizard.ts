@@ -62,6 +62,42 @@ export class LiquidacionWizardComponent implements OnInit {
   ngOnInit() {
     this.precargarCatalogos();
     
+    // Capturar query params (modo reliquidación y metadatos)
+    this.route.queryParamMap.subscribe(qParams => {
+      const modo = qParams.get('modo');
+      if (modo === 'reliquidacion') {
+        this.wizardService.modoReliquidacion.set(true);
+        this.wizardService.tipoTramite.set('Reliquidacion');
+        this.wizardService.liquidacionGeneradaExitosa.set(false);
+
+        const liqId = qParams.get('liquidacionId');
+        if (liqId) this.wizardService.reliquidacionLiquidacionId.set(Number(liqId));
+
+        const causalId = qParams.get('causalId');
+        if (causalId) this.wizardService.reliquidacionCausalId.set(Number(causalId));
+
+        const motivo = qParams.get('motivo');
+        if (motivo) this.wizardService.reliquidacionMotivo.set(motivo);
+
+        const doc = qParams.get('doc');
+        if (doc) {
+          this.wizardService.reliquidacionDoc.set(doc);
+          this.wizardService.paso2Form.patchValue({ numeroDocumento: doc });
+        }
+
+        const fechaDoc = qParams.get('fechaDoc');
+        if (fechaDoc) {
+          this.wizardService.reliquidacionFechaDoc.set(fechaDoc);
+          this.wizardService.paso2Form.patchValue({ fechaDocumento: fechaDoc });
+        }
+
+        const archivoNombre = qParams.get('archivoNombre');
+        if (archivoNombre) {
+          this.wizardService.documentoSoporteNombre.set(archivoNombre);
+        }
+      }
+    });
+
     // Verificar si hay un ID en la ruta
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -118,6 +154,11 @@ export class LiquidacionWizardComponent implements OnInit {
   }
 
   setStep(stepId: number) {
+    if (this.wizardService.modoReliquidacion()) {
+      this.wizardService.currentStep.set(stepId);
+      return;
+    }
+
     const isLectura = this.wizardService.esSoloLectura();
     const isTramiteNormal = this.wizardService.tipoTramite() === 'Liquidacion';
     if (isLectura && isTramiteNormal && stepId !== 5) {

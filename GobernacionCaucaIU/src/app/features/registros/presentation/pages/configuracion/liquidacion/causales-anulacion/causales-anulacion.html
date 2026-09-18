@@ -1,0 +1,267 @@
+<div class="p-6 h-full flex flex-col relative bg-base-100">
+  
+  <!-- Top Section (Header + Controls) -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/80 pb-4 mb-4 gap-4">
+    
+    <!-- Left: Page Header -->
+    <app-page-header
+      [breadcrumbs]="breadcrumbs"
+      title="Causales de Anulación"
+      [tags]="[{ text: 'Parametrización Tributaria', type: 'info' }]"
+      [counts]="counts()"
+    ></app-page-header>
+
+    <!-- Right: Search, Filter Tabs & Add Button -->
+    <div class="flex flex-wrap items-center gap-3">
+      
+      <!-- Search in Table -->
+      <app-table-search
+        placeholder="Buscar causal..."
+        [value]="searchText()"
+        [loading]="facade.loading()"
+        (search)="onSearch($event)"
+        (clear)="onClearSearch()"
+      ></app-table-search>
+
+      <!-- Filter Tabs Segmented Control -->
+      <div class="inline-flex p-0.5 bg-slate-100/90 border border-slate-200/80 rounded-lg">
+        <button 
+          (click)="setFilter('todos')"
+          [class]="selectedFilter() === 'todos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Todos
+        </button>
+        <button 
+          (click)="setFilter('activos')"
+          [class]="selectedFilter() === 'activos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Activos
+        </button>
+        <button 
+          (click)="setFilter('inactivos')"
+          [class]="selectedFilter() === 'inactivos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Inactivos
+        </button>
+      </div>
+
+      <!-- Add New Record Button -->
+      <button 
+        (click)="openNew()" 
+        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0f3b73] hover:bg-[#0a274d] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors shrink-0">
+        <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Nueva causal
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="flex-1 overflow-auto bg-base-100 relative custom-scrollbar">
+    <table class="w-full text-left border-collapse">
+      <thead class="sticky top-0 bg-base-100 z-10 border-b border-slate-200">
+        <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <th class="py-3 px-4 w-32">Código</th>
+          <th class="py-3 px-4">Causal de Anulación</th>
+          <th class="py-3 px-4 w-36 text-center">Requiere Soporte</th>
+          <th class="py-3 px-4 w-32">Estado</th>
+          <th class="py-3 px-4 w-28 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        @if (facade.loading()) {
+          <tr>
+            <td colspan="5" class="text-center py-12">
+              <span class="loading loading-spinner text-primary"></span>
+            </td>
+          </tr>
+        } @else if (causalesFiltradas().length === 0) {
+          <tr>
+            <td colspan="5" class="text-center py-12 text-slate-400 text-xs">
+              No se encontraron causales de anulación coincidentes.
+            </td>
+          </tr>
+        }
+        
+        @for (item of causalesFiltradas(); track item.id) {
+          <tr class="hover:bg-slate-50/70 transition-colors group">
+            <!-- Codigo -->
+            <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
+              {{ item.codigo }}
+            </td>
+            
+            <!-- Nombre y Descripcion -->
+            <td class="py-3.5 px-4">
+              <div class="font-medium text-slate-800 text-sm">{{ item.nombre }}</div>
+              @if (item.descripcion) {
+                <div class="text-xs text-slate-500 line-clamp-1">{{ item.descripcion }}</div>
+              }
+            </td>
+
+            <!-- Requiere Soporte -->
+            <td class="py-3.5 px-4 text-center">
+              @if (item.requiereSoporte) {
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                  <svg class="w-3 h-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  Obligatorio
+                </span>
+              } @else {
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-slate-400 bg-slate-100">
+                  Opcional
+                </span>
+              }
+            </td>
+            
+            <!-- Estado -->
+            <td class="py-3.5 px-4">
+              @if (item.activo) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Activa
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                  Inactiva
+                </span>
+              }
+            </td>
+
+            <!-- Acciones -->
+            <td class="py-3.5 px-4 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button 
+                  (click)="edit(item)" 
+                  [disabled]="loadingEditId() !== null"
+                  title="Editar causal"
+                  class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
+                  @if (loadingEditId() === item.id) {
+                    <span class="loading loading-spinner loading-xs text-blue-600"></span>
+                  } @else {
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                  }
+                </button>
+                
+                <button 
+                  (click)="toggleActivo(item)"
+                  [title]="item.activo ? 'Desactivar' : 'Activar'"
+                  class="p-1 rounded border border-transparent transition-colors"
+                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  
+  <!-- Paginación -->
+  <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="counts().total"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
+
+  <!-- Footer Counter -->
+  <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
+    Mostrando {{ causalesFiltradas().length }} de {{ counts().total }} registros
+  </div>
+</div>
+
+<!-- Slide-Over Component for Create / Edit -->
+<app-slide-over 
+  [isOpen]="isSlideOverOpen" 
+  [title]="isEditMode ? 'Editar Causal de Anulación' : 'Nueva Causal de Anulación'" 
+  [description]="isEditMode ? 'Modifica los parámetros y condiciones de la causal' : 'Define una nueva causal autorizada para la anulación de liquidaciones tributarias'"
+  [isSaving]="facade.actionLoading()"
+  (onClose)="closeSlideOver()" 
+  (onSave)="saveCausal()">
+  
+  <form [formGroup]="causalForm" class="flex flex-col gap-4">
+    <!-- Código -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Código</span>
+      </label>
+      <input 
+        type="text" 
+        formControlName="codigo" 
+        placeholder="Ej. ERROR_DIGITACION" 
+        class="input input-sm input-bordered w-full text-slate-800 uppercase" 
+        [class.input-error]="causalForm.get('codigo')?.invalid && (causalForm.get('codigo')?.touched || causalForm.get('codigo')?.dirty)" 
+      />
+      <app-form-error [control]="causalForm.get('codigo')" fieldName="Código"></app-form-error>
+    </div>
+
+    <!-- Nombre -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre de la Causal</span>
+      </label>
+      <input 
+        type="text" 
+        formControlName="nombre" 
+        placeholder="Ej. Por error involuntario de digitación" 
+        class="input input-sm input-bordered w-full text-slate-800" 
+        [class.input-error]="causalForm.get('nombre')?.invalid && (causalForm.get('nombre')?.touched || causalForm.get('nombre')?.dirty)" 
+      />
+      <app-form-error [control]="causalForm.get('nombre')" fieldName="Nombre de la Causal"></app-form-error>
+    </div>
+
+    <!-- Descripción -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Descripción / Justificación</span>
+      </label>
+      <textarea 
+        formControlName="descripcion" 
+        placeholder="Indique los alcances jurídicos o técnicos de esta causal de anulación..." 
+        rows="3"
+        class="textarea textarea-bordered textarea-sm w-full text-slate-800"
+      ></textarea>
+    </div>
+
+    <!-- Configuraciones de Trámite -->
+    <div class="p-3.5 bg-slate-50 border border-slate-200/80 rounded-xl space-y-3">
+      <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Comportamiento del Trámite</h4>
+      
+      <!-- Requiere Soporte -->
+      <label class="flex items-start gap-3 cursor-pointer">
+        <input type="checkbox" formControlName="requiereSoporte" class="checkbox checkbox-primary checkbox-sm mt-0.5" />
+        <div>
+          <span class="text-xs font-semibold text-slate-800 block">Exigir archivo de soporte obligatorio (PDF)</span>
+          <span class="text-[11px] text-slate-500 block">Impide radicar la solicitud de anulación si no se anexa documento probatorio (oficio, acto administrativo o solicitud firmada).</span>
+        </div>
+      </label>
+    </div>
+
+    <!-- Estado -->
+    <div class="form-control w-full mt-1">
+      <label class="label cursor-pointer justify-start gap-4 p-0">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Estado Activa</span>
+        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
+      </label>
+      <p class="text-[10px] text-slate-400 mt-1">Si está inactiva, no aparecerá en las opciones de anulación.</p>
+    </div>
+  </form>
+
+</app-slide-over>

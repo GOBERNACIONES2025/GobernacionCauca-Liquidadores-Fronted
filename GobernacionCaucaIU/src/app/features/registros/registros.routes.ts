@@ -27,6 +27,8 @@ import { RolesComponent } from './presentation/pages/configuracion/seguridad/rol
 import { UsuariosComponent } from './presentation/pages/configuracion/seguridad/usuarios/usuarios';
 import { RolesInterviniente } from './presentation/pages/configuracion/intervinientes/roles-interviniente/roles-interviniente';
 import { EstadosLiquidacion } from './presentation/pages/configuracion/liquidacion/estados-liquidacion/estados-liquidacion';
+import { CausalesReliquidacionComponent } from './presentation/pages/configuracion/liquidacion/causales-reliquidacion/causales-reliquidacion';
+import { CausalesAnulacionComponent } from './presentation/pages/configuracion/liquidacion/causales-anulacion/causales-anulacion';
 import { EstadosPago } from './presentation/pages/configuracion/pagos/estados-pago/estados-pago';
 import { EstadosSolicitud } from './presentation/pages/configuracion/radicacion/estados-solicitud/estados-solicitud';
 import { Contribuyentes } from './presentation/pages/configuracion/contribuyentes/contribuyentes/contribuyentes';
@@ -141,6 +143,8 @@ export const registrosRoutes: Routes = [
           { path: 'contribuyentes/tipo-documento', component: TiposIdentificacion },
           { path: 'intervinientes/roles-interviniente', component: RolesInterviniente },
           { path: 'liquidacion/estados-liquidacion', component: EstadosLiquidacion },
+          { path: 'liquidacion/causales-reliquidacion', component: CausalesReliquidacionComponent },
+          { path: 'liquidacion/causales-anulacion', component: CausalesAnulacionComponent },
           { path: 'pagos/estados-pago', component: EstadosPago },
           { path: 'radicacion/estados-solicitud', component: EstadosSolicitud },
           { path: 'seguridad/roles', component: RolesComponent },

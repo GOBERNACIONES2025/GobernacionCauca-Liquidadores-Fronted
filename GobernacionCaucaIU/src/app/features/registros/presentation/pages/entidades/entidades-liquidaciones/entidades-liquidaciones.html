@@ -1,4 +1,4 @@
-﻿<div class="p-6 space-y-6 max-w-7xl mx-auto">
+<div class="p-6 space-y-6 max-w-7xl mx-auto">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
     <div>
@@ -82,7 +82,7 @@
                     <span>Recibo PDF</span>
                   </button>
 
-                                    <!-- Solicitar Reliquidación (Bloqueo si ya está en trámite) -->
+                  <!-- Solicitar Reliquidación (Bloqueo si ya está en trámite) -->
                   @if (estaEnTramiteReliquidacion(item)) {
                     <span 
                       class="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300 rounded-lg cursor-not-allowed shadow-2xs"
@@ -132,70 +132,145 @@
 
   <!-- MODAL: Solicitar Reliquidación -->
   @if (showReliquidacionModal() && selectedLiquidacion()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 my-8">
         <div class="flex items-center gap-3 text-amber-600 mb-4">
           <div class="p-2.5 bg-amber-100 rounded-xl">
             <i class="fa-solid fa-rotate text-lg"></i>
           </div>
           <div>
             <h3 class="text-base font-bold text-slate-900">Radicar Solicitud de Reliquidación</h3>
-            <p class="text-xs text-slate-500">Liquidación No. #{{ selectedLiquidacion()?.numeroLiquidacion || selectedLiquidacion()?.id }}</p>
+            <p class="text-xs text-slate-500">Liquidación Oficial No. #{{ selectedLiquidacion()?.numeroLiquidacion || selectedLiquidacion()?.id }}</p>
           </div>
         </div>
 
         <div class="space-y-4 text-xs">
+          <!-- Causal Parametrizable -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Causal Normativa</label>
+            <label class="block font-semibold text-slate-700 mb-1">Causal Normativa de Reliquidación</label>
             <select 
-              [ngModel]="reliquidacionCausal()" 
-              (ngModelChange)="reliquidacionCausal.set($event)"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+              [ngModel]="reliquidacionCausalId()" 
+              (ngModelChange)="onCausalReliquidacionChange($event)"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500 font-medium text-slate-800"
             >
-              <option value="ERROR_BASE_GRAVABLE">Error en avalúo catastral o base gravable</option>
-              <option value="CAMBIO_ACTO_CUANTIA">Modificación de acto o cuantía declarada</option>
-              <option value="EXENCION_NO_APLICADA">Exención de ley no aplicada</option>
-              <option value="ERROR_SUJETO_PASIVO">Error en identificación de las partes</option>
+              @for (c of causalesReliquidacionFacade.causalesReliquidacion(); track c.id) {
+                <option [value]="c.id">{{ c.codigo }} - {{ c.nombre }}</option>
+              }
             </select>
+
+            <!-- Badges de la causal seleccionada -->
+            @if (selectedCausalReliquidacion()) {
+              <div class="flex items-center gap-2 mt-1.5">
+                @if (selectedCausalReliquidacion()?.requiereWizard) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    <i class="fa-solid fa-wand-magic-sparkles text-[9px]"></i> Habilita Asistente (Wizard)
+                  </span>
+                }
+                @if (selectedCausalReliquidacion()?.requiereSoporte) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <i class="fa-solid fa-paperclip text-[9px]"></i> Soporte PDF Obligatorio
+                  </span>
+                }
+              </div>
+            }
           </div>
 
+          <!-- Documento Aclaratorio -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Doc. Aclaratorio (No. / Notaría)</label>
+              <input 
+                type="text" 
+                [ngModel]="reliquidacionDoc()" 
+                (ngModelChange)="reliquidacionDoc.set($event)"
+                placeholder="Ej. Escritura aclaratoria No. 123"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Fecha del Documento</label>
+              <input 
+                type="date" 
+                [ngModel]="reliquidacionFechaDoc()" 
+                (ngModelChange)="reliquidacionFechaDoc.set($event)"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+
+          <!-- Justificación Técnica Notarial -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Justificación Técnica Notarial</label>
+            <label class="block font-semibold text-slate-700 mb-1">Justificación Técnica Notarial <span class="text-rose-500">*</span></label>
             <textarea 
               rows="3" 
               [ngModel]="reliquidacionMotivo()" 
               (ngModelChange)="reliquidacionMotivo.set($event)"
-              placeholder="Explique detalladamente el motivo de la reliquidación para evaluación del fiscalizador..."
+              placeholder="Explique detalladamente el motivo de la reliquidación para evaluación del fiscalizador de la Gobernación..."
               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
             ></textarea>
           </div>
 
+          <!-- Archivo Soporte (PDF) -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Documento Aclaratorio / Soporte (Opcional)</label>
+            <label class="block font-semibold text-slate-700 mb-1">
+              Archivo Digital Soporte (PDF)
+              @if (selectedCausalReliquidacion()?.requiereSoporte) {
+                <span class="text-rose-500 font-bold ml-1">* Obligatorio para esta causal</span>
+              } @else {
+                <span class="text-slate-400 font-normal ml-1">(Opcional)</span>
+              }
+            </label>
             <input 
-              type="text" 
-              [ngModel]="reliquidacionDoc()" 
-              (ngModelChange)="reliquidacionDoc.set($event)"
-              placeholder="Ej. Escritura de aclaración No. 456 del 2026"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-amber-500"
+              type="file" 
+              accept=".pdf" 
+              (change)="onReliquidacionFileSelected($event)"
+              class="file-input file-input-bordered file-input-sm w-full text-slate-700" 
             />
+            @if (reliquidacionArchivoNombre()) {
+              <p class="text-[11px] text-emerald-600 font-semibold mt-1">
+                <i class="fa-solid fa-circle-check"></i> Archivo seleccionado: {{ reliquidacionArchivoNombre() }}
+              </p>
+            }
           </div>
+
+          <!-- Aviso de Wizard si la causal lo permite -->
+          @if (selectedCausalReliquidacion()?.requiereWizard) {
+            <div class="p-3 bg-blue-50/80 border border-blue-200 rounded-xl text-[11px] text-blue-900 space-y-1">
+              <div class="font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-blue-600"></i> Edición Integral Habilitada
+              </div>
+              <p class="text-blue-700">Esta causal permite modificar cuantías, bases gravables, actos registrales o exenciones a través del asistente (Wizard). El número de radicado original se conservará inmutable.</p>
+            </div>
+          }
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
+        <div class="flex flex-wrap items-center justify-end gap-2 mt-6">
           <button 
             type="button" 
             (click)="showReliquidacionModal.set(false)" 
-            class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+            class="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
           >
             Cancelar
           </button>
+
+          @if (selectedCausalReliquidacion()?.requiereWizard) {
+            <button 
+              type="button" 
+              (click)="irAWizardReliquidacion()" 
+              class="px-4 py-2 text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 rounded-xl shadow-md transition cursor-pointer inline-flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              Abrir Asistente (Wizard)
+            </button>
+          }
+
           <button 
             type="button" 
             (click)="enviarSolicitudReliquidacion()" 
-            class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition cursor-pointer"
+            class="px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-md transition cursor-pointer inline-flex items-center gap-1.5"
           >
-            Enviar Solicitud a Gobernación
+            <i class="fa-solid fa-paper-plane"></i>
+            Radicar Solicitud
           </button>
         </div>
       </div>
@@ -204,42 +279,89 @@
 
   <!-- MODAL: Solicitar Anulación -->
   @if (showAnulacionModal() && selectedLiquidacion()) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 my-8">
         <div class="flex items-center gap-3 text-rose-600 mb-4">
           <div class="p-2.5 bg-rose-100 rounded-xl">
             <i class="fa-solid fa-ban text-lg"></i>
           </div>
           <div>
             <h3 class="text-base font-bold text-slate-900">Radicar Solicitud de Anulación</h3>
-            <p class="text-xs text-slate-500">Liquidación No. #{{ selectedLiquidacion()?.numeroLiquidacion || selectedLiquidacion()?.id }}</p>
+            <p class="text-xs text-slate-500">Liquidación Oficial No. #{{ selectedLiquidacion()?.numeroLiquidacion || selectedLiquidacion()?.id }}</p>
           </div>
         </div>
 
         <div class="space-y-4 text-xs">
+          <!-- Causal Parametrizable -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Causal de Anulación</label>
+            <label class="block font-semibold text-slate-700 mb-1">Causal Normativa de Anulación</label>
             <select 
-              [ngModel]="anulacionCausal()" 
-              (ngModelChange)="anulacionCausal.set($event)"
-              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
+              [ngModel]="anulacionCausalId()" 
+              (ngModelChange)="onCausalAnulacionChange($event)"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 font-medium text-slate-800"
             >
-              <option value="DESISTIMIENTO_PARTES">Desistimiento voluntario de las partes</option>
-              <option value="ESCRITURA_NO_OTORGADA">Escritura pública no otorgada ni autorizada</option>
-              <option value="DOBLE_RADICACION">Doble radicación o pago erróneo</option>
-              <option value="ERROR_MANIFIESTO">Error manifiesto de digitación en la entidad</option>
+              @for (c of causalesAnulacionFacade.causalesAnulacion(); track c.id) {
+                <option [value]="c.id">{{ c.codigo }} - {{ c.nombre }}</option>
+              }
             </select>
+
+            <!-- Badges de la causal seleccionada -->
+            @if (selectedCausalAnulacion()) {
+              <div class="flex items-center gap-2 mt-1.5">
+                @if (selectedCausalAnulacion()?.requiereSoporte) {
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <i class="fa-solid fa-paperclip text-[9px]"></i> Soporte PDF Obligatorio
+                  </span>
+                }
+              </div>
+            }
           </div>
 
+          <!-- Documento Soporte Referencia -->
           <div>
-            <label class="block font-semibold text-slate-700 mb-1">Justificación Formal</label>
+            <label class="block font-semibold text-slate-700 mb-1">Referencia Documental del Soporte (Opcional)</label>
+            <input 
+              type="text" 
+              [ngModel]="anulacionDocSoporte()" 
+              (ngModelChange)="anulacionDocSoporte.set($event)"
+              placeholder="Ej. Oficio de solicitud firmado No. 789"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
+            />
+          </div>
+
+          <!-- Justificación Formal -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Justificación Formal <span class="text-rose-500">*</span></label>
             <textarea 
               rows="3" 
               [ngModel]="anulacionMotivo()" 
               (ngModelChange)="anulacionMotivo.set($event)"
-              placeholder="Explique las razones por las cuales debe anularse el título de cobro..."
+              placeholder="Explique las razones y fundamentos de derecho por los cuales debe anularse el título de cobro..."
               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500"
             ></textarea>
+          </div>
+
+          <!-- Archivo Soporte (PDF) -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">
+              Archivo Digital Soporte (PDF)
+              @if (selectedCausalAnulacion()?.requiereSoporte) {
+                <span class="text-rose-500 font-bold ml-1">* Obligatorio para esta causal</span>
+              } @else {
+                <span class="text-slate-400 font-normal ml-1">(Opcional)</span>
+              }
+            </label>
+            <input 
+              type="file" 
+              accept=".pdf" 
+              (change)="onAnulacionFileSelected($event)"
+              class="file-input file-input-bordered file-input-sm w-full text-slate-700" 
+            />
+            @if (anulacionArchivoNombre()) {
+              <p class="text-[11px] text-emerald-600 font-semibold mt-1">
+                <i class="fa-solid fa-circle-check"></i> Archivo seleccionado: {{ anulacionArchivoNombre() }}
+              </p>
+            }
           </div>
         </div>
 
@@ -254,8 +376,9 @@
           <button 
             type="button" 
             (click)="enviarSolicitudAnulacion()" 
-            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md transition cursor-pointer"
+            class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md transition cursor-pointer inline-flex items-center gap-1.5"
           >
+            <i class="fa-solid fa-ban"></i>
             Radicar Anulación
           </button>
         </div>

@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-import { GeneracionLiquidacionApiService } from '../../../infrastructure/api/Liquidacion/generacion-liquidacion-api.service';
+import { GeneracionLiquidacionApiService, SolicitarReliquidacionRequest, SolicitarAnulacionRequest } from '../../../infrastructure/api/Liquidacion/generacion-liquidacion-api.service';
 import { 
   GenerarLiquidacionDto,
   LiquidacionListadoDto,
@@ -68,24 +68,24 @@ export class GeneracionLiquidacionFacade {
 
   solicitarReliquidacion(
     liquidacionId: number, 
-    causal: string, 
-    motivo: string, 
+    causalOrReq: string | SolicitarReliquidacionRequest, 
+    motivo?: string, 
     docAclaratorio?: string
   ): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
-    return this.apiService.solicitarReliquidacion(liquidacionId, causal, motivo, docAclaratorio).pipe(
+    return this.apiService.solicitarReliquidacion(liquidacionId, causalOrReq as any, motivo, docAclaratorio).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }
 
   solicitarAnulacion(
     liquidacionId: number, 
-    causal: string, 
-    motivo: string, 
+    causalOrReq: string | SolicitarAnulacionRequest, 
+    motivo?: string, 
     docSoporte?: string
   ): Observable<ApiResponse<number>> {
     this.actionLoading.set(true);
-    return this.apiService.solicitarAnulacion(liquidacionId, causal, motivo, docSoporte).pipe(
+    return this.apiService.solicitarAnulacion(liquidacionId, causalOrReq as any, motivo, docSoporte).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }

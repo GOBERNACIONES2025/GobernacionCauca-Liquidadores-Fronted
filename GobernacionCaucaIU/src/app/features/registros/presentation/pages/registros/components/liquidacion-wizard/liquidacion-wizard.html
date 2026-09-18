@@ -92,6 +92,26 @@
     </div>
   </div>
 
+  <!-- BANNER MODO RELIQUIDACIÓN -->
+  @if (wizardService.modoReliquidacion()) {
+    <div class="mx-6 mt-4 p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between text-amber-900 shadow-xs">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-amber-100 text-amber-800 rounded-lg">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+        </div>
+        <div>
+          <span class="font-bold text-sm block">Modo Reliquidación Oficial en Trámite</span>
+          <p class="text-xs text-amber-800/90 mt-0.5">El número de radicado original se conserva inmutable. Modifique los actos, cuantías o exenciones y proceda a radicar la solicitud en el Paso 5.</p>
+        </div>
+      </div>
+      <span class="px-3 py-1 bg-amber-200 text-amber-900 font-bold rounded-full text-xs">
+        Liquidación No. #{{ wizardService.reliquidacionLiquidacionId() }}
+      </span>
+    </div>
+  }
+
   <!-- STEPPER NAVBAR -->
   <div class="px-6 flex items-center gap-8 border-t border-slate-100">
     @for (step of steps; track step.id) {

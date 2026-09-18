@@ -36,6 +36,13 @@ export class StepDocumentoComponent implements OnInit {
     this.tiposEntidadFacade.cargarTiposEntidadRegistro(1, 100);
     this.categoriasActoFacade.cargarCategoriasActo(1, 100);
 
+    if (this.wizardService.modoReliquidacion() && this.wizardService.reliquidacionDoc()) {
+      this.wizardService.paso2Form.patchValue({
+        numeroDocumento: this.wizardService.reliquidacionDoc(),
+        fechaDocumento: this.wizardService.reliquidacionFechaDoc() || this.wizardService.paso2Form.value.fechaDocumento
+      });
+    }
+
     const tipoEntidadCtrl = this.wizardService.paso2Form.get('tipoEntidadRegistroId');
     const municipioCtrl = this.wizardService.paso2Form.get('municipioJurisdiccionId');
     const categoriaCtrl = this.wizardService.paso2Form.get('categoriaActoId');
