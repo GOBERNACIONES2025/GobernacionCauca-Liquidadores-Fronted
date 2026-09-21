@@ -1,8 +1,7 @@
 @if (facade.isDrawerOpen()) {
 <div class="fixed inset-0 z-50 flex items-start justify-end">
   <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarRegistro()"></div>
-  <div
-    class="relative z-10 w-full max-w-170 h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900"
+  <div class="relative z-10 w-full max-w-170 h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900"
     data-theme="light">
     <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
       <div>
@@ -109,10 +108,10 @@
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">COMBUSTIBLE <span class="text-red-500">*</span></label>
+              <label class="text-[11.5px] font-semibold text-slate-700">COMBUSTIBLE <span
+                  class="text-red-500">*</span></label>
 
-              <select formControlName="combustible"
-                [class.border-red-400]="hasError('combustible')"
+              <select formControlName="combustible" [class.border-red-400]="hasError('combustible')"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
                 <option value="" class="text-slate-500">Seleccione combustible...</option>
                 @for (c of facade.combustibles(); track c.id) { <option [value]="c.nombre" class="text-slate-900">{{
@@ -126,9 +125,9 @@
 
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">SERVICIO <span class="text-red-500">*</span></label>
-              <select formControlName="servicio"
-                [class.border-red-400]="hasError('servicio')"
+              <label class="text-[11.5px] font-semibold text-slate-700">SERVICIO <span
+                  class="text-red-500">*</span></label>
+              <select formControlName="servicio" [class.border-red-400]="hasError('servicio')"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
                 <option value="" class="text-slate-500">Seleccione servicio...</option>
                 @for (s of facade.serviciosVehiculo(); track s.id) { <option [value]="s.nombre" class="text-slate-900">
@@ -157,42 +156,46 @@
             </div>
 
             <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">PASAJEROS <span class="text-red-500">*</span></label>
-              <input formControlName="pasajeros" [class.border-red-400]="hasError('pasajeros')" type="number" placeholder="Ej: 5" min="1"
+              <label class="text-[11.5px] font-semibold text-slate-700">PASAJEROS <span
+                  class="text-red-500">*</span></label>
+              <input formControlName="pasajeros" [class.border-red-400]="hasError('pasajeros')" type="number"
+                placeholder="Ej: 5" min="1"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                @if(hasError('pasajeros')){
-                  <span class="text-[11px] text-red-500 font-medium mt-0.5">
-                    {{getError('pasajeros')}}
-                  </span>
-                }
+              @if(hasError('pasajeros')){
+              <span class="text-[11px] text-red-500 font-medium mt-0.5">
+                {{getError('pasajeros')}}
+              </span>
+              }
             </div>
 
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">ORGANISMO DE TRÁNSITO <span class="text-red-500">*</span></label>
-              <select formControlName="organismoTransitoId"
-                [class.border-red-400]="hasError('organismoTransitoId')"
+              <label class="text-[11.5px] font-semibold text-slate-700">ORGANISMO DE TRÁNSITO <span
+                  class="text-red-500">*</span></label>
+              <select formControlName="organismoTransitoId" [class.border-red-400]="hasError('organismoTransitoId')"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
                 <option value="" class="text-slate-500">Seleccione organismo...</option>
                 @for (o of facade.organismosTransito(); track o.id) { <option [value]="o.id" class="text-slate-900">{{
                   o.nombre }}</option> }
               </select>
               @if (hasError('organismoTransitoId')) {
-                <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('organismoTransitoId') }}</span>
+              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('organismoTransitoId') }}</span>
               }
             </div>
             <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE MATRÍCULA <span class="text-red-500">*</span></label>
-              <input formControlName="fechaMatricula" type="date"
-                [class.border-red-400]="hasError('fechaMatricula')"
+              <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE MATRÍCULA <span
+                  class="text-red-500">*</span></label>
+              <input formControlName="fechaMatricula" type="date" [class.border-red-400]="hasError('fechaMatricula')"
                 class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
               @if (hasError('fechaMatricula')) {
-                <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('fechaMatricula') }}</span>
+              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('fechaMatricula') }}</span>
               }
               <p class="text-gray-600 font-bold text-[10px] text-center flex-start">
-                <strong>1. </strong>Recuerde que esta fecha será utilizada para validar las vigencias adeudadas de aquí en adelante.<br>
-                <strong>2. </strong>Se debe de colocar exactamente este registro, Despues de; No se puede editar por la prescripción de los datos de aquí en adelante.
+                <strong>1. </strong>Recuerde que esta fecha será utilizada para validar las vigencias adeudadas de aquí
+                en adelante.<br>
+                <strong>2. </strong>Se debe de colocar exactamente este registro, Despues de; No se puede editar por la
+                prescripción de los datos de aquí en adelante.
               </p>
             </div>
           </div>
@@ -204,362 +207,383 @@
             <input formControlName="incluirPropietario" type="checkbox" id="chkPropietario"
               class="w-4 h-4 rounded accent-emerald-600">
             <label for="chkPropietario"
-              class="text-[13px] font-medium text-slate-800 cursor-pointer select-none">Incluir propietarios en este registro</label>
+              class="text-[13px] font-medium text-slate-800 cursor-pointer select-none">Incluir propietarios en este
+              registro</label>
           </div>
 
           @if (form.get('incluirPropietario')?.value) {
-            <!-- Panel de Control y Distribución de Propiedad (100%) -->
-            <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
-              <div class="flex items-center justify-between">
-                <div>
-                  <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Distribucion de Propiedad</span>
-                  <p class="text-[13px] font-semibold text-slate-900">Total Asignado: {{ calcularPorcentajeTotal() }}% / 100%</p>
-                </div>
-                <div class="flex items-center gap-2">
-                  @if (calcularPorcentajeTotal() === 100) {
-                    <span class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full">
-                      100% Completo
-                    </span>
-                  } @else if (calcularPorcentajeTotal() < 100) {
-                    <span class="px-2.5 py-1 text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200 rounded-full">
-                      Falta {{ calcularPorcentajeRestante() }}%
-                    </span>
+          <!-- Panel de Control y Distribución de Propiedad (100%) -->
+          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Distribucion de
+                  Propiedad</span>
+                <p class="text-[13px] font-semibold text-slate-900">Total Asignado: {{ calcularPorcentajeTotal() }}% /
+                  100%</p>
+              </div>
+              <div class="flex items-center gap-2">
+                @if (calcularPorcentajeTotal() === 100) {
+                <span
+                  class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full">
+                  100% Completo
+                </span>
+                } @else if (calcularPorcentajeTotal() < 100) { <span
+                  class="px-2.5 py-1 text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200 rounded-full">
+                  Falta {{ calcularPorcentajeRestante() }}%
+                  </span>
                   } @else {
-                    <span class="px-2.5 py-1 text-[11px] font-semibold bg-red-100 text-red-800 border border-red-200 rounded-full">
-                      Exceso de {{ (calcularPorcentajeTotal() - 100).toFixed(2) }}%
-                    </span>
+                  <span
+                    class="px-2.5 py-1 text-[11px] font-semibold bg-red-100 text-red-800 border border-red-200 rounded-full">
+                    Exceso de {{ (calcularPorcentajeTotal() - 100).toFixed(2) }}%
+                  </span>
                   }
 
                   @if (calcularPorcentajeRestante() > 0) {
-                    <button type="button" (click)="agregarCopropietario()"
-                      class="h-8 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-semibold transition-colors shrink-0">
-                      + Agregar Copropietario
-                    </button>
+                  <button type="button" (click)="agregarCopropietario()"
+                    class="h-8 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-semibold transition-colors shrink-0">
+                    + Agregar Copropietario
+                  </button>
                   }
-                </div>
               </div>
-
-              <!-- Barra visual de distribucion -->
-              <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-                <div class="h-full transition-all duration-300"
-                  [class.bg-emerald-500]="calcularPorcentajeTotal() === 100"
-                  [class.bg-amber-500]="calcularPorcentajeTotal() < 100"
-                  [class.bg-red-500]="calcularPorcentajeTotal() > 100"
-                  [style.width.%]="calcularPorcentajeTotal() > 100 ? 100 : calcularPorcentajeTotal()"></div>
-              </div>
-
-              @if (calcularPorcentajeTotal() < 100) {
-                <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-[12px] text-amber-900 flex items-center justify-between">
-                  <span>El porcentaje de propiedad debe sumar el 100%. Queda un <strong>{{ calcularPorcentajeRestante() }}%</strong> por asignar. Registre a los demas copropietarios para continuar.</span>
-                </div>
-              } @else if (calcularPorcentajeTotal() > 100) {
-                <div class="p-2.5 bg-red-50 border border-red-200 rounded-md text-[12px] text-red-800">
-                  La suma total supera el 100%. Por favor ajuste los porcentajes de participacion.
-                </div>
-              }
-
-              @if (hasError('porcentajePropiedadTotal')) {
-                <div class="text-[11.5px] text-red-600 font-medium">
-                  {{ getError('porcentajePropiedadTotal') }}
-                </div>
-              }
-              @if (hasError('esResponsablePrincipal')) {
-                <div class="text-[11.5px] text-red-600 font-medium">
-                  {{ getError('esResponsablePrincipal') }}
-                </div>
-              }
             </div>
 
-            <!-- Lista Dinamica de Propietarios y Copropietarios -->
-            <div formArrayName="propietarios" class="space-y-4">
-              @for (pGroup of propietariosArray.controls; track $index; let i = $index) {
-                <div [formGroupName]="i" class="p-4 bg-white border border-slate-200 rounded-lg shadow-sm space-y-4">
-                  <!-- Cabecera de la Tarjeta del Propietario -->
-                  <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <div class="flex items-center gap-2">
-                      <span class="w-6 h-6 rounded-full bg-[#1e3a7b] text-white text-[11px] font-bold flex items-center justify-center">
-                        {{ i + 1 }}
-                      </span>
-                      <span class="text-[13px] font-bold text-slate-800">
-                        {{ i === 0 ? 'Propietario Principal / Titular' : ('Copropietario ' + (i + 1)) }}
-                      </span>
-                      @if (pGroup.get('esResponsablePrincipal')?.value) {
-                        <span class="px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded border border-blue-200">
-                          Responsable Principal
-                        </span>
-                      }
-                    </div>
-
-                    <div class="flex items-center gap-2">
-                      <span class="text-[12px] font-semibold text-slate-600">
-                        Participacion: {{ pGroup.get('porcentajePropiedad')?.value || 0 }}%
-                      </span>
-                      @if (propietariosArray.length > 1) {
-                        <button type="button" (click)="eliminarCopropietario(i)"
-                          class="text-[11.5px] font-medium text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors">
-                          Eliminar
-                        </button>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Busqueda por Documento -->
-                  <div class="flex flex-col gap-1">
-                    <label class="text-[11.5px] font-semibold text-slate-700">BUSQUEDA POR DOCUMENTO <span class="text-red-500">*</span></label>
-                    <div class="flex gap-2">
-                      <select formControlName="tipoDocumentoId" [class.border-red-400]="hasError('tipoDocumentoId', i)"
-                        class="h-9 w-36 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 shrink-0">
-                        <option value="" class="text-slate-500">Tipo</option>
-                        @for (t of facade.tiposDocumento(); track t.id) {
-                          <option [value]="t.id" class="text-slate-900">{{ t.codigo }}</option>
-                        }
-                      </select>
-                      <input formControlName="numeroDocumento" type="text"
-                        [placeholder]="getPlaceholderDocumento(i)"
-                        (input)="onDocumentoInput($event, i)"
-                        [class.border-red-400]="hasError('numeroDocumento', i)"
-                        class="h-9 flex-1 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                      <button (click)="buscarPropietario(i)" type="button" [disabled]="buscandoPropietarioIndex() === i"
-                        class="h-9 px-4 rounded-md bg-[#1e3a7b] text-white text-[12px] font-semibold hover:bg-[#162d61] disabled:opacity-50 shrink-0">
-                        {{ buscandoPropietarioIndex() === i ? 'Buscando...' : 'Buscar' }}
-                      </button>
-                      <button (click)="limpiarPropietario(i)" type="button"
-                        class="h-9 px-3 rounded-md bg-slate-100 text-slate-700 text-[12px] font-medium hover:bg-slate-200 shrink-0">
-                        Limpiar
-                      </button>
-                    </div>
-                    @if (hasError('tipoDocumentoId', i)) {
-                      <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('tipoDocumentoId', i) }}</span>
-                    }
-                    @if (hasError('numeroDocumento', i)) {
-                      <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('numeroDocumento', i) }}</span>
-                    }
-                    @if (getPropietarioMsg(i)) {
-                      <div class="mt-1 px-3 py-1.5 rounded-md text-[12px] font-medium bg-blue-50 text-blue-800 border border-blue-100">
-                        {{ getPropietarioMsg(i) }}
-                      </div>
-                    }
-                  </div>
-
-                  <!-- Digito de Verificacion si es NIT -->
-                  @if (pGroup.get('tipoDocumentoId')?.value == 2) {
-                    <div class="flex flex-col gap-1">
-                      <label class="text-[11.5px] font-semibold text-slate-700">DIGITO DE VERIFICACION <span class="text-red-500">*</span></label>
-                      <input formControlName="digitoVerificacion" type="number" min="0" max="9" placeholder="0-9"
-                        [class.border-red-400]="hasError('digitoVerificacion', i)"
-                        class="h-9 w-24 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                      @if (hasError('digitoVerificacion', i)) {
-                        <span class="text-[11px] text-red-500">{{ getError('digitoVerificacion', i) }}</span>
-                      }
-                    </div>
-                  }
-
-                  <!-- Naturaleza Juridica -->
-                  <div class="flex flex-col gap-1">
-                    <label class="text-[11.5px] font-semibold text-slate-700">NATURALEZA JURIDICA <span class="text-red-500">*</span></label>
-                    <div class="flex gap-4">
-                      @for (n of facade.naturalezasJuridicas(); track n.id) {
-                        <label class="flex items-center gap-2 cursor-pointer">
-                          <input formControlName="naturalezaJuridicaId" type="radio" [value]="n.id" class="accent-emerald-600">
-                          <span class="text-[13px] font-medium text-slate-800">{{ n.nombre }}</span>
-                        </label>
-                      }
-                    </div>
-                    @if (hasError('naturalezaJuridicaId', i)) {
-                      <span class="text-[11px] text-red-500">{{ getError('naturalezaJuridicaId', i) }}</span>
-                    }
-                  </div>
-
-                  <!-- Nombre / Razon Social -->
-                  <div class="flex flex-col gap-1">
-                    <label class="text-[11.5px] font-semibold text-slate-700">
-                      {{ isNatural(i) ? 'NOMBRE COMPLETO' : 'RAZON SOCIAL' }} <span class="text-red-500">*</span>
-                    </label>
-                    <input formControlName="nombreRazonSocial" type="text"
-                      [placeholder]="isNatural(i) ? 'Primer nombre Primer apellido' : 'Razon social de la empresa'"
-                      [class.border-red-400]="hasError('nombreRazonSocial', i)"
-                      class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                    @if (hasError('nombreRazonSocial', i)) {
-                      <span class="text-[11px] text-red-500">{{ getError('nombreRazonSocial', i) }}</span>
-                    }
-                  </div>
-
-                  <!-- Correo y Telefono -->
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                      <label class="text-[11.5px] font-semibold text-slate-700">CORREO ELECTRONICO</label>
-                      <input formControlName="correoElectronico" type="email" placeholder="correo@dominio.com"
-                        [class.border-red-400]="hasError('correoElectronico', i)"
-                        class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                      @if (hasError('correoElectronico', i)) {
-                        <span class="text-[11px] text-red-500">{{ getError('correoElectronico', i) }}</span>
-                      }
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label class="text-[11.5px] font-semibold text-slate-700">TELEFONO</label>
-                      <input formControlName="telefono" type="tel" placeholder="3001234567"
-                        [class.border-red-400]="hasError('telefono', i)"
-                        class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                      @if (hasError('telefono', i)) {
-                        <span class="text-[11px] text-red-500">{{ getError('telefono', i) }}</span>
-                      }
-                    </div>
-                  </div>
-
-                  <!-- Direccion -->
-                  <div class="flex flex-col gap-1">
-                    <label class="text-[11.5px] font-semibold text-slate-700">DIRECCION</label>
-                    <input formControlName="direccion" type="text" placeholder="Calle, carrera, vereda..."
-                      class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                  </div>
-
-                  <!-- Departamento y Ciudad -->
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                      <label class="text-[11.5px] font-semibold text-slate-700">DEPARTAMENTO</label>
-                      <select formControlName="departamentoId" (change)="onDepartamentoChange(i, $event)"
-                        class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                        <option [value]="null" class="text-slate-500">Seleccione departamento...</option>
-                        @for (d of facade.departamentos(); track d.id) {
-                          <option [value]="d.id" class="text-slate-900">{{ d.nombre }}</option>
-                        }
-                      </select>
-                    </div>
-                    <div class="flex flex-col gap-1">
-                      <label class="text-[11.5px] font-semibold text-slate-700">CIUDAD / MUNICIPIO</label>
-                      <select formControlName="ciudadId"
-                        class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                        <option [value]="null" class="text-slate-500">Seleccione ciudad...</option>
-                        @for (c of (ciudadesPorPropietario()[i] || facade.ciudadesDisponibles()); track c.id) {
-                          <option [value]="c.id" class="text-slate-900">{{ c.nombre }}</option>
-                        }
-                      </select>
-                    </div>
-                  </div>
-
-                  <!-- Datos de Vinculacion -->
-                  <div class="border-t border-slate-100 pt-3 space-y-3">
-                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Datos de Vinculacion</span>
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="flex flex-col gap-1">
-                        <label class="text-[11.5px] font-semibold text-slate-700">TIPO DE VINCULO <span class="text-red-500">*</span></label>
-                        <select formControlName="tipoVinculoPersonaId" [class.border-red-400]="hasError('tipoVinculoPersonaId', i)"
-                          class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                          <option value="" class="text-slate-500">Seleccione tipo...</option>
-                          @for (v of facade.tiposVinculo(); track v.id) {
-                            <option [value]="v.id" class="text-slate-900">{{ v.nombre }}</option>
-                          }
-                        </select>
-                        @if (hasError('tipoVinculoPersonaId', i)) {
-                          <span class="text-[11px] text-red-500">{{ getError('tipoVinculoPersonaId', i) }}</span>
-                        }
-                      </div>
-
-                      <div class="flex flex-col gap-1">
-                        <div class="flex items-center justify-between">
-                          <label class="text-[11.5px] font-semibold text-slate-700">% PROPIEDAD <span class="text-red-500">*</span></label>
-                          @if (calcularPorcentajeRestante() > 0) {
-                            <button type="button" (click)="asignarRestante(i)"
-                              class="text-[10.5px] text-emerald-700 hover:text-emerald-900 font-semibold underline">
-                              Asignar restante ({{ calcularPorcentajeRestante() }}%)
-                            </button>
-                          }
-                        </div>
-                        <input formControlName="porcentajePropiedad" type="number" min="0.01" max="100" step="0.01" placeholder="100"
-                          [class.border-red-400]="hasError('porcentajePropiedad', i)"
-                          class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                        @if (hasError('porcentajePropiedad', i)) {
-                          <span class="text-[11px] text-red-500">{{ getError('porcentajePropiedad', i) }}</span>
-                        }
-                      </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                      <div class="flex flex-col gap-1">
-                        <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE INICIO <span class="text-red-500">*</span></label>
-                        <input formControlName="fechaInicio" type="date" [class.border-red-400]="hasError('fechaInicio', i)"
-                          class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                        @if (hasError('fechaInicio', i)) {
-                          <span class="text-[11px] text-red-500">{{ getError('fechaInicio', i) }}</span>
-                        }
-                      </div>
-
-                      <div class="flex items-center gap-2 mt-5">
-                        <input type="radio" [id]="'radioPrincipal_' + i" name="radioResponsablePrincipal"
-                          [checked]="pGroup.get('esResponsablePrincipal')?.value"
-                          (change)="setResponsablePrincipal(i)"
-                          class="w-4 h-4 accent-emerald-600 cursor-pointer">
-                        <label [for]="'radioPrincipal_' + i"
-                          class="text-[12.5px] font-medium text-slate-800 cursor-pointer select-none">
-                          Designar como responsable principal
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
+            <!-- Barra visual de distribucion -->
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div class="h-full transition-all duration-300" [class.bg-emerald-500]="calcularPorcentajeTotal() === 100"
+                [class.bg-amber-500]="calcularPorcentajeTotal() < 100"
+                [class.bg-red-500]="calcularPorcentajeTotal() > 100"
+                [style.width.%]="calcularPorcentajeTotal() > 100 ? 100 : calcularPorcentajeTotal()"></div>
             </div>
 
-            @if (calcularPorcentajeRestante() > 0) {
-              <div class="flex justify-center pt-2">
-                <button type="button" (click)="agregarCopropietario()"
-                  class="h-9 px-4 rounded-md border border-emerald-600 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-[12.5px] font-semibold transition-colors flex items-center gap-1.5">
-                  + Agregar Otro Copropietario (Falta {{ calcularPorcentajeRestante() }}%)
+            @if (calcularPorcentajeTotal() < 100) { <div
+              class="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-[12px] text-amber-900 flex items-center justify-between">
+              <span>El porcentaje de propiedad debe sumar el 100%. Queda un <strong>{{ calcularPorcentajeRestante()
+                  }}%</strong> por asignar. Registre a los demas copropietarios para continuar.</span>
+          </div>
+          } @else if (calcularPorcentajeTotal() > 100) {
+          <div class="p-2.5 bg-red-50 border border-red-200 rounded-md text-[12px] text-red-800">
+            La suma total supera el 100%. Por favor ajuste los porcentajes de participacion.
+          </div>
+          }
+
+          @if (hasError('porcentajePropiedadTotal')) {
+          <div class="text-[11.5px] text-red-600 font-medium">
+            {{ getError('porcentajePropiedadTotal') }}
+          </div>
+          }
+          @if (hasError('esResponsablePrincipal')) {
+          <div class="text-[11.5px] text-red-600 font-medium">
+            {{ getError('esResponsablePrincipal') }}
+          </div>
+          }
+        </div>
+
+        <!-- Lista Dinamica de Propietarios y Copropietarios -->
+        <div formArrayName="propietarios" class="space-y-4">
+          @for (pGroup of propietariosArray.controls; track $index; let i = $index) {
+          <div [formGroupName]="i" class="p-4 bg-white border border-slate-200 rounded-lg shadow-sm space-y-4">
+            <!-- Cabecera de la Tarjeta del Propietario -->
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+              <div class="flex items-center gap-2">
+                <span
+                  class="w-6 h-6 rounded-full bg-[#1e3a7b] text-white text-[11px] font-bold flex items-center justify-center">
+                  {{ i + 1 }}
+                </span>
+                <span class="text-[13px] font-bold text-slate-800">
+                  {{ i === 0 ? 'Propietario Principal / Titular' : ('Copropietario ' + (i + 1)) }}
+                </span>
+                @if (pGroup.get('esResponsablePrincipal')?.value) {
+                <span
+                  class="px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded border border-blue-200">
+                  Responsable Principal
+                </span>
+                }
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-[12px] font-semibold text-slate-600">
+                  Participacion: {{ pGroup.get('porcentajePropiedad')?.value || 0 }}%
+                </span>
+                @if (propietariosArray.length > 1) {
+                <button type="button" (click)="eliminarCopropietario(i)"
+                  class="text-[11.5px] font-medium text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors">
+                  Eliminar
+                </button>
+                }
+              </div>
+            </div>
+
+            <!-- Busqueda por Documento -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">BUSQUEDA POR DOCUMENTO <span
+                  class="text-red-500">*</span></label>
+              <div class="flex gap-2">
+                <select formControlName="tipoDocumentoId" [class.border-red-400]="hasError('tipoDocumentoId', i)"
+                  class="h-9 w-36 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 shrink-0">
+                  <option value="" class="text-slate-500">Tipo</option>
+                  @for (t of facade.tiposDocumento(); track t.id) {
+                  <option [value]="t.id" class="text-slate-900">{{ t.codigo }}</option>
+                  }
+                </select>
+                <input formControlName="numeroDocumento" type="text" [placeholder]="getPlaceholderDocumento(i)"
+                  (input)="onDocumentoInput($event, i)" [class.border-red-400]="hasError('numeroDocumento', i)"
+                  class="h-9 flex-1 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+                <button (click)="buscarPropietario(i)" type="button" [disabled]="buscandoPropietarioIndex() === i"
+                  class="h-9 px-4 rounded-md bg-[#1e3a7b] text-white text-[12px] font-semibold hover:bg-[#162d61] disabled:opacity-50 shrink-0">
+                  {{ buscandoPropietarioIndex() === i ? 'Buscando...' : 'Buscar' }}
+                </button>
+                <button (click)="limpiarPropietario(i)" type="button"
+                  class="h-9 px-3 rounded-md bg-slate-100 text-slate-700 text-[12px] font-medium hover:bg-slate-200 shrink-0">
+                  Limpiar
                 </button>
               </div>
+              @if (hasError('tipoDocumentoId', i)) {
+              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('tipoDocumentoId', i) }}</span>
+              }
+              @if (hasError('numeroDocumento', i)) {
+              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('numeroDocumento', i) }}</span>
+              }
+              @if (getPropietarioMsg(i)) {
+              <div
+                class="mt-1 px-3 py-1.5 rounded-md text-[12px] font-medium bg-blue-50 text-blue-800 border border-blue-100">
+                {{ getPropietarioMsg(i) }}
+              </div>
+              }
+            </div>
+
+            <!-- Digito de Verificacion si es NIT -->
+            @if (pGroup.get('tipoDocumentoId')?.value == 2) {
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">DIGITO DE VERIFICACION <span
+                  class="text-red-500">*</span></label>
+              <input formControlName="digitoVerificacion" type="number" min="0" max="9" placeholder="0-9"
+                [class.border-red-400]="hasError('digitoVerificacion', i)"
+                class="h-9 w-24 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+              @if (hasError('digitoVerificacion', i)) {
+              <span class="text-[11px] text-red-500">{{ getError('digitoVerificacion', i) }}</span>
+              }
+            </div>
             }
-          }
-        </div>
-        }
-        @if (facade.activeTab() === 'Observaciones') {
-        <div class="space-y-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-[11.5px] font-semibold text-slate-700">OBSERVACIONES DEL REGISTRO</label>
-            <textarea formControlName="observaciones" rows="6" placeholder="Ingrese observaciones relevantes..."
-              [class.border-red-400]="hasError('observaciones')"
-              class="border border-slate-300 rounded-md px-3 py-2 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500"></textarea>
-            <div class="flex justify-between text-[11px] text-slate-400"><span>Campo opcional</span><span>{{
-                (form.get('observaciones')?.value?.length || 0) }} / 1000</span></div>
-            @if (hasError('observaciones')) { <span class="text-[11px] text-red-500">{{ getError('observaciones')
-              }}</span> }
+
+            <!-- Naturaleza Juridica -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">NATURALEZA JURIDICA <span
+                  class="text-red-500">*</span></label>
+              <div class="flex gap-4">
+                @for (n of facade.naturalezasJuridicas(); track n.id) {
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input formControlName="naturalezaJuridicaId" type="radio" [value]="n.id" class="accent-emerald-600">
+                  <span class="text-[13px] font-medium text-slate-800">{{ n.nombre }}</span>
+                </label>
+                }
+              </div>
+              @if (hasError('naturalezaJuridicaId', i)) {
+              <span class="text-[11px] text-red-500">{{ getError('naturalezaJuridicaId', i) }}</span>
+              }
+            </div>
+
+            <!-- Nombre / Razon Social -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">
+                {{ isNatural(i) ? 'NOMBRE COMPLETO' : 'RAZON SOCIAL' }} <span class="text-red-500">*</span>
+              </label>
+              <input formControlName="nombreRazonSocial" type="text"
+                [placeholder]="isNatural(i) ? 'Primer nombre Primer apellido' : 'Razon social de la empresa'"
+                [class.border-red-400]="hasError('nombreRazonSocial', i)"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+              @if (hasError('nombreRazonSocial', i)) {
+              <span class="text-[11px] text-red-500">{{ getError('nombreRazonSocial', i) }}</span>
+              }
+            </div>
+
+            <!-- Correo y Telefono -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <label class="text-[11.5px] font-semibold text-slate-700">CORREO ELECTRONICO</label>
+                <input formControlName="correoElectronico" type="email" placeholder="correo@dominio.com"
+                  [class.border-red-400]="hasError('correoElectronico', i)"
+                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+                @if (hasError('correoElectronico', i)) {
+                <span class="text-[11px] text-red-500">{{ getError('correoElectronico', i) }}</span>
+                }
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[11.5px] font-semibold text-slate-700">TELEFONO</label>
+                <input formControlName="telefono" type="tel" placeholder="3001234567"
+                  [class.border-red-400]="hasError('telefono', i)"
+                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+                @if (hasError('telefono', i)) {
+                <span class="text-[11px] text-red-500">{{ getError('telefono', i) }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Direccion -->
+            <div class="flex flex-col gap-1">
+              <label class="text-[11.5px] font-semibold text-slate-700">DIRECCION</label>
+              <input formControlName="direccion" type="text" placeholder="Calle, carrera, vereda..."
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+            </div>
+
+            <!-- Departamento y Ciudad -->
+            <div class="grid grid-cols-2 gap-4">
+              <div class="flex flex-col gap-1">
+                <label class="text-[11.5px] font-semibold text-slate-700">DEPARTAMENTO</label>
+                <select formControlName="departamentoId" (change)="onDepartamentoChange(i, $event)"
+                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+                  <option [value]="null" class="text-slate-500">Seleccione departamento...</option>
+                  @for (d of facade.departamentos(); track d.id) {
+                  <option [value]="d.id" class="text-slate-900">{{ d.nombre }}</option>
+                  }
+                </select>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[11.5px] font-semibold text-slate-700">CIUDAD / MUNICIPIO</label>
+                <select formControlName="ciudadId"
+                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
+                  <option [value]="null" class="text-slate-500">Seleccione ciudad...</option>
+                  @for (c of (ciudadesPorPropietario()[i] || facade.ciudadesDisponibles()); track c.id) {
+                  <option [value]="c.id" class="text-slate-900">{{ c.nombre }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <!-- Datos de Vinculacion -->
+            <div class="border-t border-slate-100 pt-3 space-y-3">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Datos de Vinculacion</span>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label class="text-[11.5px] font-semibold text-slate-700">TIPO DE VINCULO <span
+                      class="text-red-500">*</span></label>
+                  <select formControlName="tipoVinculoPersonaId"
+                    [class.border-red-400]="hasError('tipoVinculoPersonaId', i)"
+                    class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                    <option value="" class="text-slate-500">Seleccione tipo...</option>
+                    @for (v of facade.tiposVinculo(); track v.id) {
+                    <option [value]="v.id" class="text-slate-900">{{ v.nombre }}</option>
+                    }
+                  </select>
+                  @if (hasError('tipoVinculoPersonaId', i)) {
+                  <span class="text-[11px] text-red-500">{{ getError('tipoVinculoPersonaId', i) }}</span>
+                  }
+                </div>
+
+                <div class="flex flex-col gap-1">
+                  <div class="flex items-center justify-between">
+                    <label class="text-[11.5px] font-semibold text-slate-700">% PROPIEDAD <span
+                        class="text-red-500">*</span></label>
+                    @if (calcularPorcentajeRestante() > 0) {
+                    <button type="button" (click)="asignarRestante(i)"
+                      class="text-[10.5px] text-emerald-700 hover:text-emerald-900 font-semibold underline">
+                      Asignar restante ({{ calcularPorcentajeRestante() }}%)
+                    </button>
+                    }
+                  </div>
+                  <input formControlName="porcentajePropiedad" type="number" min="0.01" max="100" step="0.01"
+                    placeholder="100" [class.border-red-400]="hasError('porcentajePropiedad', i)"
+                    class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                  @if (hasError('porcentajePropiedad', i)) {
+                  <span class="text-[11px] text-red-500">{{ getError('porcentajePropiedad', i) }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE INICIO <span
+                      class="text-red-500">*</span></label>
+                  <input formControlName="fechaInicio" type="date" [class.border-red-400]="hasError('fechaInicio', i)"
+                    class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
+                  @if (hasError('fechaInicio', i)) {
+                  <span class="text-[11px] text-red-500">{{ getError('fechaInicio', i) }}</span>
+                  }
+                </div>
+
+                <div class="flex items-center gap-2 mt-5">
+                  <input type="radio" [id]="'radioPrincipal_' + i" name="radioResponsablePrincipal"
+                    [checked]="pGroup.get('esResponsablePrincipal')?.value" (change)="setResponsablePrincipal(i)"
+                    class="w-4 h-4 accent-emerald-600 cursor-pointer">
+                  <label [for]="'radioPrincipal_' + i"
+                    class="text-[12.5px] font-medium text-slate-800 cursor-pointer select-none">
+                    Designar como responsable principal
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-5">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">
+                Finalmente sube el comprobante de toda la información que acabas de completar <br /><strong>
+                  (Matricula , Factura de compra , Factura de traspaso)</strong>
+              </span>
+              <input accept=".pdf,.jpg,.jpeg,.png"
+                class="block w-full text-sm text-slate-500 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer shadow-xs focus:outline-hidden focus:ring-2  focus:border-indigo-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-emerald-700 hover:file:bg-indigo-100"
+                id="file_input" type="file">
+            </div>
           </div>
+          }
+        </div>
+
+        @if (calcularPorcentajeRestante() > 0) {
+        <div class="flex justify-center pt-2">
+          <button type="button" (click)="agregarCopropietario()"
+            class="h-9 px-4 rounded-md border border-emerald-600 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-[12.5px] font-semibold transition-colors flex items-center gap-1.5">
+            + Agregar Otro Copropietario (Falta {{ calcularPorcentajeRestante() }}%)
+          </button>
         </div>
         }
-      </form>
+        }
     </div>
-    <div class="shrink-0 px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        @for (tab of facade.tabs(); track tab; let i = $index) {
-        <div [class.bg-emerald-500]="facade.currentStep() > i" [class.bg-[#1e3a7b]]="facade.currentStep() === i + 1"
-          [class.bg-slate-200]="facade.currentStep() < i + 1" class="h-1.5 w-10 rounded-full transition-colors"></div>
-        }
-        <span class="text-[11px] text-slate-500 font-medium ml-1">Paso {{ facade.currentStep() }} de {{
-          facade.tabs().length }}</span>
+    }
+    @if (facade.activeTab() === 'Observaciones') {
+    <div class="space-y-4">
+      <div class="flex flex-col gap-1">
+        <label class="text-[11.5px] font-semibold text-slate-700">OBSERVACIONES DEL REGISTRO</label>
+        <textarea formControlName="observaciones" rows="6" placeholder="Ingrese observaciones relevantes..."
+          [class.border-red-400]="hasError('observaciones')"
+          class="border border-slate-300 rounded-md px-3 py-2 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500"></textarea>
+        <div class="flex justify-between text-[11px] text-slate-400"><span>Campo opcional</span><span>{{
+            (form.get('observaciones')?.value?.length || 0) }} / 1000</span></div>
+        @if (hasError('observaciones')) { <span class="text-[11px] text-red-500">{{ getError('observaciones')
+          }}</span> }
       </div>
-      <div class="flex gap-2">
-        @if (facade.currentStep() > 1) {
-        <button (click)="onAnterior()" type="button"
-          class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50">←
-          Anterior</button>
+    </div>
+    }
+    </form>
+  </div>
+  <div class="shrink-0 px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      @for (tab of facade.tabs(); track tab; let i = $index) {
+      <div [class.bg-emerald-500]="facade.currentStep() > i" [class.bg-[#1e3a7b]]="facade.currentStep() === i + 1"
+        [class.bg-slate-200]="facade.currentStep() < i + 1" class="h-1.5 w-10 rounded-full transition-colors"></div>
+      }
+      <span class="text-[11px] text-slate-500 font-medium ml-1">Paso {{ facade.currentStep() }} de {{
+        facade.tabs().length }}</span>
+    </div>
+    <div class="flex gap-2">
+      @if (facade.currentStep() > 1) {
+      <button (click)="onAnterior()" type="button"
+        class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50">←
+        Anterior</button>
+      }
+      <button (click)="facade.cerrarRegistro()" type="button"
+        class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-600 bg-white hover:bg-slate-50">Cancelar</button>
+      <button (click)="onSiguiente()" type="button" [disabled]="facade.registroLoading()"
+        class="h-9 px-5 rounded-md bg-emerald-600 text-white text-[13px] font-semibold hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center gap-2">
+        @if (facade.registroLoading()) {
+        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+        </svg>
+        Guardando...
+        } @else if (facade.currentStep() === facade.tabs().length) {
+        Guardar Registro
+        } @else {
+        Siguiente →
         }
-        <button (click)="facade.cerrarRegistro()" type="button"
-          class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-600 bg-white hover:bg-slate-50">Cancelar</button>
-        <button (click)="onSiguiente()" type="button" [disabled]="facade.registroLoading()"
-          class="h-9 px-5 rounded-md bg-emerald-600 text-white text-[13px] font-semibold hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center gap-2">
-          @if (facade.registroLoading()) {
-          <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-          </svg>
-          Guardando...
-          } @else if (facade.currentStep() === facade.tabs().length) {
-          Guardar Registro
-          } @else {
-          Siguiente →
-          }
-        </button>
-      </div>
+      </button>
     </div>
   </div>
+</div>
 </div>
 }

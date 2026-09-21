@@ -16,7 +16,6 @@ import {
   LiquidacionConsultaDto,
   NovedadConsultaDto
 } from '../../../domain/interfaces/consulta-vehicular.interface';
-import { DEFAULT_ORGANISMOS_TRANSITO } from '../../../application/facades/vehiculos.facade';
 
 export interface LiquidacionCiudadano {
   id: string;
@@ -428,14 +427,6 @@ export class PortalCiudadano implements OnInit {
       veh?.municipio ||
       veh?.municipioNombre ||
       veh?.municipioTransito;
-
-    // 2. Si no viene el nombre pero viene el ID del organismo de tránsito, buscar en catálogo por ID
-    if (!rawOrganismo && veh?.organismoTransitoId) {
-      const match = DEFAULT_ORGANISMOS_TRANSITO.find(o => o.id === Number(veh.organismoTransitoId));
-      if (match) {
-        rawOrganismo = match.nombre;
-      }
-    }
 
     // Organismo de tránsito / Municipio formateado limpiando prefijos
     const organismoTransitoLimpio = this.limpiarNombreOrganismoTransito(rawOrganismo);
