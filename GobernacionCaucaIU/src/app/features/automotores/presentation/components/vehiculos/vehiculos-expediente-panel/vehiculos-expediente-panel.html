@@ -1,0 +1,278 @@
+<div class="w-full lg:w-[380px] shrink-0 flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden animate-in slide-in-from-right-4 duration-200">
+  
+  <!-- Header Verde -->
+  <div class="bg-[#70b238] p-3.5 px-4.5 flex items-center justify-between shrink-0 text-white">
+    <div>
+      <div class="text-[9.5px] font-bold text-white/70 uppercase tracking-widest">Expediente Tributario</div>
+      <div class="flex items-center gap-2 mt-1">
+        <span class="co-plate">{{ vehiculo.placa }}</span>
+        <span class="text-[13px] font-bold text-white">{{ vehiculo.marca }} {{ vehiculo.linea }}</span>
+      </div>
+    </div>
+    <button 
+      type="button" 
+      (click)="cerrar.emit()"
+      title="Cerrar (Esc)"
+      class="bg-white/20 hover:bg-white/30 border-none rounded-md cursor-pointer p-1.5 flex items-center justify-center text-white transition-colors">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+
+  <!-- Propietario Badge / Header Info -->
+  <div class="p-2.5 px-4 bg-slate-50 border-b border-slate-200 flex gap-2.5 items-center shrink-0">
+    <div class="w-7 h-7 rounded-full bg-[#1e3a7b] flex items-center justify-center text-[10px] font-bold text-white shrink-0 uppercase">
+      {{ ((vehiculo.propietarios && vehiculo.propietarios.length > 0) ? vehiculo.propietarios[0].nombre : vehiculo.propietario.nombre).substring(0, 2) }}
+    </div>
+    <div class="min-w-0 flex-1">
+      <div class="text-[12.5px] font-semibold text-slate-900 truncate">
+        {{ (vehiculo.propietarios && vehiculo.propietarios.length > 0) ? vehiculo.propietarios[0].nombre : vehiculo.propietario.nombre }}
+      </div>
+      <div class="text-[11px] text-slate-500">
+        @if (vehiculo.propietarios && vehiculo.propietarios.length > 1) {
+          <span>{{ vehiculo.propietarios.length }} copropietarios vinculados (100% total)</span>
+        } @else {
+          <span>{{ vehiculo.propietario.tipoDocumento }} {{ vehiculo.propietario.numeroDocumento }} · 100%</span>
+        }
+      </div>
+    </div>
+    <div class="shrink-0">
+      @if (vehiculo.propietarios && vehiculo.propietarios.length > 1) {
+        <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
+          Copropiedad ({{ vehiculo.propietarios.length }})
+        </span>
+      } @else {
+        <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838] whitespace-nowrap">
+          <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238] shrink-0"></span>
+          Propietario Vigente
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Sub Tabs (Ficha Técnica / Propietarios / Valores) -->
+  <div class="flex border-b border-slate-200 shrink-0 bg-white">
+    <button 
+      type="button" 
+      (click)="facade.panelTab.set('ficha')"
+      [class]="'flex-1 py-2 px-1 text-[11px] cursor-pointer border-none bg-none border-b-2 transition-all font-sans ' + (facade.panelTab() === 'ficha' ? 'font-bold text-[#1e3a7b] border-[#70b238]' : 'font-medium text-slate-400 border-transparent hover:text-slate-700')">
+      Ficha Técnica
+    </button>
+    <button 
+      type="button" 
+      (click)="facade.panelTab.set('propietarios')"
+      [class]="'flex-1 py-2 px-1 text-[11px] cursor-pointer border-none bg-none border-b-2 transition-all font-sans ' + (facade.panelTab() === 'propietarios' ? 'font-bold text-[#1e3a7b] border-[#70b238]' : 'font-medium text-slate-400 border-transparent hover:text-slate-700')">
+      Propietarios
+    </button>
+    <button 
+      type="button" 
+      (click)="facade.panelTab.set('valores')"
+      [class]="'flex-1 py-2 px-1 text-[11px] cursor-pointer border-none bg-none border-b-2 transition-all font-sans ' + (facade.panelTab() === 'valores' ? 'font-bold text-[#1e3a7b] border-[#70b238]' : 'font-medium text-slate-400 border-transparent hover:text-slate-700')">
+      Valores
+    </button>
+  </div>
+
+  <!-- Scrollable Content Body -->
+  <div class="flex-1 overflow-y-auto p-4 space-y-4">
+    
+    <!-- TAB 1: FICHA TÉCNICA -->
+    @if (facade.panelTab() === 'ficha') {
+      <div>
+        <div class="grid grid-cols-2 gap-x-3.5 gap-y-2.5 mb-4">
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Marca</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.marca }}</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Línea</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.linea }}</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Año Modelo</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.modelo }}</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Cilindraje</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.cilindraje | number }} cc</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Tipo</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.tipoVehiculo || vehiculo.clase }}</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Servicio</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.servicio }}</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Combustible</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.combustible || vehiculo.tipoCombustible }}</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Pasajeros</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.pasajeros }}</div>
+          </div>
+          <div>
+            <div class="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Org. Tránsito</div>
+            <div class="text-[13px] font-medium text-slate-900 mt-0.5">{{ vehiculo.organismoTransito || 'Sin asignar' }}</div>
+          </div>
+        </div>
+
+        <!-- Novedad Tributaria Box -->
+        <div class="bg-[#70b2381a] border border-[#70b23838] rounded-md p-3">
+          <div class="text-[11px] font-bold text-[#3d7518] uppercase tracking-wider mb-1">Novedad Tributaria</div>
+          <div class="text-[12.5px] text-slate-900">{{ vehiculo.exencion || 'Sin novedades tributarias registradas' }}</div>
+        </div>
+      </div>
+    }
+
+    <!-- TAB 2: PROPIETARIOS / COPROPIETARIOS -->
+    @if (facade.panelTab() === 'propietarios') {
+      <div class="space-y-3">
+        @if (facade.expedienteLoading()) {
+          <div class="py-6 text-center text-slate-400 text-xs">
+            <div class="animate-spin inline-block w-5 h-5 border-2 border-slate-300 border-t-blue-600 rounded-full mb-1"></div>
+            <p>Cargando información de propietarios...</p>
+          </div>
+        } @else if ((facade.expedienteActual()?.propietarios?.length ? facade.expedienteActual().propietarios : (vehiculo.propietarios?.length ? vehiculo.propietarios : [])); as listaPropietarios) {
+          @for (prop of listaPropietarios; track (prop.id || prop.personaId || $index)) {
+            <div class="border border-slate-200 rounded-lg p-3 bg-white shadow-xs space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-800">{{ prop.nombrePropietario || prop.nombre || vehiculo.propietario.nombre }}</span>
+                @if (prop.esResponsablePrincipal) {
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+                    Principal ({{ prop.porcentajePropiedad }}%)
+                  </span>
+                } @else {
+                  <span class="text-[10px] bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full border border-amber-200">
+                    Copropietario ({{ prop.porcentajePropiedad }}%)
+                  </span>
+                }
+              </div>
+
+              <!-- Barra visual de porcentaje de propiedad -->
+              <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                <div class="h-1.5 rounded-full bg-[#1e3a7b]" [style.width.%]="prop.porcentajePropiedad"></div>
+              </div>
+
+              <div class="text-[11.5px] text-slate-600 space-y-1">
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Identificación:</span>
+                  <span class="font-semibold text-slate-800">{{ prop.tipoDocumento }} {{ prop.numeroDocumento }}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Participación:</span>
+                  <span class="font-bold text-slate-900">{{ prop.porcentajePropiedad }}%</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">Tipo de Vinculación:</span>
+                  <span class="font-medium text-slate-700">{{ prop.tipoVinculoNombre || prop.tipoVinculo || 'Propietario' }}</span>
+                </div>
+                @if (prop.correoElectronico) {
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Correo:</span>
+                    <span class="text-slate-700 truncate max-w-[200px]">{{ prop.correoElectronico }}</span>
+                  </div>
+                }
+                @if (prop.telefono) {
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Teléfono:</span>
+                    <span class="text-slate-700">{{ prop.telefono }}</span>
+                  </div>
+                }
+                @if (prop.direccion) {
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Dirección:</span>
+                    <span class="text-slate-700 truncate max-w-[200px]">{{ prop.direccion }}</span>
+                  </div>
+                }
+                @if (prop.ciudad) {
+                  <div class="flex justify-between">
+                    <span class="text-slate-400">Municipio:</span>
+                    <span class="text-slate-700">{{ prop.ciudad }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (listaPropietarios.length > 1) {
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-2.5 text-[11px] text-blue-900">
+              <span class="font-bold">Distribución Total:</span> 100% distribuido en {{ listaPropietarios.length }} copropietarios.
+            </div>
+          }
+        } @else {
+          <!-- Fallback propietario simple -->
+          <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-800">{{ vehiculo.propietario.nombre }}</span>
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">Principal</span>
+            </div>
+            <div class="text-[11.5px] text-slate-600 space-y-1">
+              <div><strong>Documento:</strong> {{ vehiculo.propietario.tipoDocumento }} {{ vehiculo.propietario.numeroDocumento }}</div>
+              <div><strong>Participación:</strong> 100%</div>
+              <div><strong>Tipo:</strong> {{ vehiculo.propietario.tipoPersona || 'Natural' }}</div>
+              <div><strong>Estado:</strong> Activo</div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- TAB 3: VALORES -->
+    @if (facade.panelTab() === 'valores') {
+      <div class="space-y-3">
+        @if (facade.expedienteActual()?.liquidaciones; as liquidacionesList) {
+          @for (liq of liquidacionesList; track liq.vigencia) {
+            <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+              <div class="flex justify-between items-center mb-2">
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Vigencia Fiscal {{ liq.vigencia }}</span>
+                <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">{{ liq.estado }}</span>
+              </div>
+              <div class="text-[12px] space-y-1.5 text-slate-700">
+                <div class="flex justify-between"><span>Detalle:</span> <strong class="text-slate-900">{{ liq.detalle }}</strong></div>
+                <div class="flex justify-between"><span>Impuesto Líquido:</span> <strong class="text-emerald-700">${{ liq.valor | number }}</strong></div>
+              </div>
+            </div>
+          } @empty {
+            <div class="border border-slate-200 rounded-lg p-4 text-center text-slate-500 text-xs bg-slate-50">
+              Sin liquidaciones o avalúos tributarios registrados para este vehículo.
+            </div>
+          }
+        } @else {
+          <div class="border border-slate-200 rounded-lg p-4 text-center text-slate-500 text-xs bg-slate-50">
+            Sin liquidaciones o avalúos tributarios registrados para este vehículo.
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+
+  <!-- Footer Actions del Panel -->
+  <div class="p-3 px-4 border-t border-slate-200 flex gap-1.5 bg-slate-50 shrink-0">
+    <button 
+      type="button" 
+      (click)="editar.emit(vehiculo)"
+      class="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-md text-[12px] font-semibold cursor-pointer w-full font-sans transition-colors bg-white text-slate-600 border border-slate-200 hover:bg-slate-100">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> 
+      Editar
+    </button>
+    
+    <button 
+      type="button" 
+      (click)="consultarRunt.emit(vehiculo.placa)"
+      class="inline-flex items-center justify-center gap-1.5 h-8 px-2.5 rounded-md text-[12px] font-semibold cursor-pointer w-full font-sans transition-colors bg-blue-50 text-[#1e3a7b] border border-[#1e3a7b] hover:bg-blue-100">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg> 
+      RUNT
+    </button>
+    
+    <button 
+      type="button" 
+      (click)="inactivar.emit(vehiculo)"
+      title="Inactivar vehículo"
+      class="inline-flex items-center justify-center gap-1.5 h-8 px-2 rounded-md text-[12px] font-semibold cursor-pointer font-sans transition-colors bg-transparent text-slate-500 border border-transparent hover:bg-slate-200/60">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+    </button>
+  </div>
+
+</div>

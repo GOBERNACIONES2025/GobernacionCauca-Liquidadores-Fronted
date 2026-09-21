@@ -1,840 +1,304 @@
-import { inject, Injectable, signal, computed } from '@angular/core';
-import { forkJoin, of, Observable } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
-import { VehiculosApiService } from '../../infrastructure/api/vehiculos-api.service';
-import { CatalogoApiService } from '../../infrastructure/api/catalogo-api.service';
-import { DepartamentosApiService } from '../../infrastructure/api/departamentos-api.service';
-import { PropietariosApiService } from '../../infrastructure/api/propietarios-api.service';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { 
   ApiResponse,
   VehiculoItem, 
-  VehiculoKpis, 
-  PagedResult,
-  CatalogoItem, 
-  CatalogoMarca,
-  CatalogoLinea,
-  CatalogoTipoDocumento, 
-  CatalogoNaturalezaJuridica,
-  CatalogoDepartamento,
-  CatalogoCiudad,
-  RegistrarVehiculoDto
+  RegistrarVehiculoDto 
 } from '../../domain/models/vehiculo.model';
-import { BaseApiService } from '../../../../core/services/base-api.service';
-import { TodosCatalogosDto } from '../../domain/interfaces/catalogo.interface';
 
-// Catálogos por defecto para asegurar estabilidad y evitar selects vacíos
-export const DEFAULT_SERVICIOS_VEHICULO: CatalogoItem[] = [
-  { id: 1, nombre: 'Particular', codigo: 'PARTICULAR' },
-  { id: 2, nombre: 'Público', codigo: 'PUBLICO' },
-  { id: 3, nombre: 'Oficial', codigo: 'OFICIAL' },
-  { id: 4, nombre: 'Especial', codigo: 'ESPECIAL' },
-  { id: 5, nombre: 'Diplomático', codigo: 'DIPLOMATICO' }
-];
+import { VehiculosListFacade } from './vehiculos/vehiculos-list.facade';
+import { VehiculosKpisFacade } from './vehiculos/vehiculos-kpis.facade';
+import { VehiculosCatalogosFacade } from './vehiculos/vehiculos-catalogos.facade';
+import { VehiculosPendientesFacade } from './vehiculos/vehiculos-pendientes.facade';
+import { VehiculosOperacionesFacade } from './vehiculos/vehiculos-operaciones.facade';
 
-export const DEFAULT_COMBUSTIBLES: CatalogoItem[] = [
-  { id: 1, nombre: 'Gasolina', codigo: 'GASOLINA' },
-  { id: 2, nombre: 'Diésel', codigo: 'DIESEL' },
-  { id: 3, nombre: 'Eléctrico', codigo: 'ELECTRICO' },
-  { id: 4, nombre: 'Híbrido', codigo: 'HIBRIDO' },
-  { id: 5, nombre: 'Gas GNV', codigo: 'GAS_GNV' }
-];
+export { VehiculosListFacade } from './vehiculos/vehiculos-list.facade';
+export { VehiculosKpisFacade } from './vehiculos/vehiculos-kpis.facade';
+export { VehiculosCatalogosFacade } from './vehiculos/vehiculos-catalogos.facade';
+export { VehiculosPendientesFacade } from './vehiculos/vehiculos-pendientes.facade';
+export { VehiculosOperacionesFacade } from './vehiculos/vehiculos-operaciones.facade';
 
-export const DEFAULT_ESTADOS_MATRICULA: CatalogoItem[] = [
-  { id: 1, nombre: 'Matrícula Activa', codigo: 'ACTIVA' },
-  { id: 2, nombre: 'Cancelada', codigo: 'CANCELADA' },
-  { id: 3, nombre: 'Trasladada', codigo: 'TRASLADADA' },
-  { id: 4, nombre: 'Radicada', codigo: 'RADICADA' }
-];
-
-export const DEFAULT_TIPOS_VEHICULO: CatalogoItem[] = [
-  { id: 1, nombre: 'AUTOMOVILES', codigo: 'AUT' },
-  { id: 2, nombre: 'CAMPEROS', codigo: 'CMP' },
-  { id: 3, nombre: 'CAMIONETAS', codigo: 'CMT' },
-  { id: 4, nombre: 'MOTOCICLETAS', codigo: 'MOT' },
-  { id: 5, nombre: 'MOTOCARROS', codigo: 'MTC' },
-  { id: 6, nombre: 'BUSES Y BUSETAS', codigo: 'BUS' },
-  { id: 7, nombre: 'CAMIONES', codigo: 'CAM' },
-  { id: 8, nombre: 'TRACTOCAMIONES', codigo: 'TRA' }
-];
-
-export const DEFAULT_TIPOS_DOCUMENTO: CatalogoTipoDocumento[] = [
-  { id: 1, codigo: 'CC', nombre: 'Cédula de Ciudadanía' },
-  { id: 2, codigo: 'NIT', nombre: 'NIT' },
-  { id: 3, codigo: 'CE', nombre: 'Cédula de Extranjería' },
-  { id: 4, codigo: 'TI', nombre: 'Tarjeta de Identidad' },
-  { id: 5, codigo: 'PAS', nombre: 'Pasaporte' },
-  { id: 6, codigo: 'RC', nombre: 'Registro Civil' }
-];
-
-export const DEFAULT_NATURALEZAS_JURIDICAS: CatalogoNaturalezaJuridica[] = [
-  { id: 1, codigo: 'NAT', nombre: 'Persona Natural' },
-  { id: 2, codigo: 'JUR', nombre: 'Persona Jurídica' }
-];
-
-export const DEFAULT_TIPOS_VINCULO: CatalogoItem[] = [
-  { id: 1, nombre: 'Propietario', codigo: 'PROP' },
-  { id: 2, nombre: 'Locatario / Leasing', codigo: 'LEAS' },
-  { id: 3, nombre: 'Poseedor', codigo: 'POS' }
-];
-
-export const DEFAULT_ORGANISMOS_TRANSITO: CatalogoItem[] = [
-  { id: 1, nombre: 'Secretaría de Tránsito y Transporte de Popayán', codigo: 'POPAYAN' },
-  { id: 2, nombre: 'Secretaría de Tránsito de Santander de Quilichao', codigo: 'SANTANDER' },
-  { id: 3, nombre: 'Secretaría de Tránsito de Puerto Tejada', codigo: 'PUERTO_TEJADA' },
-  { id: 4, nombre: 'Secretaría de Tránsito de El Bordo - Patía', codigo: 'PATIA' },
-  { id: 5, nombre: 'Secretaría de Tránsito de Bolívar', codigo: 'BOLIVAR' },
-  { id: 6, nombre: 'Secretaría de Tránsito de Miranda', codigo: 'MIRANDA' },
-  { id: 7, nombre: 'Secretaría de Tránsito de Piendamó', codigo: 'PIENDAMO' },
-  { id: 8, nombre: 'Secretaría de Tránsito de Silvia', codigo: 'SILVIA' },
-  { id: 9, nombre: 'Secretaría de Tránsito de Guapi', codigo: 'GUAPI' },
-  { id: 10, nombre: 'Secretaría de Tránsito de Timbío', codigo: 'TIMBIO' }
-];
-
+/**
+ * Centro de Mando / Orquestador Principal del Módulo de Vehículos.
+ * Unifica los sub-facades especializados coordinando flujos globales y
+ * preservando 100% de compatibilidad hacia atrás.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class VehiculosFacade {
-  private api = inject(BaseApiService);
-  private vehiculosApi = inject(VehiculosApiService);
-  private catalogoApi = inject(CatalogoApiService);
-  private departamentosApi = inject(DepartamentosApiService);
-  private propietariosApi = inject(PropietariosApiService);
+  readonly list = inject(VehiculosListFacade);
+  readonly kpisFacade = inject(VehiculosKpisFacade);
+  readonly catalogos = inject(VehiculosCatalogosFacade);
+  readonly pendientes = inject(VehiculosPendientesFacade);
+  readonly operaciones = inject(VehiculosOperacionesFacade);
 
   // --------------------------------------------------------------------------
-  // ESTADOS PRINCIPALES (SIGNALS)
+  // DELEGACIÓN DE SIGNALS PRINCIPALES (Grilla y Filtros)
   // --------------------------------------------------------------------------
-  readonly vehiculos = signal<VehiculoItem[]>([]);
-  readonly totalVehiculos = signal<number>(0);
-  readonly paginaActual = signal<number>(1);
-  readonly pageSize = signal<number>(10);
-  readonly totalPaginas = signal<number>(1);
+  readonly vehiculos = this.list.vehiculos;
+  readonly totalVehiculos = this.list.totalVehiculos;
+  readonly paginaActual = this.list.paginaActual;
+  readonly pageSize = this.list.pageSize;
+  readonly totalPaginas = this.list.totalPaginas;
+  readonly paginasDisponibles = this.list.paginasDisponibles;
+  readonly loading = this.list.loading;
+  readonly error = this.list.error;
+  readonly filtroTexto = this.list.filtroTexto;
+  readonly filtroEstado = this.list.filtroEstado;
+  readonly filtroTipo = this.list.filtroTipo;
+  readonly filteredVehiculos = this.list.filteredVehiculos;
+  readonly selectedVehiculo = this.list.selectedVehiculo;
+  readonly expedienteActual = this.list.expedienteActual;
+  readonly expedienteLoading = this.list.expedienteLoading;
+  readonly panelTab = this.list.panelTab;
 
-  readonly paginasDisponibles = computed(() => {
-    const total = this.totalPaginas();
-    const actual = this.paginaActual();
-    if (total <= 1) return [1];
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE SIGNALS (KPIs)
+  // --------------------------------------------------------------------------
+  readonly kpis = this.kpisFacade.kpis;
 
-    if (total <= 7) {
-      return Array.from({ length: total }, (_, i) => i + 1);
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE SIGNALS (Catálogos)
+  // --------------------------------------------------------------------------
+  readonly marcas = this.catalogos.marcas;
+  readonly marcasDisponibles = this.catalogos.marcasDisponibles;
+  readonly lineas = this.catalogos.lineas;
+  readonly lineasDisponibles = this.catalogos.lineasDisponibles;
+  readonly estadosMatricula = this.catalogos.estadosMatricula;
+  readonly serviciosVehiculo = this.catalogos.serviciosVehiculo;
+  readonly tiposVinculo = this.catalogos.tiposVinculo;
+  readonly tiposVehiculo = this.catalogos.tiposVehiculo;
+  readonly combustibles = this.catalogos.combustibles;
+  readonly organismosTransito = this.catalogos.organismosTransito;
+  readonly tiposDocumento = this.catalogos.tiposDocumento;
+  readonly naturalezasJuridicas = this.catalogos.naturalezasJuridicas;
+  readonly departamentos = this.catalogos.departamentos;
+  readonly ciudades = this.catalogos.ciudades;
+  readonly ciudadesDisponibles = this.catalogos.ciudadesDisponibles;
+  readonly catalogosLoading = this.catalogos.catalogosLoading;
+  readonly catalogosLoaded = this.catalogos.catalogosLoaded;
+
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE SIGNALS (Pendientes de Aprobación)
+  // --------------------------------------------------------------------------
+  readonly vehiculosPendientesAprobacion = this.pendientes.vehiculosPendientesAprobacion;
+  readonly isModalPendientesOpen = this.pendientes.isModalPendientesOpen;
+  readonly cargandoPendientes = this.pendientes.cargandoPendientes;
+  readonly vehiculosPendientesFiltrados = this.pendientes.vehiculosPendientesFiltrados;
+
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE SIGNALS (Operaciones, Drawer, RUNT, Inactivar)
+  // --------------------------------------------------------------------------
+  readonly registroLoading = this.operaciones.registroLoading;
+  readonly isDrawerOpen = this.operaciones.isDrawerOpen;
+  readonly isNuevoRegistro = this.operaciones.isNuevoRegistro;
+  readonly currentStep = this.operaciones.currentStep;
+  readonly activeTab = this.operaciones.activeTab;
+  readonly tabs = this.operaciones.tabs;
+  readonly isRuntModalOpen = this.operaciones.isRuntModalOpen;
+  readonly placaRunt = this.operaciones.placaRunt;
+  readonly runtLoading = this.operaciones.runtLoading;
+  readonly isInactivarModalOpen = this.operaciones.isInactivarModalOpen;
+  readonly vehiculoAInactivar = this.operaciones.vehiculoAInactivar;
+  readonly inactivandoLoading = this.operaciones.inactivandoLoading;
+  readonly buscandoPropietario = this.operaciones.buscandoPropietario;
+  readonly propietarioEncontrado = this.operaciones.propietarioEncontrado;
+  readonly busquedaRealizada = this.operaciones.busquedaRealizada;
+
+  // --------------------------------------------------------------------------
+  // MÉTODOS ORQUESTADORES GLOBALES
+  // --------------------------------------------------------------------------
+  refrescarDashboard(irAPrimeraPagina: boolean = true): void {
+    if (irAPrimeraPagina) {
+      this.list.paginaActual.set(1);
     }
-
-    const pages: number[] = [];
-    const start = Math.max(1, actual - 2);
-    const end = Math.min(total, actual + 2);
-    for (let i = start; i <= end; i++) {
-      pages.push(i);
-    }
-    return pages;
-  });
-
-  readonly kpis = signal<VehiculoKpis>({
-    vigenciaFiscal: 2026,
-    vigenciaEstado: 'ACTIVA',
-    vigenciaFecha: '01/01/2026',
-    valorUvt: 49799,
-    uvtVariacion: '+2.4%',
-    uvtNorma: 'Ord. 004-2026 — UVT_2026',
-    sancionMinima: 497990,
-    sancionDescripcion: 'Liquidaciones extemporáneas (10 UVTs)',
-    auditadosHoy: 1420,
-    auditadosUltimo: 'hace 2 min · admin_user',
-    totalVehiculos: 0,
-    totalPendientesAprobacion: 0
-  });
-
-  // Modal y Gestión de Vehículos Pendientes de Aprobación
-  readonly vehiculosPendientesAprobacion = signal<VehiculoItem[]>([]);
-  readonly isModalPendientesOpen = signal<boolean>(false);
-  readonly cargandoPendientes = signal<boolean>(false);
-
-  readonly loading = signal<boolean>(false);
-  readonly error = signal<string | null>(null);
-
-  // Filtros de búsqueda
-  readonly filtroTexto = signal<string>('');
-  readonly filtroEstado = signal<string>('Todos');
-  readonly filtroTipo = signal<string>('Todos');
-
-  // Catálogos para el Wizard (Cargados 100% en tiempo real desde la Base de Datos SQL Server con fallbacks)
-  readonly marcas = signal<CatalogoMarca[]>([]);
-  readonly marcasDisponibles = signal<CatalogoMarca[]>([]);
-  readonly lineas = signal<CatalogoLinea[]>([]);
-  readonly lineasDisponibles = signal<CatalogoLinea[]>([]);
-  readonly estadosMatricula = signal<CatalogoItem[]>(DEFAULT_ESTADOS_MATRICULA);
-  readonly serviciosVehiculo = signal<CatalogoItem[]>(DEFAULT_SERVICIOS_VEHICULO);
-  readonly tiposVinculo = signal<CatalogoItem[]>(DEFAULT_TIPOS_VINCULO);
-  readonly tiposVehiculo = signal<CatalogoItem[]>(DEFAULT_TIPOS_VEHICULO);
-  readonly combustibles = signal<CatalogoItem[]>(DEFAULT_COMBUSTIBLES);
-  readonly organismosTransito = signal<CatalogoItem[]>(DEFAULT_ORGANISMOS_TRANSITO);
-  readonly tiposDocumento = signal<CatalogoTipoDocumento[]>(DEFAULT_TIPOS_DOCUMENTO);
-  readonly naturalezasJuridicas = signal<CatalogoNaturalezaJuridica[]>(DEFAULT_NATURALEZAS_JURIDICAS);
-  readonly departamentos = signal<CatalogoDepartamento[]>([]);
-  readonly ciudades = signal<CatalogoCiudad[]>([]);
-  readonly ciudadesDisponibles = signal<CatalogoCiudad[]>([]);
-  readonly catalogosLoading = signal<boolean>(false);
-  readonly catalogosLoaded = signal<boolean>(false);
-  readonly registroLoading = signal<boolean>(false);
-
-  // Modal / Drawer de Registro / Expediente Multi-Paso
-  readonly isDrawerOpen = signal<boolean>(false);
-  readonly isNuevoRegistro = signal<boolean>(true);
-  readonly currentStep = signal<number>(1);
-  readonly activeTab = signal<string>('Datos del Vehículo');
-  readonly selectedVehiculo = signal<VehiculoItem | null>(null);
-  readonly expedienteActual = signal<any | null>(null);
-  readonly expedienteLoading = signal<boolean>(false);
-  readonly panelTab = signal<'ficha' | 'propietarios' | 'valores'>('ficha');
-
-  // Modal de Consulta RUNT
-  readonly isRuntModalOpen = signal<boolean>(false);
-  readonly placaRunt = signal<string>('');
-  readonly runtLoading = signal<boolean>(false);
-
-  // Modal de Confirmación de Inactivación
-  readonly isInactivarModalOpen = signal<boolean>(false);
-  readonly vehiculoAInactivar = signal<VehiculoItem | null>(null);
-  readonly inactivandoLoading = signal<boolean>(false);
-
-  // Búsqueda de propietario en Step 3
-  readonly buscandoPropietario = signal<boolean>(false);
-  readonly propietarioEncontrado = signal<any | null>(null);
-  readonly busquedaRealizada = signal<boolean>(false);
-
-  readonly tabs = computed(() => {
-    return this.isNuevoRegistro()
-      ? ['Datos del Vehículo', 'Propietarios', 'Observaciones']
-      : ['Datos del Vehículo', 'Propietarios', 'Historial', 'Observaciones'];
-  });
-
-  // Lista Filtrada Computada (si se aplica filtro local además de servidor)
-  readonly filteredVehiculos = computed(() => {
-    const texto = this.filtroTexto().toLowerCase().trim();
-    const estado = this.filtroEstado();
-    const tipo = this.filtroTipo();
-
-    const normalize = (str?: string | null) => {
-      if (!str) return '';
-      return str
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .trim();
-    };
-
-    const normTipo = normalize(tipo);
-    const raizTipo = normTipo.length > 4 && normTipo.endsWith('es') 
-      ? normTipo.slice(0, -2) 
-      : (normTipo.length > 4 && normTipo.endsWith('s') ? normTipo.slice(0, -1) : normTipo);
-
-    return this.vehiculos().filter(v => {
-      const matchTexto = !texto || 
-        (v.placa && v.placa.toLowerCase().includes(texto)) ||
-        (v.propietario?.nombre && v.propietario.nombre.toLowerCase().includes(texto)) ||
-        (v.propietario?.numeroDocumento && v.propietario.numeroDocumento.toLowerCase().includes(texto)) ||
-        (v.marca && v.marca.toLowerCase().includes(texto)) ||
-        (v.linea && v.linea.toLowerCase().includes(texto)) ||
-        (v.tituloFichaTecnica && v.tituloFichaTecnica.toLowerCase().includes(texto));
-
-      const vEstadoNorm = normalize(v.estadoMatricula);
-      const isActivo = v.estadoMatriculaId === 1 || v.estadoMatriculaId === 0 || (vEstadoNorm.includes('activ') && !vEstadoNorm.includes('inactiv'));
-      const matchEstado = estado === 'Todos' || 
-        (estado === 'Activo' && isActivo) ||
-        (estado === 'Inactivo' && !isActivo) ||
-        (vEstadoNorm === normalize(estado));
-
-      const vClaseNorm = normalize(v.clase);
-      const vTipoNorm = normalize(v.tipoVehiculo);
-      const matchTipo = tipo === 'Todos' || 
-        (normTipo.length > 0 && (
-          vClaseNorm.includes(normTipo) || vTipoNorm.includes(normTipo) || 
-          vClaseNorm.includes(raizTipo) || vTipoNorm.includes(raizTipo) ||
-          normTipo.includes(vClaseNorm) || normTipo.includes(vTipoNorm)
-        ));
-
-      return matchTexto && matchEstado && matchTipo;
-    });
-  });
-
-  // --------------------------------------------------------------------------
-  // CARGA DE KPIS DEL DASHBOARD (GET /api/vehiculos/kpis)
-  // --------------------------------------------------------------------------
-  cargarKpis(): void {
-    this.vehiculosApi.getKpis().pipe(
-      catchError((err: any) => {
-        console.warn('Backend KPIs no disponible, usando métricas base:', err);
-        return of(null);
-      })
-    ).subscribe((res: any) => {
-      if (res && res.data) {
-        const d = res.data;
-        this.kpis.set({
-          vigenciaFiscal: d.vigenciaFiscal ?? 2026,
-          vigenciaEstado: d.vigenciaEstado ?? 'ACTIVA',
-          vigenciaFecha: d.vigenciaFecha ?? '01/01/2026',
-          valorUvt: Number(d.valorUvt) || 49799,
-          uvtVariacion: d.valorUvtIncremento ?? d.uvtVariacion ?? '+2.4%',
-          uvtNorma: d.valorUvtReferencia ?? d.uvtNorma ?? 'Ord. 004-2026 — UVT_2026',
-          sancionMinima: Number(d.sancionMinima) || (Number(d.valorUvt) ? Number(d.valorUvt) * 10 : 497990),
-          sancionDescripcion: d.sancionMinimaDetalle ?? d.sancionDescripcion ?? 'Liquidaciones extemporáneas (10 UVTs)',
-          auditadosHoy: Number(d.auditadosHoy) || 1420,
-          auditadosUltimo: d.ultimaAuditoriaDetalle ?? d.auditadosUltimo ?? 'hace 2 min · admin_user',
-          totalVehiculos: d.totalVehiculos ?? 0,
-          totalVehiculosActivos: d.totalVehiculosActivos ?? 0,
-          totalVehiculosInactivos: d.totalVehiculosInactivos ?? 0,
-          totalPendientesAprobacion: d.totalPendientesAprobacion ?? 0
-        });
-      }
-    });
+    this.kpisFacade.cargarKpis();
+    this.list.cargarVehiculos(this.list.paginaActual(), this.list.pageSize());
+    this.pendientes.cargarPendientesAprobacion();
   }
 
   // --------------------------------------------------------------------------
-  // CARGA DE VEHÍCULOS DESDE LA BASE DE DATOS (GET /api/vehiculos)
+  // DELEGACIÓN DE MÉTODOS: Lista y Expediente
   // --------------------------------------------------------------------------
   cargarVehiculos(page: number = 1, pageSize?: number): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    const size = pageSize ?? this.pageSize();
-
-    const filtros = {
-      page,
-      pageSize: size,
-      buscar: this.filtroTexto().trim() || undefined,
-      estado: this.filtroEstado(),
-      tipoVehiculo: this.filtroTipo()
-    };
-
-    this.vehiculosApi.getVehiculos(filtros).pipe(
-      catchError((err: any) => {
-        console.warn('Error cargando vehículos de la API, manteniendo lista local:', err);
-        this.error.set('No se pudo conectar con el servidor de vehículos.');
-        return of(null);
-      })
-    ).subscribe((res: any) => {
-      this.loading.set(false);
-      if (res && res.data) {
-        const isPaged = !Array.isArray(res.data) && res.data.items !== undefined;
-        const rawItems: any[] = isPaged ? (res.data.items || []) : (Array.isArray(res.data) ? res.data : []);
-        const total = isPaged ? (res.data.totalCount ?? rawItems.length) : rawItems.length;
-        const totalPags = (isPaged && res.data.totalPages)
-          ? res.data.totalPages
-          : Math.max(1, Math.ceil(total / size));
-
-        const mapped: VehiculoItem[] = this.mapearItemsVehiculo(rawItems);
-
-        this.vehiculos.set(mapped);
-        this.selectedVehiculo.set(null);
-        this.totalVehiculos.set(total);
-        this.paginaActual.set(page);
-        this.pageSize.set(size);
-        this.totalPaginas.set(totalPags);
-      }
-    });
+    this.list.cargarVehiculos(page, pageSize);
   }
 
   cambiarPagina(nuevaPagina: number): void {
-    if (this.loading()) return;
-    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
-    if (this.totalVehiculos() === 0) return;
-    this.cargarVehiculos(nuevaPagina, this.pageSize());
-  }
-
-  /**
-   * Mapea un listado de registros crudos del backend en entidades VehiculoItem fuertemente tipadas,
-   * normalizando información de ficha técnica, clases, combustibles y propietario/documentos.
-   */
-  private mapearItemsVehiculo(rawItems: any[]): VehiculoItem[] {
-    return rawItems.map((item: any, idx: number) => {
-      let propietarioNombre = item.propietarioNombre || item.propietario?.nombre || 'Sin propietario asignado';
-      let tipoDoc = 'CC';
-      let numDoc = '';
-      let tipoPersona = 'Natural';
-
-      if (item.propietarioDocumento) {
-        const partesDoc = String(item.propietarioDocumento).split('·').map((s: string) => s.trim());
-        const docRaw = partesDoc[0] || '';
-        if (partesDoc[1]) {
-          tipoPersona = partesDoc[1];
-        } else if (docRaw.toUpperCase().includes('NIT')) {
-          tipoPersona = 'Jurídica';
-        }
-
-        // Extraer posibles tipos repetidos al inicio (ej: "CC NIT 1111111" o "CC 1234567")
-        const tokens = docRaw.split(/\s+/).filter(Boolean);
-        const knownTypes = ['CC', 'NIT', 'CE', 'TI', 'PA', 'PAS', 'RC'];
-        const typesFound: string[] = [];
-        const numbersFound: string[] = [];
-
-        for (const token of tokens) {
-          if (knownTypes.includes(token.toUpperCase())) {
-            typesFound.push(token.toUpperCase());
-          } else {
-            numbersFound.push(token);
-          }
-        }
-
-        if (typesFound.length > 0) {
-          // Si vino por ejemplo "CC NIT", tomar "NIT" (el último tipo específico)
-          tipoDoc = typesFound[typesFound.length - 1];
-        } else {
-          tipoDoc = item.propietario?.tipoDocumento || (tipoPersona === 'Jurídica' ? 'NIT' : 'CC');
-        }
-
-        numDoc = numbersFound.join(' ');
-        if (!numDoc && tokens.length > 0) {
-          numDoc = tokens[tokens.length - 1];
-        }
-      } else if (item.propietario) {
-        tipoDoc = item.propietario.tipoDocumento || 'CC';
-        numDoc = item.propietario.numeroDocumento || '';
-        tipoPersona = item.propietario.tipoPersona || (tipoDoc === 'NIT' ? 'Jurídica' : 'Natural');
-      }
-
-      const docCompleto = numDoc ? `${tipoDoc} ${numDoc}`.trim() : (propietarioNombre !== 'Sin propietario asignado' ? 'Sin documento' : '');
-
-      return {
-        id: item.id || idx + 1,
-        placa: item.placa || '',
-        marca: item.marca || '',
-        linea: item.linea || '',
-        modelo: Number(item.modelo) || 2024,
-        cilindraje: Number(item.cilindraje) || 1600,
-        tipoCombustible: item.combustible || item.tipoCombustible || 'Gasolina',
-        combustible: item.combustible || item.tipoCombustible || 'Gasolina',
-        clase: item.clase || item.tipoVehiculo || 'Automóvil',
-        tipoVehiculo: item.tipoVehiculo || item.clase || 'Automóvil',
-        color: item.color || 'Blanco',
-        servicio: item.servicio || 'Particular',
-        pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
-        organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
-        organismoTransitoId: item.organismoTransitoId || undefined,
-        fechaMatricula: item.fechaMatricula || undefined,
-        estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
-        estadoMatriculaId: item.estadoMatriculaId || 1,
-        exencion: item.exencion || undefined,
-        seleccionado: false,
-        tituloFichaTecnica: item.tituloFichaTecnica || `${item.marca || ''} ${item.linea || ''}`.trim(),
-        subtituloFichaTecnica: item.subtituloFichaTecnica,
-        propietarioId: item.propietarioId,
-        propietarioNombre: propietarioNombre,
-        propietarioDocumento: docCompleto,
-        propietarios: item.propietarios || [],
-        propietario: {
-          nombre: propietarioNombre,
-          tipoDocumento: tipoDoc,
-          numeroDocumento: docCompleto,
-          tipoPersona: tipoPersona
-        }
-      };
-    });
-  }
-
-  refrescarDashboard(irAPrimeraPagina: boolean = true): void {
-    if (irAPrimeraPagina) {
-      this.paginaActual.set(1);
-    }
-    this.cargarKpis();
-    this.cargarVehiculos(this.paginaActual(), this.pageSize());
-    this.cargarPendientesAprobacion();
-  }
-
-  cargarPendientesAprobacion(): void {
-    this.cargandoPendientes.set(true);
-    this.api.get<ApiResponse<any[]>>('/vehiculos/pendientes-aprobacion', {}, 'AUTOMOTORES').pipe(
-      catchError(err => {
-        console.warn('Error al cargar vehículos pendientes de aprobación:', err);
-        this.cargandoPendientes.set(false);
-        return of(null);
-      })
-    ).subscribe((res: ApiResponse<any[]> | null) => {
-      this.cargandoPendientes.set(false);
-      if (res && res.data) {
-        const mapped: VehiculoItem[] = res.data.map((item: any) => ({
-          id: item.id,
-          placa: item.placa || '',
-          marca: item.marca || '',
-          linea: item.linea || '',
-          modelo: item.modelo || 2024,
-          cilindraje: item.cilindraje || 1600,
-          combustible: item.combustible || 'Gasolina',
-          tipoVehiculo: item.tipoVehiculo || 'Automóvil',
-          clase: item.clase || 'Automóvil',
-          servicio: item.servicio || 'Particular',
-          estadoMatricula: item.estadoMatricula || 'Pendiente',
-          estadoMatriculaId: item.estadoMatriculaId || 2,
-          estadoAprobacion: item.estadoAprobacion || 'PENDIENTE',
-          propietarioId: item.propietarioId,
-          propietarioNombre: item.propietarioNombre,
-          propietarioDocumento: item.propietarioDocumento,
-          propietarios: item.propietarios || [],
-          propietario: {
-            nombre: item.propietarioNombre || 'Propietario Pendiente',
-            tipoDocumento: 'CC',
-            numeroDocumento: item.propietarioDocumento || 'Pendiente'
-          }
-        }));
-        this.vehiculosPendientesAprobacion.set(mapped);
-        this.kpis.update(k => ({ ...k, totalPendientesAprobacion: mapped.length }));
-      }
-    });
-  }
-
-  abrirModalPendientes(): void {
-    this.isModalPendientesOpen.set(true);
-    this.cargarPendientesAprobacion();
-  }
-
-  cerrarModalPendientes(): void {
-    this.isModalPendientesOpen.set(false);
-  }
-
-  cambiarEstadoAprobacion(id: number, nuevoEstado: string): Observable<any> {
-    return this.api.put<ApiResponse<any>>(`/vehiculos/${id}/estado-aprobacion?nuevoEstado=${nuevoEstado}`, {}, {}, 'AUTOMOTORES').pipe(
-      map(res => {
-        // Remover de la lista local de pendientes de inmediato
-        this.vehiculosPendientesAprobacion.update(list => list.filter(item => item.id !== id));
-        this.refrescarDashboard(true);
-        return res;
-      })
-    );
+    this.list.cambiarPagina(nuevaPagina);
   }
 
   setFiltroTexto(texto: string): void {
-    this.filtroTexto.set(texto);
-    this.cargarVehiculos(1, this.pageSize());
+    this.list.setFiltroTexto(texto);
   }
 
   setFiltroEstado(estado: string): void {
-    this.filtroEstado.set(estado);
-    this.cargarVehiculos(1, this.pageSize());
+    this.list.setFiltroEstado(estado);
   }
 
   setFiltroTipo(tipo: string): void {
-    this.filtroTipo.set(tipo);
-    this.cargarVehiculos(1, this.pageSize());
-  }
-
-  inactivarVehiculo(id: number): Observable<any> {
-    return this.vehiculosApi.inactivarVehiculo(id).pipe(
-      map(res => {
-        this.refrescarDashboard();
-        return res;
-      })
-    );
-  }
-
-  // --------------------------------------------------------------------------
-  // CARGA DE CATÁLOGOS DESDE EL BACKEND
-  // --------------------------------------------------------------------------
-  cargarCatalogos(): void {
-    if (this.catalogosLoaded() || this.catalogosLoading()) return;
-
-    this.catalogosLoading.set(true);
-
-    forkJoin({
-      todos: this.catalogoApi.getTodos().pipe(
-        map(res => res?.data || {} as TodosCatalogosDto),
-        catchError(() => of({} as TodosCatalogosDto))
-      ),
-      departamentos: this.departamentosApi.getDepartamentos().pipe(
-        map(res => (res && 'data' in res && res.data ? res.data : (Array.isArray(res) ? res : []))),
-        catchError(() => of([] as CatalogoDepartamento[]))
-      ),
-      servicios: this.catalogoApi.getServiciosVehiculo().pipe(
-        map(res => (res && 'data' in res && res.data ? res.data : (Array.isArray(res) ? res : []))),
-        catchError(() => of([] as CatalogoItem[]))
-      )
-    }).subscribe({
-      next: (results: { todos: TodosCatalogosDto; departamentos: CatalogoDepartamento[]; servicios: CatalogoItem[] }) => {
-        const t = results.todos || {};
-
-        const servs = (results.servicios && results.servicios.length > 0)
-          ? results.servicios
-          : (t.serviciosVehiculo && t.serviciosVehiculo.length > 0)
-            ? t.serviciosVehiculo
-            : ((t as any).servicios && (t as any).servicios.length > 0)
-              ? (t as any).servicios
-              : DEFAULT_SERVICIOS_VEHICULO;
-
-        this.estadosMatricula.set((t.estadosMatricula && t.estadosMatricula.length > 0) ? t.estadosMatricula : DEFAULT_ESTADOS_MATRICULA);
-        this.serviciosVehiculo.set(servs);
-        this.tiposVinculo.set((t.tiposVinculo && t.tiposVinculo.length > 0) ? t.tiposVinculo : DEFAULT_TIPOS_VINCULO);
-        this.tiposVehiculo.set((t.tiposVehiculo && t.tiposVehiculo.length > 0) ? t.tiposVehiculo : DEFAULT_TIPOS_VEHICULO);
-        this.combustibles.set((t.combustibles && t.combustibles.length > 0) ? t.combustibles : DEFAULT_COMBUSTIBLES);
-        this.organismosTransito.set((t.organismosTransito && t.organismosTransito.length > 0) ? t.organismosTransito : DEFAULT_ORGANISMOS_TRANSITO);
-        this.tiposDocumento.set((t.tiposDocumento && t.tiposDocumento.length > 0) ? t.tiposDocumento : DEFAULT_TIPOS_DOCUMENTO);
-        this.naturalezasJuridicas.set((t.naturalezasJuridicas && t.naturalezasJuridicas.length > 0) ? t.naturalezasJuridicas : DEFAULT_NATURALEZAS_JURIDICAS);
-        this.departamentos.set(results.departamentos && results.departamentos.length > 0 ? results.departamentos : []);
-        this.catalogosLoaded.set(true);
-        this.catalogosLoading.set(false);
-      },
-      error: (err: any) => {
-        console.error('Error cargando catálogos unificados:', err);
-        this.catalogosLoading.set(false);
-      }
-    });
-  }
-
-  cargarCiudadesPorDepartamento(departamentoId: number): void {
-    if (!departamentoId) {
-      this.ciudadesDisponibles.set([]);
-      return;
-    }
-
-    this.departamentosApi.getCiudadesByDepartamento(departamentoId).pipe(
-      catchError(() => of(null))
-    ).subscribe((res: any) => {
-      const data = (res && 'data' in res && res.data) ? res.data : (Array.isArray(res) ? res : []);
-      this.ciudadesDisponibles.set(data);
-    });
-  }
-
-  cargarMarcasPorTipo(tipoVehiculo?: string): void {
-    if (!tipoVehiculo?.trim()) {
-      this.marcasDisponibles.set([]);
-      this.lineasDisponibles.set([]);
-      return;
-    }
-
-    this.catalogoApi.getMarcas(tipoVehiculo).pipe(
-      catchError(() => of({ data: [] as CatalogoMarca[] }))
-    ).subscribe((res: any) => {
-      this.marcasDisponibles.set(res?.data || []);
-    });
-  }
-
-  cargarLineasPorMarca(marcaNombre: string, tipoVehiculo?: string): void {
-    const marcaNorm = (marcaNombre || '').toUpperCase().trim();
-    if (!marcaNorm) {
-      this.lineasDisponibles.set([]);
-      return;
-    }
-
-    this.catalogoApi.getLineas(marcaNorm, undefined, tipoVehiculo).pipe(
-      catchError(() => of({ data: [] as CatalogoLinea[] }))
-    ).subscribe((res: any) => {
-      this.lineasDisponibles.set(res?.data || []);
-    });
-  }
-
-  // --------------------------------------------------------------------------
-  // BÚSQUEDA DE PROPIETARIO POR DOCUMENTO (GET /api/propietarios/documento/...)
-  // --------------------------------------------------------------------------
-  buscarPropietario(tipo: string | number, numero: string): Observable<any> {
-    const numLimpio = (numero || '').replace(/[^0-9a-zA-Z]/g, '').trim();
-    if (!numLimpio) {
-      this.propietarioEncontrado.set(null);
-      this.busquedaRealizada.set(false);
-      return of(null);
-    }
-
-    this.buscandoPropietario.set(true);
-    this.busquedaRealizada.set(true);
-
-    return this.propietariosApi.getPropietarioByDocumento(tipo, numLimpio).pipe(
-      map(res => {
-        this.buscandoPropietario.set(false);
-        const data = res.data || res;
-        this.propietarioEncontrado.set(data);
-        return data;
-      }),
-      catchError(() => {
-        this.buscandoPropietario.set(false);
-        this.propietarioEncontrado.set(null);
-        return of(null);
-      })
-    );
-  }
-
-  limpiarBusquedaPropietario(): void {
-    this.propietarioEncontrado.set(null);
-    this.busquedaRealizada.set(false);
-  }
-
-  // --------------------------------------------------------------------------
-  // CREACIÓN DE VEHÍCULO (POST /api/vehiculos)
-  // --------------------------------------------------------------------------
-  crearVehiculo(payload: RegistrarVehiculoDto): Observable<ApiResponse<any>> {
-    this.registroLoading.set(true);
-    return this.vehiculosApi.crearVehiculo(payload).pipe(
-      map(res => {
-        this.registroLoading.set(false);
-        this.refrescarDashboard(true);
-        return res;
-      }),
-      catchError(err => {
-        this.registroLoading.set(false);
-        throw err;
-      })
-    );
-  }
-
-  verificarPlacaExistente(placa: string): Observable<boolean> {
-    if (!placa || !placa.trim()) return of(false);
-    return this.api.get<ApiResponse<any>>(`/vehiculos/placa/${placa.trim()}`, {}, 'AUTOMOTORES').pipe(
-      map(res => !!(res && res.success && res.data)),
-      catchError(() => of(false))
-    );
-  }
-
-  // --------------------------------------------------------------------------
-  // ACTUALIZACIÓN DE VEHÍCULO (PUT /api/vehiculos/{id})
-  // --------------------------------------------------------------------------
-  actualizarVehiculo(id: number, payload: any): Observable<ApiResponse<any>> {
-    this.registroLoading.set(true);
-    return this.vehiculosApi.actualizarVehiculo(id, payload).pipe(
-      map(res => {
-        this.registroLoading.set(false);
-        return res;
-      }),
-      catchError(err => {
-        this.registroLoading.set(false);
-        throw err;
-      })
-    );
-  }
-
-  // Métodos de Control Registro
-  abrirRegistro(): void {
-    this.cargarCatalogos();
-    this.isNuevoRegistro.set(true);
-    this.currentStep.set(1);
-    this.activeTab.set(this.tabs()[0]);
-    this.isDrawerOpen.set(true);
-  }
-
-  abrirExpediente(v: VehiculoItem): void {
-    this.cargarCatalogos();
-    this.seleccionarVehiculo(v);
-    this.isNuevoRegistro.set(false);
-    this.currentStep.set(1);
-    this.activeTab.set(this.tabs()[0]);
-    this.isDrawerOpen.set(true);
-  }
-
-  cerrarRegistro(): void {
-    this.isDrawerOpen.set(false);
-  }
-
-  // Métodos de Control RUNT
-  abrirRunt(placa?: string): void {
-    if (placa) {
-      this.placaRunt.set(placa.replace(/[^a-zA-Z0-9]/g, '').toUpperCase());
-    } else {
-      this.placaRunt.set('');
-    }
-    this.isRuntModalOpen.set(true);
-  }
-
-  cerrarRunt(): void {
-    this.isRuntModalOpen.set(false);
-  }
-
-  consultarRunt(): void {
-    const placa = this.placaRunt().trim();
-    if (!placa) return;
-
-    this.runtLoading.set(true);
-    setTimeout(() => {
-      this.runtLoading.set(false);
-      this.cerrarRunt();
-      const found = this.vehiculos().find(v => v.placa.replace('-', '').toUpperCase() === placa.toUpperCase());
-      if (found) {
-        this.seleccionarVehiculo(found);
-      }
-    }, 600);
-  }
-
-  setStep(stepNumber: number): void {
-    const list = this.tabs();
-    if (stepNumber >= 1 && stepNumber <= list.length) {
-      this.currentStep.set(stepNumber);
-      this.activeTab.set(list[stepNumber - 1]);
-    }
-  }
-
-  setTab(tabName: string): void {
-    const list = this.tabs();
-    const idx = list.indexOf(tabName);
-    if (idx !== -1) {
-      this.currentStep.set(idx + 1);
-      this.activeTab.set(tabName);
-    }
-  }
-
-  siguientePaso(): void {
-    if (this.currentStep() < this.tabs().length) {
-      this.setStep(this.currentStep() + 1);
-    }
-  }
-
-  anteriorPaso(): void {
-    if (this.currentStep() > 1) {
-      this.setStep(this.currentStep() - 1);
-    }
-  }
-
-  cargarExpediente(id: number): Observable<any> {
-    this.expedienteLoading.set(true);
-    return this.vehiculosApi.getExpedienteById(id).pipe(
-      map(res => {
-        this.expedienteLoading.set(false);
-        const data = res.data || res;
-        this.expedienteActual.set(data);
-        return data;
-      }),
-      catchError(err => {
-        this.expedienteLoading.set(false);
-        console.warn('Error cargando expediente:', err);
-        return of(null);
-      })
-    );
+    this.list.setFiltroTipo(tipo);
   }
 
   seleccionarVehiculo(v: VehiculoItem): void {
-    this.vehiculos.update(list => list.map(item => ({
-      ...item,
-      seleccionado: item.id === v.id
-    })));
-    this.selectedVehiculo.set(v);
-    if (v.id) {
-      this.cargarExpediente(v.id).subscribe();
-    }
+    this.list.seleccionarVehiculo(v);
   }
 
   deseleccionarVehiculo(): void {
-    this.vehiculos.update(list => list.map(item => ({
-      ...item,
-      seleccionado: false
-    })));
-    this.selectedVehiculo.set(null);
-    this.expedienteActual.set(null);
+    this.list.deseleccionarVehiculo();
+  }
+
+  cargarExpediente(id: number): Observable<any> {
+    return this.list.cargarExpediente(id);
+  }
+
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE MÉTODOS: KPIs
+  // --------------------------------------------------------------------------
+  cargarKpis(): void {
+    this.kpisFacade.cargarKpis();
+  }
+
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE MÉTODOS: Catálogos
+  // --------------------------------------------------------------------------
+  cargarCatalogos(): void {
+    this.catalogos.cargarCatalogos();
+  }
+
+  cargarCiudadesPorDepartamento(departamentoId: number): void {
+    this.catalogos.cargarCiudadesPorDepartamento(departamentoId);
+  }
+
+  cargarMarcasPorTipo(tipoVehiculo?: string): void {
+    this.catalogos.cargarMarcasPorTipo(tipoVehiculo);
+  }
+
+  cargarLineasPorMarca(marcaNombre: string, tipoVehiculo?: string): void {
+    this.catalogos.cargarLineasPorMarca(marcaNombre, tipoVehiculo);
+  }
+
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE MÉTODOS: Pendientes de Aprobación
+  // --------------------------------------------------------------------------
+  cargarPendientesAprobacion(): void {
+    this.pendientes.cargarPendientesAprobacion();
+  }
+
+  abrirModalPendientes(): void {
+    this.pendientes.abrirModalPendientes();
+  }
+
+  cerrarModalPendientes(): void {
+    this.pendientes.cerrarModalPendientes();
+  }
+
+  cambiarEstadoAprobacion(id: number, nuevoEstado: string): Observable<any> {
+    return this.pendientes.cambiarEstadoAprobacion(id, nuevoEstado).pipe(
+      map(res => {
+        this.refrescarDashboard(true);
+        return res;
+      })
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // DELEGACIÓN DE MÉTODOS: Operaciones CRUD, RUNT, Inactivar, Wizard
+  // --------------------------------------------------------------------------
+  crearVehiculo(payload: RegistrarVehiculoDto): Observable<ApiResponse<any>> {
+    return this.operaciones.crearVehiculo(payload).pipe(
+      map(res => {
+        this.refrescarDashboard(true);
+        return res;
+      })
+    );
+  }
+
+  actualizarVehiculo(id: number, payload: any): Observable<ApiResponse<any>> {
+    return this.operaciones.actualizarVehiculo(id, payload);
+  }
+
+  verificarPlacaExistente(placa: string): Observable<boolean> {
+    return this.operaciones.verificarPlacaExistente(placa);
+  }
+
+  inactivarVehiculo(id: number): Observable<any> {
+    return this.operaciones.inactivarVehiculo(id).pipe(
+      map(res => {
+        this.refrescarDashboard();
+        return res;
+      })
+    );
+  }
+
+  buscarPropietario(tipo: string | number, numero: string): Observable<any> {
+    return this.operaciones.buscarPropietario(tipo, numero);
+  }
+
+  limpiarBusquedaPropietario(): void {
+    this.operaciones.limpiarBusquedaPropietario();
+  }
+
+  abrirRegistro(): void {
+    this.catalogos.cargarCatalogos();
+    this.operaciones.abrirRegistro();
+  }
+
+  abrirExpediente(v: VehiculoItem): void {
+    this.catalogos.cargarCatalogos();
+    this.seleccionarVehiculo(v);
+    this.operaciones.abrirExpediente();
+  }
+
+  cerrarRegistro(): void {
+    this.operaciones.cerrarRegistro();
+  }
+
+  setStep(stepNumber: number): void {
+    this.operaciones.setStep(stepNumber);
+  }
+
+  setTab(tabName: string): void {
+    this.operaciones.setTab(tabName);
+  }
+
+  siguientePaso(): void {
+    this.operaciones.siguientePaso();
+  }
+
+  anteriorPaso(): void {
+    this.operaciones.anteriorPaso();
   }
 
   abrirInactivar(v: VehiculoItem): void {
-    this.vehiculoAInactivar.set(v);
-    this.isInactivarModalOpen.set(true);
+    this.operaciones.abrirInactivar(v);
   }
 
   cerrarInactivar(): void {
-    this.isInactivarModalOpen.set(false);
-    this.vehiculoAInactivar.set(null);
+    this.operaciones.cerrarInactivar();
   }
 
   confirmarInactivacion(): void {
-    const v = this.vehiculoAInactivar();
-    if (!v || !v.id) return;
+    this.operaciones.confirmarInactivacion(() => {
+      this.refrescarDashboard();
+    });
+  }
 
-    this.inactivandoLoading.set(true);
-    this.vehiculosApi.inactivarVehiculo(v.id).subscribe({
-      next: (res: any) => {
-        this.inactivandoLoading.set(false);
-        this.cerrarInactivar();
-        this.refrescarDashboard();
-      },
-      error: (err: any) => {
-        console.error('Error al inactivar vehículo:', err);
-        this.inactivandoLoading.set(false);
+  abrirRunt(placa?: string): void {
+    this.operaciones.abrirRunt(placa);
+  }
+
+  cerrarRunt(): void {
+    this.operaciones.cerrarRunt();
+  }
+
+  consultarRunt(): void {
+    this.operaciones.consultarRunt((placa: string) => {
+      const found = this.vehiculos().find(v => v.placa.replace('-', '').toUpperCase() === placa.toUpperCase());
+      if (found) {
+        this.seleccionarVehiculo(found);
       }
     });
   }
