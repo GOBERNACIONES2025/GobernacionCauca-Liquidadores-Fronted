@@ -1,10 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { 
+import {
   ApiResponse,
-  VehiculoItem, 
-  RegistrarVehiculoDto 
+  VehiculoItem,
+  RegistrarVehiculoDto
 } from '../../domain/models/vehiculo.model';
 
 import { VehiculosListFacade } from './vehiculos/vehiculos-list.facade';
@@ -12,6 +12,9 @@ import { VehiculosKpisFacade } from './vehiculos/vehiculos-kpis.facade';
 import { VehiculosCatalogosFacade } from './vehiculos/vehiculos-catalogos.facade';
 import { VehiculosPendientesFacade } from './vehiculos/vehiculos-pendientes.facade';
 import { VehiculosOperacionesFacade } from './vehiculos/vehiculos-operaciones.facade';
+import { FtpApiService } from '../../infrastructure/api/ftp-api.service';
+import { VehiculosFtpFacade } from './vehiculos/vehiculos-ftp.facade';
+import { FtpFileResult } from '../../domain/interfaces/ftp-file-result';
 
 export { VehiculosListFacade } from './vehiculos/vehiculos-list.facade';
 export { VehiculosKpisFacade } from './vehiculos/vehiculos-kpis.facade';
@@ -33,6 +36,7 @@ export class VehiculosFacade {
   readonly catalogos = inject(VehiculosCatalogosFacade);
   readonly pendientes = inject(VehiculosPendientesFacade);
   readonly operaciones = inject(VehiculosOperacionesFacade);
+  readonly ftpSevicesFacade = inject(VehiculosFtpFacade);
 
   // --------------------------------------------------------------------------
   // DELEGACIÓN DE SIGNALS PRINCIPALES (Grilla y Filtros)
@@ -303,3 +307,4 @@ export class VehiculosFacade {
     });
   }
 }
+

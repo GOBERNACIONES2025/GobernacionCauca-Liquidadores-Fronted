@@ -78,14 +78,16 @@
               </select>
               @if (hasError('linea')) { <span class="text-[11px] text-red-500">{{ getError('linea') }}</span> }
             </div>
+
             <div class="flex flex-col gap-1">
               <label class="text-[11.5px] font-semibold text-slate-700">PLACA <span
                   class="text-red-500">*</span></label>
-              <input formControlName="placa" type="text" placeholder="Ej: HJK892" maxlength="10"
-                [class.border-red-400]="hasError('placa')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-semibold text-slate-900 uppercase placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
+              <input formControlName="placa" type="text" placeholder="← Ingr. la placa de tu tipo de vehiculo"
+                maxlength="6" [class.border-red-400]="hasError('placa')"
+                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-semibold text-slate-900  placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
               @if (hasError('placa')) { <span class="text-[11px] text-red-500">{{ getError('placa') }}</span> }
             </div>
+
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
@@ -191,16 +193,32 @@
               @if (hasError('fechaMatricula')) {
               <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('fechaMatricula') }}</span>
               }
-              <p class="text-gray-600 font-bold text-[10px] text-center flex-start">
-                <strong>1. </strong>Recuerde que esta fecha será utilizada para validar las vigencias adeudadas de aquí
-                en adelante.<br>
-                <strong>2. </strong>Se debe de colocar exactamente este registro, Despues de; No se puede editar por la
-                prescripción de los datos de aquí en adelante.
-              </p>
+
+              <details class="mt-2 rounded-md border border-emerald-500 bg-emerald-50/30">
+                <summary
+                  class="cursor-pointer select-none px-3 py-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50">
+                  Información importante
+                </summary>
+
+                <div class="border-t border-emerald-200 px-3 py-2">
+                  <p class="text-[10px] leading-4 text-slate-700">
+                    <strong class="font-bold text-emerald-700">1.</strong>
+                    Recuerde que esta fecha será utilizada para validar las vigencias adeudadas a partir de este
+                    momento.
+                    <br>
+
+                    <strong class="font-bold text-emerald-700">2.</strong>
+                    Una vez registrado, este dato no podrá ser editado, debido a que será utilizado como referencia para
+                    la
+                    prescripción de los datos posteriores.
+                  </p>
+                </div>
+              </details>
             </div>
           </div>
         </div>
         }
+
         @if (facade.activeTab() === 'Propietarios') {
         <div class="space-y-4">
           <div class="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
@@ -212,7 +230,6 @@
           </div>
 
           @if (form.get('incluirPropietario')?.value) {
-          <!-- Panel de Control y Distribución de Propiedad (100%) -->
           <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
             <div class="flex items-center justify-between">
               <div>
@@ -317,7 +334,7 @@
             <div class="flex flex-col gap-1">
               <label class="text-[11.5px] font-semibold text-slate-700">BUSQUEDA POR DOCUMENTO <span
                   class="text-red-500">*</span></label>
-              <div class="flex gap-2">
+              <div class="flex flex-wrap gap-2">
                 <select formControlName="tipoDocumentoId" [class.border-red-400]="hasError('tipoDocumentoId', i)"
                   class="h-9 w-36 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 shrink-0">
                   <option value="" class="text-slate-500">Tipo</option>
@@ -328,14 +345,16 @@
                 <input formControlName="numeroDocumento" type="text" [placeholder]="getPlaceholderDocumento(i)"
                   (input)="onDocumentoInput($event, i)" [class.border-red-400]="hasError('numeroDocumento', i)"
                   class="h-9 flex-1 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                <button (click)="buscarPropietario(i)" type="button" [disabled]="buscandoPropietarioIndex() === i"
-                  class="h-9 px-4 rounded-md bg-[#1e3a7b] text-white text-[12px] font-semibold hover:bg-[#162d61] disabled:opacity-50 shrink-0">
-                  {{ buscandoPropietarioIndex() === i ? 'Buscando...' : 'Buscar' }}
-                </button>
-                <button (click)="limpiarPropietario(i)" type="button"
-                  class="h-9 px-3 rounded-md bg-slate-100 text-slate-700 text-[12px] font-medium hover:bg-slate-200 shrink-0">
-                  Limpiar
-                </button>
+                <div class="flex justify-between">
+                  <button (click)="buscarPropietario(i)" type="button" [disabled]="buscandoPropietarioIndex() === i"
+                    class="h-9 px-4 rounded-md bg-[#1e3a7b] text-white text-[12px] font-semibold hover:bg-[#162d61] disabled:opacity-50 shrink-0">
+                    {{ buscandoPropietarioIndex() === i ? 'Buscando...' : 'Buscar' }}
+                  </button>
+                  <button (click)="limpiarPropietario(i)" type="button"
+                    class="h-9 px-3 rounded-md bg-slate-100 text-slate-700 text-[12px] font-medium hover:bg-slate-200 shrink-0">
+                    Limpiar
+                  </button>
+                </div>
               </div>
               @if (hasError('tipoDocumentoId', i)) {
               <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('tipoDocumentoId', i) }}</span>
@@ -511,15 +530,6 @@
                 </div>
               </div>
             </div>
-            <div class="flex flex-col gap-5">
-              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider text-center">
-                Finalmente sube el comprobante de toda la información que acabas de completar <br /><strong>
-                  (Matricula , Factura de compra , Factura de traspaso)</strong>
-              </span>
-              <input accept=".pdf,.jpg,.jpeg,.png"
-                class="block w-full text-sm text-slate-500 bg-slate-50 border border-slate-300 rounded-lg cursor-pointer shadow-xs focus:outline-hidden focus:ring-2  focus:border-indigo-600 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-emerald-700 hover:file:bg-indigo-100"
-                id="file_input" type="file">
-            </div>
           </div>
           }
         </div>
@@ -533,7 +543,78 @@
         </div>
         }
         }
-    </div>
+
+        <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg shadow-xs space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div>
+                <span class="text-[12.5px] font-bold text-slate-800 block">Soporte Documental del Vehículo</span>
+                <span class="text-[11px] text-slate-500">Comprobante de matrícula, factura de compra o acta de traspaso (.pdf, .jpg, .png)</span>
+              </div>
+            </div>
+
+            @if (archivoSubidoNombre()) {
+            <span class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-100 text-emerald-800 rounded-full flex items-center gap-1 border border-emerald-200">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              Anexado
+            </span>
+            }
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
+            <input
+              id="file_input_comprobante"
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              (change)="onFileSelected($event)"
+              [disabled]="subiendoArchivo()"
+              class="block w-full text-xs text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-400/40 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed" />
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                (click)="uploadDocument()"
+                [disabled]="!selectedFile() || subiendoArchivo()"
+                class="h-9 px-4 rounded-md border border-emerald-600 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-[12px] font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (subiendoArchivo()) {
+                <svg class="animate-spin h-3.5 w-3.5 text-emerald-700" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                </svg>
+                <span>Subiendo...</span>
+                } @else {
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>Anexar</span>
+                }
+              </button>
+
+              @if (selectedFile() || archivoSubidoNombre()) {
+              <button
+                type="button"
+                (click)="limpiarArchivo()"
+                [disabled]="subiendoArchivo()"
+                class="h-9 px-3 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 text-[12px] font-medium transition-colors disabled:opacity-50"
+                title="Quitar archivo seleccionado">
+                Limpiar
+              </button>
+              }
+            </div>
+          </div>
+
+          @if (archivoSubidoNombre()) {
+          <div class="text-[11.5px] text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50/70 px-3 py-1.5 rounded border border-emerald-200/60">
+            <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>Archivo subido: <strong>{{ archivoSubidoNombre() }}</strong></span>
+          </div>
+          }
+        </div>
+      </div>
     }
     @if (facade.activeTab() === 'Observaciones') {
     <div class="space-y-4">
