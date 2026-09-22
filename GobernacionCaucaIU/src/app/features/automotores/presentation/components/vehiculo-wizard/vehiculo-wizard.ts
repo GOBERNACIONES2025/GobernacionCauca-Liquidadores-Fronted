@@ -45,7 +45,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   // ─── Estado local del wizard ──────────────────────────────────────────────
   readonly erroresPaso = signal<FieldError[]>([]);
   readonly propietarioEncontradoMsgs = signal<Record<number, string | null>>({});
-  readonly ciudadesPorPropietario = signal<Record<number, CatalogoCiudad[]>>({});
   readonly buscandoPropietarioIndex = signal<number | null>(null);
 
   // ─── Formulario ───────────────────────────────────────────────────────────
@@ -282,7 +281,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     this.configurarCascadas();
     this.erroresPaso.set([]);
     this.propietarioEncontradoMsgs.set({});
-    this.ciudadesPorPropietario.set({});
   }
 
   // ─── Creacion de FormGroup para cada propietario ──────────────────────────
@@ -297,17 +295,11 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       correoElectronico: [datos?.correoElectronico || ''],
       telefono: [datos?.telefono || ''],
       direccion: [datos?.direccion || ''],
-      departamentoId: [datos?.departamentoId || null],
-      ciudadId: [datos?.ciudadId || null],
       tipoVinculoPersonaId: [datos?.tipoVinculoPersonaId || 1],
       porcentajePropiedad: [datos?.porcentajePropiedad !== undefined ? datos.porcentajePropiedad : 100],
       fechaInicio: [datos?.fechaInicio || new Date().toISOString().split('T')[0]],
       esResponsablePrincipal: [datos?.esResponsablePrincipal !== undefined ? datos.esResponsablePrincipal : true]
     });
-
-    if (datos?.departamentoId) {
-      this.cargarCiudadesPropietario(this.propietariosArray?.length || 0, Number(datos.departamentoId));
-    }
 
     return fg;
   }
@@ -372,29 +364,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     currentControl.get('porcentajePropiedad')?.setValue(nuevoVal);
   }
 
-  cargarCiudadesPropietario(index: number, deptId: number | null): void {
-    if (!deptId) {
-      const map = { ...this.ciudadesPorPropietario() };
-      map[index] = [];
-      this.ciudadesPorPropietario.set(map);
-      this.propietariosArray.at(index)?.get('ciudadId')?.setValue(null, { emitEvent: false });
-      return;
-    }
 
-    this.facade.cargarCiudadesPorDepartamento(Number(deptId));
-    // La facade actualiza ciudadesDisponibles; guardamos copia local
-    setTimeout(() => {
-      const map = { ...this.ciudadesPorPropietario() };
-      map[index] = this.facade.ciudadesDisponibles();
-      this.ciudadesPorPropietario.set(map);
-    }, 150);
-  }
-
-  onDepartamentoChange(index: number, event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const deptId = select.value ? Number(select.value) : null;
-    this.cargarCiudadesPropietario(index, deptId);
-  }
 
   // ─── Cascadas de dependencias vehiculares ────────────────────────────────
   private configurarCascadas(): void {
@@ -520,8 +490,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
               correoElectronico: prop.correoElectronico || '',
               telefono: prop.telefono || '',
               direccion: prop.direccion || '',
-              departamentoId: prop.departamentoId ? Number(prop.departamentoId) : null,
-              ciudadId: prop.ciudadId ? Number(prop.ciudadId) : null,
               tipoVinculoPersonaId: prop.tipoVinculoId ? Number(prop.tipoVinculoId) : 1,
               porcentajePropiedad: prop.porcentajePropiedad || 100,
               fechaInicio: prop.fechaInicio || '',
@@ -543,8 +511,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     if (!pGroup) return;
     const campos = [
       'tipoDocumentoId', 'numeroDocumento', 'naturalezaJuridicaId',
-      'nombreRazonSocial', 'correoElectronico', 'telefono',
-      'direccion', 'departamentoId', 'ciudadId'
+      'nombreRazonSocial', 'correoElectronico', 'telefono', 'direccion'
     ];
     campos.forEach(c => pGroup.get(c)?.disable({ emitEvent: false }));
   }
@@ -554,8 +521,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     if (!pGroup) return;
     const campos = [
       'tipoDocumentoId', 'numeroDocumento', 'naturalezaJuridicaId',
-      'nombreRazonSocial', 'correoElectronico', 'telefono',
-      'direccion', 'departamentoId', 'ciudadId'
+      'nombreRazonSocial', 'correoElectronico', 'telefono', 'direccion'
     ];
     campos.forEach(c => pGroup.get(c)?.enable({ emitEvent: false }));
   }
@@ -591,11 +557,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
              propietario.primerApellido, propietario.segundoApellido]
               .filter(Boolean).join(' ');
 
-          const deptId = propietario.departamentoId ? Number(propietario.departamentoId) : null;
-          if (deptId) {
-            this.cargarCiudadesPropietario(index, deptId);
-          }
-
           pGroup.patchValue({
             personaId: propietario.id || propietario.personaId,
             nombreRazonSocial: nombreCompleto,
@@ -604,9 +565,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
             digitoVerificacion: propietario.digitoVerificacion || null,
             correoElectronico: propietario.correoElectronico || propietario.email || '',
             telefono: propietario.telefono || '',
-            direccion: propietario.direccion || propietario.direccionResidencia || '',
-            departamentoId: deptId,
-            ciudadId: propietario.ciudadId || propietario.municipioId || null
+            direccion: propietario.direccion || propietario.direccionResidencia || ''
           }, { emitEvent: false });
 
           this.bloquearCamposPropietario(index);
@@ -639,9 +598,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       digitoVerificacion: null,
       correoElectronico: '',
       telefono: '',
-      direccion: '',
-      departamentoId: null,
-      ciudadId: null
+      direccion: ''
     });
   }
 
@@ -768,8 +725,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
             correoElectronico: p.correoElectronico ? String(p.correoElectronico).trim() : null,
             telefono: p.telefono ? String(p.telefono).trim() : null,
             direccion: p.direccion ? String(p.direccion).trim() : null,
-            departamentoId: p.departamentoId ? Number(p.departamentoId) : null,
-            ciudadId: p.ciudadId ? Number(p.ciudadId) : null,
             tipoVinculoPersonaId: Number(p.tipoVinculoPersonaId) || 1,
             porcentajePropiedad: Number(p.porcentajePropiedad) || 100,
             fechaInicio: p.fechaInicio || new Date().toISOString().split('T')[0],
