@@ -48,6 +48,7 @@ export class VehiculosFacade {
   readonly filtroTexto = this.list.filtroTexto;
   readonly filtroEstado = this.list.filtroEstado;
   readonly filtroTipo = this.list.filtroTipo;
+  readonly filtroOrden = this.list.filtroOrden;
   readonly filteredVehiculos = this.list.filteredVehiculos;
   readonly selectedVehiculo = this.list.selectedVehiculo;
   readonly expedienteActual = this.list.expedienteActual;
@@ -140,6 +141,10 @@ export class VehiculosFacade {
 
   setFiltroTipo(tipo: string): void {
     this.list.setFiltroTipo(tipo);
+  }
+
+  setFiltroOrden(orden: 'recientes' | 'antiguos' | 'alfa_asc' | 'alfa_desc'): void {
+    this.list.setFiltroOrden(orden);
   }
 
   seleccionarVehiculo(v: VehiculoItem): void {

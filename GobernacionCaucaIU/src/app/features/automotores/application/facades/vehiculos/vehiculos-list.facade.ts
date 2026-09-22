@@ -23,6 +23,7 @@ export class VehiculosListFacade {
   readonly filtroTexto = signal<string>('');
   readonly filtroEstado = signal<string>('Todos');
   readonly filtroTipo = signal<string>('Todos');
+  readonly filtroOrden = signal<'recientes' | 'antiguos' | 'alfa_asc' | 'alfa_desc'>('recientes');
 
   // Expediente seleccionado y panel lateral
   readonly selectedVehiculo = signal<VehiculoItem | null>(null);
@@ -52,6 +53,7 @@ export class VehiculosListFacade {
     const texto = this.filtroTexto().toLowerCase().trim();
     const estado = this.filtroEstado();
     const tipo = this.filtroTipo();
+    const orden = this.filtroOrden();
 
     const normalize = (str?: string | null) => {
       if (!str) return '';
@@ -67,7 +69,7 @@ export class VehiculosListFacade {
       ? normTipo.slice(0, -2) 
       : (normTipo.length > 4 && normTipo.endsWith('s') ? normTipo.slice(0, -1) : normTipo);
 
-    return this.vehiculos().filter(v => {
+    const filtrados = this.vehiculos().filter(v => {
       const matchTexto = !texto || 
         (v.placa && v.placa.toLowerCase().includes(texto)) ||
         (v.propietario?.nombre && v.propietario.nombre.toLowerCase().includes(texto)) ||
@@ -93,6 +95,34 @@ export class VehiculosListFacade {
         ));
 
       return matchTexto && matchEstado && matchTipo;
+    });
+
+    return filtrados.slice().sort((a, b) => {
+      if (orden === 'recientes') {
+        const fechaA = a.fechaMatricula ? new Date(a.fechaMatricula).getTime() : 0;
+        const fechaB = b.fechaMatricula ? new Date(b.fechaMatricula).getTime() : 0;
+        if (fechaA > 0 && fechaB > 0 && fechaA !== fechaB) return fechaB - fechaA;
+        if (b.modelo !== a.modelo) return (b.modelo || 0) - (a.modelo || 0);
+        return (b.id || 0) - (a.id || 0);
+      }
+      if (orden === 'antiguos') {
+        const fechaA = a.fechaMatricula ? new Date(a.fechaMatricula).getTime() : 0;
+        const fechaB = b.fechaMatricula ? new Date(b.fechaMatricula).getTime() : 0;
+        if (fechaA > 0 && fechaB > 0 && fechaA !== fechaB) return fechaA - fechaB;
+        if (a.modelo !== b.modelo) return (a.modelo || 0) - (b.modelo || 0);
+        return (a.id || 0) - (b.id || 0);
+      }
+      if (orden === 'alfa_asc') {
+        const strA = (a.placa || a.marca || '').trim();
+        const strB = (b.placa || b.marca || '').trim();
+        return strA.localeCompare(strB, 'es', { sensitivity: 'base' });
+      }
+      if (orden === 'alfa_desc') {
+        const strA = (a.placa || a.marca || '').trim();
+        const strB = (b.placa || b.marca || '').trim();
+        return strB.localeCompare(strA, 'es', { sensitivity: 'base' });
+      }
+      return 0;
     });
   });
 
@@ -158,6 +188,10 @@ export class VehiculosListFacade {
   setFiltroTipo(tipo: string): void {
     this.filtroTipo.set(tipo);
     this.cargarVehiculos(1, this.pageSize());
+  }
+
+  setFiltroOrden(orden: 'recientes' | 'antiguos' | 'alfa_asc' | 'alfa_desc'): void {
+    this.filtroOrden.set(orden);
   }
 
   seleccionarVehiculo(v: VehiculoItem): void {

@@ -1,11 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges, inject, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, OnChanges, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Contribuyente } from '../../../domain/models/contribuyente.model';
 import { ContribuyentesFacade } from '../../../application/facades/contribuyentes.facade';
 import { ContribuyenteValidator } from '../../../application/validators/contribuyentes/contribuyente.validator';
 import { FieldError } from '../../../application/validators/validation-result';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-contribuyente-form',
@@ -13,7 +12,7 @@ import { Subscription } from 'rxjs';
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './contribuyente-form.html'
 })
-export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy {
+export class ContribuyenteFormComponent implements OnInit, OnChanges {
   public facade = inject(ContribuyentesFacade);
   private fb = inject(FormBuilder);
   /** Validator desacoplado — equivalente a FluentValidation en C# */
@@ -64,7 +63,6 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
   @Output() save = new EventEmitter<any>();
 
   form: FormGroup;
-  private deptSub?: Subscription;
 
   constructor() {
     this.form = this.fb.group({
@@ -81,10 +79,6 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
       telefono: ['', Validators.maxLength(80)],
       direccion: ['', Validators.maxLength(250)],
       
-      // Selectores en cascada (Opcionales si la BD no los exige de inmediato)
-      departamentoId: [null],
-      ciudadId: [{ value: null, disabled: true }],
-      
       // Estado (Visual)
       estadoTributario: ['Al día']
     });
@@ -92,24 +86,6 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
 
   ngOnInit(): void {
     this.facade.cargarCatalogos();
-
-    // Lógica en cascada: Departamento -> Municipios
-    this.deptSub = this.form.get('departamentoId')?.valueChanges.subscribe(deptId => {
-      const ciudadControl = this.form.get('ciudadId');
-      if (deptId !== null && deptId !== undefined && deptId !== '') {
-        const idNum = Number(deptId);
-        ciudadControl?.enable();
-        this.facade.cargarCiudades(idNum);
-      } else {
-        ciudadControl?.setValue(null);
-        ciudadControl?.disable();
-        this.facade.limpiarCiudades();
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.deptSub?.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -129,24 +105,11 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
           nombre = partes.join(' ');
         }
 
-        const deptId = this.contribuyenteToEdit.departamentoId || null;
-        const ciudadId = this.contribuyenteToEdit.ciudadId || null;
-
-        if (deptId) {
-          this.form.get('ciudadId')?.enable();
-          this.facade.cargarCiudades(deptId);
-        } else {
-          this.form.get('ciudadId')?.disable();
-          this.facade.limpiarCiudades();
-        }
-
         this.form.patchValue({
           ...this.contribuyenteToEdit,
           tipoDocumentoId: this.contribuyenteToEdit.tipoDocumentoId || (this.contribuyenteToEdit.naturalezaJuridicaId === 2 ? 2 : 1),
           nombreRazonSocial: nombre,
           estadoTributario: this.contribuyenteToEdit.cantidadDeudas > 0 ? 'Moroso' : 'Al día',
-          departamentoId: deptId,
-          ciudadId: ciudadId,
           direccion: this.contribuyenteToEdit.direccion || ''
         });
 
@@ -157,13 +120,9 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
         this.form.get('estadoTributario')?.disable();
       } else {
         this.form.enable();
-        this.form.get('ciudadId')?.disable();
-        this.facade.limpiarCiudades();
         this.form.reset({
           tipoDocumentoId: 1,
           naturalezaJuridicaId: 1,
-          departamentoId: null,
-          ciudadId: null,
           estadoTributario: 'Al día'
         });
       }
@@ -186,7 +145,6 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
     this._erroresForm = [];
 
     const formVal = this.form.getRawValue();
-    const selectedCiudadObj = this.facade.ciudades().find(c => c.id == formVal.ciudadId);
 
     const formData: any = {
       id: this.contribuyenteToEdit ? this.contribuyenteToEdit.id : undefined,
@@ -197,10 +155,6 @@ export class ContribuyenteFormComponent implements OnInit, OnChanges, OnDestroy 
       correoElectronico: formVal.correoElectronico || null,
       telefono: formVal.telefono || null,
       direccion: formVal.direccion || null,
-      departamentoId: formVal.departamentoId ? Number(formVal.departamentoId) : null,
-      ciudadId: formVal.ciudadId ? Number(formVal.ciudadId) : null,
-      municipioId: formVal.ciudadId ? Number(formVal.ciudadId) : null, // Compatibilidad con backend si usa MunicipioId
-      ciudad: selectedCiudadObj ? selectedCiudadObj.nombre : (this.contribuyenteToEdit?.ciudad || null),
       activo: this.contribuyenteToEdit ? this.contribuyenteToEdit.activo : true
     };
 
