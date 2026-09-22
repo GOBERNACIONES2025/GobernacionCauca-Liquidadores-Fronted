@@ -7,6 +7,7 @@ import { CatalogoVehicularFacade } from '../../../../application/facades/catalog
 import { ValoresEstatalesFacade } from '../../../../application/facades/valores-estatales.facade';
 import { TarifasTributariasFacade } from '../../../../application/facades/tarifas-tributarias.facade';
 import { ExencionesTributariasFacade } from '../../../../application/facades/exenciones-tributarias.facade';
+import { VigenciasFiscalesFacade } from '../../../../application/facades/vigencias-fiscales.facade';
 
 export interface CatalogItem {
   name: string;
@@ -34,6 +35,7 @@ export class AutomotoresConfigSidebar {
   public valoresFacade = inject(ValoresEstatalesFacade);
   public tarifasFacade = inject(TarifasTributariasFacade);
   public exencionesFacade = inject(ExencionesTributariasFacade);
+  public vigenciasFacade = inject(VigenciasFiscalesFacade);
   private router = inject(Router);
 
   readonly closeSidebar = output<void>();
@@ -170,6 +172,11 @@ export class AutomotoresConfigSidebar {
       name: 'Reglas Tributarias',
       icon: 'coins',
       items: [
+        {
+          name: 'Vigencias Fiscales',
+          route: '/automotores/configuracion/reglas-tributarias/vigencias',
+          count: this.vigenciasFacade.totalVigencias()
+        },
         {
           name: 'Tarifas Tributarias',
           route: '/automotores/configuracion/reglas-tributarias/tarifas',

@@ -319,6 +319,7 @@ export class BreadcrumbService {
       'tipos-documento': 'Tipos de Documento',
       'naturalezas-juridicas': 'Naturalezas Jurídicas',
       'pendientes-aprobacion': 'Pendientes de Aprobación',
+      'vigencias': 'Vigencias Fiscales',
       'tarifas': 'Tarifas Tributarias',
       'exenciones': 'Exenciones Tributarias',
       'uvt': 'UVT Histórico',

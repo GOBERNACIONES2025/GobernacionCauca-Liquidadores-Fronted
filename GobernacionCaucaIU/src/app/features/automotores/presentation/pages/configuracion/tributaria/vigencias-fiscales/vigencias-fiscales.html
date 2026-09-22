@@ -1,0 +1,528 @@
+<div class="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Encabezado de la página -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+          <i class="fa-solid fa-calendar-days text-[10px]"></i>
+          Reglas Tributarias
+        </span>
+        <span class="text-xs text-slate-400">•</span>
+        <span class="text-xs font-medium text-slate-500">general.VigenciasFiscales</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#0F3067] text-white flex items-center justify-center shadow-xs">
+          <i class="fa-solid fa-calendar-check text-sm"></i>
+        </div>
+        Vigencias Fiscales
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1">
+        Administración de periodos fiscales y años gravables para liquidaciones, tarifas y exenciones vehiculares.
+      </p>
+    </div>
+
+    <!-- Botón Crear & Recargar -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <button
+        type="button"
+        (click)="facade.cargarVigencias()"
+        class="p-2.5 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition shadow-xs cursor-pointer"
+        title="Recargar datos"
+      >
+        <i class="fa-solid fa-rotate-right text-sm" [class.fa-spin]="facade.loading()"></i>
+      </button>
+
+      <button
+        type="button"
+        (click)="abrirCrear()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0F3067] hover:bg-[#1b53ad] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
+      >
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>Nueva Vigencia</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs / Tarjetas Informativas -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-calendar-days"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Vigencias</p>
+        <p class="text-2xl font-bold text-slate-800">{{ facade.totalVigencias() }}</p>
+        <p class="text-[11px] text-slate-500">Años registrados</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Vigencias Activas</p>
+        <p class="text-2xl font-bold text-emerald-700">{{ facade.totalActivas() }}</p>
+        <p class="text-[11px] text-emerald-600">Disponibles para liquidar</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Vigencias Inactivas</p>
+        <p class="text-2xl font-bold text-slate-600">{{ facade.totalInactivas() }}</p>
+        <p class="text-[11px] text-slate-400">Históricas / Archivadas</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros & Búsqueda -->
+  <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <!-- Búsqueda por texto -->
+      <div class="md:col-span-2 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </div>
+        <input
+          type="text"
+          [ngModel]="facade.searchTerm()"
+          (ngModelChange)="onSearch($event)"
+          placeholder="Buscar vigencia por año..."
+          class="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
+        />
+      </div>
+
+      <!-- Filtro Estado -->
+      <div>
+        <select
+          [ngModel]="facade.estadoFiltro()"
+          (ngModelChange)="onFilterEstado($event)"
+          class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:bg-white focus:border-[#0F3067] transition shadow-2xs"
+        >
+          <option value="TODOS">Todos los Estados</option>
+          <option value="ACTIVAS">Solo Activas</option>
+          <option value="INACTIVAS">Solo Inactivas</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Vigencias -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+    @if (facade.loading()) {
+      <div class="p-12 text-center text-slate-500">
+        <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-600 mb-3"></i>
+        <p class="text-sm font-medium">Cargando vigencias fiscales...</p>
+      </div>
+    } @else if (facade.vigencias().length === 0) {
+      <div class="p-12 text-center text-slate-500">
+        <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+          <i class="fa-regular fa-calendar-xmark text-2xl"></i>
+        </div>
+        <h3 class="text-base font-semibold text-slate-800">No se encontraron vigencias fiscales</h3>
+        <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+          No hay registros que coincidan con los filtros aplicados o aún no se han configurado vigencias.
+        </p>
+        <button
+          type="button"
+          (click)="abrirCrear()"
+          class="mt-4 inline-flex items-center gap-2 px-3.5 py-2 bg-[#0F3067] text-white text-xs font-semibold rounded-xl hover:bg-[#1b53ad] transition cursor-pointer"
+        >
+          <i class="fa-solid fa-plus"></i>
+          <span>Registrar Primera Vigencia</span>
+        </button>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+              <th class="py-3 px-4">Año Fiscal</th>
+              <th class="py-3 px-4">Fecha Inicio</th>
+              <th class="py-3 px-4">Fecha Fin</th>
+              <th class="py-3 px-4 text-center">Estado</th>
+              <th class="py-3 px-4">Última Modificación</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
+            @for (item of facade.vigencias(); track item.id) {
+              <tr class="hover:bg-slate-50/80 transition-colors group">
+                <!-- Año Fiscal -->
+                <td class="py-3.5 px-4 font-bold text-slate-900">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-sm font-bold text-slate-900">{{ item.anio }}</span>
+                    @if (item.activa) {
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Activa
+                      </span>
+                    }
+                  </div>
+                </td>
+
+                <!-- Fecha Inicio -->
+                <td class="py-3.5 px-4 text-slate-600">
+                  {{ item.fechaInicio || ('01/01/' + item.anio) }}
+                </td>
+
+                <!-- Fecha Fin -->
+                <td class="py-3.5 px-4 text-slate-600">
+                  {{ item.fechaFin || ('31/12/' + item.anio) }}
+                </td>
+
+                <!-- Estado Toggle / Switch -->
+                <td class="py-3.5 px-4 text-center">
+                  <button
+                    type="button"
+                    (click)="toggleActiva(item)"
+                    class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
+                    [class.bg-emerald-600]="item.activa"
+                    [class.bg-slate-300]="!item.activa"
+                    [title]="item.activa ? 'Desactivar vigencia' : 'Activar vigencia'"
+                  >
+                    <span
+                      aria-hidden="true"
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      [class.translate-x-4]="item.activa"
+                      [class.translate-x-0]="!item.activa"
+                    ></span>
+                  </button>
+                </td>
+
+                <!-- Auditoría -->
+                <td class="py-3.5 px-4 text-slate-500 text-[11px]">
+                  <div>{{ item.updatedAt ? (item.updatedAt | date:'mediumDate') : (item.createdAt ? (item.createdAt | date:'mediumDate') : 'Sin registro') }}</div>
+                  <span class="text-[10px] text-slate-400">{{ item.updatedAt ? (item.updatedAt | date:'shortTime') : '' }}</span>
+                </td>
+
+                <!-- Acciones -->
+                <td class="py-3.5 px-4 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      (click)="abrirDetalles(item)"
+                      class="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                      title="Ver detalles"
+                    >
+                      <i class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="abrirEditar(item)"
+                      class="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                      title="Editar vigencia"
+                    >
+                      <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="abrirConfirmarEliminar(item)"
+                      class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                      title="Eliminar vigencia"
+                    >
+                      <i class="fa-solid fa-trash text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="p-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div class="flex items-center gap-2">
+          <span>Mostrar</span>
+          <select
+            [ngModel]="facade.pageSize()"
+            (ngModelChange)="onPageSizeChange($event)"
+            class="px-2 py-1 bg-white border border-slate-300 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-[#0F3067]"
+          >
+            <option [value]="5">5</option>
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+          <span>por página • Total: <strong>{{ facade.totalCount() }}</strong></span>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <button
+            type="button"
+            [disabled]="facade.pageNumber() <= 1"
+            (click)="onPageChange(facade.pageNumber() - 1)"
+            class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            <i class="fa-solid fa-chevron-left text-xs"></i>
+          </button>
+          <span class="px-3 py-1 font-semibold text-slate-700 bg-slate-50 rounded-lg border border-slate-200">
+            Página {{ facade.pageNumber() }} de {{ facade.totalPages() }}
+          </span>
+          <button
+            type="button"
+            [disabled]="facade.pageNumber() >= facade.totalPages()"
+            (click)="onPageChange(facade.pageNumber() + 1)"
+            class="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- SLIDE-OVER (DRAWER) CREAR / EDITAR VIGENCIA FISCAL                        -->
+<!-- ========================================================================= -->
+@if (isSlideOverOpen()) {
+  <div class="fixed inset-0 z-50 overflow-hidden">
+    <!-- Backdrop con blur -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" (click)="cerrarSlideOver()"></div>
+
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+        <!-- Header SlideOver -->
+        <div class="px-6 py-5 bg-[#0F3067] text-white flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <i class="fa-solid" [class.fa-plus]="!isEditMode()" [class.fa-pen-to-square]="isEditMode()"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold">{{ isEditMode() ? 'Editar Vigencia Fiscal' : 'Nueva Vigencia Fiscal' }}</h2>
+              <p class="text-xs text-blue-200">Definición de año gravable y fechas del periodo</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="cerrarSlideOver()"
+            class="text-white/70 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Formulario -->
+        <form [formGroup]="vigenciaForm" (ngSubmit)="guardarVigencia()" class="flex-1 overflow-y-auto p-6 space-y-5">
+          <!-- Año Fiscal -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Año Fiscal (Vigencia) <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              formControlName="anio"
+              (change)="onAnioChange()"
+              placeholder="Ej. 2026"
+              min="1900"
+              max="2100"
+              class="w-full px-3.5 py-2.5 text-sm bg-white border rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 transition"
+              [class.border-red-400]="vigenciaForm.get('anio')?.invalid && vigenciaForm.get('anio')?.touched"
+              [class.border-slate-300]="!vigenciaForm.get('anio')?.invalid || !vigenciaForm.get('anio')?.touched"
+            />
+            @if (vigenciaForm.get('anio')?.invalid && vigenciaForm.get('anio')?.touched) {
+              <p class="text-[11px] text-red-500 mt-1 flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                Ingrese un año válido entre 1900 y 2100.
+              </p>
+            }
+          </div>
+
+          <!-- Fecha de Inicio -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Fecha de Inicio del Periodo
+            </label>
+            <input
+              type="date"
+              formControlName="fechaInicio"
+              class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 transition"
+            />
+            <p class="text-[11px] text-slate-400 mt-1">Por defecto: 01 de Enero del año fiscal.</p>
+          </div>
+
+          <!-- Fecha de Fin -->
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+              Fecha de Fin del Periodo
+            </label>
+            <input
+              type="date"
+              formControlName="fechaFin"
+              class="w-full px-3.5 py-2.5 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 transition"
+            />
+            <p class="text-[11px] text-slate-400 mt-1">Por defecto: 31 de Diciembre del año fiscal.</p>
+          </div>
+
+          <!-- Estado Activa Switch -->
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-slate-800">Estado Activo</p>
+              <p class="text-[11px] text-slate-500">Permite usar la vigencia en liquidaciones vehiculares.</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" formControlName="activa" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </label>
+          </div>
+        </form>
+
+        <!-- Footer Botones -->
+        <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2.5 shrink-0">
+          <button
+            type="button"
+            (click)="cerrarSlideOver()"
+            class="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200/70 rounded-xl transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="guardarVigencia()"
+            [disabled]="facade.loading()"
+            class="inline-flex items-center gap-2 px-5 py-2 bg-[#0F3067] hover:bg-[#1b53ad] text-white text-xs font-bold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+          >
+            @if (facade.loading()) {
+              <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+            }
+            <span>{{ isEditMode() ? 'Actualizar Vigencia' : 'Crear Vigencia' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL DE DETALLES DE VIGENCIA                                            -->
+<!-- ========================================================================= -->
+@if (isDetailsModalOpen() && selectedItem()) {
+  <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200">
+      <!-- Header -->
+      <div class="px-6 py-5 bg-[#0F3067] text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center font-black text-lg">
+            {{ selectedItem()?.anio }}
+          </div>
+          <div>
+            <h3 class="text-base font-bold">Detalle de Vigencia Fiscal</h3>
+            <p class="text-xs text-blue-200">Información técnica y configuración general</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="cerrarDetallesModal()"
+          class="text-white/70 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+        >
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Contenido -->
+      <div class="p-6 space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-4">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 font-medium block">ID Sistema</span>
+            <span class="font-bold text-slate-800 text-sm">#{{ selectedItem()?.id }}</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 font-medium block">Año Fiscal</span>
+            <span class="font-bold text-blue-900 text-sm">{{ selectedItem()?.anio }}</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 font-medium block">Fecha Inicio</span>
+            <span class="font-semibold text-slate-800">{{ selectedItem()?.fechaInicio || ('01/01/' + selectedItem()?.anio) }}</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 font-medium block">Fecha Fin</span>
+            <span class="font-semibold text-slate-800">{{ selectedItem()?.fechaFin || ('31/12/' + selectedItem()?.anio) }}</span>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+          <div>
+            <span class="text-slate-400 font-medium block">Estado en el Sistema</span>
+            <span class="font-bold text-slate-800">
+              {{ selectedItem()?.activa ? 'Vigencia Activa' : 'Vigencia Inactiva / Histórica' }}
+            </span>
+          </div>
+          <span
+            class="px-2.5 py-1 rounded-full text-xs font-bold"
+            [class.bg-emerald-100]="selectedItem()?.activa"
+            [class.text-emerald-800]="selectedItem()?.activa"
+            [class.bg-slate-200]="!selectedItem()?.activa"
+            [class.text-slate-700]="!selectedItem()?.activa"
+          >
+            {{ selectedItem()?.activa ? 'Activa' : 'Inactiva' }}
+          </span>
+        </div>
+
+        <div class="border-t border-slate-100 pt-3 text-[11px] text-slate-400 space-y-1">
+          <p><strong>Fecha de Creación:</strong> {{ selectedItem()?.createdAt ? (selectedItem()?.createdAt | date:'medium') : 'No disponible' }}</p>
+          <p><strong>Última Actualización:</strong> {{ selectedItem()?.updatedAt ? (selectedItem()?.updatedAt | date:'medium') : 'Sin modificaciones' }}</p>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+        <button
+          type="button"
+          (click)="cerrarDetallesModal()"
+          class="px-4 py-2 bg-slate-800 text-white font-semibold text-xs rounded-xl hover:bg-slate-900 transition cursor-pointer"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL CONFIRMACIÓN DE ELIMINACIÓN                                         -->
+<!-- ========================================================================= -->
+@if (itemParaEliminar()) {
+  <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-150">
+      <div class="p-6 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4 border border-red-100">
+          <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">¿Eliminar Vigencia Fiscal {{ itemParaEliminar()?.anio }}?</h3>
+        <p class="text-xs text-slate-500 mt-2">
+          Esta acción removerá la vigencia fiscal del sistema. Si posee registros vinculados (liquidaciones, tarifas o calendarios), la operación será rechazada por integridad referencial.
+        </p>
+
+        <div class="mt-6 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            (click)="cerrarConfirmarEliminar()"
+            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarEliminacion()"
+            [disabled]="facade.loading()"
+            class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+          >
+            @if (facade.loading()) {
+              <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+            }
+            <span>Confirmar Eliminación</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
