@@ -11,7 +11,7 @@
         <span class="text-xs font-medium text-slate-500">general.ExencionesTributarias</span>
       </div>
       <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center shadow-sm shadow-blue-500/20">
+        <div class="w-9 h-9 rounded-xl bg-[#0F3067] text-white flex items-center justify-center shadow-xs">
           <i class="fa-solid fa-shield-halved text-sm"></i>
         </div>
         Exenciones Tributarias
@@ -35,7 +35,7 @@
       <button
         type="button"
         (click)="abrirCrear()"
-        class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm hover:shadow transition cursor-pointer"
+        class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0F3067] hover:bg-[#1b53ad] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
       >
         <i class="fa-solid fa-plus text-xs"></i>
         <span>Nueva Exención</span>
@@ -103,7 +103,7 @@
           [ngModel]="facade.searchTerm()"
           (ngModelChange)="onSearch($event)"
           placeholder="Buscar por código, nombre..."
-          class="w-full pl-9 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition"
+          class="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
         />
       </div>
 
@@ -112,7 +112,7 @@
         <select
           [ngModel]="facade.vigenciaFiltro()"
           (ngModelChange)="onFilterVigencia($event)"
-          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-blue-600 transition"
+          class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:bg-white focus:border-[#0F3067] transition shadow-2xs"
         >
           <option value="TODOS">Todas las Vigencias</option>
           @for (v of facade.vigencias(); track v.id) {
@@ -126,7 +126,7 @@
         <select
           [ngModel]="facade.ambitoFiltro()"
           (ngModelChange)="onFilterAmbito($event)"
-          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-blue-600 transition"
+          class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:bg-white focus:border-[#0F3067] transition shadow-2xs"
         >
           <option value="TODOS">Todos los Ámbitos</option>
           @for (amb of ambitosDisponibles; track amb) {
@@ -140,7 +140,7 @@
         <select
           [ngModel]="facade.tipoBeneficioFiltro()"
           (ngModelChange)="onFilterTipoBeneficio($event)"
-          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-blue-600 transition"
+          class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:bg-white focus:border-[#0F3067] transition shadow-2xs"
         >
           <option value="TODOS">Todos los Tipos</option>
           @for (t of tiposBeneficioDisponibles; track t) {
@@ -154,7 +154,7 @@
         <select
           [ngModel]="facade.estadoFiltro()"
           (ngModelChange)="onFilterEstado($event)"
-          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl text-slate-700 focus:outline-none focus:bg-white focus:border-blue-600 transition"
+          class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:bg-white focus:border-[#0F3067] transition shadow-2xs"
         >
           <option value="TODOS">Todos los Estados</option>
           <option value="ACTIVOS">Solo Activas</option>
@@ -403,26 +403,26 @@
         <!-- Código y Nombre -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Código Único <span class="text-rose-500">*</span>
             </label>
             <input
               type="text"
               formControlName="codigo"
               placeholder="Ej. EX-ELEC-2026"
-              class="w-full px-3 py-2 text-xs uppercase font-mono font-bold bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs uppercase font-mono font-bold bg-white text-slate-800 border border-slate-300 rounded-xl placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             />
           </div>
 
           <div class="sm:col-span-2">
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Nombre de la Exención <span class="text-rose-500">*</span>
             </label>
             <input
               type="text"
               formControlName="nombre"
               placeholder="Ej. Exención Vehículos Eléctricos e Híbridos"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             />
           </div>
         </div>
@@ -430,31 +430,31 @@
         <!-- Vigencia Fiscal y Norma Tributaria -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Vigencia Fiscal <span class="text-rose-500">*</span>
             </label>
             <select
               formControlName="vigenciaFiscalId"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             >
-              <option [ngValue]="null" disabled>Seleccione vigencia</option>
+              <option [ngValue]="null" disabled class="text-slate-400 font-normal">Seleccione vigencia</option>
               @for (v of facade.vigencias(); track v.id) {
-                <option [value]="v.id">{{ v.anio || v.nombre || v.id }}</option>
+                <option [value]="v.id" class="text-slate-800 font-medium">{{ v.anio || v.nombre || v.id }}</option>
               }
             </select>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Norma Tributaria <span class="text-rose-500">*</span>
             </label>
             <select
               formControlName="normaTributariaId"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             >
-              <option [ngValue]="null" disabled>Seleccione norma</option>
+              <option [ngValue]="null" disabled class="text-slate-400 font-normal">Seleccione norma</option>
               @for (n of facade.normas(); track n.id) {
-                <option [value]="n.id">{{ n.nombre || n.codigo || 'Norma #' + n.id }}</option>
+                <option [value]="n.id" class="text-slate-800 font-medium">{{ n.nombre || n.codigo || 'Norma #' + n.id }}</option>
               }
             </select>
           </div>
@@ -463,138 +463,138 @@
         <!-- Departamento y Ámbito -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Departamento <span class="text-rose-500">*</span>
             </label>
             <select
               formControlName="departamentoId"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             >
-              <option [ngValue]="null" disabled>Seleccione departamento</option>
+              <option [ngValue]="null" disabled class="text-slate-400 font-normal">Seleccione departamento</option>
               @for (d of facade.departamentos(); track d.id) {
-                <option [value]="d.id">{{ d.nombre }}</option>
+                <option [value]="d.id" class="text-slate-800 font-medium">{{ d.nombre }}</option>
               }
             </select>
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Ámbito de Aplicación <span class="text-rose-500">*</span>
             </label>
             <select
               formControlName="ambito"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             >
               @for (amb of ambitosDisponibles; track amb) {
-                <option [value]="amb">{{ amb }}</option>
+                <option [value]="amb" class="text-slate-800 font-medium">{{ amb }}</option>
               }
             </select>
           </div>
         </div>
 
         <!-- Tipo de Beneficio y % de Exoneración -->
-        <div class="p-4 bg-blue-50/40 rounded-xl border border-blue-200/60 space-y-3">
-          <p class="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+        <div class="p-4 bg-blue-50/50 rounded-xl border border-blue-200/80 space-y-3">
+          <p class="text-xs font-bold text-[#0F3067] uppercase tracking-wider flex items-center gap-2">
             <i class="fa-solid fa-gift text-blue-600"></i>
             Tipo y Porcentaje de Beneficio
           </p>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Tipo de Beneficio *</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Beneficio *</label>
               <select
                 formControlName="tipoBeneficio"
-                class="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-blue-600 transition"
+                class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
               >
                 @for (t of tiposBeneficioDisponibles; track t) {
-                  <option [value]="t">{{ t }}</option>
+                  <option [value]="t" class="text-slate-800 font-medium">{{ t }}</option>
                 }
               </select>
             </div>
 
             <div>
-              <label class="block text-[11px] font-semibold text-slate-700 mb-1">Porcentaje Exoneración (%) *</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Porcentaje Exoneración (%) *</label>
               <div class="relative">
                 <input
                   type="number"
                   step="0.01"
                   formControlName="porcentajeExoneracion"
                   placeholder="100"
-                  class="w-full pl-3 pr-8 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold text-blue-700 focus:outline-none focus:border-blue-600 transition"
+                  class="w-full pl-3 pr-8 py-2 text-xs font-bold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
                 />
-                <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-slate-400 pointer-events-none">%</span>
+                <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-bold text-slate-500 pointer-events-none">%</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Criterios Opcionales de Segmentación -->
-        <div class="p-4 bg-slate-50/80 rounded-xl border border-slate-200/80 space-y-3">
-          <p class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-            <i class="fa-solid fa-filter text-indigo-600"></i>
+        <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+          <p class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-filter text-blue-600"></i>
             Criterios de Aplicabilidad (Opcionales)
           </p>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Naturaleza Jurídica</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Naturaleza Jurídica</label>
               <select
                 formControlName="naturalezaJuridicaId"
-                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-blue-600 transition"
+                class="w-full px-2.5 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-lg focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
               >
-                <option [ngValue]="null">Todas las Naturalezas (General)</option>
+                <option [ngValue]="null" class="text-slate-600 font-medium">Todas las Naturalezas (General)</option>
                 @for (nat of facade.naturalezasJuridicas(); track nat.id) {
-                  <option [value]="nat.id">{{ nat.nombre || nat.codigo }}</option>
+                  <option [value]="nat.id" class="text-slate-800 font-medium">{{ nat.nombre || nat.codigo }}</option>
                 }
               </select>
             </div>
 
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Clase de Vehículo</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Clase de Vehículo</label>
               <select
                 formControlName="claseVehiculoId"
-                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-blue-600 transition"
+                class="w-full px-2.5 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-lg focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
               >
-                <option [ngValue]="null">Todas las Clases</option>
+                <option [ngValue]="null" class="text-slate-600 font-medium">Todas las Clases</option>
                 @for (c of facade.clasesVehiculo(); track c.id) {
-                  <option [value]="c.id">{{ c.nombre }}</option>
+                  <option [value]="c.id" class="text-slate-800 font-medium">{{ c.nombre }}</option>
                 }
               </select>
             </div>
 
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Servicio de Vehículo</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Servicio de Vehículo</label>
               <select
                 formControlName="servicioVehiculoId"
-                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-blue-600 transition"
+                class="w-full px-2.5 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-lg focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
               >
-                <option [ngValue]="null">Todos los Servicios</option>
+                <option [ngValue]="null" class="text-slate-600 font-medium">Todos los Servicios</option>
                 @for (s of facade.serviciosVehiculo(); track s.id) {
-                  <option [value]="s.id">{{ s.nombre }}</option>
+                  <option [value]="s.id" class="text-slate-800 font-medium">{{ s.nombre }}</option>
                 }
               </select>
             </div>
 
             <div>
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Tipo de Combustible</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Tipo de Combustible</label>
               <select
                 formControlName="combustibleId"
-                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-blue-600 transition"
+                class="w-full px-2.5 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-lg focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
               >
-                <option [ngValue]="null">Todos los Combustibles</option>
+                <option [ngValue]="null" class="text-slate-600 font-medium">Todos los Combustibles</option>
                 @for (comb of facade.combustibles(); track comb.id) {
-                  <option [value]="comb.id">{{ comb.nombre }}</option>
+                  <option [value]="comb.id" class="text-slate-800 font-medium">{{ comb.nombre }}</option>
                 }
               </select>
             </div>
 
             <div class="sm:col-span-2">
-              <label class="block text-[11px] font-semibold text-slate-600 mb-1">Antigüedad Mínima (Años)</label>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">Antigüedad Mínima (Años)</label>
               <input
                 type="number"
                 formControlName="antiguedadMinimaAnios"
                 placeholder="Ej. 20 (Para vehículos clásicos/antiguos)"
-                class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-blue-600 transition"
+                class="w-full px-2.5 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
               />
             </div>
           </div>
@@ -603,37 +603,37 @@
         <!-- Periodo de Vigencia -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Fecha Inicio Vigencia <span class="text-rose-500">*</span>
             </label>
             <input
               type="date"
               formControlName="fechaInicioVigencia"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             />
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-700 mb-1">
+            <label class="block text-xs font-bold text-slate-800 mb-1">
               Fecha Fin Vigencia (Opcional)
             </label>
             <input
               type="date"
               formControlName="fechaFinVigencia"
-              class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:bg-white focus:border-blue-600 transition"
+              class="w-full px-3 py-2 text-xs font-semibold bg-white text-slate-800 border border-slate-300 rounded-xl focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
             />
           </div>
         </div>
 
         <!-- Estado Activo -->
-        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <div class="flex items-center justify-between p-3.5 bg-slate-50 rounded-xl border border-slate-200">
           <div>
-            <p class="text-xs font-bold text-slate-700">Estado de la Exención</p>
-            <p class="text-[11px] text-slate-400">Si está inactiva no se reconocerá durante la liquidación automática</p>
+            <p class="text-xs font-bold text-slate-800">Estado de la Exención</p>
+            <p class="text-[11px] text-slate-500">Si está inactiva no se reconocerá durante la liquidación automática</p>
           </div>
           <label class="relative inline-flex items-center cursor-pointer">
             <input type="checkbox" formControlName="activa" class="sr-only peer" />
-            <div class="w-10 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <div class="w-10 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F3067]"></div>
           </label>
         </div>
       </form>
@@ -651,7 +651,7 @@
           type="button"
           (click)="guardarExencion()"
           [disabled]="facade.loading()"
-          class="px-5 py-2 text-xs font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
+          class="px-5 py-2 text-xs font-semibold text-white bg-[#0F3067] hover:bg-[#1b53ad] rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
         >
           @if (facade.loading()) {
             <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>

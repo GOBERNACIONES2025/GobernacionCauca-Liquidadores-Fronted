@@ -147,59 +147,6 @@
             }
           </div>
 
-          <!-- Departamento (Cascada) -->
-          <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-              Departamento <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select formControlName="departamentoId"
-                      [class.border-red-400]="hasError('departamentoId')"
-                      class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer">
-                <option [ngValue]="null" disabled selected>Seleccione Departamento...</option>
-                @for (dept of facade.departamentos(); track dept.id) {
-                  <option [ngValue]="dept.id">{{ dept.nombre }}</option>
-                }
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-600">
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-            </div>
-            @if (hasError('departamentoId')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('departamentoId') }}</span>
-            }
-          </div>
-
-          <!-- Ciudad / Municipio (Cascada) -->
-          <div>
-            <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-              Ciudad / Municipio <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select formControlName="ciudadId"
-                      [class.border-red-400]="hasError('ciudadId')"
-                      class="w-full h-10 rounded-md border border-slate-300 px-3 pr-8 text-[13px] text-slate-700 bg-white focus:border-[#70b238] focus:ring-1 focus:ring-[#70b238] outline-none transition-all appearance-none cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed">
-                <option [ngValue]="null" disabled selected>{{ form.get('ciudadId')?.disabled ? 'Seleccione primero un departamento...' : 'Seleccione Municipio...' }}</option>
-                @for (cd of facade.ciudades(); track cd.id) {
-                  <option [ngValue]="cd.id">{{ cd.nombre }}</option>
-                }
-              </select>
-              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-600">
-                @if (facade.ciudadesLoading()) {
-                  <svg class="animate-spin h-4 w-4 text-[#70b238]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                } @else {
-                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                }
-              </div>
-            </div>
-            @if (hasError('ciudadId')) {
-              <span class="text-[11px] text-red-500 mt-0.5 block font-medium">{{ getError('ciudadId') }}</span>
-            }
-          </div>
-
           <!-- Estado Tributario -->
           <div class="md:col-span-2">
             <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">

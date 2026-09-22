@@ -72,6 +72,17 @@
               <option value="TRACTOCAMIONES">Tractocamiones</option>
             </select>
 
+            <select 
+              [ngModel]="facade.filtroOrden()" 
+              (ngModelChange)="facade.setFiltroOrden($event)"
+              class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b] flex-1 sm:flex-none"
+              title="Ordenar listado de vehículos">
+              <option value="recientes">Más recientes</option>
+              <option value="antiguos">Más antiguos</option>
+              <option value="alfa_asc">Alfabéticamente (A - Z)</option>
+              <option value="alfa_desc">Alfabéticamente (Z - A)</option>
+            </select>
+
             <span class="tooltip-wrap inline-flex shrink-0">
               <button 
                 type="button" 

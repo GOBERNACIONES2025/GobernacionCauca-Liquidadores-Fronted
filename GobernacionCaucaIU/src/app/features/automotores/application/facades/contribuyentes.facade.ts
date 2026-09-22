@@ -324,15 +324,10 @@ export class ContribuyentesFacade {
     this.catalogosLoading.set(true);
 
     forkJoin({
-      departamentos: this.departamentosApi.getDepartamentos().pipe(catchError(() => of(null))),
       tiposDoc: this.catalogoApi.getTiposDocumento().pipe(catchError(() => of(null))),
       naturalezas: this.catalogoApi.getNaturalezasJuridicas().pipe(catchError(() => of(null)))
     }).subscribe({
-      next: ({ departamentos, tiposDoc, naturalezas }) => {
-        // Departamentos
-        const deptData = (departamentos && 'data' in departamentos && departamentos.data) ? departamentos.data : (Array.isArray(departamentos) ? departamentos : null);
-        this.departamentos.set(deptData && deptData.length > 0 ? deptData : this.defaultDepartamentos);
-
+      next: ({ tiposDoc, naturalezas }) => {
         // Tipos de Documento
         const tipData = (tiposDoc && 'data' in tiposDoc && tiposDoc.data) ? tiposDoc.data : (Array.isArray(tiposDoc) ? tiposDoc : null);
         this.tiposDocumento.set(tipData && tipData.length > 0 ? tipData : this.defaultTiposDocumento);
@@ -344,7 +339,6 @@ export class ContribuyentesFacade {
         this.catalogosLoading.set(false);
       },
       error: () => {
-        this.departamentos.set(this.defaultDepartamentos);
         this.tiposDocumento.set(this.defaultTiposDocumento);
         this.naturalezasJuridicas.set(this.defaultNaturalezasJuridicas);
         this.catalogosLoading.set(false);
