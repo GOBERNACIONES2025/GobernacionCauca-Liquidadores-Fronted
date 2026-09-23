@@ -2,24 +2,22 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { ExencionesTributariasApiService } from '../../infrastructure/api/exenciones-tributarias-api.service';
-import { CatalogoApiService } from '../../infrastructure/api/catalogo-api.service';
-import { DepartamentosApiService } from '../../infrastructure/api/departamentos-api.service';
+import { ParametrosSharedService } from '../../../../shared/services/parametros-shared.service';
 import {
   ExencionTributariaDto,
   CreateExencionTributariaRequest,
   UpdateExencionTributariaRequest,
   FiltrosExencionTributaria
 } from '../../domain/interfaces/exenciones-tributarias.interface';
-import { CatalogoItemDto, NaturalezaJuridicaDto } from '../../domain/interfaces/catalogo.interface';
-import { DepartamentoDto } from '../../domain/interfaces/geografico.interface';
+
 
 @Injectable({
   providedIn: 'root'
 })
 export class ExencionesTributariasFacade {
   private api = inject(ExencionesTributariasApiService);
-  private catalogoApi = inject(CatalogoApiService);
-  private departamentosApi = inject(DepartamentosApiService);
+  /** Single source of truth: vigencias + catálogos en memoria con cookie como respaldo */
+  readonly shared = inject(ParametrosSharedService);
 
   // Estados reactivos principales
   readonly exenciones = signal<ExencionTributariaDto[]>([]);
@@ -27,14 +25,17 @@ export class ExencionesTributariasFacade {
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
-  // Catálogos dinámicos cargados desde el backend (CERO DATOS QUEMADOS)
-  readonly vigencias = signal<any[]>([]);
-  readonly normas = signal<any[]>([]);
-  readonly departamentos = signal<DepartamentoDto[]>([]);
-  readonly clasesVehiculo = signal<CatalogoItemDto[]>([]);
-  readonly serviciosVehiculo = signal<CatalogoItemDto[]>([]);
-  readonly combustibles = signal<CatalogoItemDto[]>([]);
-  readonly naturalezasJuridicas = signal<NaturalezaJuridicaDto[]>([]);
+  // ── Catálogos delegados a ParametrosSharedService (señales computadas) ──
+  /** Lista de vigencias fiscales ordenada descendente. Vienen de memoria o cookie. */
+  readonly vigencias = computed(() => this.shared.vigencias());
+  readonly normas = computed(() => this.shared.normas());
+  readonly departamentos = computed(() => this.shared.departamentos());
+  readonly clasesVehiculo = computed(() => this.shared.clasesVehiculo());
+  readonly serviciosVehiculo = computed(() => this.shared.serviciosVehiculo());
+  readonly combustibles = computed(() => this.shared.combustibles());
+  readonly naturalezasJuridicas = computed(() => this.shared.naturalezasJuridicas());
+  /** Vigencia fiscal activa (leída de cookie si ya fue seleccionada) */
+  readonly vigenciaActivaAnio = computed(() => this.shared.anioVigenciaSeleccionada());
 
   // Filtros reactivos
   readonly searchTerm = signal<string>('');
@@ -55,56 +56,9 @@ export class ExencionesTributariasFacade {
   readonly totalExoneracionTotal = computed(() => this.exenciones().filter(e => e.porcentajeExoneracion === 100).length);
 
   constructor() {
-    this.cargarCatalogos();
+    // Asegura que los catálogos estén disponibles; si ya cargaron, no hace nada
+    this.shared.cargarParametrosGenerales();
     this.cargarExenciones();
-  }
-
-  /**
-   * Carga dinámica de todos los catálogos requeridos desde el backend
-   */
-  public cargarCatalogos(): void {
-    // 1. Catálogos generales
-    this.catalogoApi.getTodos().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      const data = res?.data || res;
-      if (data) {
-        if (data.clasesVehiculo) this.clasesVehiculo.set(data.clasesVehiculo);
-        if (data.serviciosVehiculo) this.serviciosVehiculo.set(data.serviciosVehiculo);
-        if (data.combustibles) this.combustibles.set(data.combustibles);
-        if (data.naturalezasJuridicas) this.naturalezasJuridicas.set(data.naturalezasJuridicas);
-      }
-    });
-
-    // 2. Naturalezas Jurídicas explícitas si falta
-    this.catalogoApi.getNaturalezasJuridicas().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      const nats = res?.data || (Array.isArray(res) ? res : []);
-      if (Array.isArray(nats) && nats.length > 0) {
-        this.naturalezasJuridicas.set(nats);
-      }
-    });
-
-    // 3. Departamentos
-    this.departamentosApi.getDepartamentos().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      const dptos = res?.data || (Array.isArray(res) ? res : []);
-      if (Array.isArray(dptos)) {
-        this.departamentos.set(dptos);
-      }
-    });
-
-    // 4. Vigencias Fiscales
-    this.catalogoApi.getVigencias().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      let items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-      if (Array.isArray(items) && items.length > 0) {
-        this.vigencias.set(items);
-      }
-    });
-
-    // 5. Normas Tributarias
-    this.catalogoApi.getNormas().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      let items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-      if (Array.isArray(items) && items.length > 0) {
-        this.normas.set(items);
-      }
-    });
   }
 
   /**
@@ -233,15 +187,15 @@ export class ExencionesTributariasFacade {
     );
   }
 
-  // Métodos de resolución de nombres de catálogos
   public getVigenciaLabel(id: number): string {
     const v = this.vigencias().find(item => item.id === id || item.anio === id);
-    return v ? (v.anio ? String(v.anio) : (v.nombre || String(id))) : String(id);
+    return v ? String(v.anio) : String(id);
   }
 
   public getNormaLabel(id: number): string {
     const n = this.normas().find(item => item.id === id);
-    return n ? (n.nombre || n.codigo || `Norma #${id}`) : `Norma #${id}`;
+    if (!n) return `Norma #${id}`;
+    return `${n.tipoNorma} ${n.numero}${n.titulo ? ' - ' + n.titulo : ''}`;
   }
 
   public getDepartamentoLabel(id: number): string {

@@ -2,6 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { VigenciasFiscalesApiService } from '../../infrastructure/api/vigencias-fiscales-api.service';
+import { ParametrosSharedService } from '../../../../shared/services/parametros-shared.service';
 import {
   VigenciaFiscalDto,
   CreateVigenciaFiscalRequest,
@@ -14,6 +15,7 @@ import {
 })
 export class VigenciasFiscalesFacade {
   private api = inject(VigenciasFiscalesApiService);
+  private parametrosShared = inject(ParametrosSharedService);
 
   // Estados reactivos principales
   readonly vigencias = signal<VigenciaFiscalDto[]>([]);
@@ -122,6 +124,7 @@ export class VigenciasFiscalesFacade {
         this.loading.set(false);
         this.cargarVigencias();
         this.cargarVigenciaActiva();
+        this.parametrosShared.refrescarVigencias();
         return { success: true, message: 'Vigencia fiscal creada exitosamente.' };
       }),
       catchError(err => {
@@ -143,6 +146,7 @@ export class VigenciasFiscalesFacade {
         this.loading.set(false);
         this.cargarVigencias();
         this.cargarVigenciaActiva();
+        this.parametrosShared.refrescarVigencias();
         return { success: true, message: 'Vigencia fiscal actualizada exitosamente.' };
       }),
       catchError(err => {
@@ -163,6 +167,7 @@ export class VigenciasFiscalesFacade {
       tap(() => {
         this.vigencias.update(list => list.map(v => v.id === item.id ? { ...v, activa: nuevoEstado } : v));
         this.cargarVigenciaActiva();
+        this.parametrosShared.refrescarVigencias();
       }),
       map(() => true),
       catchError(err => {
@@ -182,6 +187,7 @@ export class VigenciasFiscalesFacade {
         this.loading.set(false);
         this.cargarVigencias();
         this.cargarVigenciaActiva();
+        this.parametrosShared.refrescarVigencias();
         return { success: true, message: 'Vigencia fiscal eliminada correctamente.' };
       }),
       catchError(err => {

@@ -105,7 +105,7 @@
         >
           <option value="TODOS">Todas las Vigencias</option>
           @for (v of facade.vigencias(); track v.id) {
-            <option [value]="v.id">{{ v.anio || v.nombre || v.id }}</option>
+            <option [value]="v.id">{{ v.anio || v.id }}</option>
           }
         </select>
       </div>
@@ -389,7 +389,7 @@
             >
               <option [ngValue]="null" disabled class="text-slate-400 font-normal">Seleccione vigencia</option>
               @for (v of facade.vigencias(); track v.id) {
-                <option [value]="v.id" class="text-slate-800 font-medium">{{ v.anio || v.nombre || v.id }}</option>
+                <option [value]="v.id" class="text-slate-800 font-medium">{{ v.anio || v.id }}</option>
               }
             </select>
           </div>
@@ -404,7 +404,7 @@
             >
               <option [ngValue]="null" disabled class="text-slate-400 font-normal">Seleccione norma</option>
               @for (n of facade.normas(); track n.id) {
-                <option [value]="n.id" class="text-slate-800 font-medium">{{ n.nombre || n.codigo || 'Norma #' + n.id }}</option>
+                <option [value]="n.id" class="text-slate-800 font-medium">{{ n.tipoNorma }} {{ n.numero }}{{ n.titulo ? ' - ' + n.titulo : '' }}</option>
               }
             </select>
           </div>

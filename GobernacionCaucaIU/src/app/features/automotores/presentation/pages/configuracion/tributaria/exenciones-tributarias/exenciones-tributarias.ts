@@ -29,7 +29,7 @@ export class ExencionesTributariasPage implements OnInit {
 
   // Opciones de ámbito y tipos de beneficio estándar
   readonly ambitosDisponibles = ['DEPARTAMENTAL', 'MUNICIPAL', 'NACIONAL'];
-  readonly tiposBeneficioDisponibles = ['EXENCION', 'EXONERACION', 'DESCUENTO', 'BENEFICIO_ESPECIAL'];
+  readonly tiposBeneficioDisponibles = ['EXENTO', 'REDUCCION'];
 
   ngOnInit(): void {
     this.initForm();
@@ -46,7 +46,7 @@ export class ExencionesTributariasPage implements OnInit {
       ambito: ['DEPARTAMENTAL', [Validators.required]],
       codigo: ['', [Validators.required, Validators.maxLength(50)]],
       nombre: ['', [Validators.required, Validators.maxLength(250)]],
-      tipoBeneficio: ['EXENCION', [Validators.required]],
+      tipoBeneficio: ['EXENTO', [Validators.required]],
       porcentajeExoneracion: [100, [Validators.required, Validators.min(0), Validators.max(100)]],
       naturalezaJuridicaId: [null],
       servicioVehiculoId: [null],
@@ -126,7 +126,7 @@ export class ExencionesTributariasPage implements OnInit {
       ambito: 'DEPARTAMENTAL',
       codigo: '',
       nombre: '',
-      tipoBeneficio: 'EXENCION',
+      tipoBeneficio: 'EXENTO',
       porcentajeExoneracion: 100,
       naturalezaJuridicaId: null,
       servicioVehiculoId: null,

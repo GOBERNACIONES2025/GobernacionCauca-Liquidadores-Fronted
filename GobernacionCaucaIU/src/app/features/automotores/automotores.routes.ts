@@ -26,6 +26,7 @@ import { PendientesAprobacionPage } from './presentation/pages/configuracion/con
 import { TarifasTributariasPage } from './presentation/pages/configuracion/tributaria/tarifas-tributarias/tarifas-tributarias';
 import { ExencionesTributariasPage } from './presentation/pages/configuracion/tributaria/exenciones-tributarias/exenciones-tributarias';
 import { VigenciasFiscalesPage } from './presentation/pages/configuracion/tributaria/vigencias-fiscales/vigencias-fiscales';
+import { NormasTributariasPage } from './presentation/pages/configuracion/tributaria/normas-tributarias/normas-tributarias';
 
 export const automotoresRoutes: Routes = [
   {
@@ -87,6 +88,11 @@ export const automotoresRoutes: Routes = [
         pathMatch: 'full'
       },
       {
+        path: 'normas-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/normas',
+        pathMatch: 'full'
+      },
+      {
         path: 'valores-estatales',
         component: ValoresEstatalesPage
       },
@@ -113,6 +119,10 @@ export const automotoresRoutes: Routes = [
             component: VigenciasFiscalesPage
           },
           {
+            path: 'reglas-tributarias/normas',
+            component: NormasTributariasPage
+          },
+          {
             path: 'reglas-tributarias/tarifas',
             component: TarifasTributariasPage
           },
@@ -123,6 +133,10 @@ export const automotoresRoutes: Routes = [
           {
             path: 'tributaria/vigencias',
             component: VigenciasFiscalesPage
+          },
+          {
+            path: 'tributaria/normas',
+            component: NormasTributariasPage
           },
           {
             path: 'tributaria/tarifas',
