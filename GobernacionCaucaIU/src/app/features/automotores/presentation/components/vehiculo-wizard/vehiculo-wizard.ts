@@ -21,6 +21,7 @@ import {
   VehiculoItem,
   CatalogoCiudad
 } from '../../../domain/models/vehiculo.model';
+import { VehiculosFtpFacade } from '../../../application/facades/vehiculos/vehiculos-ftp.facade';
 
 @Component({
   selector: 'app-vehiculo-wizard',
@@ -34,6 +35,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   readonly facade = inject(VehiculosFacade);
   readonly validator = inject(VehiculoCompletoValidator);
   private fb = inject(FormBuilder);
+  readonly ftpSevicesFacade = inject(VehiculosFtpFacade);
 
   // ─── Outputs ──────────────────────────────────────────────────────────────
   @Output() toastEmit = new EventEmitter<{
@@ -46,6 +48,12 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   readonly erroresPaso = signal<FieldError[]>([]);
   readonly propietarioEncontradoMsgs = signal<Record<number, string | null>>({});
   readonly buscandoPropietarioIndex = signal<number | null>(null);
+
+  // ─── Estado de Archivo / FTP ──────────────────────────────────────────────
+  readonly selectedFile = signal<File | null>(null);
+  readonly subiendoArchivo = signal<boolean>(false);
+  readonly archivoSubidoNombre = signal<string | null>(null);
+  readonly archivoSubidoUrl = signal<string | null>(null);
 
   // ─── Formulario ───────────────────────────────────────────────────────────
   form!: FormGroup;
@@ -418,6 +426,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
   // ─── Pre-poblado para edicion ─────────────────────────────────────────────
   poblarParaEdicion(v: VehiculoItem): void {
+    this.limpiarArchivo();
     const tipoInicial = v.tipoVehiculo || v.clase || 'Automovil';
     const marcaInicial = v.marca || '';
     const lineaInicial = v.linea || '';
@@ -554,7 +563,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           const nombreCompleto = propietario.nombreCompleto ||
             propietario.razonSocial ||
             [propietario.primerNombre, propietario.segundoNombre,
-             propietario.primerApellido, propietario.segundoApellido]
+            propietario.primerApellido, propietario.segundoApellido]
               .filter(Boolean).join(' ');
 
           pGroup.patchValue({
@@ -836,5 +845,77 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+
+  // Autor: Juan Sebastián Montaño Pérez
+  // Fecha: 21/09/2026
+  // Módulo: Modulo de Ftp - Vehiculos
+  // Descripción: Se implemento el modulo de carga de comprobante integrado al Ftp
+  
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length === 0) {
+      this.selectedFile.set(null);
+      return;
+    }
+
+    this.selectedFile.set(input.files[0]);
+  }
+
+  limpiarArchivo(): void {
+    this.selectedFile.set(null);
+    this.archivoSubidoNombre.set(null);
+    this.archivoSubidoUrl.set(null);
+    this.subiendoArchivo.set(false);
+    if (typeof document !== 'undefined') {
+      const input = document.getElementById('file_input_comprobante') as HTMLInputElement | null;
+      if (input) {
+        input.value = '';
+      }
+    }
+  }
+
+  uploadDocument(): void {
+    const file = this.selectedFile();
+    if (!file) {
+      this.toastEmit.emit({
+        title: 'Archivo requerido',
+        desc: 'Por favor seleccione un comprobante antes de anexar.',
+        type: 'info'
+      });
+      return;
+    }
+
+    const placaVal = (this.form?.get('placa')?.value || '').toString().trim().toUpperCase();
+    const remoteDir = placaVal ? `${placaVal}/Comprobante` : 'GENERAL/Comprobante';
+
+    this.subiendoArchivo.set(true);
+
+    this.ftpSevicesFacade
+      .uploadAnyDocument(file, remoteDir)
+      .subscribe({
+        next: (resp) => {
+          this.subiendoArchivo.set(false);
+          this.archivoSubidoNombre.set(resp.originalFileName || file.name);
+          this.archivoSubidoUrl.set(resp.remoteFullPath || resp.fileName || file.name);
+          this.toastEmit.emit({
+            title: 'Documento Anexado',
+            desc: `El comprobante '${file.name}' se subió exitosamente al directorio ${remoteDir}.`,
+            type: 'success'
+          });
+        },
+        error: (error: any) => {
+          this.subiendoArchivo.set(false);
+          const msg = error?.error?.message || error?.message || 'Ocurrió un error al subir el comprobante al servidor FTP.';
+          this.toastEmit.emit({
+            title: 'Error al Anexar',
+            desc: msg,
+            type: 'error'
+          });
+        }
+      });
+  }
 }
+
 

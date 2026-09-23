@@ -41,6 +41,14 @@ export interface LiquidacionItem {
   fechaVencimiento?: string;
   estado: string;
   vigenciasPendientes?: number[];
+
+  // ── Diagnóstico y Trazabilidad de Mora ──
+  diasMora?: number;
+  fechaLimitePago?: string;
+  fechaCalculoMora?: string;
+  esCalculoHoy?: boolean;
+  motivoMora?: string;
+  tasaMoraAplicada?: number;
 }
 
 export interface GrupoLiquidacionEmitida {
@@ -53,6 +61,14 @@ export interface GrupoLiquidacionEmitida {
   sancionTotal: number;
   interesesTotal: number;
   vigencias: LiquidacionItem[];
+
+  // Diagnóstico y fechas consolidadas
+  estadoConsolidado: string;
+  diasMoraMaximo: number;
+  fechaLimitePago?: string;
+  fechaCalculoMora?: string;
+  esCalculoHoy: boolean;
+  motivoMoraConsolidado: string;
 }
 
 export interface ReciboModel {
@@ -173,7 +189,13 @@ export class LiquidacionesFacade {
           impuestoTotal: 0,
           sancionTotal: 0,
           interesesTotal: 0,
-          vigencias: []
+          vigencias: [],
+          estadoConsolidado: 'AL DIA',
+          diasMoraMaximo: 0,
+          fechaLimitePago: item.fechaLimitePago,
+          fechaCalculoMora: item.fechaCalculoMora || item.fechaCalculo,
+          esCalculoHoy: item.esCalculoHoy ?? false,
+          motivoMoraConsolidado: item.motivoMora || ''
         });
       }
 
@@ -183,6 +205,33 @@ export class LiquidacionesFacade {
       g.impuestoTotal += item.impuestoBase;
       g.sancionTotal += item.sancionExtemporaneidad;
       g.interesesTotal += item.interesesMora;
+
+      if ((item.diasMora || 0) > g.diasMoraMaximo) {
+        g.diasMoraMaximo = item.diasMora || 0;
+      }
+      if (item.estado?.includes('MORA') || item.estado?.includes('PRESCRITA') || (item.diasMora && item.diasMora > 0)) {
+        g.estadoConsolidado = 'EN MORA';
+      }
+      if (item.esCalculoHoy) {
+        g.esCalculoHoy = true;
+      }
+      if (item.fechaCalculoMora) {
+        g.fechaCalculoMora = item.fechaCalculoMora;
+      }
+      if (item.fechaLimitePago) {
+        g.fechaLimitePago = item.fechaLimitePago;
+      }
+    }
+
+    // Ajustar motivo consolidado
+    for (const g of gruposMap.values()) {
+      if (g.diasMoraMaximo > 0 || g.estadoConsolidado === 'EN MORA') {
+        const fechaLimiteTxt = g.fechaLimitePago ? new Date(g.fechaLimitePago).toLocaleDateString('es-CO') : '31/07';
+        g.motivoMoraConsolidado = `Vencida ${fechaLimiteTxt} (${g.diasMoraMaximo} días mora)`;
+      } else {
+        const fechaLimiteTxt = g.fechaLimitePago ? new Date(g.fechaLimitePago).toLocaleDateString('es-CO') : '31/07';
+        g.motivoMoraConsolidado = `En plazo ordinario (Vence ${fechaLimiteTxt})`;
+      }
     }
 
     return Array.from(gruposMap.values());
