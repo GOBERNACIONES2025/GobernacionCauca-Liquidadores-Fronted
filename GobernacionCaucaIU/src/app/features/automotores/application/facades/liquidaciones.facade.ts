@@ -1,824 +1,155 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { LiquidacionesApiService } from '../../infrastructure/api/liquidaciones-api.service';
-import { 
-  SimulacionLiquidacion, 
-  SimularLiquidacionRequest, 
-  VigenciaLiquidada,
-  LiquidacionMasivaRequest,
-  LiquidacionMasivaResultado,
-  FacturaPreview
-} from '../../domain/models/liquidacion.model';
-import { ApiResponse } from '../../domain/models/vehiculo.model';
-import { generatePdfBlobFromHtml, downloadPdfFromHtml } from '../../../../shared/utils/pdf-exporter.util';
-import { catchError, map } from 'rxjs/operators';
-import { of, forkJoin } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { SimulacionLiquidacion } from '../../domain/models/liquidacion.model';
 
-export interface PropietarioItem {
-  completeName: string;
-  identification: string;
-  typeIdentification: string;
-}
+// ── Sub-facades especializados ────────────────────────────────────
+import { LiquidacionListaFacade } from './liquidaciones/liquidacion-lista.facade';
+import { LiquidacionSimulacionFacade } from './liquidaciones/liquidacion-simulacion.facade';
+import { LiquidacionMasivaFacade } from './liquidaciones/liquidacion-masiva.facade';
+import { LiquidacionFacturaFacade } from './liquidaciones/liquidacion-factura.facade';
+
+// ── Re-exportar modelos e interfaces para compatibilidad ──────────
+export type {
+  PropietarioItem,
+  LiquidacionItem,
+  GrupoLiquidacionEmitida,
+  ReciboModel,
+  LiquidacionKpis,
+  PagedResult
+} from './liquidaciones/liquidaciones.models';
 
 /**
- * Representa un ítem individual de la lista de liquidaciones o parque pendiente.
+ * Facade orquestador del Módulo de Liquidaciones.
+ *
+ * Delega en 4 sub-facades especializados manteniendo la MISMA API pública
+ * que tenía el facade original — sin romper ningún componente o template existente.
+ *
+ *   LiquidacionListaFacade      → tabs, paginación, filtros, KPIs, selección de placas
+ *   LiquidacionSimulacionFacade → modal individual, vigencias, cálculos, oficialización
+ *   LiquidacionMasivaFacade     → modal masivo, pre-simulación en lote, ejecución
+ *   LiquidacionFacturaFacade    → visor iframe, descarga PDF, impresión
  */
-export interface LiquidacionItem {
-  id: number;
-  numeroLiquidacion: string;
-  placa: string;
-  marcaLinea: string;
-  modelo?: number;
-  propietario: PropietarioItem[];
-  vigenciaAnio: number;
-  baseGravableAvaluo: number;
-  impuestoBase: number;
-  descuentos: number;
-  sancionExtemporaneidad: number;
-  interesesMora: number;
-  sistematizacionEstampillas: number;
-  totalPagar: number;
-  fechaCalculo: string;
-  fechaVencimiento?: string;
-  estado: string;
-  vigenciasPendientes?: number[];
-
-  // ── Diagnóstico y Trazabilidad de Mora ──
-  diasMora?: number;
-  fechaLimitePago?: string;
-  fechaCalculoMora?: string;
-  esCalculoHoy?: boolean;
-  motivoMora?: string;
-  tasaMoraAplicada?: number;
-}
-
-export interface GrupoLiquidacionEmitida {
-  placa: string;
-  marcaLinea: string;
-  modelo?: number;
-  propietario: PropietarioItem[];
-  totalVehiculo: number;
-  impuestoTotal: number;
-  sancionTotal: number;
-  interesesTotal: number;
-  vigencias: LiquidacionItem[];
-
-  // Diagnóstico y fechas consolidadas
-  estadoConsolidado: string;
-  diasMoraMaximo: number;
-  fechaLimitePago?: string;
-  fechaCalculoMora?: string;
-  esCalculoHoy: boolean;
-  motivoMoraConsolidado: string;
-}
-
-export interface ReciboModel {
-  esUnificado: boolean;
-  placa: string;
-  marcaLinea: string;
-  modelo?: number;
-  propietario: PropietarioItem[];
-  fechaEmision: Date;
-  fechaLimiteTexto: string;
-  esFechaInmediata: boolean;
-  totalPagar: number;
-  items: {
-    numeroLiquidacion: string;
-    vigenciaAnio: number;
-    impuestoBase: number;
-    descuentos: number;
-    sancionExtemporaneidad: number;
-    interesesMora: number;
-    sistematizacionEstampillas: number;
-    totalPagar: number;
-  }[];
-}
-
-/**
- * Resumen de indicadores métricos KPI del módulo tributario.
- */
-export interface LiquidacionKpis {
-  totalVehiculosActivos: number;
-  vehiculosPendientesLiquidar: number;
-  vehiculosConLiquidacionesEmitidas: number;
-  totalLiquidacionesEmitidas: number;
-  totalRecaudoEmitido: number;
-  totalImpuestoBaseEmitido: number;
-  totalSancionesExtemporaneidad: number;
-  interesesMoratoriosLiquidados: number;
-  interesesMoratoriosPendientes: number;
-}
-
-/**
- * Envoltorio de resultados paginados genéricos de la API.
- */
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-}
-
-/**
- * Facade de la capa de aplicación para la gestión del Módulo de Liquidaciones.
- */
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class LiquidacionesFacade {
-  private api = inject(LiquidacionesApiService);
 
-  /** Pestaña activa actual: 'sin-liquidar' (vehículos pendientes con ID nulo) o 'liquidadas' (oficiales emitidas) */
-  readonly activeTab = signal<'sin-liquidar' | 'liquidadas'>('sin-liquidar');
+  private lista      = inject(LiquidacionListaFacade);
+  private sim        = inject(LiquidacionSimulacionFacade);
+  private masiva     = inject(LiquidacionMasivaFacade);
+  private factura    = inject(LiquidacionFacturaFacade);
+
+  // ════════════════════════════════════════════════════════════════
+  // LISTA — Tabs, paginación, filtros, KPIs, selección de placas
+  // ════════════════════════════════════════════════════════════════
+
+  readonly activeTab                    = this.lista.activeTab;
+  readonly liquidaciones                = this.lista.liquidaciones;
+  readonly kpis                         = this.lista.kpis;
+  readonly loadingTabla                 = this.lista.loadingTabla;
+  readonly page                         = this.lista.page;
+  readonly pageSize                     = this.lista.pageSize;
+  readonly totalCount                   = this.lista.totalCount;
+  readonly buscar                       = this.lista.buscar;
+  readonly vigenciaFiltro               = this.lista.vigenciaFiltro;
+  readonly selectedPlacas               = this.lista.selectedPlacas;
+  readonly placasExpandidasEmitidas     = this.lista.placasExpandidasEmitidas;
+  readonly totalPaginas                 = this.lista.totalPaginas;
+  readonly rangoInicio                  = this.lista.rangoInicio;
+  readonly rangoFin                     = this.lista.rangoFin;
+  readonly liquidacionesEmitidasAgrupadas = this.lista.liquidacionesEmitidasAgrupadas;
+
+  cargarLiquidaciones()                          { this.lista.cargarLiquidaciones(); }
+  cargarKpis()                                   { this.lista.cargarKpis(); }
+  setTab(tab: 'sin-liquidar' | 'liquidadas')     { this.lista.setTab(tab); }
+  setBuscar(query: string)                       { this.lista.setBuscar(query); }
+  setVigenciaFiltro(v: number)                   { this.lista.setVigenciaFiltro(v); }
+  setPage(p: number)                             { this.lista.setPage(p); }
+  setPageSize(t: number)                         { this.lista.setPageSize(t); }
+  toggleSelectPlaca(placa: string)               { this.lista.toggleSelectPlaca(placa); }
+  toggleSelectAllPlacas()                        { this.lista.toggleSelectAllPlacas(); }
+  toggleExpandirPlacaEmitida(placa: string)      { this.lista.toggleExpandirPlacaEmitida(placa); }
+
+  // ════════════════════════════════════════════════════════════════
+  // SIMULACIÓN INDIVIDUAL — Modal, vigencias, cálculos, oficializar
+  // ════════════════════════════════════════════════════════════════
+
+  readonly isModalOpen                    = this.sim.isModalOpen;
+  readonly loading                        = this.sim.loading;
+  readonly error                          = this.sim.error;
+  readonly simulacion                     = this.sim.simulacion;
+  readonly simulacionCalculada            = this.sim.simulacionCalculada;
+  readonly simulacionRaw                  = this.sim.simulacionRaw;
+  readonly selectedVigenciaAnios          = this.sim.selectedVigenciaAnios;
+  readonly totalPagarSeleccionado         = this.sim.totalPagarSeleccionado;
+  readonly subtotalImpuestoSeleccionado   = this.sim.subtotalImpuestoSeleccionado;
+  readonly descuentosSeleccionado         = this.sim.descuentosSeleccionado;
+  readonly sancionesSeleccionado          = this.sim.sancionesSeleccionado;
+  readonly interesesSeleccionado          = this.sim.interesesSeleccionado;
+  readonly sistematizacionSeleccionado    = this.sim.sistematizacionSeleccionado;
+  readonly baseGravableSeleccionada       = this.sim.baseGravableSeleccionada;
+  readonly repartoMunicipioSeleccionado   = this.sim.repartoMunicipioSeleccionado;
+  readonly repartoDepartamentoSeleccionado = this.sim.repartoDepartamentoSeleccionado;
+
+  abrirSimulacion(placa: string)     { this.sim.abrirSimulacion(placa); }
+  toggleVigencia(anio: number)       { this.sim.toggleVigencia(anio); }
+  toggleSeleccionarTodos()           { this.sim.toggleSeleccionarTodos(); }
+  cerrarModal()                      { this.sim.cerrarModal(); }
 
-  /** Lista reactiva de liquidaciones para la tabla */
-  readonly liquidaciones = signal<LiquidacionItem[]>([]);
-  readonly kpis = signal<LiquidacionKpis | null>(null);
-  readonly loadingTabla = signal<boolean>(false);
-  readonly page = signal<number>(1);
-  readonly pageSize = signal<number>(7);
-  readonly totalCount = signal<number>(0);
-  readonly buscar = signal<string>('');
-  readonly vigenciaFiltro = signal<number>(0);
-
-  /** Estados del modal de simulación individual */
-  readonly isModalOpen = signal<boolean>(false);
-  readonly loading = signal<boolean>(false);
-  readonly error = signal<string | null>(null);
-
-  readonly simulacion = signal<SimulacionLiquidacion | null>(null);
-  readonly simulacionCalculada = computed(() => this.simulacion());
-  readonly simulacionRaw = computed(() => this.simulacion());
-  readonly selectedVigenciaAnios = signal<number[]>([]);
-
-  /** Selección múltiple de placas para liquidación masiva */
-  readonly selectedPlacas = signal<string[]>([]);
-
-  /** Estado del modal y proceso de liquidación masiva */
-  readonly isModalMasivoOpen = signal<boolean>(false);
-  readonly ejecutandoMasivo = signal<boolean>(false);
-  readonly resultadoMasivo = signal<LiquidacionMasivaResultado | null>(null);
-  readonly preSimulacionesMasivo = signal<SimulacionLiquidacion[]>([]);
-  readonly loadingPreSimulacionMasiva = signal<boolean>(false);
-  readonly vehiculoExpandidoMasivo = signal<string | null>(null);
-
-  /** Agrupación y acordeón para pestaña de Emitidas */
-  readonly placasExpandidasEmitidas = signal<string[]>([]);
-
-  /** Estado del visor y previsualización de facturas */
-  readonly isFacturaModalOpen = signal<boolean>(false);
-  readonly isFacturaLoading = signal<boolean>(false);
-  readonly facturaPreviewData = signal<FacturaPreview | null>(null);
-  readonly facturaPreviewHtml = computed(() => this.facturaPreviewData()?.htmlContent ?? '');
-
-  /** Agrupa las liquidaciones emitidas por placa vehicular para la vista de acordeón */
-  readonly liquidacionesEmitidasAgrupadas = computed(() => {
-    const items = this.liquidaciones();
-    if (!items || items.length === 0) return [];
-
-    const gruposMap = new Map<string, GrupoLiquidacionEmitida>();
-
-    for (const item of items) {
-      const key = item.placa.toUpperCase();
-      if (!gruposMap.has(key)) {
-        gruposMap.set(key, {
-          placa: item.placa,
-          marcaLinea: item.marcaLinea,
-          modelo: item.modelo,
-          propietario: item.propietario || [],
-          totalVehiculo: 0,
-          impuestoTotal: 0,
-          sancionTotal: 0,
-          interesesTotal: 0,
-          vigencias: [],
-          estadoConsolidado: 'AL DIA',
-          diasMoraMaximo: 0,
-          fechaLimitePago: item.fechaLimitePago,
-          fechaCalculoMora: item.fechaCalculoMora || item.fechaCalculo,
-          esCalculoHoy: item.esCalculoHoy ?? false,
-          motivoMoraConsolidado: item.motivoMora || ''
-        });
-      }
-
-      const g = gruposMap.get(key)!;
-      g.vigencias.push(item);
-      g.totalVehiculo += item.totalPagar;
-      g.impuestoTotal += item.impuestoBase;
-      g.sancionTotal += item.sancionExtemporaneidad;
-      g.interesesTotal += item.interesesMora;
-
-      if ((item.diasMora || 0) > g.diasMoraMaximo) {
-        g.diasMoraMaximo = item.diasMora || 0;
-      }
-      if (item.estado?.includes('MORA') || item.estado?.includes('PRESCRITA') || (item.diasMora && item.diasMora > 0)) {
-        g.estadoConsolidado = 'EN MORA';
-      }
-      if (item.esCalculoHoy) {
-        g.esCalculoHoy = true;
-      }
-      if (item.fechaCalculoMora) {
-        g.fechaCalculoMora = item.fechaCalculoMora;
-      }
-      if (item.fechaLimitePago) {
-        g.fechaLimitePago = item.fechaLimitePago;
-      }
-    }
-
-    // Ajustar motivo consolidado
-    for (const g of gruposMap.values()) {
-      if (g.diasMoraMaximo > 0 || g.estadoConsolidado === 'EN MORA') {
-        const fechaLimiteTxt = g.fechaLimitePago ? new Date(g.fechaLimitePago).toLocaleDateString('es-CO') : '31/07';
-        g.motivoMoraConsolidado = `Vencida ${fechaLimiteTxt} (${g.diasMoraMaximo} días mora)`;
-      } else {
-        const fechaLimiteTxt = g.fechaLimitePago ? new Date(g.fechaLimitePago).toLocaleDateString('es-CO') : '31/07';
-        g.motivoMoraConsolidado = `En plazo ordinario (Vence ${fechaLimiteTxt})`;
-      }
-    }
-
-    return Array.from(gruposMap.values());
-  });
-
-  /** Expande o colapsa el acordeón de un vehículo en la pestaña de emitidas */
-  toggleExpandirPlacaEmitida(placa: string): void {
-    let curr = [...this.placasExpandidasEmitidas()];
-    if (curr.includes(placa)) {
-      curr = curr.filter(p => p !== placa);
-    } else {
-      curr.push(placa);
-    }
-    this.placasExpandidasEmitidas.set(curr);
-  }
-
-  /** Selección individual de vigencias por vehículo en el proceso masivo */
-  readonly selectedVigenciasMasivasMap = signal<Record<string, number[]>>({});
-  readonly vigenciaFiltroMasivo = signal<number>(0); // 0 = Todas, 2026, 2025, etc.
-
-  /** Total Lote Masivo Proyectado en tiempo real */
-  readonly totalLoteMasivoProyectado = computed(() => {
-    const sims = this.preSimulacionesMasivo();
-    if (!sims || sims.length === 0) return 0;
-    const mapa = this.selectedVigenciasMasivasMap();
-    return sims.reduce((sum, s) => {
-      const aniosSeleccionados = mapa[s.placa] || [];
-      const subtotalVeh = s.vigencias
-        .filter(v => aniosSeleccionados.includes(v.anio) && !v.parametrosFaltantesEnDb)
-        .reduce((vSum, v) => vSum + v.totalVigencia, 0);
-      return sum + subtotalVeh;
-    }, 0);
-  });
-
-  /** Calcula el subtotal individual para un vehículo en el modal masivo */
-  calcularSubtotalSimulacion(sim: SimulacionLiquidacion): number {
-    if (!sim || !sim.vigencias) return 0;
-    const aniosSeleccionados = this.selectedVigenciasMasivasMap()[sim.placa] || [];
-    return sim.vigencias
-      .filter(v => aniosSeleccionados.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + v.totalVigencia, 0);
-  }
-
-  /** Activa o desactiva una vigencia individual para un vehículo en la lista masiva */
-  toggleVigenciaMasivaVehiculo(placa: string, anio: number): void {
-    const currMap = { ...this.selectedVigenciasMasivasMap() };
-    let anios = currMap[placa] ? [...currMap[placa]] : [];
-    if (anios.includes(anio)) {
-      anios = anios.filter(a => a !== anio);
-    } else {
-      anios.push(anio);
-    }
-    currMap[placa] = anios;
-    this.selectedVigenciasMasivasMap.set(currMap);
-  }
-
-  /** Aplica el filtro maestro por vigencia para todos los vehículos en el lote masivo */
-  setVigenciaFiltroMasivo(vigencia: number): void {
-    this.vigenciaFiltroMasivo.set(vigencia);
-    const sims = this.preSimulacionesMasivo();
-    const newMap: Record<string, number[]> = {};
-
-    for (const s of sims) {
-      const validas = s.vigencias
-        .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0)
-        .map(v => v.anio);
-
-      if (vigencia > 0) {
-        newMap[s.placa] = validas.filter(a => a === vigencia);
-      } else {
-        newMap[s.placa] = validas;
-      }
-    }
-    this.selectedVigenciasMasivasMap.set(newMap);
-  }
-
-  /**
-   * Cambia la pestaña activa entre 'sin-liquidar' (ID nulo) y 'liquidadas' (emitidas).
-   */
-  setTab(tab: 'sin-liquidar' | 'liquidadas'): void {
-    this.activeTab.set(tab);
-    this.page.set(1);
-    this.cargarLiquidaciones();
-  }
-
-  /**
-   * Consulta el endpoint REST correspondiente en el backend según la pestaña activa.
-   * Utiliza GET /api/liquidaciones/pendientes o GET /api/liquidaciones/emitidas.
-   */
-  cargarLiquidaciones(): void {
-    this.loadingTabla.set(true);
-    const params = {
-      page: this.page(),
-      pageSize: this.pageSize(),
-      buscar: this.buscar(),
-      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : undefined
-    };
-
-    const call$ = this.activeTab() === 'sin-liquidar' 
-      ? this.api.getPendientes(params) 
-      : this.api.getEmitidas(params);
-
-    call$.pipe(
-      catchError(err => {
-        console.warn('Error al consultar liquidaciones:', err);
-        this.loadingTabla.set(false);
-        return of(null);
-      })
-    ).subscribe(res => {
-      this.loadingTabla.set(false);
-      if (res && res.data) {
-        this.liquidaciones.set(res.data.items || []);
-        this.totalCount.set(res.data.totalCount || 0);
-      }
-    });
-  }
-
-  /**
-   * Consulta los indicadores KPI métricos del módulo en el backend.
-   */
-  cargarKpis(): void {
-    this.api.getKpis().pipe(
-      catchError(err => {
-        console.warn('Error al cargar KPIs de liquidaciones:', err);
-        return of(null);
-      })
-    ).subscribe(res => {
-      if (res && res.data) {
-        this.kpis.set(res.data);
-      }
-    });
-  }
-
-  /** Actualiza la consulta de búsqueda rápida y recarga la tabla */
-  setBuscar(query: string): void {
-    this.buscar.set(query);
-    this.page.set(1);
-    this.cargarLiquidaciones();
-  }
-
-  /** Actualiza el filtro por vigencia fiscal y recarga la tabla */
-  setVigenciaFiltro(vigencia: number): void {
-    this.vigenciaFiltro.set(vigencia);
-    this.page.set(1);
-    this.cargarLiquidaciones();
-  }
-
-  /** Cambia la página actual */
-  setPage(nuevaPagina: number): void {
-    if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
-    this.page.set(nuevaPagina);
-    this.cargarLiquidaciones();
-  }
-
-  /** Cambia el tamaño de página y recarga */
-  setPageSize(nuevoTamano: number): void {
-    this.pageSize.set(nuevoTamano);
-    this.page.set(1);
-    this.cargarLiquidaciones();
-  }
-
-  readonly totalPaginas = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
-  readonly rangoInicio = computed(() => this.totalCount() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1);
-  readonly rangoFin = computed(() => Math.min(this.page() * this.pageSize(), this.totalCount()));
-
-  /** Total acumulado dinámico de las vigencias seleccionadas por el usuario */
-  readonly totalPagarSeleccionado = computed(() => {
-    const sim = this.simulacion();
-    if (!sim) return 0;
-    const seleccionadas = this.selectedVigenciaAnios();
-    return sim.vigencias
-      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + v.totalVigencia, 0);
-  });
-
-  /** Subtotal Impuesto Vehicular Seleccionado */
-  readonly subtotalImpuestoSeleccionado = computed(() => {
-    const sim = this.simulacion();
-    if (!sim) return 0;
-    const seleccionadas = this.selectedVigenciaAnios();
-    return sim.vigencias
-      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + v.valorImpuestoNominal, 0);
-  });
-
-  /** Total Descuentos Seleccionados */
-  readonly descuentosSeleccionado = computed(() => {
-    const sim = this.simulacion();
-    if (!sim) return 0;
-    const seleccionadas = this.selectedVigenciaAnios();
-    return sim.vigencias
-      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + v.descuentoProntoPago, 0);
-  });
-
-  /** Total Sanciones Seleccionadas */
-  readonly sancionesSeleccionado = computed(() => {
-    const sim = this.simulacion();
-    if (!sim) return 0;
-    const seleccionadas = this.selectedVigenciaAnios();
-    return sim.vigencias
-      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + v.sancionExtemporaneidad, 0);
-  });
-
-  /** Total Intereses de Mora Seleccionados */
-  readonly interesesSeleccionado = computed(() => {
-    const sim = this.simulacion();
-    if (!sim) return 0;
-    const seleccionadas = this.selectedVigenciaAnios();
-    return sim.vigencias
-      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + v.interesesMora, 0);
-  });
-
-  /** Total Derechos de Sistematización y Estampillas Seleccionados */
-  readonly sistematizacionSeleccionado = computed(() => {
-    const sim = this.simulacion();
-    if (!sim) return 0;
-    const seleccionadas = this.selectedVigenciaAnios();
-    return sim.vigencias
-      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + (v.derechossistematizacion || v.derechosSistematizacion || 0), 0);
-  });
-
-  /** Base Gravable Total Seleccionada */
-  readonly baseGravableSeleccionada = computed(() => {
-    const sim = this.simulacion();
-    if (!sim) return 0;
-    const seleccionadas = this.selectedVigenciaAnios();
-    return sim.vigencias
-      .filter(v => seleccionadas.includes(v.anio) && !v.parametrosFaltantesEnDb)
-      .reduce((sum, v) => sum + v.baseGravableAvaluo, 0);
-  });
-
-  /** Distribución Legal del Recaudo: Municipio (20%) */
-  readonly repartoMunicipioSeleccionado = computed(() => {
-    return Math.round(this.totalPagarSeleccionado() * 0.20);
-  });
-
-  /** Distribución Legal del Recaudo: Departamento del Cauca (80%) */
-  readonly repartoDepartamentoSeleccionado = computed(() => {
-    return this.totalPagarSeleccionado() - this.repartoMunicipioSeleccionado();
-  });
-
-  /**
-   * Solicita al Backend (.NET 10 API) el cálculo y simulación tributaria.
-   * Todos los cálculos (Impuestos, Sanciones, Intereses, Descuentos, Totales) son 100% procesados por la API.
-   */
-  private solicitarSimulacion(placa: string): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    const req: SimularLiquidacionRequest = {
-      placa: placa
-    };
-
-    this.api.simular(req).pipe(
-      catchError(err => {
-        console.warn('Error al simular liquidación:', err);
-        this.error.set('No se pudo conectar con el motor de liquidaciones.');
-        this.loading.set(false);
-        return of(null);
-      })
-    ).subscribe(res => {
-      this.loading.set(false);
-      if (res && res.data) {
-        this.simulacion.set(res.data);
-        const validas = (res.data.vigencias || [])
-          .filter(v => !v.parametrosFaltantesEnDb)
-          .map(v => v.anio);
-        this.selectedVigenciaAnios.set(validas);
-      }
-    });
-  }
-
-  /**
-   * Abre el modal desplegable de simulación y liquidación oficial para una placa específica.
-   */
-  abrirSimulacion(placa: string): void {
-    this.isModalOpen.set(true);
-    this.selectedVigenciaAnios.set([]);
-    this.solicitarSimulacion(placa);
-  }
-
-  /** Selecciona o deselecciona una vigencia individual en estado local */
-  toggleVigencia(anio: number): void {
-    let nuevas = [...this.selectedVigenciaAnios()];
-    if (nuevas.includes(anio)) {
-      nuevas = nuevas.filter(a => a !== anio);
-    } else {
-      nuevas = [...nuevas, anio].sort((a, b) => b - a);
-    }
-    this.selectedVigenciaAnios.set(nuevas);
-  }
-
-  /** Selecciona o deselecciona todas las vigencias liquidables válidas */
-  toggleSeleccionarTodos(): void {
-    const sim = this.simulacion();
-    if (!sim) return;
-
-    const validas = sim.vigencias
-      .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0)
-      .map(v => v.anio);
-
-    if (this.selectedVigenciaAnios().length === validas.length) {
-      this.selectedVigenciaAnios.set([]);
-    } else {
-      this.selectedVigenciaAnios.set(validas);
-    }
-  }
-
-  /** Cierra el modal de simulación */
-  cerrarModal(): void {
-    this.isModalOpen.set(false);
-    this.simulacion.set(null);
-    this.selectedVigenciaAnios.set([]);
-  }
-
-  /** Selecciona o deselecciona una placa en la tabla general de pendientes */
-  toggleSelectPlaca(placa: string): void {
-    let curr = [...this.selectedPlacas()];
-    if (curr.includes(placa)) {
-      curr = curr.filter(p => p !== placa);
-    } else {
-      curr.push(placa);
-    }
-    this.selectedPlacas.set(curr);
-  }
-
-  /** Selecciona o deselecciona todas las placas de la tabla actual */
-  toggleSelectAllPlacas(): void {
-    const todasPlacas = this.liquidaciones().map(i => i.placa);
-    if (this.selectedPlacas().length === todasPlacas.length) {
-      this.selectedPlacas.set([]);
-    } else {
-      this.selectedPlacas.set(todasPlacas);
-    }
-  }
-
-  /** Abre el modal de proceso de liquidación masiva e inspecciona la pre-revisión desglosada */
-  abrirModalMasivo(): void {
-    this.isModalMasivoOpen.set(true);
-    this.resultadoMasivo.set(null);
-    this.preSimulacionesMasivo.set([]);
-    this.loadingPreSimulacionMasiva.set(true);
-    this.vehiculoExpandidoMasivo.set(null);
-    this.selectedVigenciasMasivasMap.set({});
-    this.vigenciaFiltroMasivo.set(0);
-
-    const placasDestino = this.selectedPlacas().length > 0 
-      ? this.selectedPlacas() 
-      : this.liquidaciones().map(i => i.placa);
-
-    if (placasDestino.length === 0) {
-      this.loadingPreSimulacionMasiva.set(false);
-      return;
-    }
-
-    const requests = placasDestino.map(placa => 
-      this.api.simular({ placa }).pipe(
-        map(res => res?.data || null),
-        catchError(() => of(null))
-      )
-    );
-
-    forkJoin(requests).subscribe(sims => {
-      this.loadingPreSimulacionMasiva.set(false);
-      const validSims = sims.filter((s): s is SimulacionLiquidacion => s !== null);
-      this.preSimulacionesMasivo.set(validSims);
-
-      const initMap: Record<string, number[]> = {};
-      for (const s of validSims) {
-        initMap[s.placa] = s.vigencias
-          .filter(v => !v.parametrosFaltantesEnDb && v.totalVigencia > 0)
-          .map(v => v.anio);
-      }
-      this.selectedVigenciasMasivasMap.set(initMap);
-    });
-  }
-
-  /** Expande o colapsa el detalle desglosado de un vehículo en la pre-revisión masiva */
-  toggleExpandirVehiculoMasivo(placa: string): void {
-    if (this.vehiculoExpandidoMasivo() === placa) {
-      this.vehiculoExpandidoMasivo.set(null);
-    } else {
-      this.vehiculoExpandidoMasivo.set(placa);
-    }
-  }
-
-  /** Cierra el modal de liquidación masiva */
-  cerrarModalMasivo(): void {
-    this.isModalMasivoOpen.set(false);
-    this.resultadoMasivo.set(null);
-    this.ejecutandoMasivo.set(false);
-    this.preSimulacionesMasivo.set([]);
-    this.vehiculoExpandidoMasivo.set(null);
-    this.selectedVigenciasMasivasMap.set({});
-  }
-
-  /**
-   * Ejecuta la liquidación masiva a través del Backend API (.NET 10) con persistencia en BD.
-   */
-  ejecutarLiquidacionMasiva(): void {
-    this.ejecutandoMasivo.set(true);
-    this.resultadoMasivo.set(null);
-
-    const sims = this.preSimulacionesMasivo();
-    const mapVigencias = this.selectedVigenciasMasivasMap();
-
-    const requests = sims.map(sim => {
-      const aniosOficializar = mapVigencias[sim.placa] || [];
-      if (aniosOficializar.length === 0) return of([]);
-
-      const req: SimularLiquidacionRequest = {
-        placa: sim.placa,
-        vigencias: aniosOficializar
-      };
-      return this.api.oficializar(req).pipe(
-        map(res => res?.data || []),
-        catchError(() => of([]))
-      );
-    });
-
-    forkJoin(requests).subscribe(results => {
-      this.ejecutandoMasivo.set(false);
-      const todosItems = results.flat().filter((i): i is LiquidacionItem => i !== null);
-      
-      const totalRecaudo = todosItems.reduce((sum, item) => sum + item.totalPagar, 0);
-      const placasProcesadas = new Set(todosItems.map(i => i.placa)).size;
-
-      this.resultadoMasivo.set({
-        totalVehiculosProcesados: placasProcesadas,
-        totalVigenciasLiquidadas: todosItems.length,
-        totalRecaudoGenerado: totalRecaudo,
-        numerosLiquidacionGenerados: todosItems.map(i => i.numeroLiquidacion),
-        detalleLiquidaciones: todosItems,
-        mensaje: `Se expedieron exitosamente ${todosItems.length} liquidación(es) oficial(es) en BD para ${placasProcesadas} vehículo(s) por un valor total de $${totalRecaudo.toLocaleString('es-CO')}.`
-      });
-
-      this.selectedPlacas.set([]);
-      this.cargarLiquidaciones();
-      this.cargarKpis();
-    });
-  }
-
-  /**
-   * Expedir e ingresar oficialmente la liquidación a la base de datos y trasladarla a la pestaña de liquidadas para pagos.
-   */
   oficializarLiquidacion(): void {
-    const sim = this.simulacion();
-    if (!sim || this.selectedVigenciaAnios().length === 0) return;
-
-    this.loading.set(true);
-    this.error.set(null);
-
-    const req: SimularLiquidacionRequest = {
-      placa: sim.placa,
-      vigencias: this.selectedVigenciaAnios()
-    };
-
-    this.api.oficializar(req).pipe(
-      catchError(err => {
-        console.warn('Error al oficializar liquidación:', err);
-        this.error.set('No se pudo expedir la liquidación oficial en BD.');
-        this.loading.set(false);
-        return of(null);
-      })
-    ).subscribe(res => {
-      this.loading.set(false);
-      if (res && res.data) {
-        this.cerrarModal();
-        this.setTab('liquidadas');
-        this.cargarKpis();
-      }
+    this.sim.oficializarLiquidacion(() => {
+      this.lista.setTab('liquidadas');
+      this.lista.cargarKpis();
     });
   }
 
-  /**
-   * Abre el visor y carga la previsualización HTML de la factura/declaración tributaria oficial.
-   */
-  abrirFacturaPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    this.isFacturaLoading.set(true);
-    this.facturaPreviewData.set(null);
-    this.isFacturaModalOpen.set(true);
+  // ════════════════════════════════════════════════════════════════
+  // LIQUIDACIÓN MASIVA — Modal, pre-simulación en lote, ejecución
+  // ════════════════════════════════════════════════════════════════
 
-    this.api.previsualizarFactura(placa, vigencia, esUnificado).pipe(
-      catchError(err => {
-        console.error('Error al cargar previsualización de factura:', err);
-        this.isFacturaLoading.set(false);
-        return of(null);
-      })
-    ).subscribe(res => {
-      this.isFacturaLoading.set(false);
-      if (res && res.data) {
-        this.facturaPreviewData.set(res.data);
-      }
+  readonly isModalMasivoOpen            = this.masiva.isModalMasivoOpen;
+  readonly ejecutandoMasivo             = this.masiva.ejecutandoMasivo;
+  readonly resultadoMasivo              = this.masiva.resultadoMasivo;
+  readonly preSimulacionesMasivo        = this.masiva.preSimulacionesMasivo;
+  readonly loadingPreSimulacionMasiva   = this.masiva.loadingPreSimulacionMasiva;
+  readonly vehiculoExpandidoMasivo      = this.masiva.vehiculoExpandidoMasivo;
+  readonly selectedVigenciasMasivasMap  = this.masiva.selectedVigenciasMasivasMap;
+  readonly vigenciaFiltroMasivo         = this.masiva.vigenciaFiltroMasivo;
+  readonly totalLoteMasivoProyectado    = this.masiva.totalLoteMasivoProyectado;
+
+  abrirModalMasivo(): void {
+    const placasDestino = this.lista.selectedPlacas().length > 0
+      ? this.lista.selectedPlacas()
+      : this.lista.liquidaciones().map(i => i.placa);
+    this.masiva.abrirModalMasivo(placasDestino);
+  }
+
+  cerrarModalMasivo()                                    { this.masiva.cerrarModalMasivo(); }
+  toggleExpandirVehiculoMasivo(placa: string)            { this.masiva.toggleExpandirVehiculoMasivo(placa); }
+  toggleVigenciaMasivaVehiculo(placa: string, anio: number) { this.masiva.toggleVigenciaMasivaVehiculo(placa, anio); }
+  setVigenciaFiltroMasivo(v: number)                     { this.masiva.setVigenciaFiltroMasivo(v); }
+  calcularSubtotalSimulacion(sim: SimulacionLiquidacion) { return this.masiva.calcularSubtotalSimulacion(sim); }
+
+  ejecutarLiquidacionMasiva(): void {
+    this.masiva.ejecutarLiquidacionMasiva(() => {
+      this.lista.selectedPlacas.set([]);
+      this.lista.cargarLiquidaciones();
+      this.lista.cargarKpis();
     });
   }
 
-  /**
-   * Cierra el modal de previsualización de facturas.
-   */
-  cerrarFacturaModal(): void {
-    this.isFacturaModalOpen.set(false);
-    this.facturaPreviewData.set(null);
-    this.isFacturaLoading.set(false);
+  // ════════════════════════════════════════════════════════════════
+  // FACTURA / VISOR — Previsualización, PDF, impresión
+  // ════════════════════════════════════════════════════════════════
+
+  readonly isFacturaModalOpen   = this.factura.isFacturaModalOpen;
+  readonly isFacturaLoading     = this.factura.isFacturaLoading;
+  readonly facturaPreviewData   = this.factura.facturaPreviewData;
+  readonly facturaPreviewHtml   = this.factura.facturaPreviewHtml;
+
+  abrirFacturaPreview(placa: string, vigencia?: number, esUnificado: boolean = false) {
+    this.factura.abrirFacturaPreview(placa, vigencia, esUnificado);
   }
-
-  /**
-   * Descarga el documento oficial de liquidación en PDF de forma segura y en alta definición.
-   * Totalmente compatible con entornos HTTP de desarrollo y servidores sin dependencias nativas de SO.
-   */
-  descargarFacturaPdf(placa: string, vigencia?: number, esUnificado: boolean = false): void {
-    const fileName = esUnificado ? `Recibo_Unificado_${placa}.pdf` : `Recibo_${placa}_${vigencia || 2026}.pdf`;
-
-    // 1. Si la factura ya está cargada en memoria y previsualizada, generar directamente el PDF de alta definición
-    const preview = this.facturaPreviewData();
-    if (preview && preview.placa?.toUpperCase() === placa.toUpperCase() && preview.htmlContent) {
-      downloadPdfFromHtml(preview.htmlContent, fileName);
-      return;
-    }
-
-    // 2. Si se descarga desde la tabla sin abrir el modal, obtener el HTML oficial y compilar el PDF de alta fidelidad
-    this.api.previsualizarFactura(placa, vigencia, esUnificado).pipe(
-      catchError(err => {
-        console.warn('Error al consultar HTML de factura, usando fallback binario:', err);
-        return of(null);
-      })
-    ).subscribe(res => {
-      if (res && res.data && res.data.htmlContent) {
-        downloadPdfFromHtml(res.data.htmlContent, fileName);
-      } else {
-        // 3. Fallback directo al endpoint binario del backend
-        this.api.descargarPdfBlob(placa, vigencia, esUnificado).pipe(
-          catchError(blobErr => {
-            console.error('Error al descargar PDF del backend:', blobErr);
-            return of(null);
-          })
-        ).subscribe(blob => {
-          if (!blob) return;
-          const blobUrl = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = blobUrl;
-          link.download = fileName;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
-        });
-      }
-    });
+  cerrarFacturaModal()   { this.factura.cerrarFacturaModal(); }
+  descargarFacturaPdf(placa: string, vigencia?: number, esUnificado: boolean = false) {
+    this.factura.descargarFacturaPdf(placa, vigencia, esUnificado);
   }
-
-  /**
-   * Envía a imprimir el documento renderizado en la previsualización de factura.
-   */
-  imprimirFacturaPreview(): void {
-    const iframe = document.getElementById('facturaIframe') as HTMLIFrameElement;
-    if (iframe && iframe.contentWindow) {
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-      return;
-    }
-
-    const data = this.facturaPreviewData();
-    if (!data || !data.htmlContent) return;
-
-    const printFrame = document.createElement('iframe');
-    printFrame.style.position = 'fixed';
-    printFrame.style.right = '0';
-    printFrame.style.bottom = '0';
-    printFrame.style.width = '0';
-    printFrame.style.height = '0';
-    printFrame.style.border = '0';
-    document.body.appendChild(printFrame);
-
-    const doc = printFrame.contentWindow?.document;
-    if (doc) {
-      doc.open();
-      doc.write(data.htmlContent);
-      doc.close();
-      setTimeout(() => {
-        printFrame.contentWindow?.focus();
-        printFrame.contentWindow?.print();
-        setTimeout(() => document.body.removeChild(printFrame), 1000);
-      }, 500);
-    }
-  }
+  imprimirFacturaPreview() { this.factura.imprimirFacturaPreview(); }
 }
