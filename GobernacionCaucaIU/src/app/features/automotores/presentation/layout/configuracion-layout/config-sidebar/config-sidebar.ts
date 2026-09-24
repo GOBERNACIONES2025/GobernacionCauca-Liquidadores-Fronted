@@ -9,6 +9,7 @@ import { TarifasTributariasFacade } from '../../../../application/facades/tarifa
 import { ExencionesTributariasFacade } from '../../../../application/facades/exenciones-tributarias.facade';
 import { VigenciasFiscalesFacade } from '../../../../application/facades/vigencias-fiscales.facade';
 import { NormasTributariasFacade } from '../../../../application/facades/normas-tributarias.facade';
+import { CalendariosTributariosFacade } from '../../../../application/facades/calendarios-tributarios.facade';
 
 export interface CatalogItem {
   name: string;
@@ -38,6 +39,7 @@ export class AutomotoresConfigSidebar {
   public exencionesFacade = inject(ExencionesTributariasFacade);
   public vigenciasFacade = inject(VigenciasFiscalesFacade);
   public normasFacade = inject(NormasTributariasFacade);
+  public calendariosFacade = inject(CalendariosTributariosFacade);
   private router = inject(Router);
 
   readonly closeSidebar = output<void>();
@@ -193,6 +195,11 @@ export class AutomotoresConfigSidebar {
           name: 'Exenciones Tributarias',
           route: '/automotores/configuracion/reglas-tributarias/exenciones',
           count: this.exencionesFacade.totalExenciones()
+        },
+        {
+          name: 'Calendarios Tributarios',
+          route: '/automotores/configuracion/reglas-tributarias/calendarios',
+          count: this.calendariosFacade.totalCalendarios()
         }
       ]
     },
