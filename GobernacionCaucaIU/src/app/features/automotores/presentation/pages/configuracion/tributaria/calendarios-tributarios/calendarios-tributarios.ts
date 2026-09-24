@@ -169,9 +169,7 @@ export class CalendariosTributariosPage implements OnInit {
       return;
     }
 
-    const rawDescInput = val.porcentajeDescuento !== null && val.porcentajeDescuento !== '' ? Number(val.porcentajeDescuento) : 0;
-    // La BD guarda en formato decimal listo para multiplicar (ej: 15% -> 0.15)
-    const porcentajeDecimal = rawDescInput > 1 ? Number((rawDescInput / 100).toFixed(4)) : rawDescInput;
+    const descVal = val.porcentajeDescuento !== null && val.porcentajeDescuento !== '' ? Number(val.porcentajeDescuento) : 0;
 
     const payloadBase = {
       vigenciaFiscalId: Number(val.vigenciaFiscalId),
@@ -179,7 +177,7 @@ export class CalendariosTributariosPage implements OnInit {
       codigoImpuesto: (val.codigoImpuesto || 'VEHICULOS').toUpperCase().trim(),
       fechaInicio: val.fechaInicio,
       fechaVencimiento: val.fechaVencimiento,
-      porcentajeDescuento: porcentajeDecimal,
+      porcentajeDescuento: descVal,
       activo: Boolean(val.activo ?? true)
     };
 
