@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,6 +11,8 @@ import { ToastService } from '../../../../../../core/services/toast.service';
 import { LiquidacionListadoDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
+
+export type TabLiquidacion = 'todas' | 'vigentes' | 'por-vencer' | 'reliquidacion' | 'anuladas';
 
 @Component({
   selector: 'app-entidades-liquidaciones',
@@ -26,12 +28,17 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   private router = inject(Router);
   private toast = inject(ToastService);
 
-  liquidaciones = signal<LiquidacionListadoDto[]>([]);
-  totalCount = signal<number>(0);
+  // Pestaña de filtrado activa:
+  // 'todas' | 'vigentes' | 'por-vencer' | 'reliquidacion' | 'anuladas'
+  activeTab = signal<TabLiquidacion>('todas');
+
+  allLiquidaciones = signal<LiquidacionListadoDto[]>([]);
   pageNumber = signal<number>(1);
   pageSize = signal<number>(10);
   searchText = signal<string>('');
   isLoading = signal<boolean>(false);
+  isSubmitting = signal<boolean>(false);
+  isDownloadingId = signal<number | null>(null);
 
   // Modales
   showReliquidacionModal = signal<boolean>(false);
@@ -55,6 +62,103 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   anulacionArchivo = signal<File | null>(null);
   anulacionArchivoNombre = signal<string>('');
 
+  // =========================================================================
+  // SEÑALES COMPUTADAS: FILTRADO Y MÉTRICAS REACTIVAS
+  // =========================================================================
+
+  // Métricas para Tarjetas KPI y Pestañas
+  kpiTotal = computed(() => this.allLiquidaciones().length);
+
+  kpiVigentes = computed(() => {
+    return this.allLiquidaciones().filter(item => 
+      !item.estaVencida && 
+      (item.diasParaVencer === undefined || item.diasParaVencer > 5) && 
+      !this.estaEnTramiteReliquidacion(item) &&
+      !this.esAnulada(item)
+    ).length;
+  });
+
+  kpiPorVencer = computed(() => {
+    return this.allLiquidaciones().filter(item => 
+      (item.estaVencida || (item.diasParaVencer !== undefined && item.diasParaVencer <= 5)) &&
+      !this.esAnulada(item)
+    ).length;
+  });
+
+  kpiEnReliquidacion = computed(() => {
+    return this.allLiquidaciones().filter(item => 
+      this.estaEnTramiteReliquidacion(item) || item.estado?.codigo === 'EN_RELIQUIDACION'
+    ).length;
+  });
+
+  kpiAnuladas = computed(() => {
+    return this.allLiquidaciones().filter(item => this.esAnulada(item)).length;
+  });
+
+  // Lista filtrada según pestaña y término de búsqueda
+  liquidacionesFiltradas = computed(() => {
+    const tab = this.activeTab();
+    const search = this.searchText().toLowerCase().trim();
+    let list = this.allLiquidaciones();
+
+    // 1. Filtrado por término de búsqueda si existe
+    if (search) {
+      list = list.filter(item => 
+        (item.numeroLiquidacion && item.numeroLiquidacion.toLowerCase().includes(search)) ||
+        (item.id && item.id.toString().includes(search)) ||
+        (item.radicacion?.numeroRadicado && item.radicacion.numeroRadicado.toLowerCase().includes(search)) ||
+        (item.contribuyente?.nombreCompleto && item.contribuyente.nombreCompleto.toLowerCase().includes(search)) ||
+        (item.contribuyente?.numeroIdentificacion && item.contribuyente.numeroIdentificacion.toLowerCase().includes(search)) ||
+        (item.documentoRegistro?.numeroDocumento && item.documentoRegistro.numeroDocumento.toLowerCase().includes(search))
+      );
+    }
+
+    // 2. Filtrado por Pestaña / Estado Semántico
+    switch (tab) {
+      case 'vigentes':
+        return list.filter(item => 
+          !item.estaVencida && 
+          (item.diasParaVencer === undefined || item.diasParaVencer > 5) && 
+          !this.estaEnTramiteReliquidacion(item) &&
+          !this.esAnulada(item)
+        );
+
+      case 'por-vencer':
+        return list.filter(item => 
+          (item.estaVencida || (item.diasParaVencer !== undefined && item.diasParaVencer <= 5)) &&
+          !this.esAnulada(item)
+        );
+
+      case 'reliquidacion':
+        return list.filter(item => 
+          this.estaEnTramiteReliquidacion(item) || item.estado?.codigo === 'EN_RELIQUIDACION'
+        );
+
+      case 'anuladas':
+        return list.filter(item => this.esAnulada(item));
+
+      case 'todas':
+      default:
+        return list;
+    }
+  });
+
+  // Paginación sobre la lista filtrada
+  totalFiltrado = computed(() => this.liquidacionesFiltradas().length);
+
+  liquidacionesPaginadas = computed(() => {
+    const items = this.liquidacionesFiltradas();
+    const page = this.pageNumber();
+    const size = this.pageSize();
+    const start = (page - 1) * size;
+    return items.slice(start, start + size);
+  });
+
+  // Monto acumulado de la vista actual
+  montoFiltrado = computed(() => {
+    return this.liquidacionesFiltradas().reduce((acc, item) => acc + (item.totales?.totalPagar || 0), 0);
+  });
+
   ngOnInit(): void {
     this.cargarLiquidaciones();
     this.causalesReliquidacionFacade.cargarCausalesReliquidacion(1, 100, undefined, true);
@@ -63,17 +167,12 @@ export class EntidadesLiquidacionesComponent implements OnInit {
 
   cargarLiquidaciones(): void {
     this.isLoading.set(true);
-    this.facade.listarLiquidaciones(
-      this.pageNumber(),
-      this.pageSize(),
-      this.searchText(),
-      null
-    ).subscribe({
+    // Consultar el universo de liquidaciones de la entidad (hasta 100) para permitir filtrado instantáneo
+    this.facade.listarLiquidaciones(1, 100, undefined, null).subscribe({
       next: (res) => {
         this.isLoading.set(false);
         if (res.data) {
-          this.liquidaciones.set(res.data.items || []);
-          this.totalCount.set(res.data.totalCount || 0);
+          this.allLiquidaciones.set(res.data.items || []);
         }
       },
       error: () => {
@@ -83,20 +182,30 @@ export class EntidadesLiquidacionesComponent implements OnInit {
     });
   }
 
+  cambiarPestana(tab: TabLiquidacion): void {
+    this.activeTab.set(tab);
+    this.pageNumber.set(1);
+  }
+
   onSearch(term: string): void {
     this.searchText.set(term);
     this.pageNumber.set(1);
-    this.cargarLiquidaciones();
+  }
+
+  limpiarBusqueda(): void {
+    this.searchText.set('');
+    this.pageNumber.set(1);
   }
 
   onPageChange(page: number): void {
     this.pageNumber.set(page);
-    this.cargarLiquidaciones();
   }
 
   descargarPdf(id: number): void {
+    this.isDownloadingId.set(id);
     this.facade.descargarPdf(id).subscribe({
       next: (blob) => {
+        this.isDownloadingId.set(null);
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -105,7 +214,10 @@ export class EntidadesLiquidacionesComponent implements OnInit {
         window.URL.revokeObjectURL(url);
         this.toast.success('Recibo oficial de liquidación descargado exitosamente');
       },
-      error: () => this.toast.error('Error al descargar el PDF de la liquidación')
+      error: () => {
+        this.isDownloadingId.set(null);
+        this.toast.error('Error al descargar el PDF de la liquidación');
+      }
     });
   }
 
@@ -173,14 +285,13 @@ export class EntidadesLiquidacionesComponent implements OnInit {
       archivoNombre: this.reliquidacionArchivoNombre()
     };
 
-    // Si ya está en trámite de reliquidación (solicitud en estado 3 PENDIENTE), navegar directamente
     if (this.estaEnTramiteReliquidacion(liq)) {
       this.showReliquidacionModal.set(false);
       this.router.navigate([`/registros/entidades/solicitudes/wizard/${targetSolId}`], { queryParams });
       return;
     }
 
-    // Si aún no está en trámite, formalizar primero en la API para transicionar la solicitud a Estado 3 (PENDIENTE) y desbloquear la mutación
+    this.isSubmitting.set(true);
     const file = this.reliquidacionArchivo();
     const payload = {
       causalReliquidacionId: this.reliquidacionCausalId(),
@@ -195,11 +306,13 @@ export class EntidadesLiquidacionesComponent implements OnInit {
 
     this.facade.solicitarReliquidacion(liq.id, payload).subscribe({
       next: () => {
+        this.isSubmitting.set(false);
         this.showReliquidacionModal.set(false);
         this.toast.info('Trámite de reliquidación iniciado. Puede mutar actos y cuantías en el asistente.');
         this.router.navigate([`/registros/entidades/solicitudes/wizard/${targetSolId}`], { queryParams });
       },
       error: (err) => {
+        this.isSubmitting.set(false);
         if (err?.error?.code === 'Liquidacion.ReliquidacionEnTramite' || err?.error?.message?.includes('en curso') || err?.error?.message?.includes('en trámite')) {
           this.showReliquidacionModal.set(false);
           this.router.navigate([`/registros/entidades/solicitudes/wizard/${targetSolId}`], { queryParams });
@@ -227,6 +340,7 @@ export class EntidadesLiquidacionesComponent implements OnInit {
       return;
     }
 
+    this.isSubmitting.set(true);
     const payload = {
       causalReliquidacionId: this.reliquidacionCausalId(),
       causal: causal?.codigo || 'RELIQUIDACION_GENERAL',
@@ -240,11 +354,15 @@ export class EntidadesLiquidacionesComponent implements OnInit {
 
     this.facade.solicitarReliquidacion(liq.id, payload).subscribe({
       next: () => {
+        this.isSubmitting.set(false);
         this.toast.success('Solicitud de reliquidación radicada ante la Gobernación del Cauca');
         this.showReliquidacionModal.set(false);
         this.cargarLiquidaciones();
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Error al radicar la solicitud')
+      error: (err) => {
+        this.isSubmitting.set(false);
+        this.toast.error(err?.error?.message || 'Error al radicar la solicitud');
+      }
     });
   }
 
@@ -302,6 +420,7 @@ export class EntidadesLiquidacionesComponent implements OnInit {
       return;
     }
 
+    this.isSubmitting.set(true);
     const payload = {
       causalAnulacionId: this.anulacionCausalId(),
       causal: causal?.codigo || 'ANULACION_GENERAL',
@@ -314,18 +433,36 @@ export class EntidadesLiquidacionesComponent implements OnInit {
 
     this.facade.solicitarAnulacion(liq.id, payload).subscribe({
       next: () => {
+        this.isSubmitting.set(false);
         this.toast.success('Solicitud de anulación radicada formalmente ante la Gobernación');
         this.showAnulacionModal.set(false);
         this.cargarLiquidaciones();
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Error al radicar la anulación')
+      error: (err) => {
+        this.isSubmitting.set(false);
+        this.toast.error(err?.error?.message || 'Error al radicar la anulación');
+      }
     });
   }
 
+  // --- HELPERS DE NEGOCIO Y ESTADOS ---
   estaEnTramiteReliquidacion(item: LiquidacionListadoDto): boolean {
     const obs = item.radicacion?.observacion;
-    if (!obs) return false;
-    const lower = obs.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return lower.includes('reliquidacion en tramite') || lower.includes('reliquidacion solicitada');
+    if (obs) {
+      const lower = obs.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (lower.includes('reliquidacion en tramite') || lower.includes('reliquidacion solicitada')) return true;
+    }
+    return item.estado?.codigo === 'EN_RELIQUIDACION';
+  }
+
+  esAnulada(item: LiquidacionListadoDto): boolean {
+    return item.estado?.codigo === 'ANULADA' || (item.estado?.nombre ? item.estado.nombre.toLowerCase().includes('anulad') : false);
+  }
+
+  irAWizard(item: LiquidacionListadoDto): void {
+    const solId = item.radicacion?.solicitudId || item.id;
+    this.router.navigate([`/registros/entidades/solicitudes/wizard/${solId}`], {
+      queryParams: { modo: 'reliquidacion', liquidacionId: item.id }
+    });
   }
 }
