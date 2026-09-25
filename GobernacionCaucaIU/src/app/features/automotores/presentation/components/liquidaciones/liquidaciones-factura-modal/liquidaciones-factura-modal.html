@@ -38,7 +38,6 @@
         </div>
       </div>
 
-      <!-- CUERPO DEL VISOR / HOJA DE FACTURA EN IFRAME AISLADO -->
       <div class="p-2 sm:p-4 overflow-hidden bg-slate-200 flex-1 flex justify-center items-center">
         @if (facade.isFacturaLoading()) {
           <div class="py-24 text-center">
@@ -47,7 +46,6 @@
             <span class="text-xs text-slate-500">Conectando con base de datos e integrando normas tributarias</span>
           </div>
         } @else if (facade.facturaPreviewHtml()) {
-          <!-- VISOR DE DOCUMENTO IFRAME DE ALTA DEFINICIÓN -->
           <div class="w-full h-full flex flex-col items-center">
             <iframe
               id="facturaIframe"
@@ -63,22 +61,6 @@
           </div>
         }
       </div>
-
-      <!-- FOOTER DEL MODAL -->
-      <div class="bg-slate-50 px-5 py-3 border-t border-slate-200 flex items-center justify-between shrink-0 text-xs">
-        <div class="flex items-center gap-2 text-slate-500">
-          <i class="fa-solid fa-shield-halved text-emerald-600 text-sm"></i>
-          <span>Documento Oficial Certificado con Código de Barras GS1-128 para Recaudo Bancario</span>
-        </div>
-
-        <button
-          (click)="facade.cerrarFacturaModal()"
-          type="button"
-          class="px-4 py-1.5 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 border-none cursor-pointer transition-colors">
-          Cerrar
-        </button>
-      </div>
-
     </div>
   </div>
 }

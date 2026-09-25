@@ -1,4 +1,4 @@
-﻿<div class="p-6 space-y-6 max-w-[1600px] mx-auto">
+<div class="p-6 space-y-6 max-w-[1600px] mx-auto">
   <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
     <div>
       <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-1.5" />
@@ -325,20 +325,41 @@
               }
             </td>
 
-            <td colspan="6" class="py-3.5 px-4">
-              <div class="flex flex-wrap items-center gap-1.5 max-w-xl">
-                <span
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-extrabold bg-blue-100 text-blue-900 border border-blue-300 shrink-0">
-                  <i class="fa-solid fa-receipt text-blue-700"></i>
-                  {{ grupo.vigencias.length }} Vigencia(s) Emitida(s):
+            <td class="py-3.5 px-4">
+              <div class="flex flex-wrap items-center gap-1">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-extrabold bg-blue-100 text-blue-900 border border-blue-300 shrink-0">
+                  <i class="fa-solid fa-receipt text-blue-700 text-[9px]"></i>
+                  {{ grupo.vigencias.length }} vig.
                 </span>
                 @for (v of grupo.vigencias; track v.id) {
-                <span
-                  class="inline-flex items-center px-2 py-0.5 rounded text-[10.5px] font-bold bg-white text-slate-800 border border-slate-300 shadow-2xs">
-                  {{ v.vigenciaAnio }}
-                </span>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-white text-slate-700 border border-slate-300 shadow-2xs">
+                    {{ v.vigenciaAnio }}
+                  </span>
                 }
               </div>
+            </td>
+
+            <td class="py-3.5 px-4 text-right">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">Total</span>
+              <span class="font-bold text-slate-900 text-xs">${{ grupo.impuestoTotal | number:'1.0-0' }}</span>
+            </td>
+
+            <td class="py-3.5 px-4 text-right">
+              <span class="font-semibold text-emerald-700 text-xs">
+                {{ grupo.descuentosTotal > 0 ? '-$' + (grupo.descuentosTotal | number:'1.0-0') : '-$0' }}
+              </span>
+            </td>
+
+            <td class="py-3.5 px-4 text-right">
+              <span class="font-semibold text-amber-700 text-xs">${{ grupo.sancionTotal | number:'1.0-0' }}</span>
+            </td>
+
+            <td class="py-3.5 px-4 text-right">
+              <span class="font-semibold text-red-700 text-xs">${{ grupo.interesesTotal | number:'1.0-0' }}</span>
+            </td>
+
+            <td class="py-3.5 px-4 text-right">
+              <span class="font-medium text-slate-600 text-xs">${{ grupo.sistematizacionTotal | number:'1.0-0' }}</span>
             </td>
 
             <td class="py-3.5 px-4 text-right">
@@ -413,7 +434,7 @@
                   title="Previsualizar Declaración y Factura Unificada del Vehículo"
                   class="inline-flex items-center justify-center gap-1.5 h-7 px-2.5 rounded-md text-[11px] font-bold bg-[#0f2d59] hover:bg-blue-900 text-white border-none cursor-pointer shadow-xs transition-colors">
                   <i class="fa-solid fa-eye text-xs"></i>
-                  <span>Factura Unificada</span>
+                  <span>Generar factura unificada</span>
                 </button>
 
 

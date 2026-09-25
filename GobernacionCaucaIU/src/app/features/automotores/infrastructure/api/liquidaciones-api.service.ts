@@ -17,6 +17,8 @@ export interface LiquidacionFiltros {
   buscar?: string;
   vigencia?: number;
   estado?: string;
+  tab?: string;
+  tipo?: string;
 }
 
 /**
@@ -29,30 +31,20 @@ export class LiquidacionesApiService {
   private api = inject(BaseApiService);
 
   /**
-   * Obtiene la lista paginada de vehículos con vigencias pendientes por liquidar.
+   * Obtiene la lista unificada y paginada de liquidaciones tributarias.
+   * Conecta directamente al endpoint raíz unificado /liquidaciones.
    */
-  getPendientes(filtros: LiquidacionFiltros = {}): Observable<ApiResponse<PagedResult<LiquidacionItem>>> {
-    const params: Record<string, string | number> = {};
-    if (filtros.page) params['page'] = filtros.page;
-    if (filtros.pageSize) params['pageSize'] = filtros.pageSize;
-    if (filtros.buscar) params['buscar'] = filtros.buscar;
-    if (filtros.vigencia) params['vigencia'] = filtros.vigencia;
-
-    return this.api.get<ApiResponse<PagedResult<LiquidacionItem>>>('/liquidaciones/pendientes', { params }, 'AUTOMOTORES');
-  }
-
-  /**
-   * Obtiene la lista paginada de liquidaciones oficiales emitidas registradas en BD.
-   */
-  getEmitidas(filtros: LiquidacionFiltros = {}): Observable<ApiResponse<PagedResult<LiquidacionItem>>> {
+  getLiquidaciones(filtros: LiquidacionFiltros = {}): Observable<ApiResponse<PagedResult<LiquidacionItem>>> {
     const params: Record<string, string | number> = {};
     if (filtros.page) params['page'] = filtros.page;
     if (filtros.pageSize) params['pageSize'] = filtros.pageSize;
     if (filtros.buscar) params['buscar'] = filtros.buscar;
     if (filtros.vigencia) params['vigencia'] = filtros.vigencia;
     if (filtros.estado) params['estado'] = filtros.estado;
+    if (filtros.tab) params['tab'] = filtros.tab;
+    if (filtros.tipo) params['tipo'] = filtros.tipo;
 
-    return this.api.get<ApiResponse<PagedResult<LiquidacionItem>>>('/liquidaciones/emitidas', { params }, 'AUTOMOTORES');
+    return this.api.get<ApiResponse<PagedResult<LiquidacionItem>>>('/liquidaciones', { params }, 'AUTOMOTORES');
   }
 
   /**

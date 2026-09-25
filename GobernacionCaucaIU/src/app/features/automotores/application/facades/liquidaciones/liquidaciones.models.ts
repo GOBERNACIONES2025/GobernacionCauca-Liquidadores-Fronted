@@ -14,6 +14,7 @@ export interface PropietarioItem {
  */
 export interface LiquidacionItem {
   id: number;
+  tipoRegistro?: string;
   numeroLiquidacion: string;
   placa: string;
   marcaLinea: string;
@@ -51,6 +52,8 @@ export interface GrupoLiquidacionEmitida {
   sancionTotal: number;
   interesesTotal: number;
   vigencias: LiquidacionItem[];
+  descuentosTotal: number;
+  sistematizacionTotal: number;
 
   // Diagnóstico y fechas consolidadas
   estadoConsolidado: string;

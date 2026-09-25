@@ -60,6 +60,8 @@ export class LiquidacionListaFacade {
           impuestoTotal: 0,
           sancionTotal: 0,
           interesesTotal: 0,
+          descuentosTotal: 0,
+          sistematizacionTotal: 0,
           vigencias: [],
           estadoConsolidado: 'AL DIA',
           diasMoraMaximo: 0,
@@ -72,10 +74,12 @@ export class LiquidacionListaFacade {
 
       const g = gruposMap.get(key)!;
       g.vigencias.push(item);
-      g.totalVehiculo += item.totalPagar;
-      g.impuestoTotal += item.impuestoBase;
-      g.sancionTotal += item.sancionExtemporaneidad;
-      g.interesesTotal += item.interesesMora;
+      g.totalVehiculo       += item.totalPagar;
+      g.impuestoTotal       += item.impuestoBase;
+      g.sancionTotal        += item.sancionExtemporaneidad;
+      g.interesesTotal      += item.interesesMora;
+      g.descuentosTotal     += item.descuentos;
+      g.sistematizacionTotal += (item.sistematizacionEstampillas || 0);
 
       if ((item.diasMora || 0) > g.diasMoraMaximo) {
         g.diasMoraMaximo = item.diasMora || 0;
@@ -108,21 +112,18 @@ export class LiquidacionListaFacade {
     return Array.from(gruposMap.values());
   });
 
-  // ── Métodos de carga ──────────────────────────────────────────────
 
-  /** Consulta el endpoint correspondiente según la pestaña activa */
   cargarLiquidaciones(): void {
     this.loadingTabla.set(true);
     const params = {
       page: this.page(),
       pageSize: this.pageSize(),
       buscar: this.buscar(),
-      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : undefined
+      vigencia: this.vigenciaFiltro() > 0 ? this.vigenciaFiltro() : undefined,
+      tab: this.activeTab() === 'sin-liquidar' ? 'pendientes' : 'emitidas'
     };
 
-    const call$ = this.activeTab() === 'sin-liquidar'
-      ? this.api.getPendientes(params)
-      : this.api.getEmitidas(params);
+    const call$ = this.api.getLiquidaciones(params);
 
     call$.pipe(
       catchError(err => {
@@ -153,16 +154,12 @@ export class LiquidacionListaFacade {
     });
   }
 
-  // ── Métodos de navegación y filtros ──────────────────────────────
-
-  /** Cambia la pestaña activa y recarga */
   setTab(tab: 'sin-liquidar' | 'liquidadas'): void {
     this.activeTab.set(tab);
     this.page.set(1);
     this.cargarLiquidaciones();
   }
 
-  /** Actualiza la búsqueda rápida y recarga */
   setBuscar(query: string): void {
     this.buscar.set(query);
     this.page.set(1);
@@ -190,7 +187,6 @@ export class LiquidacionListaFacade {
     this.cargarLiquidaciones();
   }
 
-  // ── Selección de placas ───────────────────────────────────────────
 
   /** Selecciona o deselecciona una placa en la tabla */
   toggleSelectPlaca(placa: string): void {
