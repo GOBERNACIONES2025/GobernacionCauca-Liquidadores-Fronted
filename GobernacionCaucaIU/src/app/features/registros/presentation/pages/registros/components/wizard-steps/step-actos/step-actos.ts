@@ -727,6 +727,15 @@ export class StepActosComponent implements OnInit, OnDestroy {
     });
   }
 
+  cancelarNuevoActo(): void {
+    if (this.wizardService.actosExpediente().length > 0) {
+      this.wizardService.isAddingActo.set(false);
+      this.actoEditandoId.set(null);
+    } else {
+      this.retroceder();
+    }
+  }
+
   continuar(): void {
     if (this.wizardService.esSoloLectura()) {
       this.wizardService.currentStep.set(4);

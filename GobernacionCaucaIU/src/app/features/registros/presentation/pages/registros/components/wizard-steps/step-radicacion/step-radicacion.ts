@@ -1,8 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { of, throwError, forkJoin } from 'rxjs';
-import { concatMap, catchError } from 'rxjs/operators';
+import { concatMap, catchError, finalize } from 'rxjs/operators';
 import { LiquidacionWizardService } from '../../../services/liquidacion-wizard.service';
 import { ContribuyentesFacade } from '../../../../../../application/facades/Contribuyentes/contribuyentes.facade';
 import { TiposPersonaFacade } from '../../../../../../application/facades/Contribuyentes/tipos-persona.facade';
@@ -31,10 +31,13 @@ export class StepRadicacionComponent implements OnInit {
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
   contribuyentesApi = inject(ContribuyentesApiService);
   toastService = inject(ToastService);
+
+  @Output() cancelar = new EventEmitter<void>();
   
   modoCreacion = false;
   busquedaRealizada = false;
   buscandoContribuyente = false;
+  isSaving = signal<boolean>(false);
 
   ngOnInit() {
     this.vigenciasFacade.cargarVigencias(1, 100);
@@ -152,6 +155,10 @@ export class StepRadicacionComponent implements OnInit {
     this.wizardService.paso1Form.markAsDirty();
   }
 
+  onCancelar() {
+    this.cancelar.emit();
+  }
+
   continuar() {
     if (this.wizardService.esSoloLectura() || this.wizardService.modoReliquidacion()) {
       this.wizardService.currentStep.set(2);
@@ -185,6 +192,8 @@ export class StepRadicacionComponent implements OnInit {
         direccion: formValue.direccion
       };
 
+      this.isSaving.set(true);
+
       // Si ya hay solicitudId, actualizamos contribuyente y radicado
       if (this.wizardService.solicitudId()) {
         const id = this.wizardService.solicitudId()!;
@@ -197,7 +206,8 @@ export class StepRadicacionComponent implements OnInit {
         };
 
         this.solicitudesFacade.actualizarRadicado(id, radicadoDto).pipe(
-          concatMap(() => this.solicitudesFacade.registrarContribuyente(id, contribuyenteDto))
+          concatMap(() => this.solicitudesFacade.registrarContribuyente(id, contribuyenteDto)),
+          finalize(() => this.isSaving.set(false))
         ).subscribe({
           next: () => {
             this.wizardService.currentStep.set(2);
@@ -233,7 +243,8 @@ export class StepRadicacionComponent implements OnInit {
         catchError(err => {
           this.toastService.error('Error en el proceso de radicación');
           return throwError(() => err);
-        })
+        }),
+        finalize(() => this.isSaving.set(false))
       ).subscribe({
         next: (res) => {
           if (res.success) {

@@ -141,12 +141,14 @@ export class LiquidacionWizardComponent implements OnInit {
     });
   }
 
+  showCancelModal = signal<boolean>(false);
+
   steps = [
     { id: 1, name: 'Radicación' },
     { id: 2, name: 'Documento' },
     { id: 3, name: 'Actos' },
     { id: 4, name: 'Intervinientes' },
-    { id: 5, name: 'Simulación' }
+    { id: 5, name: 'Liquidación' }
   ];
 
   isCompleted(stepId: number): boolean {
@@ -171,7 +173,43 @@ export class LiquidacionWizardComponent implements OnInit {
     }
   }
 
+  onHeaderBack() {
+    if (this.wizardService.currentStep() > 1) {
+      this.wizardService.currentStep.update(s => s - 1);
+    } else {
+      this.abrirModalCancelacion();
+    }
+  }
+
+  onHeaderClose() {
+    this.abrirModalCancelacion();
+  }
+
+  abrirModalCancelacion() {
+    // Si no se ha modificado nada crítico o ya está guardado, salir directo
+    const isDirty = this.wizardService.paso1Form.dirty || this.wizardService.paso2Form.dirty;
+    if (isDirty) {
+      this.showCancelModal.set(true);
+    } else {
+      this.goBack();
+    }
+  }
+
+  cerrarModalCancelacion() {
+    this.showCancelModal.set(false);
+  }
+
+  confirmarCancelacion() {
+    this.showCancelModal.set(false);
+    this.wizardService.resetWizard();
+    this.goBack();
+  }
+
   goBack() {
-    this.cancel.emit();
+    if (this.cancel.observed) {
+      this.cancel.emit();
+    } else {
+      this.router.navigate(['/registros/entidades/solicitudes']);
+    }
   }
 }

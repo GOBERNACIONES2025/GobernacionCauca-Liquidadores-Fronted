@@ -1,19 +1,33 @@
-<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+
+  <!-- CABECERA DEL PASO 3 (ESTILO IMAGEN 2) -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div>
+      <h2 class="text-blue-600 font-extrabold text-lg sm:text-xl tracking-tight">
+        Actos Registrales Sujetos a Liquidación
+      </h2>
+      <p class="text-slate-500 text-xs mt-1 leading-relaxed">
+        Adicione los actos o contratos jurídicos, asigne exenciones tributarias y declare las bases gravables oficiales.
+      </p>
+    </div>
+    @if (!wizardService.isAddingActo() && wizardService.actosExpediente().length > 0 && !wizardService.esSoloLectura()) {
+      <button 
+        type="button" 
+        (click)="abrirFormularioNuevoActo()"
+        class="px-5 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-1.5 self-start sm:self-auto cursor-pointer active:scale-95">
+        <span>+ Añadir Otro Acto</span>
+      </button>
+    }
+  </div>
 
   <!-- RESUMEN DE ACTOS AÑADIDOS -->
   @if (!wizardService.isAddingActo() && wizardService.actosExpediente().length > 0) {
-  <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-    <div class="bg-slate-50 border-b border-slate-200 p-4 flex justify-between items-center">
+  <div class="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-xs">
+    <div class="bg-slate-50/80 border-b border-slate-100 p-4 flex justify-between items-center">
       <div>
-        <h3 class="text-lg font-bold text-slate-800">Actos del Expediente</h3>
-        <p class="text-sm text-slate-500">Estos actos se incluirán en la liquidación actual.</p>
+        <h3 class="text-sm font-bold text-slate-800">Actos Registrados en el Expediente</h3>
+        <p class="text-xs text-slate-500">Total: {{ wizardService.actosExpediente().length }} acto(s) para liquidación.</p>
       </div>
-      @if (!wizardService.esSoloLectura()) {
-      <button (click)="abrirFormularioNuevoActo()"
-        class="px-4 py-2 bg-blue-50 text-blue-700 text-sm font-semibold rounded-lg hover:bg-blue-100 transition-colors">
-        + Añadir otro acto
-      </button>
-      }
     </div>
     <div class="p-0">
       <table class="w-full text-left border-collapse">
@@ -94,17 +108,21 @@
     </div>
   </div>
 
-  <div class="flex justify-between pt-6">
-    <button (click)="retroceder()"
-      class="px-6 py-2.5 bg-white text-slate-700 font-medium text-sm rounded-lg border border-slate-300 hover:bg-slate-50 transition-colors shadow-sm">
-      Volver al Paso 2
+  <!-- BOTONERA INFERIOR TIPO PÍLDORA (IMAGE 2 EXACT MATCH) -->
+  <div class="flex items-center justify-center gap-3 pt-4 pb-2 border-t border-slate-100">
+    <button 
+      type="button" 
+      (click)="retroceder()"
+      class="px-6 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+      <span>←</span>
+      <span>Anterior</span>
     </button>
-    <button (click)="continuar()"
-      class="px-6 py-2.5 bg-blue-600 text-white font-medium text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-sm shadow-blue-500/30 flex items-center gap-2">
-      {{ wizardService.esSoloLectura() ? 'Continuar' : 'Siguiente: Añadir Intervinientes' }}
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-      </svg>
+    <button 
+      type="button" 
+      (click)="continuar()"
+      class="px-8 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+      <span>{{ wizardService.esSoloLectura() ? 'Continuar' : 'Continuar a Intervinientes' }}</span>
+      <span>→</span>
     </button>
   </div>
   }
@@ -624,21 +642,30 @@
       </form>
     </div>
 
-    <div class="bg-slate-50 border-t border-slate-200 p-4 flex justify-between items-center">
+    <div class="bg-white border-t border-slate-100 p-4 flex items-center justify-between">
       @if (wizardService.actosExpediente().length === 0) {
-      <button (click)="retroceder()"
-        class="px-6 py-2.5 text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors">
-        ← Atrás
-      </button>
+        <button 
+          type="button" 
+          (click)="retroceder()"
+          class="px-6 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+          <span>←</span>
+          <span>Anterior</span>
+        </button>
       } @else {
-      <div></div>
+        <button 
+          type="button" 
+          (click)="cancelarNuevoActo()"
+          class="px-6 py-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer active:scale-95">
+          Cancelar Edición ✕
+        </button>
       }
-      <button (click)="guardarActoAlExpediente()" [disabled]="wizardService.actoForm.invalid"
-        class="px-6 py-2.5 bg-slate-800 text-white font-medium text-sm rounded-lg hover:bg-slate-900 transition-colors shadow-md flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-        {{ actoEditandoId() ? 'Guardar Cambios del Acto' : 'Guardar Acto en el Expediente' }}
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
+      <button 
+        type="button" 
+        (click)="guardarActoAlExpediente()" 
+        [disabled]="wizardService.actoForm.invalid"
+        class="px-7 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-600/20 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer active:scale-95">
+        <span>{{ actoEditandoId() ? 'Actualizar Acto' : 'Guardar Acto en el Expediente' }}</span>
+        <span>✓</span>
       </button>
     </div>
   </div>
