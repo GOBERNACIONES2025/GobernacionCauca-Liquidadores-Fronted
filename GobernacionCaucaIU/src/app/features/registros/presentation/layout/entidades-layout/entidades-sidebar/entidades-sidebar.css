@@ -1,0 +1,30 @@
+/* Estilos de alta cohesión visual para el menú de entidades */
+a.active-solicitudes {
+  background: #f0fdfa !important; /* teal-50 */
+  color: #134e4a !important; /* teal-900 */
+  font-weight: 700 !important;
+  border-left-color: #0f766e !important; /* teal-700 */
+  box-shadow: 0 1px 3px 0 rgba(15, 118, 110, 0.08);
+}
+
+a.active-solicitudes .item-icon {
+  background: #0f766e !important;
+  color: #ffffff !important;
+  border-color: #0f766e !important;
+  box-shadow: 0 2px 4px 0 rgba(15, 118, 110, 0.25);
+}
+
+a.active-liquidaciones {
+  background: #ecfdf5 !important; /* emerald-50 */
+  color: #064e3b !important; /* emerald-900 */
+  font-weight: 700 !important;
+  border-left-color: #059669 !important; /* emerald-600 */
+  box-shadow: 0 1px 3px 0 rgba(5, 150, 105, 0.08);
+}
+
+a.active-liquidaciones .item-icon {
+  background: #059669 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
+  box-shadow: 0 2px 4px 0 rgba(5, 150, 105, 0.25);
+}

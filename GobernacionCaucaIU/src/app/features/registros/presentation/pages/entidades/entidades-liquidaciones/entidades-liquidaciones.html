@@ -3,7 +3,7 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
     <div>
       <div class="flex items-center gap-2 mb-1.5">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 border border-teal-200">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-800 border border-teal-200/80">
           Ventanilla Notarial
         </span>
         <span class="text-xs text-slate-400 font-medium">| Títulos Oficiales de Liquidación</span>
@@ -13,42 +13,11 @@
         Supervise sus títulos oficiales expedidos por la Gobernación del Cauca, controle plazos para evitar intereses de mora y gestione reliquidaciones o anulaciones.
       </p>
     </div>
-
-    <!-- Botón de Enlace Rápido al Asistente -->
-    <a 
-      routerLink="/registros/entidades/solicitudes/wizard"
-      class="inline-flex items-center justify-center gap-2.5 px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-700/20 transition-all active:scale-[0.98] cursor-pointer shrink-0 group"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transition-transform group-hover:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-      <span>+ Nueva Solicitud (Wizard)</span>
-    </a>
   </div>
 
   <!-- Barra de Tarjetas KPI Operativas (Interactivas y Filtrables) -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <!-- KPI 1: Todas las Liquidaciones -->
-    <div 
-      (click)="cambiarPestana('todas')"
-      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
-      [class]="activeTab() === 'todas' 
-        ? 'border-slate-800 ring-2 ring-slate-800/15 shadow-md shadow-slate-900/5' 
-        : 'border-slate-200 hover:border-slate-400 hover:shadow-xs'"
-    >
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Total Expedidas</span>
-        <span class="p-2 rounded-xl bg-slate-100 text-slate-700 group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-file-invoice text-sm"></i>
-        </span>
-      </div>
-      <div class="mt-2 flex items-baseline gap-2">
-        <span class="text-2xl font-black text-slate-900">{{ kpiTotal() }}</span>
-      </div>
-      <p class="text-[11px] text-slate-400 mt-1">Todos los títulos de la entidad</p>
-    </div>
-
-    <!-- KPI 2: Vigentes para Pago -->
+    <!-- KPI 1: Vigentes para Pago -->
     <div 
       (click)="cambiarPestana('vigentes')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
@@ -65,13 +34,13 @@
       <div class="mt-2 flex items-baseline gap-2">
         <span class="text-2xl font-black text-teal-700">{{ kpiVigentes() }}</span>
         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-teal-100 text-teal-800">
-          Listas para recaudo
+          Listas
         </span>
       </div>
       <p class="text-[11px] text-slate-400 mt-1">Con plazo activo y sin mora</p>
     </div>
 
-    <!-- KPI 3: Por Vencer / Vencidas (Alerta de Plazos) -->
+    <!-- KPI 2: Por Vencer / Vencidas (Alerta de Plazos) -->
     <div 
       (click)="cambiarPestana('por-vencer')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
@@ -89,14 +58,14 @@
         <span class="text-2xl font-black text-amber-600">{{ kpiPorVencer() }}</span>
         @if (kpiPorVencer() > 0) {
           <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 animate-pulse">
-            Vencidas o por vencer
+            Atención
           </span>
         }
       </div>
-      <p class="text-[11px] text-slate-400 mt-1">Evite intereses moratorios diarios</p>
+      <p class="text-[11px] text-slate-400 mt-1">Evite intereses moratorios</p>
     </div>
 
-    <!-- KPI 4: En Trámite de Reliquidación -->
+    <!-- KPI 3: En Trámite de Reliquidación -->
     <div 
       (click)="cambiarPestana('reliquidacion')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
@@ -115,9 +84,29 @@
       </div>
       <p class="text-[11px] text-slate-400 mt-1">Aclaraciones en estudio fiscal</p>
     </div>
+
+    <!-- KPI 4: Anuladas / Canceladas -->
+    <div 
+      (click)="cambiarPestana('anuladas')"
+      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
+      [class]="activeTab() === 'anuladas' 
+        ? 'border-slate-600 ring-2 ring-slate-600/20 shadow-md shadow-slate-600/5' 
+        : 'border-slate-200 hover:border-slate-400 hover:shadow-xs'"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Anuladas</span>
+        <span class="p-2 rounded-xl bg-slate-100 text-slate-600 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-ban text-sm"></i>
+        </span>
+      </div>
+      <div class="mt-2 flex items-baseline gap-2">
+        <span class="text-2xl font-black text-slate-700">{{ kpiAnuladas() }}</span>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">Títulos sin efecto legal</p>
+    </div>
   </div>
 
-  <!-- Pestañas de Filtrado con Contadores Reales (Segmentación Inteligente) -->
+  <!-- Pestañas de Filtrado (Segmentación Inteligente) -->
   <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
     <!-- Todas -->
     <button
@@ -127,9 +116,6 @@
         : 'inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-xl border border-slate-200 transition'"
     >
       <span>Todas</span>
-      <span [class]="activeTab() === 'todas' ? 'bg-slate-700 text-white' : 'bg-slate-100 text-slate-600'" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold">
-        {{ kpiTotal() }}
-      </span>
     </button>
 
     <!-- Vigentes para Pago -->
@@ -141,9 +127,6 @@
     >
       <i class="fa-solid fa-circle-check text-[11px]"></i>
       <span>Vigentes para Pago</span>
-      <span [class]="activeTab() === 'vigentes' ? 'bg-teal-900 text-white' : 'bg-teal-100 text-teal-800'" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold">
-        {{ kpiVigentes() }}
-      </span>
     </button>
 
     <!-- Por Vencer o Vencidas -->
@@ -155,11 +138,6 @@
     >
       <i class="fa-solid fa-calendar-xmark text-[11px]"></i>
       <span>Por Vencer / Vencidas</span>
-      @if (kpiPorVencer() > 0) {
-        <span [class]="activeTab() === 'por-vencer' ? 'bg-amber-800 text-white' : 'bg-amber-100 text-amber-800'" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold">
-          {{ kpiPorVencer() }}
-        </span>
-      }
     </button>
 
     <!-- En Trámite de Reliquidación -->
@@ -171,9 +149,6 @@
     >
       <i class="fa-solid fa-rotate text-[11px]"></i>
       <span>En Reliquidación</span>
-      <span [class]="activeTab() === 'reliquidacion' ? 'bg-purple-900 text-white' : 'bg-purple-100 text-purple-800'" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold">
-        {{ kpiEnReliquidacion() }}
-      </span>
     </button>
 
     <!-- Anuladas / Canceladas -->
@@ -185,9 +160,6 @@
     >
       <i class="fa-solid fa-ban text-[11px]"></i>
       <span>Anuladas</span>
-      <span [class]="activeTab() === 'anuladas' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600'" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold">
-        {{ kpiAnuladas() }}
-      </span>
     </button>
   </div>
 
@@ -334,7 +306,7 @@
                 @if (activeTab() === 'reliquidacion') {
                   <td class="py-3.5 px-4">
                     <div class="text-purple-900 font-semibold truncate max-w-xs">
-                      {{ item.radicacion?.observacion || 'Ajuste de cuantía o actos' }}
+                      {{ item.radicacion.observacion || 'Ajuste de cuantía o actos' }}
                     </div>
                     <span class="inline-flex items-center gap-1 text-[10px] text-purple-700 font-bold bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200 mt-1">
                       <span class="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
