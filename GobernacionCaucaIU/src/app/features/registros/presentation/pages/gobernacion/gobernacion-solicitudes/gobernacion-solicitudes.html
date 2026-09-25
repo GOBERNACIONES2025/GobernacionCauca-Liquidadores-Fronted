@@ -1,63 +1,172 @@
 <div class="p-6 space-y-6 max-w-7xl mx-auto">
-  <!-- Header -->
+  <!-- Header Institucional -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
     <div>
-      <div class="flex items-center gap-2 mb-1">
-        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-900">
+      <div class="flex items-center gap-2 mb-1.5">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-900 border border-blue-200/80">
           Gobernación del Cauca
         </span>
-        <span class="text-xs text-slate-400">| Fiscalización y Auditoría Fiscal</span>
+        <span class="text-xs text-slate-400 font-medium">| Fiscalización y Auditoría Tributaria</span>
       </div>
-      <h1 class="text-xl font-black text-slate-800 tracking-tight">Bandeja de Revisión de Solicitudes</h1>
-      <p class="text-xs text-slate-500 mt-0.5">Audite los expedientes radicados por notarías y entidades, simule la preliquidación y emita los títulos de cobro oficiales.</p>
+      <h1 class="text-2xl font-black text-slate-800 tracking-tight">Bandeja de Revisión de Solicitudes</h1>
+      <p class="text-xs text-slate-500 mt-1 max-w-2xl">
+        Audite los expedientes radicados por notarías y entidades externas, simule la preliquidación fiscal y emita los títulos de cobro oficiales para el recaudo departamental.
+      </p>
     </div>
   </div>
 
-  <!-- Pestañas de Fiscalización -->
+  <!-- Barra de 4 Tarjetas KPI Operativas (Interactivas y Filtrables) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- KPI 1: Pendientes de Revisión Técnica (Prioritaria) -->
+    <div
+      (click)="cambiarPestana(2)"
+      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
+      [class]="activeTab() === 2 
+        ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-md shadow-blue-500/5' 
+        : 'border-slate-200 hover:border-blue-300 hover:shadow-xs'"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-blue-800">Pendientes de Revisión</span>
+        <span class="p-2 rounded-xl bg-blue-50 text-blue-700 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-hourglass-half text-sm"></i>
+        </span>
+      </div>
+      <div class="mt-2 flex items-baseline gap-2">
+        <span class="text-2xl font-black text-blue-900">{{ kpiPendientes() }}</span>
+        @if (kpiPendientes() > 0) {
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 animate-pulse">
+            Por fiscalizar
+          </span>
+        }
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">Expedientes en turno fiscal</p>
+    </div>
+
+    <!-- KPI 2: Devueltas a Notarías (Subsanación) -->
+    <div
+      (click)="cambiarPestana(5)"
+      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
+      [class]="activeTab() === 5 
+        ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md shadow-amber-500/5' 
+        : 'border-slate-200 hover:border-amber-300 hover:shadow-xs'"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Devueltas / Requeridas</span>
+        <span class="p-2 rounded-xl bg-amber-50 text-amber-600 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+        </span>
+      </div>
+      <div class="mt-2 flex items-baseline gap-2">
+        <span class="text-2xl font-black text-amber-700">{{ kpiDevueltas() }}</span>
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+          En subsanación
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">Requerimientos enviados a notarías</p>
+    </div>
+
+    <!-- KPI 3: Liquidadas Oficialmente -->
+    <div
+      (click)="cambiarPestana(4)"
+      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
+      [class]="activeTab() === 4 
+        ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-md shadow-emerald-500/5' 
+        : 'border-slate-200 hover:border-emerald-300 hover:shadow-xs'"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Liquidadas Oficiales</span>
+        <span class="p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-circle-check text-sm"></i>
+        </span>
+      </div>
+      <div class="mt-2 flex items-baseline gap-2">
+        <span class="text-2xl font-black text-emerald-700">{{ kpiLiquidadas() }}</span>
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+          Emitidas
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">Títulos expedidos exitosamente</p>
+    </div>
+
+    <!-- KPI 4: Total Expedientes Gestionados -->
+    <div
+      (click)="cambiarPestana(0)"
+      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
+      [class]="activeTab() === 0 
+        ? 'border-slate-800 ring-2 ring-slate-800/10 shadow-md' 
+        : 'border-slate-200 hover:border-slate-400 hover:shadow-xs'"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-600">Total en Trámite</span>
+        <span class="p-2 rounded-xl bg-slate-100 text-slate-600 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-folder-tree text-sm"></i>
+        </span>
+      </div>
+      <div class="mt-2 flex items-baseline gap-2">
+        <span class="text-2xl font-black text-slate-800">{{ kpiTotal() }}</span>
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
+          Vigencia
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">Histórico general radicado</p>
+    </div>
+  </div>
+
+  <!-- Pestañas de Filtrado Rápido (Limpio sin cantidades redundantes) -->
   <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
     <button
-      (click)="cambiarPestana(2)"
-      [class]="activeTab() === 2 
-        ? 'px-3.5 py-1.5 bg-blue-700 text-white font-bold text-xs rounded-lg shadow-xs' 
-        : 'px-3.5 py-1.5 bg-white text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-lg border border-slate-200 transition'"
+      (click)="cambiarPestana(0)"
+      [class]="activeTab() === 0
+        ? 'px-3.5 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs'
+        : 'px-3.5 py-2 bg-white text-slate-600 hover:bg-slate-50 font-medium text-xs rounded-xl border border-slate-200 transition cursor-pointer'"
     >
-      ⏳ Pendientes de Revisión Técnica
+      Todas las Solicitudes
+    </button>
+    <button
+      (click)="cambiarPestana(2)"
+      [class]="activeTab() === 2
+        ? 'px-3.5 py-2 bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs'
+        : 'px-3.5 py-2 bg-white text-slate-600 hover:bg-blue-50 font-medium text-xs rounded-xl border border-slate-200 transition cursor-pointer'"
+    >
+      ⏳ En Revisión Técnica
     </button>
     <button
       (click)="cambiarPestana(5)"
-      [class]="activeTab() === 5 
-        ? 'px-3.5 py-1.5 bg-rose-700 text-white font-bold text-xs rounded-lg shadow-xs' 
-        : 'px-3.5 py-1.5 bg-white text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-lg border border-slate-200 transition'"
+      [class]="activeTab() === 5
+        ? 'px-3.5 py-2 bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs'
+        : 'px-3.5 py-2 bg-white text-slate-600 hover:bg-amber-50 font-medium text-xs rounded-xl border border-slate-200 transition cursor-pointer'"
     >
       ⚠️ Devueltas con Observaciones
     </button>
     <button
       (click)="cambiarPestana(4)"
-      [class]="activeTab() === 4 
-        ? 'px-3.5 py-1.5 bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-xs' 
-        : 'px-3.5 py-1.5 bg-white text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-lg border border-slate-200 transition'"
+      [class]="activeTab() === 4
+        ? 'px-3.5 py-2 bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs'
+        : 'px-3.5 py-2 bg-white text-slate-600 hover:bg-emerald-50 font-medium text-xs rounded-xl border border-slate-200 transition cursor-pointer'"
     >
-      ✅ Expedientes Liquidados
+      ✅ Liquidadas Oficiales
     </button>
   </div>
 
-  <!-- Tabla -->
+  <!-- Tabla de Alta Densidad Operativa -->
   <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-    <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
       <app-table-search (search)="onSearch($event)"></app-table-search>
-      <span class="text-xs text-slate-400">Total en bandeja: <strong>{{ totalCount() }}</strong></span>
+      <div class="text-xs text-slate-500 font-medium">
+        Expedientes encontrados: <strong class="text-slate-800">{{ totalCount() }}</strong>
+      </div>
     </div>
 
     <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse text-xs">
         <thead>
-          <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
+          <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
             <th class="py-3 px-4">Radicado</th>
-            <th class="py-3 px-4">Entidad Emisora</th>
+            <th class="py-3 px-4">Entidad Notarial</th>
             <th class="py-3 px-4">Contribuyente</th>
             <th class="py-3 px-4">Documento / Acto</th>
-            <th class="py-3 px-4 text-center">Estado</th>
-            <th class="py-3 px-4 text-right">Fiscalización</th>
+            <th class="py-3 px-4 text-center">Estado Fiscal</th>
+            <th class="py-3 px-4 text-right">Acción de Fiscalización</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -65,58 +174,98 @@
             <tr>
               <td colspan="6" class="py-12 text-center text-slate-400">
                 <i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-700 mb-2"></i>
-                <p>Cargando expedientes...</p>
+                <p class="font-medium text-slate-600">Consultando expedientes tributarios...</p>
               </td>
             </tr>
           } @else if (solicitudes().length === 0) {
             <tr>
               <td colspan="6" class="py-12 text-center text-slate-400">
                 <i class="fa-solid fa-check-double text-3xl text-slate-300 mb-2"></i>
-                <p class="font-medium text-slate-600">No hay trámites pendientes en esta bandeja</p>
+                <p class="font-bold text-slate-700 text-sm">No hay expedientes en esta bandeja</p>
+                <p class="text-xs text-slate-400 mt-0.5">Todos los trámites para este criterio han sido procesados.</p>
               </td>
             </tr>
           } @else {
             @for (item of solicitudes(); track item.id) {
-              <tr class="hover:bg-slate-50/80 transition-colors">
+              <tr class="hover:bg-slate-50/90 transition-colors">
+                <!-- Radicado -->
                 <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
-                  {{ item.numeroRadicado }}
-                  <div class="text-[10px] text-slate-400 font-normal">{{ item.fechaRadicacion | date:'dd/MM/yyyy HH:mm' }}</div>
+                  <div class="flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-lines text-slate-400"></i>
+                    <span>{{ item.numeroRadicado || 'SIN-RADICADO' }}</span>
+                  </div>
+                  <div class="text-[10px] text-slate-400 font-normal font-sans ml-4">
+                    {{ item.fechaRadicacion | date:'dd/MM/yyyy HH:mm' }}
+                  </div>
                 </td>
+
+                <!-- Entidad Notarial -->
                 <td class="py-3.5 px-4">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-800">
-                    {{ item.nombreEntidadRegistro || 'Entidad Notarial' }}
+                  <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                    {{ item.nombreEntidadRegistro || 'Entidad Notarial Externa' }}
                   </span>
                 </td>
+
+                <!-- Contribuyente -->
                 <td class="py-3.5 px-4">
-                  <div class="font-bold text-slate-800">{{ item.nombreContribuyente || 'Contribuyente' }}</div>
-                  <div class="text-[11px] text-slate-400 font-mono">{{ item.numeroIdentificacionContribuyente || '-' }}</div>
+                  <div class="font-bold text-slate-800">{{ item.nombreContribuyente || 'No especificado' }}</div>
+                  <div class="text-[11px] text-slate-400 font-mono">Doc: {{ item.numeroIdentificacionContribuyente || '-' }}</div>
                 </td>
+
+                <!-- Documento / Acto -->
                 <td class="py-3.5 px-4">
-                  <div class="text-slate-700 font-medium">{{ item.numeroDocumento || 'Doc. Registro' }}</div>
+                  <div class="text-slate-800 font-medium">{{ item.numeroDocumento || 'Escritura / Minuta' }}</div>
+                  <div class="text-[10px] text-slate-400">Documento Notarial</div>
                 </td>
+
+                <!-- Estado Fiscal -->
                 <td class="py-3.5 px-4 text-center">
                   @if (item.estadoSolicitudId === 2) {
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                      En Revisión Técnica
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                      ● En Revisión Técnica
                     </span>
                   } @else if (item.estadoSolicitudId === 5) {
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                      Devuelta con Observaciones
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                      ⚠️ Devuelta por Notaría
                     </span>
                   } @else if (item.estadoSolicitudId === 4) {
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                      Liquidada
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      ✓ Liquidada Oficial
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                      Radicada
                     </span>
                   }
                 </td>
+
+                <!-- Acciones -->
                 <td class="py-3.5 px-4 text-right">
-                  <button
-                    (click)="abrirFiscalizacion(item.id)"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white rounded-lg shadow-xs transition cursor-pointer"
-                  >
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <span>Fiscalizar Expediente</span>
-                  </button>
+                  @if (item.estadoSolicitudId === 2) {
+                    <button
+                      (click)="abrirFiscalizacion(item.id)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-blue-700 hover:bg-blue-800 text-white rounded-lg shadow-xs transition active:scale-[0.98] cursor-pointer"
+                    >
+                      <i class="fa-solid fa-magnifying-glass"></i>
+                      <span>Fiscalizar y Preliquidar</span>
+                    </button>
+                  } @else if (item.estadoSolicitudId === 5) {
+                    <button
+                      (click)="abrirFiscalizacion(item.id)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-lg transition cursor-pointer"
+                    >
+                      <i class="fa-solid fa-clipboard-question"></i>
+                      <span>Ver Requerimiento</span>
+                    </button>
+                  } @else {
+                    <button
+                      (click)="abrirFiscalizacion(item.id)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition cursor-pointer"
+                    >
+                      <i class="fa-solid fa-eye"></i>
+                      <span>Consultar Expediente</span>
+                    </button>
+                  }
                 </td>
               </tr>
             }
@@ -136,148 +285,283 @@
     </div>
   </div>
 
-  <!-- MODAL DE FISCALIZACIÓN Y PRELIQUIDACIÓN -->
+  <!-- MODAL / DRAWER DE FISCALIZACIÓN Y PRELIQUIDACIÓN -->
   @if (showFiscalizarModal() && selectedSolicitud()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 border border-slate-200 my-8">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 border border-slate-200 my-8 animate-in fade-in zoom-in-95 duration-200">
         
         <!-- Modal Header -->
         <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
           <div class="flex items-center gap-3">
             <div class="p-2.5 bg-blue-100 text-blue-800 rounded-xl">
-              <i class="fa-solid fa-clipboard-check text-lg"></i>
+              <i class="fa-solid fa-scale-balanced text-lg"></i>
             </div>
             <div>
               <h3 class="text-base font-bold text-slate-900">Auditoría y Fiscalización de Expediente</h3>
-              <p class="text-xs text-slate-500">Radicado: <strong class="font-mono text-slate-800">{{ selectedSolicitud()?.numeroRadicado }}</strong></p>
+              <p class="text-xs text-slate-500">
+                Radicado: <strong class="font-mono text-slate-800">{{ selectedSolicitud()?.numeroRadicado }}</strong> | 
+                Entidad: <span class="font-semibold text-slate-700">{{ selectedSolicitud()?.nombreEntidadRegistro || 'Notaría' }}</span>
+              </p>
             </div>
           </div>
-          <button (click)="showFiscalizarModal.set(false)" class="text-slate-400 hover:text-slate-600 p-2 cursor-pointer">
+          <button (click)="showFiscalizarModal.set(false)" class="text-slate-400 hover:text-slate-600 p-2 cursor-pointer rounded-lg hover:bg-slate-100 transition">
             <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
 
+        <!-- Cuerpo del Modal en 2 Columnas -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs mb-6">
-          <!-- Datos Contribuyente y Trámite -->
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-3">
-            <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900">1. Datos del Contribuyente</h4>
-            <div class="grid grid-cols-2 gap-2 text-[11px]">
-              <div><span class="text-slate-400 block">Nombre / Razón:</span> <strong class="text-slate-800">{{ selectedSolicitud()?.contribuyente?.nombre || 'No asignado' }}</strong></div>
-              <div><span class="text-slate-400 block">Identificación:</span> <strong class="text-slate-800 font-mono">{{ selectedSolicitud()?.contribuyente?.numeroIdentificacion }}</strong></div>
-              <div><span class="text-slate-400 block">Correo:</span> <span class="text-slate-700">{{ selectedSolicitud()?.contribuyente?.email || '-' }}</span></div>
-              <div><span class="text-slate-400 block">Teléfono:</span> <span class="text-slate-700">{{ selectedSolicitud()?.contribuyente?.telefono || '-' }}</span></div>
+          <!-- Columna 1: Datos del Contribuyente y Soporte Notarial -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-4">
+            <div>
+              <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 mb-2">1. Datos del Contribuyente</h4>
+              <div class="grid grid-cols-2 gap-2 text-[11px]">
+                <div><span class="text-slate-400 block">Nombre / Razón:</span> <strong class="text-slate-800">{{ selectedSolicitud()?.contribuyente?.nombre || 'No asignado' }}</strong></div>
+                <div><span class="text-slate-400 block">Identificación:</span> <strong class="text-slate-800 font-mono">{{ selectedSolicitud()?.contribuyente?.numeroIdentificacion }}</strong></div>
+                <div><span class="text-slate-400 block">Correo:</span> <span class="text-slate-700">{{ selectedSolicitud()?.contribuyente?.email || '-' }}</span></div>
+                <div><span class="text-slate-400 block">Teléfono:</span> <span class="text-slate-700">{{ selectedSolicitud()?.contribuyente?.telefono || '-' }}</span></div>
+              </div>
             </div>
 
-            <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 pt-2 border-t border-slate-200">2. Documento y Soporte</h4>
-            <div class="text-[11px]">
-              <span class="text-slate-400 block">Documento No.:</span>
-              <strong class="text-slate-800">{{ selectedSolicitud()?.documentoRegistro?.numeroDocumento || selectedSolicitud()?.documentoRegistros?.[0]?.numeroDocumento || 'Doc. Minuta' || 'Escritura / Minuta' }}</strong>
+            <div class="pt-3 border-t border-slate-200">
+              <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 mb-2">2. Documento y Soporte</h4>
+              <div class="space-y-1.5 text-[11px]">
+                <div>
+                  <span class="text-slate-400 block">Documento No.:</span>
+                  <strong class="text-slate-800">{{ selectedSolicitud()?.documentoRegistro?.numeroDocumento || selectedSolicitud()?.documentoRegistros?.[0]?.numeroDocumento || 'Escritura / Minuta' }}</strong>
+                </div>
+                <div>
+                  <span class="text-slate-400 block">Fecha Documento:</span>
+                  <span class="text-slate-700">{{ selectedSolicitud()?.documentoRegistro?.fechaDocumento ? (selectedSolicitud()?.documentoRegistro?.fechaDocumento | date:'dd/MM/yyyy') : 'Reciente' }}</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Preliquidación Simulada -->
-          <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-200 space-y-3">
-            <div class="flex items-center justify-between">
-              <h4 class="font-bold text-blue-950 text-[11px] uppercase tracking-wider">3. Preliquidación Automática</h4>
-              @if (isPreliquidando()) {
-                <span class="text-[10px] text-blue-700 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i>Calculando...</span>
+          <!-- Columna 2: Preliquidación Simulada Automática -->
+          <div class="bg-blue-50/40 p-4 rounded-xl border border-blue-200 space-y-3 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-bold text-blue-950 text-[11px] uppercase tracking-wider">3. Preliquidación Automática</h4>
+                @if (isPreliquidando()) {
+                  <span class="text-[10px] text-blue-700 animate-pulse font-bold">
+                    <i class="fa-solid fa-spinner fa-spin mr-1"></i>Calculando tarifas...
+                  </span>
+                }
+              </div>
+
+              @if (preliquidacion()) {
+                <div class="space-y-2 text-xs">
+                  <div class="flex justify-between py-1.5 border-b border-blue-100">
+                    <span class="text-slate-600">Base Gravable Total:</span>
+                    <strong class="font-mono text-slate-900">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                  </div>
+                  <div class="flex justify-between py-1.5 border-b border-blue-100">
+                    <span class="text-slate-600">Impuesto de Registro:</span>
+                    <strong class="font-mono text-slate-900">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                  </div>
+                  <div class="flex justify-between py-1.5 border-b border-blue-100">
+                    <span class="text-slate-600">Sanción por Extemporaneidad:</span>
+                    <strong class="font-mono text-amber-700">{{ preliquidacion()?.sancionExtemporaneidad | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                  </div>
+                  <div class="flex justify-between py-1.5 border-b border-blue-100">
+                    <span class="text-slate-600">Intereses Moratorios:</span>
+                    <strong class="font-mono text-amber-700">{{ preliquidacion()?.interesesMora | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                  </div>
+                  <div class="flex justify-between py-2 pt-2 text-sm font-black bg-blue-100/60 px-3 rounded-lg text-blue-950 mt-2">
+                    <span>Total a Liquidar:</span>
+                    <span class="font-mono">{{ preliquidacion()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                  </div>
+                </div>
+              } @else if (!isPreliquidando()) {
+                <div class="py-6 text-center text-slate-400">
+                  <i class="fa-solid fa-calculator text-2xl mb-1 text-blue-300"></i>
+                  <p class="text-xs">Haga clic en simular para validar el cálculo oficial.</p>
+                </div>
               }
             </div>
 
-            @if (preliquidacion()) {
-              <div class="space-y-2 text-xs">
-                <div class="flex justify-between py-1 border-b border-blue-100">
-                  <span class="text-slate-600">Base Gravable Total:</span>
-                  <strong class="font-mono text-slate-800">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                </div>
-                <div class="flex justify-between py-1 border-b border-blue-100">
-                  <span class="text-slate-600">Impuesto de Registro:</span>
-                  <strong class="font-mono text-slate-800">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                </div>
-                <div class="flex justify-between py-1 border-b border-blue-100">
-                  <span class="text-slate-600">Sanción por Extemporaneidad:</span>
-                  <strong class="font-mono text-amber-700">{{ preliquidacion()?.sancionExtemporaneidad | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                </div>
-                <div class="flex justify-between py-1 border-b border-blue-100">
-                  <span class="text-slate-600">Intereses de Mora:</span>
-                  <strong class="font-mono text-amber-700">{{ preliquidacion()?.interesesMora | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                </div>
-                <div class="flex justify-between py-2 pt-3 border-t-2 border-blue-300 text-sm">
-                  <span class="font-bold text-blue-950">Total Oficial a Liquidar:</span>
-                  <strong class="font-bold font-mono text-blue-950 text-base">{{ preliquidacion()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                </div>
-              </div>
-            } @else {
-              <div class="py-8 text-center text-slate-400">
-                <p>Presione el botón para simular la preliquidación según tarifas vigentes</p>
-                <button 
-                  (click)="simularPreliquidacion(selectedSolicitud()!.solicitudId || selectedSolicitud()!.id)"
-                  class="mt-2 px-3 py-1 bg-blue-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
-                >
-                  Recalcular Simulación
-                </button>
-              </div>
-            }
+            <!-- Botón para recalcular si fuese necesario -->
+            <button
+              (click)="simularPreliquidacion(selectedSolicitud()?.id)"
+              [disabled]="isPreliquidando()"
+              type="button"
+              class="w-full py-2 bg-white hover:bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200 transition text-xs cursor-pointer text-center"
+            >
+              <i class="fa-solid fa-arrows-rotate mr-1" [class.fa-spin]="isPreliquidando()"></i>
+              <span>Recalcular Preliquidación</span>
+            </button>
           </div>
         </div>
 
-        <!-- Botones de Decisión Fiscal -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 pt-4">
-          <button 
-            type="button" 
-            (click)="abrirDevolucion()"
-            class="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-300 rounded-xl transition cursor-pointer flex items-center justify-center gap-2"
+        <!-- Footer con Acciones de Decisión Fiscal -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+          <button
+            (click)="showFiscalizarModal.set(false)"
+            type="button"
+            class="px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer w-full sm:w-auto"
           >
-            <i class="fa-solid fa-arrow-rotate-left"></i>
-            <span>Devolver a Entidad con Requerimiento</span>
+            Cerrar Expediente
           </button>
 
-          <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-            <button 
-              type="button" 
-              (click)="showFiscalizarModal.set(false)" 
-              class="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+          <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <!-- Botón Devolver a Notaría -->
+            <button
+              (click)="abrirDevolucion()"
+              type="button"
+              class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs transition cursor-pointer"
             >
-              Cerrar
+              <i class="fa-solid fa-arrow-rotate-left"></i>
+              <span>Devolver con Requerimiento</span>
             </button>
-            <button 
-              type="button" 
-              (click)="aprobarYGenerarLiquidacion()"
-              [disabled]="isAprobando() || !preliquidacion()"
-              class="px-5 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md shadow-emerald-600/25 transition cursor-pointer flex items-center gap-2"
+
+            <!-- Botón Aprobar y Expedir Liquidación -->
+            <button
+              (click)="abrirConfirmacionEmision()"
+              [disabled]="isPreliquidando() || !preliquidacion()"
+              type="button"
+              class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-800 hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs shadow-md shadow-blue-700/20 transition active:scale-[0.98] cursor-pointer"
             >
-              @if (isAprobando()) {
-                <i class="fa-solid fa-circle-notch fa-spin"></i>
-                <span>Generando Liquidación...</span>
-              } @else {
-                <i class="fa-solid fa-stamp"></i>
-                <span>Aprobar y Expedir Liquidación Oficial</span>
-              }
+              <i class="fa-solid fa-stamp"></i>
+              <span>Aprobar y Expedir Liquidación</span>
             </button>
           </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- MODAL DE DEVOLUCIÓN TÉCNICA CON REQUERIMIENTO -->
+  @if (showDevolverModal()) {
+    <div class="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center gap-3 border-b border-slate-100 pb-3 mb-4">
+          <div class="p-2.5 bg-amber-100 text-amber-800 rounded-xl">
+            <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Devolución Técnica a Notaría</h3>
+            <p class="text-xs text-slate-500">Emisión de Requerimiento Oficial de Subsanación</p>
+          </div>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <!-- Causal Estandarizada -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Causal Normativa Principal <span class="text-rose-500">*</span></label>
+            <select
+              [ngModel]="causalDevolucion()"
+              (ngModelChange)="causalDevolucion.set($event)"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs font-medium"
+            >
+              <option value="ERROR_BASE_GRAVABLE">Diferencia o Inconsistencia en la Base Gravable</option>
+              <option value="DOCUMENTO_INCOMPLETO">Documento o Minuta Notarial Incompleta o Ilegible</option>
+              <option value="FALTA_SOPORTE_EXENCION">Falta de Soporte o Certificación de Exención</option>
+              <option value="INCONSISTENCIA_ACTO">Acto Registral Erróneamente Clasificado</option>
+              <option value="ERROR_SUJETO_PASIVO">Inconsistencia en Sujetos Pasivos / Intervinientes</option>
+              <option value="OTRO">Otro Requerimiento Técnico-Jurídico</option>
+            </select>
+          </div>
+
+          <!-- Observaciones Detalladas -->
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Observaciones Técnicas para la Notaría <span class="text-rose-500">*</span></label>
+            <textarea
+              [ngModel]="motivoDevolucion()"
+              (ngModelChange)="motivoDevolucion.set($event)"
+              rows="4"
+              placeholder="Indique con precisión el documento que debe subsanar la notaría o la corrección de cuantía requerida..."
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-xs"
+            ></textarea>
+            <p class="text-[10px] text-slate-400 mt-1">Este texto será visible para la notaría en su bandeja de devueltas para proceder con la subsanación.</p>
+          </div>
+
+          <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px] flex gap-2">
+            <i class="fa-solid fa-circle-info text-amber-700 mt-0.5"></i>
+            <span>Al confirmar, el expediente pasará a estado <strong>Devuelta por Subsanar</strong> y se notificará a la notaría.</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-slate-100">
+          <button
+            (click)="showDevolverModal.set(false)"
+            type="button"
+            class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            (click)="confirmarDevolucion()"
+            [disabled]="isDevolviendo() || !motivoDevolucion().trim()"
+            type="button"
+            class="px-4 py-2 text-xs font-bold bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white rounded-xl shadow-xs transition cursor-pointer inline-flex items-center gap-1.5"
+          >
+            @if (isDevolviendo()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            }
+            <span>Confirmar Devolución</span>
+          </button>
         </div>
       </div>
     </div>
   }
 
-  <!-- MODAL DEVOLVER EXPEDIENTE -->
-  @if (showDevolverModal()) {
-    <div class="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-        <h3 class="text-base font-bold text-rose-800 mb-2">Devolver Expediente a la Entidad</h3>
-        <p class="text-xs text-slate-500 mb-4">Especifique el requerimiento técnico o normativo que la entidad notarial debe subsanar.</p>
+  <!-- MODAL DE CONFIRMACIÓN INTELIGENTE DE EMISIÓN DE LIQUIDACIÓN -->
+  @if (showConfirmarEmisionModal()) {
+    <div class="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center gap-3 border-b border-slate-100 pb-3 mb-4">
+          <div class="p-2.5 bg-blue-100 text-blue-800 rounded-xl">
+            <i class="fa-solid fa-stamp text-lg"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Confirmar Expedición Oficial</h3>
+            <p class="text-xs text-slate-500">Título Ejecutivo de Liquidación Departamental</p>
+          </div>
+        </div>
 
-        <textarea 
-          rows="4" 
-          [ngModel]="motivoDevolucion()" 
-          (ngModelChange)="motivoDevolucion.set($event)"
-          placeholder="Ej: Inconsistencia en la cuantía del acto No. 2 respecto a la minuta adjunta. Debe ajustar el valor catastral."
-          class="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-rose-500 mb-4"
-        ></textarea>
+        <div class="space-y-3 text-xs text-slate-600">
+          <p>
+            Está a punto de emitir la <strong>Liquidación Oficial del Impuesto de Registro</strong> para el radicado:
+            <span class="font-mono font-bold text-slate-800 ml-1">{{ selectedSolicitud()?.numeroRadicado }}</span>.
+          </p>
 
-        <div class="flex justify-end gap-2">
-          <button (click)="showDevolverModal.set(false)" class="px-3 py-2 text-xs text-slate-600 hover:bg-slate-100 rounded-xl">Cancelar</button>
-          <button (click)="confirmarDevolucion()" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-md">Confirmar Devolución</button>
+          <div class="p-3 bg-blue-50 rounded-xl border border-blue-200 space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-slate-600">Contribuyente:</span>
+              <strong class="text-slate-800">{{ selectedSolicitud()?.contribuyente?.nombre || 'Contribuyente' }}</strong>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-600">Total a Liquidar:</span>
+              <strong class="font-mono text-blue-900 text-sm">{{ preliquidacion()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+            </div>
+          </div>
+
+          <p class="text-[11px] text-slate-500">
+            Esta acción generará el código de barras bancario oficial y pondrá el título a disposición de la notaría para pago.
+          </p>
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-slate-100">
+          <button
+            (click)="showConfirmarEmisionModal.set(false)"
+            type="button"
+            class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            (click)="aprobarYGenerarLiquidacion()"
+            [disabled]="isAprobando()"
+            type="button"
+            class="px-5 py-2 text-xs font-bold bg-blue-700 hover:bg-blue-800 disabled:opacity-50 text-white rounded-xl shadow-md shadow-blue-700/20 transition cursor-pointer inline-flex items-center gap-1.5"
+          >
+            @if (isAprobando()) {
+              <i class="fa-solid fa-spinner fa-spin"></i>
+            }
+            <span>Confirmar y Expedir</span>
+          </button>
         </div>
       </div>
     </div>

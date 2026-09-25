@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
+import { RegistrosPermissionsPolicy } from '../../../../domain/policies/registros-permissions.policy';
 import { LiquidacionListadoDto, SolicitudReliquidacionDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
@@ -16,6 +17,7 @@ import { TableSearchComponent } from '../../../shared/components/table-search/ta
 })
 export class GobernacionLiquidacionesComponent implements OnInit {
   private facade = inject(GeneracionLiquidacionFacade);
+  public permissions = inject(RegistrosPermissionsPolicy);
   private toast = inject(ToastService);
 
   // Subpestañas:
@@ -24,7 +26,13 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   // 3 = Directorio Oficial Departamental de Liquidaciones
   activeTab = signal<1 | 2 | 3>(1);
 
-  // Datos
+  // Tarjetas KPI Operativas
+  kpiReliquidaciones = signal<number>(0);
+  kpiAnulaciones = signal<number>(0);
+  kpiDirectorio = signal<number>(0);
+  kpiAnuladas = signal<number>(0);
+
+  // Datos de tabla
   items = signal<any[]>([]);
   totalCount = signal<number>(0);
   pageNumber = signal<number>(1);
@@ -32,24 +40,54 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   searchText = signal<string>('');
   isLoading = signal<boolean>(false);
 
-  // Modal Decision Reliquidacion
+  // Modal Decisión Reliquidación
   selectedReliquidacion = signal<SolicitudReliquidacionDto | any | null>(null);
   showAprobarReliquidacionModal = signal<boolean>(false);
   showRechazarReliquidacionModal = signal<boolean>(false);
   motivoResolucion = signal<string>('');
+  isProcesandoReliquidacion = signal<boolean>(false);
 
-  // Modal Decision Anulacion
+  // Modal Decisión Anulación
   selectedAnulacion = signal<any | null>(null);
   showAprobarAnulacionModal = signal<boolean>(false);
   showRechazarAnulacionModal = signal<boolean>(false);
+  isProcesandoAnulacion = signal<boolean>(false);
 
-  // Modal Anulacion de Oficio
+  // Modal Anulación de Oficio
   showAnulacionOficioModal = signal<boolean>(false);
   selectedLiquidacionOficio = signal<LiquidacionListadoDto | null>(null);
   motivoOficio = signal<string>('');
+  isProcesandoOficio = signal<boolean>(false);
 
   ngOnInit(): void {
+    this.cargarMetricasKpi();
     this.cargarDatos();
+  }
+
+  cargarMetricasKpi(): void {
+    // 1. Reliquidaciones pendientes
+    this.facade.listarReliquidacionesPendientes(1, 1).subscribe({
+      next: (res) => this.kpiReliquidaciones.set(res?.data?.totalCount || 0),
+      error: () => {}
+    });
+
+    // 2. Anulaciones pendientes
+    this.facade.listarAnulacionesPendientes(1, 1).subscribe({
+      next: (res) => this.kpiAnulaciones.set(res?.data?.totalCount || 0),
+      error: () => {}
+    });
+
+    // 3. Directorio general de liquidaciones
+    this.facade.listarLiquidaciones(1, 1).subscribe({
+      next: (res) => this.kpiDirectorio.set(res?.data?.totalCount || 0),
+      error: () => {}
+    });
+
+    // 4. Anuladas formalmente (estadoId = 3)
+    this.facade.listarLiquidaciones(1, 1, undefined, 3).subscribe({
+      next: (res) => this.kpiAnuladas.set(res?.data?.totalCount || 0),
+      error: () => {}
+    });
   }
 
   cambiarPestana(tab: 1 | 2 | 3): void {
@@ -131,17 +169,18 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   }
 
   descargarPdf(id: number): void {
+    this.toast.info('Descargando liquidación oficial...');
     this.facade.descargarPdf(id).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Liquidacion_Cauca_${id}.pdf`;
+        a.download = `Liquidacion_Oficial_${id}.pdf`;
         a.click();
         window.URL.revokeObjectURL(url);
-        this.toast.success('Archivo fiscal descargado');
+        this.toast.success('Archivo fiscal descargado exitosamente');
       },
-      error: () => this.toast.error('Error al descargar PDF')
+      error: () => this.toast.error('Error al descargar el PDF de liquidación')
     });
   }
 
@@ -176,7 +215,7 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   // --- RELIQUIDACION ---
   abrirAprobarReliquidacion(item: any): void {
     this.selectedReliquidacion.set(item);
-    this.motivoResolucion.set('Aprobada conforme a revisión de documentos aportados.');
+    this.motivoResolucion.set('Aprobada conforme a revisión de documentos aportados por la entidad.');
     this.showAprobarReliquidacionModal.set(true);
   }
 
@@ -184,13 +223,20 @@ export class GobernacionLiquidacionesComponent implements OnInit {
     const it = this.selectedReliquidacion();
     if (!it) return;
     const targetId = it.liquidacionId || it.id;
+
+    this.isProcesandoReliquidacion.set(true);
     this.facade.aprobarReliquidacion(targetId, this.motivoResolucion()).subscribe({
       next: (res) => {
+        this.isProcesandoReliquidacion.set(false);
         this.toast.success(`Reliquidación aprobada. Nuevo título expedido: #${res.data}`);
         this.showAprobarReliquidacionModal.set(false);
         this.cargarDatos();
+        this.cargarMetricasKpi();
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Error al aprobar reliquidación')
+      error: (err) => {
+        this.isProcesandoReliquidacion.set(false);
+        this.toast.error(err?.error?.message || 'Error al aprobar la reliquidación');
+      }
     });
   }
 
@@ -203,24 +249,31 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   confirmarRechazarReliquidacion(): void {
     const it = this.selectedReliquidacion();
     if (!it || !this.motivoResolucion().trim()) {
-      this.toast.warning('Debe motivar la causal de rechazo');
+      this.toast.warning('Debe motivar formalmente la causal de rechazo');
       return;
     }
     const targetId = it.liquidacionId || it.id;
-    this.facade.rechazarReliquidacion(targetId, this.motivoResolucion()).subscribe({
+
+    this.isProcesandoReliquidacion.set(true);
+    this.facade.rechazarReliquidacion(targetId, this.motivoResolucion().trim()).subscribe({
       next: () => {
-        this.toast.success('Reliquidación rechazada formalmente. Título original vigente.');
+        this.isProcesandoReliquidacion.set(false);
+        this.toast.success('Reliquidación rechazada. Título inicial ratificado en firme.');
         this.showRechazarReliquidacionModal.set(false);
         this.cargarDatos();
+        this.cargarMetricasKpi();
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Error al rechazar')
+      error: (err) => {
+        this.isProcesandoReliquidacion.set(false);
+        this.toast.error(err?.error?.message || 'Error al rechazar la reliquidación');
+      }
     });
   }
 
   // --- ANULACION ---
   abrirAprobarAnulacion(item: any): void {
     this.selectedAnulacion.set(item);
-    this.motivoResolucion.set('Anulación autorizada por fiscalización de rentas.');
+    this.motivoResolucion.set('Anulación formal autorizada conforme a revisión fiscal.');
     this.showAprobarAnulacionModal.set(true);
   }
 
@@ -228,13 +281,20 @@ export class GobernacionLiquidacionesComponent implements OnInit {
     const it = this.selectedAnulacion();
     if (!it) return;
     const targetId = it.liquidacionId || it.id;
+
+    this.isProcesandoAnulacion.set(true);
     this.facade.aprobarAnulacion(targetId, this.motivoResolucion()).subscribe({
       next: () => {
-        this.toast.success('Liquidación anulada formalmente');
+        this.isProcesandoAnulacion.set(false);
+        this.toast.success('Liquidación anulada formalmente en el sistema tributario');
         this.showAprobarAnulacionModal.set(false);
         this.cargarDatos();
+        this.cargarMetricasKpi();
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Error al anular')
+      error: (err) => {
+        this.isProcesandoAnulacion.set(false);
+        this.toast.error(err?.error?.message || 'Error al anular la liquidación');
+      }
     });
   }
 
@@ -247,17 +307,24 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   confirmarRechazarAnulacion(): void {
     const it = this.selectedAnulacion();
     if (!it || !this.motivoResolucion().trim()) {
-      this.toast.warning('Debe motivar el rechazo');
+      this.toast.warning('Debe fundamentar el motivo de desestimación del trámite');
       return;
     }
     const targetId = it.liquidacionId || it.id;
-    this.facade.rechazarAnulacion(targetId, this.motivoResolucion()).subscribe({
+
+    this.isProcesandoAnulacion.set(true);
+    this.facade.rechazarAnulacion(targetId, this.motivoResolucion().trim()).subscribe({
       next: () => {
+        this.isProcesandoAnulacion.set(false);
         this.toast.success('Solicitud de anulación rechazada');
         this.showRechazarAnulacionModal.set(false);
         this.cargarDatos();
+        this.cargarMetricasKpi();
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Error al rechazar')
+      error: (err) => {
+        this.isProcesandoAnulacion.set(false);
+        this.toast.error(err?.error?.message || 'Error al rechazar la anulación');
+      }
     });
   }
 
@@ -271,16 +338,23 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   confirmarAnulacionOficio(): void {
     const liq = this.selectedLiquidacionOficio();
     if (!liq || !this.motivoOficio().trim()) {
-      this.toast.warning('Debe indicar la causal fiscal de la anulación de oficio');
+      this.toast.warning('Debe fundamentar legalmente la anulación administrativa de oficio');
       return;
     }
-    this.facade.anularLiquidacion(liq.id, this.motivoOficio()).subscribe({
+
+    this.isProcesandoOficio.set(true);
+    this.facade.anularLiquidacion(liq.id, this.motivoOficio().trim()).subscribe({
       next: () => {
+        this.isProcesandoOficio.set(false);
         this.toast.success('Liquidación anulada de oficio administrativamente');
         this.showAnulacionOficioModal.set(false);
         this.cargarDatos();
+        this.cargarMetricasKpi();
       },
-      error: (err) => this.toast.error(err?.error?.message || 'Error al anular de oficio')
+      error: (err) => {
+        this.isProcesandoOficio.set(false);
+        this.toast.error(err?.error?.message || 'Error al ejecutar la anulación de oficio');
+      }
     });
   }
 }

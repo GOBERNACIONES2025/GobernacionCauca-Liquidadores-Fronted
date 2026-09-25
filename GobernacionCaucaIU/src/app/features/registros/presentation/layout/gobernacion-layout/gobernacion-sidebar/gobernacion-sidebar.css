@@ -1,0 +1,61 @@
+/* Estilos de alta cohesión visual para el menú de gobernación */
+
+/* 1. Dashboard */
+a.active-dashboard {
+  background: #f0f9ff !important; /* sky-50 */
+  color: #0c4a6e !important; /* sky-900 */
+  font-weight: 700 !important;
+  border-left-color: #0284c7 !important; /* sky-600 */
+  box-shadow: 0 1px 3px 0 rgba(2, 132, 199, 0.08);
+}
+a.active-dashboard .item-icon {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 2px 4px 0 rgba(2, 132, 199, 0.25);
+}
+
+/* 2. Solicitudes (Azul Fiscal Institucional) */
+a.active-solicitudes {
+  background: #eff6ff !important; /* blue-50 */
+  color: #1e3a8a !important; /* blue-900 */
+  font-weight: 700 !important;
+  border-left-color: #1d4ed8 !important; /* blue-700 */
+  box-shadow: 0 1px 3px 0 rgba(29, 78, 216, 0.08);
+}
+a.active-solicitudes .item-icon {
+  background: #1d4ed8 !important;
+  color: #ffffff !important;
+  border-color: #1d4ed8 !important;
+  box-shadow: 0 2px 4px 0 rgba(29, 78, 216, 0.25);
+}
+
+/* 3. Liquidaciones (Verde Esmeralda Fiscal) */
+a.active-liquidaciones {
+  background: #ecfdf5 !important; /* emerald-50 */
+  color: #064e3b !important; /* emerald-900 */
+  font-weight: 700 !important;
+  border-left-color: #059669 !important; /* emerald-600 */
+  box-shadow: 0 1px 3px 0 rgba(5, 150, 105, 0.08);
+}
+a.active-liquidaciones .item-icon {
+  background: #059669 !important;
+  color: #ffffff !important;
+  border-color: #059669 !important;
+  box-shadow: 0 2px 4px 0 rgba(5, 150, 105, 0.25);
+}
+
+/* 4. Configuración Normativa (Ámbar / Dorado) */
+a.active-configuracion {
+  background: #fffbeb !important; /* amber-50 */
+  color: #78350f !important; /* amber-900 */
+  font-weight: 700 !important;
+  border-left-color: #d97706 !important; /* amber-600 */
+  box-shadow: 0 1px 3px 0 rgba(217, 119, 6, 0.08);
+}
+a.active-configuracion .item-icon {
+  background: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 2px 4px 0 rgba(217, 119, 6, 0.25);
+}
