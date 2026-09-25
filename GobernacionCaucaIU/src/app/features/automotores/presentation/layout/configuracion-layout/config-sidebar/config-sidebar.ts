@@ -7,6 +7,9 @@ import { CatalogoVehicularFacade } from '../../../../application/facades/catalog
 import { ValoresEstatalesFacade } from '../../../../application/facades/valores-estatales.facade';
 import { TarifasTributariasFacade } from '../../../../application/facades/tarifas-tributarias.facade';
 import { ExencionesTributariasFacade } from '../../../../application/facades/exenciones-tributarias.facade';
+import { VigenciasFiscalesFacade } from '../../../../application/facades/vigencias-fiscales.facade';
+import { NormasTributariasFacade } from '../../../../application/facades/normas-tributarias.facade';
+import { CalendariosTributariosFacade } from '../../../../application/facades/calendarios-tributarios.facade';
 
 export interface CatalogItem {
   name: string;
@@ -34,6 +37,9 @@ export class AutomotoresConfigSidebar {
   public valoresFacade = inject(ValoresEstatalesFacade);
   public tarifasFacade = inject(TarifasTributariasFacade);
   public exencionesFacade = inject(ExencionesTributariasFacade);
+  public vigenciasFacade = inject(VigenciasFiscalesFacade);
+  public normasFacade = inject(NormasTributariasFacade);
+  public calendariosFacade = inject(CalendariosTributariosFacade);
   private router = inject(Router);
 
   readonly closeSidebar = output<void>();
@@ -171,6 +177,16 @@ export class AutomotoresConfigSidebar {
       icon: 'coins',
       items: [
         {
+          name: 'Vigencias Fiscales',
+          route: '/automotores/configuracion/reglas-tributarias/vigencias',
+          count: this.vigenciasFacade.totalVigencias()
+        },
+        {
+          name: 'Normas Tributarias',
+          route: '/automotores/configuracion/reglas-tributarias/normas',
+          count: this.normasFacade.totalNormas()
+        },
+        {
           name: 'Tarifas Tributarias',
           route: '/automotores/configuracion/reglas-tributarias/tarifas',
           count: this.tarifasFacade.totalTarifas()
@@ -179,6 +195,11 @@ export class AutomotoresConfigSidebar {
           name: 'Exenciones Tributarias',
           route: '/automotores/configuracion/reglas-tributarias/exenciones',
           count: this.exencionesFacade.totalExenciones()
+        },
+        {
+          name: 'Calendarios Tributarios',
+          route: '/automotores/configuracion/reglas-tributarias/calendarios',
+          count: this.calendariosFacade.totalCalendarios()
         }
       ]
     },

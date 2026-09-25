@@ -1,25 +1,23 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { Observable, of, forkJoin } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { TarifasTributariasApiService } from '../../infrastructure/api/tarifas-tributarias-api.service';
-import { CatalogoApiService } from '../../infrastructure/api/catalogo-api.service';
-import { DepartamentosApiService } from '../../infrastructure/api/departamentos-api.service';
+import { ParametrosSharedService } from '../../../../shared/services/parametros-shared.service';
 import {
   TarifaTributariaDto,
   CreateTarifaTributariaRequest,
   UpdateTarifaTributariaRequest,
   FiltrosTarifaTributaria
 } from '../../domain/interfaces/tarifas-tributarias.interface';
-import { CatalogoItemDto } from '../../domain/interfaces/catalogo.interface';
-import { DepartamentoDto } from '../../domain/interfaces/geografico.interface';
+import { VigenciaFiscalDto } from '../../domain/interfaces/vigencia-fiscal.interface';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TarifasTributariasFacade {
   private api = inject(TarifasTributariasApiService);
-  private catalogoApi = inject(CatalogoApiService);
-  private departamentosApi = inject(DepartamentosApiService);
+  /** Single source of truth: vigencias + catálogos en memoria con cookie como respaldo */
+  readonly shared = inject(ParametrosSharedService);
 
   // Estados reactivos principales
   readonly tarifas = signal<TarifaTributariaDto[]>([]);
@@ -27,13 +25,16 @@ export class TarifasTributariasFacade {
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
 
-  // Catálogos dinámicos cargados desde el backend (CERO DATOS QUEMADOS)
-  readonly vigencias = signal<any[]>([]);
-  readonly normas = signal<any[]>([]);
-  readonly departamentos = signal<DepartamentoDto[]>([]);
-  readonly clasesVehiculo = signal<CatalogoItemDto[]>([]);
-  readonly serviciosVehiculo = signal<CatalogoItemDto[]>([]);
-  readonly combustibles = signal<CatalogoItemDto[]>([]);
+  // ── Catálogos delegados a ParametrosSharedService (señales computadas) ──
+  /** Lista de vigencias fiscales ordenada descendente. Vienen de memoria o cookie. */
+  readonly vigencias = computed(() => this.shared.vigencias());
+  readonly normas = computed(() => this.shared.normas());
+  readonly departamentos = computed(() => this.shared.departamentos());
+  readonly clasesVehiculo = computed(() => this.shared.clasesVehiculo());
+  readonly serviciosVehiculo = computed(() => this.shared.serviciosVehiculo());
+  readonly combustibles = computed(() => this.shared.combustibles());
+  /** Vigencia fiscal activa (leída de cookie si ya fue seleccionada) */
+  readonly vigenciaActivaAnio = computed(() => this.shared.anioVigenciaSeleccionada());
 
   // Filtros reactivos
   readonly searchTerm = signal<string>('');
@@ -54,47 +55,9 @@ export class TarifasTributariasFacade {
   readonly totalInactivas = computed(() => this.tarifas().filter(t => !t.activa).length);
 
   constructor() {
-    this.cargarCatalogos();
+    // Asegura que los catálogos estén disponibles; si ya cargaron, no hace nada
+    this.shared.cargarParametrosGenerales();
     this.cargarTarifas();
-  }
-
-  /**
-   * Carga dinámica de todos los catálogos requeridos desde el backend
-   */
-  public cargarCatalogos(): void {
-    // 1. Catálogos generales (clases, servicios, combustibles)
-    this.catalogoApi.getTodos().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      const data = res?.data || res;
-      if (data) {
-        if (data.clasesVehiculo) this.clasesVehiculo.set(data.clasesVehiculo);
-        if (data.serviciosVehiculo) this.serviciosVehiculo.set(data.serviciosVehiculo);
-        if (data.combustibles) this.combustibles.set(data.combustibles);
-      }
-    });
-
-    // 2. Departamentos
-    this.departamentosApi.getDepartamentos().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      const dptos = res?.data || (Array.isArray(res) ? res : []);
-      if (Array.isArray(dptos)) {
-        this.departamentos.set(dptos);
-      }
-    });
-
-    // 3. Vigencias Fiscales
-    this.catalogoApi.getVigencias().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      let items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-      if (Array.isArray(items) && items.length > 0) {
-        this.vigencias.set(items);
-      }
-    });
-
-    // 4. Normas Tributarias
-    this.catalogoApi.getNormas().pipe(catchError(() => of(null))).subscribe((res: any) => {
-      let items = res?.data?.items || res?.data || (Array.isArray(res) ? res : []);
-      if (Array.isArray(items) && items.length > 0) {
-        this.normas.set(items);
-      }
-    });
   }
 
   /**
@@ -224,15 +187,15 @@ export class TarifasTributariasFacade {
     );
   }
 
-  // Métodos de resolución de nombres de catálogos
   public getVigenciaLabel(id: number): string {
     const v = this.vigencias().find(item => item.id === id || item.anio === id);
-    return v ? (v.anio ? String(v.anio) : (v.nombre || String(id))) : String(id);
+    return v ? String(v.anio) : String(id);
   }
 
   public getNormaLabel(id: number): string {
     const n = this.normas().find(item => item.id === id);
-    return n ? (n.nombre || n.codigo || `Norma #${id}`) : `Norma #${id}`;
+    if (!n) return `Norma #${id}`;
+    return `${n.tipoNorma} ${n.numero}${n.titulo ? ' - ' + n.titulo : ''}`;
   }
 
   public getDepartamentoLabel(id: number): string {

@@ -13,7 +13,7 @@ export class AuthStateService {
   readonly moduleApiUrls = signal<Record<string, string>>({
     LOGIN: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
     AUTOMOTORES: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
-    REGISTROS: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5098/api/v1`,
+    REGISTROS: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5001/api/v1`,
   });
 
   // Signal computado para verificar si hay sesión activa

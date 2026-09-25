@@ -27,7 +27,7 @@ export class VehiculosFtpFacade {
     return this.ftpService
       .upAnyDocument(formData, remoteDirectory)
       .pipe(
-        map(response => response.data)
+        map((response: any) => (response && response.data !== undefined) ? response.data : response)
       );
   }
 }

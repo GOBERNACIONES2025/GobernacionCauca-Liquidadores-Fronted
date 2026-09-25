@@ -1,0 +1,701 @@
+<div class="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Encabezado de la página -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+          <i class="fa-solid fa-calendar-days text-[10px]"></i>
+          Reglas Tributarias
+        </span>
+        <span class="text-xs text-slate-400">•</span>
+        <span class="text-xs font-medium text-slate-500">general.CalendariosTributarios</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#0F3067] text-white flex items-center justify-center shadow-xs">
+          <i class="fa-solid fa-calendar-days text-sm"></i>
+        </div>
+        Calendarios Tributarios
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1">
+        Definición de plazos de vencimiento, fechas límite de declaración y pago, descuentos por pronto pago y recargos por impuesto.
+      </p>
+    </div>
+
+    <!-- Botón Crear -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <button
+        type="button"
+        (click)="facade.cargarCalendarios()"
+        class="p-2.5 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition shadow-xs cursor-pointer"
+        title="Recargar datos"
+      >
+        <i class="fa-solid fa-rotate-right text-sm" [class.fa-spin]="facade.loading()"></i>
+      </button>
+
+      <button
+        type="button"
+        (click)="abrirCrear()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0F3067] hover:bg-[#1b53ad] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
+      >
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>Nuevo Calendario</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs / Tarjetas Informativas -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-calendar-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Calendarios</p>
+        <p class="text-2xl font-bold text-slate-800">{{ facade.totalCalendarios() }}</p>
+        <p class="text-[11px] text-slate-500">Periodos configurados</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-hourglass-half"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Vigentes Ahora</p>
+        <p class="text-2xl font-bold text-emerald-700">{{ facade.totalVigentes() }}</p>
+        <p class="text-[11px] text-emerald-600">Plazos abiertos</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-tags"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Con Pronto Pago</p>
+        <p class="text-2xl font-bold text-amber-700">{{ facade.totalConDescuento() }}</p>
+        <p class="text-[11px] text-amber-600">Con beneficio financiero</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Inactivos</p>
+        <p class="text-2xl font-bold text-slate-600">{{ facade.totalInactivos() }}</p>
+        <p class="text-[11px] text-slate-400">Deshabilitados</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Búsqueda y Filtros -->
+  <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+      <!-- Búsqueda por texto -->
+      <div class="lg:col-span-2 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </div>
+        <input
+          type="text"
+          [ngModel]="facade.searchTerm()"
+          (ngModelChange)="onSearch($event)"
+          placeholder="Buscar por vigencia, fechas o norma..."
+          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+        />
+      </div>
+
+      <!-- Filtro Vigencia Fiscal -->
+      <div>
+        <select
+          [ngModel]="facade.vigenciaFiltro()"
+          (ngModelChange)="onFilterVigencia($event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition cursor-pointer"
+        >
+          <option value="TODOS">Todas las Vigencias</option>
+          @for (vig of facade.vigencias(); track vig.id) {
+            <option [value]="vig.id">Vigencia {{ vig.anio }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro Norma Tributaria -->
+      <div>
+        <select
+          [ngModel]="facade.normaFiltro()"
+          (ngModelChange)="onFilterNorma($event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition cursor-pointer"
+        >
+          <option value="TODOS">Todas las Normas</option>
+          @for (norma of facade.normas(); track norma.id) {
+            <option [value]="norma.id">{{ norma.tipoNorma }} {{ norma.numero }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro Estado -->
+      <div>
+        <select
+          [ngModel]="facade.estadoFiltro()"
+          (ngModelChange)="onFilterEstado($event)"
+          class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition cursor-pointer"
+        >
+          <option value="TODOS">Todos los Estados</option>
+          <option value="ACTIVOS">Solo Activos</option>
+          <option value="INACTIVOS">Solo Inactivos</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Resultados -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+    @if (facade.loading() && facade.calendarios().length === 0) {
+      <div class="p-12 flex flex-col items-center justify-center text-center">
+        <i class="fa-solid fa-spinner fa-spin text-3xl text-[#0F3067] mb-3"></i>
+        <p class="text-sm font-medium text-slate-600">Cargando calendarios tributarios...</p>
+      </div>
+    } @else if (facade.calendarios().length === 0) {
+      <div class="p-12 flex flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 text-2xl mb-3">
+          <i class="fa-solid fa-calendar-xmark"></i>
+        </div>
+        <h3 class="text-base font-semibold text-slate-800">No se encontraron calendarios tributarios</h3>
+        <p class="text-xs text-slate-500 max-w-sm mt-1">
+          No hay registros que coincidan con los criterios de búsqueda o aún no se han configurado calendarios.
+        </p>
+        <button
+          type="button"
+          (click)="abrirCrear()"
+          class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#0F3067] text-white text-xs font-semibold rounded-xl hover:bg-[#1b53ad] transition cursor-pointer"
+        >
+          <i class="fa-solid fa-plus text-xs"></i>
+          Crear Primer Calendario
+        </button>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-4">Porcentaje de Descuento</th>
+              <th class="py-3 px-4">Vigencia</th>
+              <th class="py-3 px-4">Plazo de Vencimiento</th>
+              <th class="py-3 px-4">Norma Legal</th>
+              <th class="py-3 px-4 text-center">Estado</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
+            @for (item of facade.calendarios(); track item.id) {
+              @let estadoTemp = getEstadoTemporal(item);
+              @let desc = getPorcentajeDisplay(item.porcentajeDescuento);
+              <tr class="hover:bg-slate-50/80 transition-colors">
+                <!-- Porcentaje de Descuento -->
+                <td class="py-3.5 px-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0 border border-emerald-100">
+                      <i class="fa-solid fa-percent"></i>
+                    </div>
+                    <div>
+                      @if (desc > 0) {
+                        <span class="font-bold text-emerald-700 text-sm block">{{ desc }}%</span>
+                        <span class="text-[10px] text-emerald-600 font-medium">Pronto Pago</span>
+                      } @else {
+                        <span class="font-semibold text-slate-500 text-xs block">0%</span>
+                        <span class="text-[10px] text-slate-400">Sin descuento</span>
+                      }
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Vigencia -->
+                <td class="py-3.5 px-4 font-semibold text-slate-800">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs">
+                    <i class="fa-solid fa-calendar text-[10px] text-slate-400"></i>
+                    {{ facade.getVigenciaLabel(item.vigenciaFiscalId) }}
+                  </span>
+                </td>
+
+                <!-- Plazo de Vencimiento -->
+                <td class="py-3.5 px-4">
+                  <div class="flex flex-col gap-0.5">
+                    <span class="font-medium text-slate-800 flex items-center gap-1.5">
+                      <i class="fa-solid fa-calendar-day text-[10px] text-slate-400"></i>
+                      <span>{{ (item.fechaInicio || item.fechaInicioVencimiento) | date:'dd/MM/yyyy' }}</span>
+                      <i class="fa-solid fa-arrow-right text-[9px] text-slate-400"></i>
+                      <span class="font-bold text-slate-900">{{ (item.fechaVencimiento || item.fechaFinVencimiento) | date:'dd/MM/yyyy' }}</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 text-[11px] font-medium border px-2 py-0.5 rounded-full w-fit mt-0.5"
+                          [ngClass]="[estadoTemp.bgClass, estadoTemp.textClass]">
+                      <i class="fa-solid {{ estadoTemp.icon }} text-[9px]"></i>
+                      {{ estadoTemp.label }}
+                    </span>
+                  </div>
+                </td>
+
+                <!-- Norma Legal -->
+                <td class="py-3.5 px-4">
+                  @if (item.normaTributariaId) {
+                    <span class="text-xs text-slate-600 block max-w-xs truncate" [title]="facade.getNormaLabel(item.normaTributariaId)">
+                      {{ facade.getNormaLabel(item.normaTributariaId) }}
+                    </span>
+                  } @else {
+                    <span class="text-slate-400 text-xs italic">No especificada</span>
+                  }
+                </td>
+
+                <!-- Estado (Toggle) -->
+                <td class="py-3.5 px-4 text-center">
+                  <button
+                    type="button"
+                    (click)="toggleActivo(item)"
+                    [title]="item.activo ? 'Desactivar calendario' : 'Activar calendario'"
+                    class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20"
+                    [ngClass]="item.activo ? 'bg-emerald-500' : 'bg-slate-300'"
+                  >
+                    <span
+                      class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out"
+                      [ngClass]="item.activo ? 'translate-x-4' : 'translate-x-0'"
+                    ></span>
+                  </button>
+                </td>
+
+                <!-- Acciones -->
+                <td class="py-3.5 px-4 text-right">
+                  <div class="flex items-center justify-end gap-1">
+                    <button
+                      type="button"
+                      (click)="abrirDetalles(item)"
+                      class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                      title="Ver detalles"
+                    >
+                      <i class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="abrirEditar(item)"
+                      class="p-1.5 text-slate-500 hover:text-[#0F3067] hover:bg-slate-100 rounded-lg transition cursor-pointer"
+                      title="Editar calendario"
+                    >
+                      <i class="fa-solid fa-pen text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="abrirConfirmarEliminar(item)"
+                      class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                      title="Eliminar calendario"
+                    >
+                      <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="px-4 py-3 bg-slate-50/60 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <div class="flex items-center gap-2">
+          <span>Mostrando página {{ facade.pageNumber() }}</span>
+          <span>•</span>
+          <span>{{ facade.totalCalendarios() }} registros en total</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            [disabled]="facade.pageNumber() <= 1"
+            (click)="onPageChange(facade.pageNumber() - 1)"
+            class="px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            <i class="fa-solid fa-chevron-left text-[10px]"></i>
+            Anterior
+          </button>
+
+          <span class="px-3 py-1 font-semibold text-slate-700 bg-white border border-slate-200 rounded-lg">
+            {{ facade.pageNumber() }}
+          </span>
+
+          <button
+            type="button"
+            [disabled]="facade.calendarios().length < facade.pageSize()"
+            (click)="onPageChange(facade.pageNumber() + 1)"
+            class="px-2.5 py-1.5 border border-slate-200 rounded-lg bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            Siguiente
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- SLIDE-OVER DRAWER (Crear / Editar)        -->
+<!-- ========================================== -->
+@if (isSlideOverOpen()) {
+  <div class="fixed inset-0 z-50 overflow-hidden">
+    <!-- Backdrop -->
+    <div
+      class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-300"
+      (click)="cerrarSlideOver()"
+    ></div>
+
+    <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div class="w-screen max-w-xl bg-white shadow-2xl flex flex-col">
+        <!-- Header del SlideOver -->
+        <div class="px-6 py-5 bg-[#0F3067] text-white flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-lg">
+              <i class="fa-solid" [class.fa-plus]="!isEditMode()" [class.fa-pen-to-square]="isEditMode()"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold">
+                {{ isEditMode() ? 'Editar Calendario Tributario' : 'Nuevo Calendario Tributario' }}
+              </h2>
+              <p class="text-xs text-blue-200/80">
+                Configure las fechas y descuento por pronto pago del impuesto vehicular
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="cerrarSlideOver()"
+            class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Formulario (Scrollable) -->
+        <form [formGroup]="calendarioForm" (ngSubmit)="guardarCalendario()" class="flex-1 overflow-y-auto p-6 space-y-5">
+          <!-- Sección: Datos del Impuesto -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-file-invoice text-xs text-[#0F3067]"></i>
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Impuesto & Vigencia</h3>
+            </div>
+
+            <!-- Vigencia Fiscal -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">
+                Vigencia Fiscal <span class="text-rose-500">*</span>
+              </label>
+              <select
+                formControlName="vigenciaFiscalId"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+              >
+                <option [ngValue]="null" disabled>Seleccione una vigencia fiscal</option>
+                @for (vig of facade.vigencias(); track vig.id) {
+                  <option [ngValue]="vig.id">Vigencia Fiscal {{ vig.anio }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Impuesto Fijo (Automotores) -->
+            <div class="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-xl flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-lg bg-[#0F3067] text-white flex items-center justify-center text-sm shrink-0 shadow-xs">
+                  <i class="fa-solid fa-car"></i>
+                </div>
+                <div class="min-w-0">
+                  <span class="text-xs font-bold text-slate-800 block truncate">Impuesto Sobre Vehículos Automotores</span>
+                  <div class="flex items-center gap-1.5 mt-0.5">
+                    <span class="font-mono text-[10px] font-bold text-blue-800 bg-blue-100/80 px-1.5 py-0.5 rounded border border-blue-200">
+                      VEHICULOS
+                    </span>
+                    <span class="text-[10px] text-slate-500 font-medium">Módulo vehicular</span>
+                  </div>
+                </div>
+              </div>
+              <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white text-[10px] font-semibold text-slate-500 shrink-0 border border-slate-200" title="Parámetro predeterminado para este módulo">
+                <i class="fa-solid fa-lock text-[9px] text-slate-400"></i> Fijo
+              </span>
+            </div>
+
+            <!-- Input Oculto para el Formulario Reactivo -->
+            <input type="hidden" formControlName="codigoImpuesto" />
+
+            <!-- Norma Tributaria -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">
+                Norma Tributaria Asociada (Opcional)
+              </label>
+              <select
+                formControlName="normaTributariaId"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+              >
+                <option [ngValue]="null">Sin norma legal asociada</option>
+                @for (norma of facade.normas(); track norma.id) {
+                  <option [ngValue]="norma.id">
+                    {{ norma.tipoNorma }} {{ norma.numero }} - {{ norma.titulo || 'Sin título' }}
+                  </option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <!-- Sección: Plazos y Fechas -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-clock text-xs text-[#0F3067]"></i>
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Plazos de Vencimiento</h3>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">
+                  Fecha de Inicio <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  formControlName="fechaInicio"
+                  class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">
+                  Fecha de Vencimiento <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  formControlName="fechaVencimiento"
+                  class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección: Descuento -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-4">
+            <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-percent text-xs text-[#0F3067]"></i>
+              <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Beneficio Tributario</h3>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">
+                Porcentaje de Descuento (%) <span class="text-rose-500">*</span>
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  formControlName="porcentajeDescuento"
+                  placeholder="0.00"
+                  class="w-full pl-3 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+                />
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400 font-semibold text-xs">
+                  %
+                </div>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Porcentaje de descuento para pagos oportunos dentro del plazo</p>
+            </div>
+          </div>
+
+          <!-- Estado Activo -->
+          <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div>
+              <p class="text-xs font-semibold text-slate-800">Calendario Activo</p>
+              <p class="text-[11px] text-slate-500">Habilitar este calendario para su aplicación en liquidaciones</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" formControlName="activo" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F3067]"></div>
+            </label>
+          </div>
+        </form>
+
+        <!-- Footer del SlideOver -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            (click)="cerrarSlideOver()"
+            class="px-4 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="guardarCalendario()"
+            [disabled]="facade.loading()"
+            class="inline-flex items-center gap-2 px-5 py-2 bg-[#0F3067] hover:bg-[#1b53ad] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+          >
+            @if (facade.loading()) {
+              <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+            } @else {
+              <i class="fa-solid fa-floppy-disk text-xs"></i>
+            }
+            <span>{{ isEditMode() ? 'Guardar Cambios' : 'Registrar Calendario' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================== -->
+<!-- MODAL DETALLES                            -->
+<!-- ========================================== -->
+@if (isDetailsModalOpen() && selectedItem()) {
+  @let item = selectedItem()!;
+  @let estadoTemp = getEstadoTemporal(item);
+  @let desc = getPorcentajeDisplay(item.porcentajeDescuento);
+
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <!-- Modal Header -->
+      <div class="px-6 py-5 bg-[#0F3067] text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-calendar-days"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold">Calendario Tributario Vehicular</h3>
+            <p class="text-xs text-blue-200/80 font-mono">Código: {{ item.codigoImpuesto }}</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="cerrarDetallesModal()"
+          class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+        >
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+        <!-- Estado Badge -->
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
+          <span class="text-xs text-slate-500 font-medium">Estado del Calendario</span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border"
+                [ngClass]="[estadoTemp.bgClass, estadoTemp.textClass]">
+            <i class="fa-solid {{ estadoTemp.icon }} text-[10px]"></i>
+            {{ estadoTemp.label }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 text-xs">
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 block mb-1">Vigencia Fiscal</span>
+            <span class="font-bold text-slate-800 text-sm">
+              {{ facade.getVigenciaLabel(item.vigenciaFiscalId) }}
+            </span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 block mb-1">Código de Impuesto</span>
+            <span class="font-bold text-blue-800 font-mono text-sm">
+              {{ item.codigoImpuesto }}
+            </span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 block mb-1">Fecha de Inicio</span>
+            <span class="font-semibold text-slate-800">
+              {{ (item.fechaInicio || item.fechaInicioVencimiento) | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <span class="text-slate-400 block mb-1">Fecha de Vencimiento</span>
+            <span class="font-bold text-rose-700">
+              {{ (item.fechaVencimiento || item.fechaFinVencimiento) | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <div class="col-span-2 p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+            <span class="text-emerald-700 block mb-1">Porcentaje de Descuento (Pronto Pago)</span>
+            <span class="font-bold text-emerald-800 text-base">
+              {{ desc }}%
+            </span>
+          </div>
+        </div>
+
+        <!-- Norma Legal -->
+        <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+          <span class="text-slate-400 block mb-1 font-medium">Norma Tributaria Asociada</span>
+          <p class="font-medium text-slate-700">
+            {{ facade.getNormaLabel(item.normaTributariaId) }}
+          </p>
+        </div>
+
+        @if (item.createdAt || item.updatedAt) {
+          <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+            @if (item.createdAt) {
+              <span>Creado: {{ item.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            }
+            @if (item.updatedAt) {
+              <span>Actualizado: {{ item.updatedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+        <button
+          type="button"
+          (click)="cerrarDetallesModal()"
+          class="px-4 py-2 bg-[#0F3067] text-white text-xs font-semibold rounded-xl hover:bg-[#1b53ad] transition cursor-pointer"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ========================================== -->
+<!-- MODAL CONFIRMAR ELIMINACIÓN                -->
+<!-- ========================================== -->
+@if (itemParaEliminar()) {
+  @let item = itemParaEliminar()!;
+
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+      <div class="p-6 text-center">
+        <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-4">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <h3 class="text-base font-bold text-slate-900">¿Eliminar Calendario Tributario?</h3>
+        <p class="text-xs text-slate-500 mt-2">
+          Está a punto de eliminar el calendario para <strong class="text-slate-700">{{ item.nombreImpuesto || 'Impuesto Vehicular' }}</strong> ({{ item.codigoImpuesto }}). Esta acción no se puede deshacer.
+        </p>
+      </div>
+
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-center gap-3">
+        <button
+          type="button"
+          (click)="cerrarConfirmarEliminar()"
+          class="px-4 py-2 border border-slate-200 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          (click)="confirmarEliminacion()"
+          [disabled]="facade.loading()"
+          class="inline-flex items-center gap-2 px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-xl shadow-xs transition disabled:opacity-50 cursor-pointer"
+        >
+          @if (facade.loading()) {
+            <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+          } @else {
+            <i class="fa-solid fa-trash-can text-xs"></i>
+          }
+          <span>Eliminar Definitivamente</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}

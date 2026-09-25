@@ -6,7 +6,7 @@ export interface ExencionTributariaDto {
   departamentoId: number;
   codigo: string;
   nombre: string;
-  tipoBeneficio: string; // 'EXENCION' | 'DESCUENTO' | 'EXONERACION' | string
+  tipoBeneficio: string; // 'EXENTO' | 'REDUCCION' | string
   porcentajeExoneracion: number;
   naturalezaJuridicaId?: number | null;
   servicioVehiculoId?: number | null;
