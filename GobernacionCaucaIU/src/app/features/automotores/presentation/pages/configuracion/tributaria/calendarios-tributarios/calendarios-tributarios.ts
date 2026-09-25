@@ -35,14 +35,102 @@ export class CalendariosTributariosPage implements OnInit {
 
     this.calendarioForm = this.fb.group({
       id: [0],
-      vigenciaFiscalId: [null, [Validators.required]],
-      normaTributariaId: [null],
+      vigenciaFiscalIdInicio: [null, [Validators.required]],
+      vigenciaFiscalIdFin: [null, [Validators.required]],
+      normaTributariaId: [null, [Validators.required]],
       codigoImpuesto: ['VEHICULOS', [Validators.required, Validators.maxLength(50)]],
       fechaInicio: [today, [Validators.required]],
       fechaVencimiento: [today, [Validators.required]],
-      porcentajeDescuento: [0, [Validators.required, Validators.min(0), Validators.max(100)]],
+      porcentajeDescuento: [10, [Validators.required, Validators.min(1), Validators.max(100)]],
       activo: [true]
+    }, {
+      validators: [this.validarCoherenciaVigenciasYFechas()]
     });
+
+    // Auto-ajustar año de fechaInicio al cambiar vigencia inicial
+    this.calendarioForm.get('vigenciaFiscalIdInicio')?.valueChanges.subscribe(vigId => {
+      if (!vigId) return;
+      const vig = this.facade.vigencias().find(v => v.id === Number(vigId));
+      if (!vig) return;
+      const currentFecha = this.calendarioForm.get('fechaInicio')?.value;
+      if (currentFecha) {
+        const parts = currentFecha.split('-');
+        if (parts.length === 3 && parseInt(parts[0], 10) !== vig.anio) {
+          this.calendarioForm.patchValue({
+            fechaInicio: `${vig.anio}-${parts[1]}-${parts[2]}`
+          }, { emitEvent: false });
+        }
+      } else {
+        this.calendarioForm.patchValue({
+          fechaInicio: `${vig.anio}-01-01`
+        }, { emitEvent: false });
+      }
+      this.calendarioForm.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Auto-ajustar año de fechaVencimiento al cambiar vigencia final
+    this.calendarioForm.get('vigenciaFiscalIdFin')?.valueChanges.subscribe(vigId => {
+      if (!vigId) return;
+      const vig = this.facade.vigencias().find(v => v.id === Number(vigId));
+      if (!vig) return;
+      const currentFecha = this.calendarioForm.get('fechaVencimiento')?.value;
+      if (currentFecha) {
+        const parts = currentFecha.split('-');
+        if (parts.length === 3 && parseInt(parts[0], 10) !== vig.anio) {
+          this.calendarioForm.patchValue({
+            fechaVencimiento: `${vig.anio}-${parts[1]}-${parts[2]}`
+          }, { emitEvent: false });
+        }
+      } else {
+        this.calendarioForm.patchValue({
+          fechaVencimiento: `${vig.anio}-12-31`
+        }, { emitEvent: false });
+      }
+      this.calendarioForm.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
+  /**
+   * Validador reactivo para asegurar consistencia entre los años de las vigencias y las fechas
+   */
+  private validarCoherenciaVigenciasYFechas() {
+    return (group: any) => {
+      const vigIdInicio = group.get('vigenciaFiscalIdInicio')?.value;
+      const vigIdFin = group.get('vigenciaFiscalIdFin')?.value;
+      const fechaInicio = group.get('fechaInicio')?.value;
+      const fechaVencimiento = group.get('fechaVencimiento')?.value;
+
+      if (!vigIdInicio || !vigIdFin || !fechaInicio || !fechaVencimiento) {
+        return null;
+      }
+
+      const vigencias = this.facade.vigencias();
+      const vigInicio = vigencias.find(v => v.id === Number(vigIdInicio));
+      const vigFin = vigencias.find(v => v.id === Number(vigIdFin));
+
+      const errors: any = {};
+
+      if (vigInicio && vigFin && vigInicio.anio > vigFin.anio) {
+        errors['rangoVigenciasInvalido'] = true;
+      }
+
+      const anioInicio = parseInt(fechaInicio.split('-')[0], 10);
+      const anioFin = parseInt(fechaVencimiento.split('-')[0], 10);
+
+      if (vigInicio && anioInicio !== vigInicio.anio) {
+        errors['fechaInicioIncoherente'] = { anioEsperado: vigInicio.anio, anioActual: anioInicio };
+      }
+
+      if (vigFin && anioFin !== vigFin.anio) {
+        errors['fechaFinIncoherente'] = { anioEsperado: vigFin.anio, anioActual: anioFin };
+      }
+
+      if (fechaInicio > fechaVencimiento) {
+        errors['rangoFechasInvalido'] = true;
+      }
+
+      return Object.keys(errors).length > 0 ? errors : null;
+    };
   }
 
   // Búsqueda y Filtros
@@ -87,18 +175,25 @@ export class CalendariosTributariosPage implements OnInit {
     this.isEditMode.set(false);
     this.selectedItem.set(null);
 
-    const primerVig = this.facade.vigencias()[0]?.id || null;
+    const primerVig = this.facade.vigencias()[0];
+    const primerVigId = primerVig?.id || null;
     const primerNorma = this.facade.normas()[0]?.id || null;
-    const today = new Date().toISOString().split('T')[0];
+    const anioVig = primerVig?.anio || new Date().getFullYear();
+    const today = new Date();
+    const isCurrentYear = today.getFullYear() === anioVig;
+
+    const fechaIniDefault = isCurrentYear ? today.toISOString().split('T')[0] : `${anioVig}-01-01`;
+    const fechaFinDefault = isCurrentYear ? today.toISOString().split('T')[0] : `${anioVig}-12-31`;
 
     this.calendarioForm.reset({
       id: 0,
-      vigenciaFiscalId: primerVig,
+      vigenciaFiscalIdInicio: primerVigId,
+      vigenciaFiscalIdFin: primerVigId,
       normaTributariaId: primerNorma,
       codigoImpuesto: 'VEHICULOS',
-      fechaInicio: today,
-      fechaVencimiento: today,
-      porcentajeDescuento: 0,
+      fechaInicio: fechaIniDefault,
+      fechaVencimiento: fechaFinDefault,
+      porcentajeDescuento: 10,
       activo: true
     });
     this.isSlideOverOpen.set(true);
@@ -129,12 +224,13 @@ export class CalendariosTributariosPage implements OnInit {
 
     this.calendarioForm.patchValue({
       id: item.id,
-      vigenciaFiscalId: item.vigenciaFiscalId,
+      vigenciaFiscalIdInicio: item.vigenciaFiscalIdInicio ?? item.vigenciaFiscalId ?? null,
+      vigenciaFiscalIdFin: item.vigenciaFiscalIdFin ?? item.vigenciaFiscalIdInicio ?? item.vigenciaFiscalId ?? null,
       normaTributariaId: item.normaTributariaId ?? null,
       codigoImpuesto: item.codigoImpuesto || 'VEHICULOS',
       fechaInicio: inicio,
       fechaVencimiento: fin,
-      porcentajeDescuento: descuento,
+      porcentajeDescuento: Math.max(1, Math.min(100, descuento || 1)),
       activo: item.activo
     });
     this.isSlideOverOpen.set(true);
@@ -158,7 +254,30 @@ export class CalendariosTributariosPage implements OnInit {
   guardarCalendario(): void {
     if (this.calendarioForm.invalid) {
       this.calendarioForm.markAllAsTouched();
-      this.toast.warning('Por favor complete todos los campos obligatorios correctamente.');
+
+      const formErrors = this.calendarioForm.errors;
+      if (formErrors) {
+        if (formErrors['rangoVigenciasInvalido']) {
+          this.toast.error('El año de la vigencia fiscal inicial no puede ser mayor que el año de la vigencia final.');
+          return;
+        }
+        if (formErrors['fechaInicioIncoherente']) {
+          const err = formErrors['fechaInicioIncoherente'];
+          this.toast.error(`La fecha de inicio (${err.anioActual}) debe corresponder al año de la vigencia fiscal inicial (${err.anioEsperado}).`);
+          return;
+        }
+        if (formErrors['fechaFinIncoherente']) {
+          const err = formErrors['fechaFinIncoherente'];
+          this.toast.error(`La fecha de vencimiento (${err.anioActual}) debe corresponder al año de la vigencia fiscal final (${err.anioEsperado}).`);
+          return;
+        }
+        if (formErrors['rangoFechasInvalido']) {
+          this.toast.error('La fecha de inicio no puede ser posterior a la fecha de vencimiento.');
+          return;
+        }
+      }
+
+      this.toast.warning('Por favor complete todos los campos obligatorios correctamente. El porcentaje debe estar entre 1 y 100.');
       return;
     }
 
@@ -169,11 +288,38 @@ export class CalendariosTributariosPage implements OnInit {
       return;
     }
 
+    // Validación cronológica de años de vigencia
+    const vigInicio = this.facade.vigencias().find(v => v.id === Number(val.vigenciaFiscalIdInicio));
+    const vigFin = this.facade.vigencias().find(v => v.id === Number(val.vigenciaFiscalIdFin));
+    if (vigInicio && vigFin && vigInicio.anio > vigFin.anio) {
+      this.toast.error('El año de la vigencia fiscal inicial no puede ser mayor que el año de la vigencia fiscal final.');
+      return;
+    }
+
+    // Validación de coherencia año fecha inicio vs vigencia inicio
+    const anioInicio = parseInt(val.fechaInicio.split('-')[0], 10);
+    if (vigInicio && anioInicio !== vigInicio.anio) {
+      this.toast.error(`El año de la fecha de inicio (${anioInicio}) debe ser igual al año de la vigencia fiscal inicial (${vigInicio.anio}).`);
+      return;
+    }
+
+    // Validación de coherencia año fecha fin vs vigencia fin
+    const anioFin = parseInt(val.fechaVencimiento.split('-')[0], 10);
+    if (vigFin && anioFin !== vigFin.anio) {
+      this.toast.error(`El año de la fecha de vencimiento (${anioFin}) debe ser igual al año de la vigencia fiscal final (${vigFin.anio}).`);
+      return;
+    }
+
     const descVal = val.porcentajeDescuento !== null && val.porcentajeDescuento !== '' ? Number(val.porcentajeDescuento) : 0;
+    if (descVal < 1 || descVal > 100) {
+      this.toast.error('El porcentaje de descuento debe estar entre 1% y 100%.');
+      return;
+    }
 
     const payloadBase = {
-      vigenciaFiscalId: Number(val.vigenciaFiscalId),
-      normaTributariaId: val.normaTributariaId ? Number(val.normaTributariaId) : null,
+      vigenciaFiscalIdInicio: Number(val.vigenciaFiscalIdInicio),
+      vigenciaFiscalIdFin: Number(val.vigenciaFiscalIdFin),
+      normaTributariaId: Number(val.normaTributariaId),
       codigoImpuesto: (val.codigoImpuesto || 'VEHICULOS').toUpperCase().trim(),
       fechaInicio: val.fechaInicio,
       fechaVencimiento: val.fechaVencimiento,

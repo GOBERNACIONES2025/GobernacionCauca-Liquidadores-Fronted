@@ -182,9 +182,29 @@ export class CalendariosTributariosFacade {
     );
   }
 
-  public getVigenciaLabel(id: number): string {
+  public getVigenciaLabel(id?: number | null): string {
+    if (id === null || id === undefined) return '';
     const v = this.vigencias().find(item => item.id === id || item.anio === id);
     return v ? String(v.anio) : String(id);
+  }
+
+  public getRangoVigenciasLabel(idInicio?: number | null, idFin?: number | null): string {
+    const labelInicio = this.getVigenciaLabel(idInicio);
+    const labelFin = this.getVigenciaLabel(idFin);
+
+    if (labelInicio && labelFin) {
+      if (labelInicio === labelFin) {
+        return `Vigencia ${labelInicio}`;
+      }
+      return `Vigencias ${labelInicio} - ${labelFin}`;
+    }
+    if (labelInicio) {
+      return `Vigencia ${labelInicio}`;
+    }
+    if (labelFin) {
+      return `Vigencia ${labelFin}`;
+    }
+    return 'Sin vigencia';
   }
 
   public getNormaLabel(id?: number | null): string {

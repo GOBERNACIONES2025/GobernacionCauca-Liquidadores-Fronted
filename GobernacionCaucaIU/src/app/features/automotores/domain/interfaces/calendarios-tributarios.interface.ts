@@ -1,6 +1,7 @@
 export interface CalendarioTributarioDto {
   id: number;
-  vigenciaFiscalId: number;
+  vigenciaFiscalIdInicio: number;
+  vigenciaFiscalIdFin: number;
   normaTributariaId?: number | null;
   codigoImpuesto: string;
   nombreImpuesto?: string;
@@ -12,6 +13,9 @@ export interface CalendarioTributarioDto {
   updatedAt?: string;
 
   // Propiedades opcionales de compatibilidad y visualización
+  vigenciaFiscalId?: number;
+  vigenciaFiscalInicioAnio?: number;
+  vigenciaFiscalFinAnio?: number;
   fechaInicioVencimiento?: string;
   fechaFinVencimiento?: string;
   descuentoProntoPago?: number | null;
@@ -21,8 +25,9 @@ export interface CalendarioTributarioDto {
 }
 
 export interface CreateCalendarioTributarioRequest {
-  vigenciaFiscalId: number;
-  normaTributariaId?: number | null;
+  vigenciaFiscalIdInicio: number;
+  vigenciaFiscalIdFin: number;
+  normaTributariaId: number;
   codigoImpuesto: string;
   fechaInicio: string;
   fechaVencimiento: string;
@@ -32,8 +37,9 @@ export interface CreateCalendarioTributarioRequest {
 
 export interface UpdateCalendarioTributarioRequest {
   id: number;
-  vigenciaFiscalId: number;
-  normaTributariaId?: number | null;
+  vigenciaFiscalIdInicio: number;
+  vigenciaFiscalIdFin: number;
+  normaTributariaId: number;
   codigoImpuesto: string;
   fechaInicio: string;
   fechaVencimiento: string;
@@ -42,6 +48,8 @@ export interface UpdateCalendarioTributarioRequest {
 }
 
 export interface FiltrosCalendarioTributario {
+  vigenciaFiscalIdInicio?: number;
+  vigenciaFiscalIdFin?: number;
   vigenciaFiscalId?: number;
   normaTributariaId?: number;
   codigoImpuesto?: string;

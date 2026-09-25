@@ -1,4 +1,4 @@
-﻿import { Injectable, inject } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../domain/interfaces/api-response.interface';
@@ -27,6 +27,8 @@ export class CalendariosTributariosApiService {
       if (filtros.pageNumber) params['pageNumber'] = filtros.pageNumber;
       if (filtros.pageSize) params['pageSize'] = filtros.pageSize;
       if (filtros.searchTerm && filtros.searchTerm.trim() !== '') params['searchTerm'] = filtros.searchTerm.trim();
+      if (filtros.vigenciaFiscalIdInicio) params['vigenciaFiscalIdInicio'] = filtros.vigenciaFiscalIdInicio;
+      if (filtros.vigenciaFiscalIdFin) params['vigenciaFiscalIdFin'] = filtros.vigenciaFiscalIdFin;
       if (filtros.vigenciaFiscalId) params['vigenciaFiscalId'] = filtros.vigenciaFiscalId;
       if (filtros.normaTributariaId) params['normaTributariaId'] = filtros.normaTributariaId;
       if (filtros.codigoImpuesto && filtros.codigoImpuesto.trim() !== '') params['codigoImpuesto'] = filtros.codigoImpuesto.trim();
