@@ -177,9 +177,9 @@
                 </button>
                 
                 <button 
-                  (click)="toggleActivo(item)"
-                  title="Alternar estado"
-                  class="p-1 rounded border border-transparent transition-colors text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+                  (click)="promptToggleActivo(item)"
+                  title="Cambiar estado de la norma"
+                  class="p-1 rounded border border-transparent transition-colors text-slate-400 hover:text-amber-600 hover:bg-amber-50 cursor-pointer">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -360,9 +360,24 @@
 </app-slide-over>
 
 <!-- Document Viewer Modal -->
-<app-document-viewer
-  [isOpen]="isViewerOpen"
-  [documentos]="currentDocs"
-  title="Documentos de la Norma"
-  (onClose)="closeViewer()">
-</app-document-viewer>
+@if (isViewerOpen) {
+  <app-document-viewer
+    [isOpen]="isViewerOpen"
+    [documentos]="currentDocs"
+    title="Documentos de la Norma"
+    (onClose)="closeViewer()">
+  </app-document-viewer>
+}
+
+<!-- Smart Confirmation Modal for Legal Norm State Changes (Criterion 10) -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  title="¿Cambiar estado de la norma?"
+  [message]="'¿Está seguro de que desea cambiar el estado de la norma N° ' + (itemToToggle()?.numero || '') + ' del año ' + (itemToToggle()?.anio || '') + '?'"
+  impactMessage="Al modificar el estado de esta norma jurídica, se actualizará su aplicabilidad sobre tarifas, exenciones y reglas de liquidación asociadas en el sistema."
+  confirmText="Sí, cambiar estado"
+  confirmType="warning"
+  [isProcessing]="isTogglingStatus()"
+  (onConfirm)="executeToggleActivo()"
+  (onCancel)="cancelToggleActivo()">
+</app-confirm-modal>

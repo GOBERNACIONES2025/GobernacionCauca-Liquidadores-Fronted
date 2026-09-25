@@ -155,10 +155,10 @@
                 </button>
                 
                 <button 
-                  (click)="toggleActivo(item)"
-                  [title]="item.activo !== false ? 'Desactivar' : 'Activar'"
+                  (click)="promptToggleActivo(item)"
+                  [title]="item.activo !== false ? 'Desactivar usuario' : 'Activar usuario'"
                   class="p-1 rounded border border-transparent transition-colors"
-                  [class]="item.activo !== false ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  [class]="item.activo !== false ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -186,7 +186,7 @@
   </div>
 </div>
 
-<!-- Slide-Over Component for Create / Edit -->
+<!-- Modal Component for Create / Edit -->
 <app-slide-over 
   [isOpen]="isSlideOverOpen" 
   [title]="isEditMode ? 'Editar Usuario' : 'Nuevo Usuario'" 
@@ -199,13 +199,13 @@
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre Completo</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre Completo <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
         placeholder="Ej. Juan Pérez" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="usuarioForm.get('nombre')?.invalid && (usuarioForm.get('nombre')?.touched || usuarioForm.get('nombre')?.dirty)" 
       />
       <app-form-error [control]="usuarioForm.get('nombre')" fieldName="Nombre Completo"></app-form-error>
@@ -214,13 +214,13 @@
     <!-- Correo -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Correo Electrónico</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Correo Electrónico <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="email" 
         formControlName="email" 
         placeholder="usuario@cauca.gov.co" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="usuarioForm.get('email')?.invalid && (usuarioForm.get('email')?.touched || usuarioForm.get('email')?.dirty)" 
       />
       <app-form-error [control]="usuarioForm.get('email')" fieldName="Correo Electrónico"></app-form-error>
@@ -230,14 +230,17 @@
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
         <span class="label-text font-bold text-xs uppercase text-slate-600">
-          Contraseña {{ isEditMode ? '(Dejar en blanco para no cambiar)' : '' }}
+          Contraseña {{ !isEditMode ? '*' : '(Dejar en blanco para no cambiar)' }}
+          @if (!isEditMode) {
+            <span class="text-rose-500 font-bold">*</span>
+          }
         </span>
       </label>
       <input 
         type="password" 
         formControlName="password" 
         placeholder="••••••••" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="usuarioForm.get('password')?.invalid && (usuarioForm.get('password')?.touched || usuarioForm.get('password')?.dirty)" 
       />
       <app-form-error [control]="usuarioForm.get('password')" fieldName="Contraseña"></app-form-error>
@@ -246,7 +249,7 @@
     <!-- Roles Checkbox Selection -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Roles del Usuario</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Roles del Usuario <span class="text-rose-500 font-bold">*</span></span>
       </label>
       
       <div class="flex flex-col gap-2 p-3 bg-slate-50 border rounded-lg max-h-44 overflow-y-auto custom-scrollbar"
@@ -286,3 +289,20 @@
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal for Status Toggle -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="(itemToToggle()?.activo !== false) ? 'Desactivar Cuenta de Usuario' : 'Activar Cuenta de Usuario'"
+  [message]="(itemToToggle()?.activo !== false) 
+    ? '¿Está seguro de que desea desactivar al usuario «' + itemToToggle()?.nombre + '»?' 
+    : '¿Está seguro de que desea activar al usuario «' + itemToToggle()?.nombre + '»?'"
+  [impactMessage]="(itemToToggle()?.activo !== false) 
+    ? 'Al desactivar este usuario, su sesión será revocada y se bloqueará el acceso al portal hasta su reactivación.' 
+    : 'Al reactivar este usuario, podrá nuevamente autenticarse y operar en el sistema con sus roles asignados.'"
+  [confirmText]="(itemToToggle()?.activo !== false) ? 'Desactivar' : 'Activar'"
+  [type]="(itemToToggle()?.activo !== false) ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (confirm)="executeToggleActivo()"
+  (cancel)="cancelToggleActivo()">
+</app-confirm-modal>

@@ -8,6 +8,8 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { TiposEntidadRegistroFacade } from '../../../../../application/facades/Registro/tipos-entidad-registro.facade';
 import { TipoEntidadRegistro } from '../../../../../domain/models/Registro/tipo-entidad-registro.model';
 import { TiposEntidadRegistroApiService } from '../../../../../infrastructure/api/Registro/tipos-entidad-registro-api.service';
@@ -16,7 +18,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-tipos-entidad-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, FormFieldErrorComponent],
   templateUrl: './tipos-entidad-registro.html',
   styleUrl: './tipos-entidad-registro.css'
 })
@@ -36,6 +38,11 @@ export class TiposEntidadRegistro implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<TipoEntidadRegistro | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -97,8 +104,6 @@ export class TiposEntidadRegistro implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.tipoEntidadForm.reset({ codigo: '', nombre: '', activo: true });
@@ -121,16 +126,30 @@ export class TiposEntidadRegistro implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del tipo de entidad');
+        this.toast.error(formatUserErrorMessage(err, 'obtener el tipo de entidad'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: TipoEntidadRegistro) {
+  promptToggleActivo(item: TipoEntidadRegistro) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       codigo: item.codigo,
@@ -138,11 +157,15 @@ export class TiposEntidadRegistro implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Tipo de entidad ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el tipo de entidad`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado del tipo de entidad'));
         console.error(err);
       }
     });
@@ -171,7 +194,7 @@ export class TiposEntidadRegistro implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el tipo de entidad`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar el tipo de entidad'));
             console.error(err);
           }
         });
@@ -186,13 +209,14 @@ export class TiposEntidadRegistro implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el tipo de entidad`);
+            this.toast.error(formatUserErrorMessage(err, 'crear el tipo de entidad'));
             console.error(err);
           }
         });
       }
     } else {
       this.tipoEntidadForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

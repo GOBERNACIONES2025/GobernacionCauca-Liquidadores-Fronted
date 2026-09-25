@@ -4,19 +4,21 @@ import { PaginationComponent } from '../../../../../../shared/components/paginat
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { UsuariosFacade } from '../../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesFacade } from '../../../../../application/facades/Seguridad/roles.facade';
 import { Usuario } from '../../../../../domain/models/Seguridad/usuario.model';
 import { UsuariosApiService } from '../../../../../infrastructure/api/Seguridad/usuarios-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './usuarios.html',
   styleUrl: './usuarios.css'
 })
@@ -37,6 +39,9 @@ export class UsuariosComponent implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<Usuario | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -68,7 +73,7 @@ export class UsuariosComponent implements OnInit {
     let activo: boolean | undefined = undefined;
     if (this.selectedFilter && this.selectedFilter() === 'activos') activo = true;
     if (this.selectedFilter && this.selectedFilter() === 'inactivos') activo = false;
-    this.facade.cargarUsuarios({ pageNumber: this.pageNumber(), pageSize: this.pageSize(), search: this.searchText(), activo });;
+    this.facade.cargarUsuarios({ pageNumber: this.pageNumber(), pageSize: this.pageSize(), search: this.searchText(), activo });
   }
 
   onPageChange(page: number) {
@@ -99,8 +104,6 @@ export class UsuariosComponent implements OnInit {
     this.pageNumber.set(1);
     this.cargarItems();
   }
-
-  
 
   openNew() {
     this.selectedId = null;
@@ -137,7 +140,7 @@ export class UsuariosComponent implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del usuario');
+        this.toast.error(formatUserErrorMessage(err, 'Error al obtener la información del usuario'));
         console.error(err);
       }
     });
@@ -162,7 +165,21 @@ export class UsuariosComponent implements OnInit {
     this.usuarioForm.get('rolesIds')?.markAsTouched();
   }
 
-  toggleActivo(item: Usuario) {
+  promptToggleActivo(item: Usuario) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
+    this.isTogglingStatus.set(true);
     const nuevoEstado = !(item.activo ?? true);
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
     const roleIds = item.roles ? item.roles.map(r => r.id) : [];
@@ -175,11 +192,15 @@ export class UsuariosComponent implements OnInit {
       rolesIds: roleIds
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Usuario ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el usuario`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `Error al actualizar el usuario`));
         console.error(err);
       }
     });
@@ -210,7 +231,7 @@ export class UsuariosComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el usuario`);
+            this.toast.error(formatUserErrorMessage(err, `Error al actualizar el usuario`));
             console.error(err);
           }
         });
@@ -227,12 +248,13 @@ export class UsuariosComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el usuario`);
+            this.toast.error(formatUserErrorMessage(err, `Error al crear el usuario`));
             console.error(err);
           }
         });
       }
     } else {
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
       this.usuarioForm.markAllAsTouched();
     }
   }

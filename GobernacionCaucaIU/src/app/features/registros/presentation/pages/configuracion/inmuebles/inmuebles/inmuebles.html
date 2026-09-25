@@ -159,7 +159,7 @@
     <!-- Municipio -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Municipio</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Municipio <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <app-searchable-select
         formControlName="municipioId"
@@ -180,13 +180,13 @@
     <!-- Matrícula Inmobiliaria -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Matrícula Inmobiliaria</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Matrícula Inmobiliaria <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="matriculaInmobiliaria" 
         placeholder="Ej. 120-123456" 
-        class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+        class="input input-sm input-bordered w-full text-slate-800 font-mono focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="inmuebleForm.get('matriculaInmobiliaria')?.invalid && (inmuebleForm.get('matriculaInmobiliaria')?.touched || inmuebleForm.get('matriculaInmobiliaria')?.dirty)" 
       />
       <app-form-error [control]="inmuebleForm.get('matriculaInmobiliaria')" fieldName="Matrícula Inmobiliaria"></app-form-error>
@@ -201,7 +201,7 @@
         type="text" 
         formControlName="direccion" 
         placeholder="Ej. Calle 5 # 10-20 Barrio Centro" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
       />
     </div>
 

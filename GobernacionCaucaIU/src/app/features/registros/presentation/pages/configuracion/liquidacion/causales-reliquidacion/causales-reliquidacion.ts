@@ -5,11 +5,13 @@ import { FormFieldErrorComponent } from '../../../../../../shared/components/for
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { CausalesReliquidacionFacade } from '../../../../../application/facades/Liquidacion/causales-reliquidacion.facade';
 import { CausalReliquidacion } from '../../../../../domain/models/Liquidacion/causal-reliquidacion.model';
 import { CausalesReliquidacionApiService } from '../../../../../infrastructure/api/Liquidacion/causales-reliquidacion-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 @Component({
   selector: 'app-causales-reliquidacion',
@@ -20,6 +22,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
     ReactiveFormsModule, 
     PageHeaderComponent, 
     SlideOverComponent, 
+    ConfirmModalComponent,
     PaginationComponent, 
     TableSearchComponent, 
     FormFieldErrorComponent
@@ -43,6 +46,9 @@ export class CausalesReliquidacionComponent implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<CausalReliquidacion | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -137,13 +143,27 @@ export class CausalesReliquidacionComponent implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información de la causal');
+        this.toast.error(formatUserErrorMessage(err, 'Error al obtener la información de la causal'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: CausalReliquidacion) {
+  promptToggleActivo(item: CausalReliquidacion) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
+    this.isTogglingStatus.set(true);
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
 
@@ -157,11 +177,15 @@ export class CausalesReliquidacionComponent implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Causal de reliquidación ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar la causal de reliquidación`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `Error al actualizar la causal de reliquidación`));
         console.error(err);
       }
     });
@@ -193,7 +217,7 @@ export class CausalesReliquidacionComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la causal de reliquidación`);
+            this.toast.error(formatUserErrorMessage(err, `Error al actualizar la causal de reliquidación`));
             console.error(err);
           }
         });
@@ -211,12 +235,13 @@ export class CausalesReliquidacionComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la causal de reliquidación`);
+            this.toast.error(formatUserErrorMessage(err, `Error al crear la causal de reliquidación`));
             console.error(err);
           }
         });
       }
     } else {
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
       this.causalForm.markAllAsTouched();
     }
   }

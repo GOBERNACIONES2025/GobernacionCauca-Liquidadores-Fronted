@@ -8,6 +8,8 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { TiposNormaFacade } from '../../../../../application/facades/Normatividad/tipos-norma.facade';
 import { TipoNorma } from '../../../../../domain/models/Normatividad/tipo-norma.model';
 import { TiposNormaApiService } from '../../../../../infrastructure/api/Normatividad/tipos-norma-api.service';
@@ -16,7 +18,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-tipos-norma',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent, ConfirmModalComponent],
   templateUrl: './tipos-norma.html',
   styleUrl: './tipos-norma.css'
 })
@@ -127,9 +129,28 @@ export class TiposNorma implements OnInit {
     });
   }
 
-  toggleActivo(item: TipoNorma) {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<TipoNorma | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: TipoNorma) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
+    this.isTogglingStatus.set(true);
 
     this.facade.actualizar(item.id, {
       id: item.id,
@@ -138,11 +159,15 @@ export class TiposNorma implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
-        this.toast.success(`Tipo de norma ${actionName} exitosamente`);
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
+        this.toast.success(`Tipo de norma "${item.nombre}" ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el tipo de norma`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `actualizar estado del tipo de norma "${item.nombre}"`));
         console.error(err);
       }
     });
@@ -166,12 +191,12 @@ export class TiposNorma implements OnInit {
           activo: val.activo ?? true
         }).subscribe({
           next: () => {
-            this.toast.success(`Tipo de norma ${actionName} exitosamente`);
+            this.toast.success(`Tipo de norma "${val.nombre}" ${actionName} exitosamente`);
             this.closeSlideOver();
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el tipo de norma`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar el tipo de norma'));
             console.error(err);
           }
         });
@@ -181,18 +206,19 @@ export class TiposNorma implements OnInit {
           nombre: val.nombre!
         }).subscribe({
           next: () => {
-            this.toast.success(`Tipo de norma ${actionName} exitosamente`);
+            this.toast.success(`Tipo de norma "${val.nombre}" ${actionName} exitosamente`);
             this.closeSlideOver();
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el tipo de norma`);
+            this.toast.error(formatUserErrorMessage(err, 'crear el tipo de norma'));
             console.error(err);
           }
         });
       }
     } else {
       this.tipoNormaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

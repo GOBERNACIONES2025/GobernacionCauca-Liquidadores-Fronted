@@ -4,18 +4,20 @@ import { PaginationComponent } from '../../../../../../shared/components/paginat
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { RolesFacade } from '../../../../../application/facades/Seguridad/roles.facade';
 import { Rol } from '../../../../../domain/models/Seguridad/rol.model';
 import { RolesApiService } from '../../../../../infrastructure/api/Seguridad/roles-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 
 @Component({
   selector: 'app-roles',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './roles.html',
   styleUrl: './roles.css'
 })
@@ -35,6 +37,9 @@ export class RolesComponent implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<Rol | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -96,8 +101,6 @@ export class RolesComponent implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.rolForm.reset({ codigo: '', nombre: '', activo: true });
@@ -120,13 +123,27 @@ export class RolesComponent implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del rol');
+        this.toast.error(formatUserErrorMessage(err, 'Error al obtener la información del rol'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: Rol) {
+  promptToggleActivo(item: Rol) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
+    this.isTogglingStatus.set(true);
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
 
@@ -137,11 +154,15 @@ export class RolesComponent implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Rol ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el rol`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'Error al actualizar el rol'));
         console.error(err);
       }
     });
@@ -170,7 +191,7 @@ export class RolesComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el rol`);
+            this.toast.error(formatUserErrorMessage(err, `Error al actualizar el rol`));
             console.error(err);
           }
         });
@@ -185,12 +206,13 @@ export class RolesComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el rol`);
+            this.toast.error(formatUserErrorMessage(err, `Error al crear el rol`));
             console.error(err);
           }
         });
       }
     } else {
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
       this.rolForm.markAllAsTouched();
     }
   }

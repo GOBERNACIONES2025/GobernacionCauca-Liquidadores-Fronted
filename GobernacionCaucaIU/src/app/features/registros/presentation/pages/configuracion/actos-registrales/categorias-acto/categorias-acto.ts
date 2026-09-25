@@ -8,6 +8,8 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { CategoriasActoFacade } from '../../../../../application/facades/Registro/categorias-acto.facade';
 import { CategoriaActo } from '../../../../../domain/models/Registro/categoria-acto.model';
 import { CategoriasActoApiService } from '../../../../../infrastructure/api/Registro/categorias-acto-api.service';
@@ -16,7 +18,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-categorias-acto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, FormFieldErrorComponent],
   templateUrl: './categorias-acto.html',
   styleUrl: './categorias-acto.css'
 })
@@ -36,6 +38,11 @@ export class CategoriasActo implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<CategoriaActo | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -98,8 +105,6 @@ export class CategoriasActo implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.categoriaForm.reset({ codigo: '', nombre: '', descripcion: '', activo: true });
@@ -123,16 +128,30 @@ export class CategoriasActo implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información de la categoría');
+        this.toast.error(formatUserErrorMessage(err, 'obtener la categoría de acto'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: CategoriaActo) {
+  promptToggleActivo(item: CategoriaActo) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       codigo: item.codigo,
@@ -141,11 +160,15 @@ export class CategoriasActo implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Categoría de acto ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar la categoría de acto`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado de la categoría de acto'));
         console.error(err);
       }
     });
@@ -175,7 +198,7 @@ export class CategoriasActo implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la categoría de acto`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar la categoría de acto'));
             console.error(err);
           }
         });
@@ -191,13 +214,14 @@ export class CategoriasActo implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la categoría de acto`);
+            this.toast.error(formatUserErrorMessage(err, 'crear la categoría de acto'));
             console.error(err);
           }
         });
       }
     } else {
       this.categoriaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

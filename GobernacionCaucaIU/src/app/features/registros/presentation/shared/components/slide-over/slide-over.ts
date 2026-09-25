@@ -13,17 +13,22 @@ export class SlideOverComponent {
   @Input() title: string = 'Nuevo registro';
   @Input() description?: string;
   @Input() isSaving: boolean = false;
+  @Input() saveButtonText: string = 'Guardar';
   @Input() size: 'sm' | 'md' | 'lg' | 'xl' = 'lg';
 
   @Output() onClose = new EventEmitter<void>();
   @Output() onSave = new EventEmitter<void>();
 
   close() {
-    this.onClose.emit();
+    if (!this.isSaving) {
+      this.onClose.emit();
+    }
   }
 
   save() {
-    this.onSave.emit();
+    if (!this.isSaving) {
+      this.onSave.emit();
+    }
   }
 
   @HostListener('document:keydown.escape')

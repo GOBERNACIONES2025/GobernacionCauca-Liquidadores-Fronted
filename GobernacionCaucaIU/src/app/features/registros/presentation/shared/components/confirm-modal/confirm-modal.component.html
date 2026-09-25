@@ -1,0 +1,90 @@
+@if (isOpen) {
+  <!-- Modal Container & Backdrop -->
+  <div 
+    class="fixed inset-0 z-60 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200"
+    role="alertdialog"
+    aria-modal="true"
+    [attr.aria-label]="title"
+    (click)="handleCancel()"
+  >
+    <!-- Centered Confirmation Card -->
+    <div 
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-md border border-slate-200 flex flex-col overflow-hidden my-auto transform transition-all duration-200 ease-out"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Body -->
+      <div class="p-6">
+        <div class="flex items-start gap-3.5">
+          <!-- Icon Badge according to confirmType -->
+          @if (confirmType === 'danger') {
+            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center shrink-0 border border-rose-200 shadow-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+              </svg>
+            </div>
+          } @else if (confirmType === 'warning') {
+            <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 border border-amber-200 shadow-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+              </svg>
+            </div>
+          } @else {
+            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-800 flex items-center justify-center shrink-0 border border-blue-200 shadow-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
+          }
+
+          <div class="flex-1">
+            <h3 class="text-base font-bold text-slate-900 leading-tight">{{ title }}</h3>
+            <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">{{ message }}</p>
+
+            <!-- Impact Explanation (Criterio 10: Confirmaciones inteligentes) -->
+            @if (impactMessage) {
+              <div class="mt-3 p-3 rounded-xl border text-[11px] leading-relaxed flex gap-2 items-start"
+                [class]="confirmType === 'danger' 
+                  ? 'bg-rose-50 text-rose-900 border-rose-200' 
+                  : (confirmType === 'warning' ? 'bg-amber-50 text-amber-900 border-amber-200' : 'bg-blue-50 text-blue-900 border-blue-200')">
+                <svg class="w-4 h-4 shrink-0 mt-0.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+                <span>{{ impactMessage }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions Footer -->
+      <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end gap-2.5 shrink-0">
+        <button 
+          (click)="handleCancel()" 
+          [disabled]="isProcessing"
+          type="button"
+          class="px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-50 rounded-xl transition cursor-pointer focus:ring-2 focus:ring-slate-400 focus:outline-none">
+          {{ cancelText }}
+        </button>
+
+        <button 
+          (click)="handleConfirm()" 
+          [disabled]="isProcessing"
+          type="button"
+          class="px-4 py-2 text-xs font-bold text-white rounded-xl shadow-xs transition active:scale-[0.98] cursor-pointer inline-flex items-center gap-1.5 focus:ring-2 focus:outline-none disabled:opacity-50"
+          [class]="confirmType === 'danger' 
+            ? 'bg-rose-600 hover:bg-rose-700 focus:ring-rose-500 shadow-rose-600/20' 
+            : (confirmType === 'warning' ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500 shadow-amber-600/20' : 'bg-blue-700 hover:bg-blue-800 focus:ring-blue-600 shadow-blue-700/20')">
+          @if (isProcessing) {
+            <svg class="animate-spin -ml-1 mr-1 h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Procesando...</span>
+          } @else {
+            <span>{{ confirmText }}</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

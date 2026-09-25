@@ -154,7 +154,7 @@
     <!-- Exención -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Exención Normativa</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Exención Normativa <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <app-searchable-select
         formControlName="exencionId"
@@ -176,7 +176,7 @@
     <div class="form-control w-full">
       <div class="flex items-center justify-between pb-1">
         <span class="font-bold text-xs uppercase text-slate-600">
-          Tipos de Acto Registral ({{ selectedTiposActoIds().length }} seleccionados)
+          Tipos de Acto Registral <span class="text-rose-500 font-bold">*</span> ({{ selectedTiposActoIds().length }} seleccionados)
         </span>
         <div class="flex items-center gap-2">
           <button type="button" (click)="selectAllActos()" class="text-[11px] text-blue-600 hover:underline font-semibold">

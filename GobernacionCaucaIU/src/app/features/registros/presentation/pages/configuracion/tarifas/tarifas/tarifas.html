@@ -164,10 +164,10 @@
                 </button>
                 
                 <button 
-                  (click)="toggleActivo(item)"
-                  [title]="item.activo ? 'Desactivar' : 'Activar'"
-                  class="p-1 rounded border border-transparent transition-colors"
-                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  (click)="promptToggleActivo(item)"
+                  [title]="item.activo ? 'Desactivar tarifa' : 'Activar tarifa'"
+                  class="p-1 rounded border border-transparent transition-colors cursor-pointer"
+                  [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -381,7 +381,7 @@
     <div class="form-control w-full mt-2">
       <label class="label cursor-pointer justify-start gap-4 p-0">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Estado Activo</span>
-        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
+        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm cursor-pointer" />
       </label>
       <p class="text-[10px] text-slate-400 mt-1">Si está inactiva, no se aplicará para liquidaciones de este acto.</p>
     </div>
@@ -389,3 +389,20 @@
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal for Tariff State Changes (Criterion 10) -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="itemToToggle()?.activo ? '¿Desactivar tarifa?' : '¿Activar tarifa?'"
+  [message]="itemToToggle()?.activo 
+    ? '¿Está seguro de que desea desactivar esta tarifa para el acto &quot;' + (itemToToggle()?.tipoActoRegistro?.nombre || 'seleccionado') + '&quot;?' 
+    : '¿Desea activar esta tarifa para el acto &quot;' + (itemToToggle()?.tipoActoRegistro?.nombre || 'seleccionado') + '&quot;?'"
+  [impactMessage]="itemToToggle()?.activo 
+    ? 'Al desactivarla, los liquidadores no podrán aplicar esta tarifa en nuevas liquidaciones de este acto registral.' 
+    : 'Al activarla, estará disponible inmediatamente para el cálculo y liquidación de impuestos de registro correspondientes.'"
+  [confirmText]="itemToToggle()?.activo ? 'Sí, desactivar' : 'Sí, activar'"
+  [confirmType]="itemToToggle()?.activo ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (onConfirm)="executeToggleActivo()"
+  (onCancel)="cancelToggleActivo()">
+</app-confirm-modal>

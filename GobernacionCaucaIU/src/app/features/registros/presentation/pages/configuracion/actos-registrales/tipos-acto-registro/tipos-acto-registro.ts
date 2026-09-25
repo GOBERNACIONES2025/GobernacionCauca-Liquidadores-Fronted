@@ -8,6 +8,8 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { TiposActoRegistroFacade } from '../../../../../application/facades/Registro/tipos-acto-registro.facade';
 import { CategoriasActoFacade } from '../../../../../application/facades/Registro/categorias-acto.facade';
 import { NaturalezasActoFacade } from '../../../../../application/facades/Registro/naturalezas-acto.facade';
@@ -22,7 +24,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-tipos-acto-registro',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
   templateUrl: './tipos-acto-registro.html',
   styleUrl: './tipos-acto-registro.css'
 })
@@ -47,6 +49,11 @@ export class TiposActoRegistro implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<TipoActoRegistro | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -117,8 +124,6 @@ export class TiposActoRegistro implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     const primerCat = this.categoriasFacade.categoriasActo()[0]?.id || null;
@@ -154,16 +159,30 @@ export class TiposActoRegistro implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del tipo de acto');
+        this.toast.error(formatUserErrorMessage(err, 'obtener el tipo de acto'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: TipoActoRegistro) {
+  promptToggleActivo(item: TipoActoRegistro) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       categoriaActoId: item.categoriaActo?.id || 1,
@@ -174,11 +193,15 @@ export class TiposActoRegistro implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Tipo de acto ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el tipo de acto`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado del tipo de acto'));
         console.error(err);
       }
     });
@@ -210,7 +233,7 @@ export class TiposActoRegistro implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el tipo de acto`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar el tipo de acto'));
             console.error(err);
           }
         });
@@ -228,13 +251,14 @@ export class TiposActoRegistro implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el tipo de acto`);
+            this.toast.error(formatUserErrorMessage(err, 'crear el tipo de acto'));
             console.error(err);
           }
         });
       }
     } else {
       this.tipoActoForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

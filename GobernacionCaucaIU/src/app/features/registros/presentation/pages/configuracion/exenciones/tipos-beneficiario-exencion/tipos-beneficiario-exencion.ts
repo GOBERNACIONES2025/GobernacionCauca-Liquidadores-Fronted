@@ -5,6 +5,8 @@ import { FormFieldErrorComponent } from '../../../../../../shared/components/for
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { TiposBeneficiarioExencionFacade } from '../../../../../application/facades/Exenciones/tipos-beneficiario-exencion.facade';
 import { TipoBeneficiarioExencion } from '../../../../../domain/models/Exenciones/tipo-beneficiario-exencion.model';
@@ -14,7 +16,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-tipos-beneficiario-exencion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './tipos-beneficiario-exencion.html',
   styleUrl: './tipos-beneficiario-exencion.css'
 })
@@ -34,6 +36,11 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<TipoBeneficiarioExencion | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -95,8 +102,6 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.tipoBeneficiarioForm.reset({ codigo: '', nombre: '', activo: true });
@@ -119,16 +124,30 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del tipo de beneficiario');
+        this.toast.error(formatUserErrorMessage(err, 'obtener el tipo de beneficiario'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: TipoBeneficiarioExencion) {
+  promptToggleActivo(item: TipoBeneficiarioExencion) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       codigo: item.codigo,
@@ -136,11 +155,15 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Tipo de beneficiario ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el tipo de beneficiario`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado del tipo de beneficiario'));
         console.error(err);
       }
     });
@@ -169,7 +192,7 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el tipo de beneficiario`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar el tipo de beneficiario'));
             console.error(err);
           }
         });
@@ -184,13 +207,14 @@ export class TiposBeneficiarioExencionComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el tipo de beneficiario`);
+            this.toast.error(formatUserErrorMessage(err, 'crear el tipo de beneficiario'));
             console.error(err);
           }
         });
       }
     } else {
       this.tipoBeneficiarioForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

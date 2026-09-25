@@ -17,6 +17,7 @@ import { MunicipiosApiService } from '../../../../../infrastructure/api/Territor
 import { VigenciasApiService } from '../../../../../infrastructure/api/Normatividad/vigencias-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -192,7 +193,7 @@ export class InmueblesComponent implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del inmueble');
+        this.toast.error(formatUserErrorMessage(err, 'Error al obtener la información del inmueble'));
         console.error(err);
       }
     });
@@ -230,7 +231,7 @@ export class InmueblesComponent implements OnInit {
             this.cargarDatos();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el inmueble`);
+            this.toast.error(formatUserErrorMessage(err, `Error al actualizar el inmueble`));
             console.error(err);
           }
         });
@@ -247,12 +248,13 @@ export class InmueblesComponent implements OnInit {
             this.cargarDatos();
           },
           error: (err: any) => {
-            this.toast.error(`Error al registrar el inmueble`);
+            this.toast.error(formatUserErrorMessage(err, `Error al registrar el inmueble`));
             console.error(err);
           }
         });
       }
     } else {
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
       this.inmuebleForm.markAllAsTouched();
     }
   }

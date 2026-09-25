@@ -20,6 +20,8 @@ import { NormasFacade } from '../../../../../application/facades/Normatividad/no
 import { NormasApiService } from '../../../../../infrastructure/api/Normatividad/normas-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 import { ConfiguracionExtemporaneidad } from '../../../../../domain/models/Tarifas/configuracion-extemporaneidad.model';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 @Component({
   selector: 'app-configuracion-extemporaneidad',
@@ -33,7 +35,8 @@ import { ConfiguracionExtemporaneidad } from '../../../../../domain/models/Tarif
     PaginationComponent,
     SearchableSelectComponent,
     TableSearchComponent,
-    FormFieldErrorComponent
+    FormFieldErrorComponent,
+    ConfirmModalComponent
   ],
   templateUrl: './configuracion-extemporaneidad.html',
   styleUrl: './configuracion-extemporaneidad.css'
@@ -319,9 +322,28 @@ export class ConfiguracionExtemporaneidadComponent implements OnInit {
     });
   }
 
-  toggleActivo(item: ConfiguracionExtemporaneidad): void {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<ConfiguracionExtemporaneidad | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: ConfiguracionExtemporaneidad): void {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo(): void {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo(): void {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
+    this.isTogglingStatus.set(true);
 
     this.facade
       .actualizar(item.id, {
@@ -340,12 +362,15 @@ export class ConfiguracionExtemporaneidadComponent implements OnInit {
       })
       .subscribe({
         next: () => {
+          this.isTogglingStatus.set(false);
+          this.isConfirmModalOpen.set(false);
+          this.itemToToggle.set(null);
           this.toast.success(`Configuración ${actionName} exitosamente`);
           this.cargarItems();
         },
         error: (err: any) => {
-          const msg = err?.error?.detail || err?.error?.message || 'Error al cambiar el estado de la configuración';
-          this.toast.error(msg);
+          this.isTogglingStatus.set(false);
+          this.toast.error(formatUserErrorMessage(err, 'actualizar estado de la configuración de extemporaneidad'));
           console.error(err);
         }
       });
@@ -409,8 +434,7 @@ export class ConfiguracionExtemporaneidadComponent implements OnInit {
               this.cargarItems();
             },
             error: (err: any) => {
-              const msg = err?.error?.detail || err?.error?.message || 'Error al actualizar la configuración';
-              this.toast.error(msg);
+              this.toast.error(formatUserErrorMessage(err, 'actualizar la configuración de extemporaneidad'));
               console.error(err);
             }
           });
@@ -422,14 +446,14 @@ export class ConfiguracionExtemporaneidadComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            const msg = err?.error?.detail || err?.error?.message || 'Error al crear la configuración';
-            this.toast.error(msg);
+            this.toast.error(formatUserErrorMessage(err, 'crear la configuración de extemporaneidad'));
             console.error(err);
           }
         });
       }
     } else {
       this.extemporaneidadForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

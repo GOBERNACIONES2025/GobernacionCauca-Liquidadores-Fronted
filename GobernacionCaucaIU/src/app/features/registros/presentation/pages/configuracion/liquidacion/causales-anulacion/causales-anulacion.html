@@ -155,10 +155,10 @@
                 </button>
                 
                 <button 
-                  (click)="toggleActivo(item)"
-                  [title]="item.activo ? 'Desactivar' : 'Activar'"
+                  (click)="promptToggleActivo(item)"
+                  [title]="item.activo ? 'Desactivar causal' : 'Activar causal'"
                   class="p-1 rounded border border-transparent transition-colors"
-                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -187,7 +187,7 @@
   </div>
 </div>
 
-<!-- Slide-Over Component for Create / Edit -->
+<!-- Modal Component for Create / Edit -->
 <app-slide-over 
   [isOpen]="isSlideOverOpen" 
   [title]="isEditMode ? 'Editar Causal de Anulación' : 'Nueva Causal de Anulación'" 
@@ -200,13 +200,13 @@
     <!-- Código -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Código</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Código <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="codigo" 
         placeholder="Ej. ERROR_DIGITACION" 
-        class="input input-sm input-bordered w-full text-slate-800 uppercase" 
+        class="input input-sm input-bordered w-full text-slate-800 uppercase focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="causalForm.get('codigo')?.invalid && (causalForm.get('codigo')?.touched || causalForm.get('codigo')?.dirty)" 
       />
       <app-form-error [control]="causalForm.get('codigo')" fieldName="Código"></app-form-error>
@@ -215,13 +215,13 @@
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre de la Causal</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre de la Causal <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
         placeholder="Ej. Por error involuntario de digitación" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="causalForm.get('nombre')?.invalid && (causalForm.get('nombre')?.touched || causalForm.get('nombre')?.dirty)" 
       />
       <app-form-error [control]="causalForm.get('nombre')" fieldName="Nombre de la Causal"></app-form-error>
@@ -236,7 +236,7 @@
         formControlName="descripcion" 
         placeholder="Indique los alcances jurídicos o técnicos de esta causal de anulación..." 
         rows="3"
-        class="textarea textarea-bordered textarea-sm w-full text-slate-800"
+        class="textarea textarea-bordered textarea-sm w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none"
       ></textarea>
     </div>
 
@@ -265,3 +265,20 @@
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal for Status Toggle -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="itemToToggle()?.activo ? 'Desactivar Causal' : 'Activar Causal'"
+  [message]="itemToToggle()?.activo 
+    ? '¿Está seguro de que desea desactivar la causal «' + itemToToggle()?.nombre + '»?' 
+    : '¿Está seguro de que desea activar la causal «' + itemToToggle()?.nombre + '»?'"
+  [impactMessage]="itemToToggle()?.activo 
+    ? 'Al desactivar esta causal, los funcionarios no podrán seleccionarla para justificar la anulación de liquidaciones tributarias.' 
+    : 'Al reactivar esta causal, volverá a estar disponible para trámites de anulación de liquidación.'"
+  [confirmText]="itemToToggle()?.activo ? 'Desactivar' : 'Activar'"
+  [type]="itemToToggle()?.activo ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (confirm)="executeToggleActivo()"
+  (cancel)="cancelToggleActivo()">
+</app-confirm-modal>

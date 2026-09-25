@@ -13,11 +13,13 @@ import { TiposCalculoTarifaApiService } from '../../../../../infrastructure/api/
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 @Component({
   selector: 'app-tipos-calculo-tarifa',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent, ConfirmModalComponent],
   templateUrl: './tipos-calculo-tarifa.html',
   styleUrl: './tipos-calculo-tarifa.css'
 })
@@ -128,9 +130,28 @@ export class TiposCalculoTarifa implements OnInit {
     });
   }
 
-  toggleActivo(item: TipoCalculoTarifa) {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<TipoCalculoTarifa | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: TipoCalculoTarifa) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
+    this.isTogglingStatus.set(true);
 
     this.facade.actualizar(item.id, {
       id: item.id,
@@ -139,11 +160,15 @@ export class TiposCalculoTarifa implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
-        this.toast.success(`Tipo de cálculo ${actionName} exitosamente`);
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
+        this.toast.success(`Tipo de cálculo "${item.nombre}" ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el tipo de cálculo`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `actualizar estado del tipo de cálculo "${item.nombre}"`));
         console.error(err);
       }
     });
@@ -167,12 +192,12 @@ export class TiposCalculoTarifa implements OnInit {
           activo: val.activo ?? true
         }).subscribe({
           next: () => {
-            this.toast.success(`Tipo de cálculo ${actionName} exitosamente`);
+            this.toast.success(`Tipo de cálculo "${val.nombre}" ${actionName} exitosamente`);
             this.closeSlideOver();
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el tipo de cálculo`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar el tipo de cálculo'));
             console.error(err);
           }
         });
@@ -182,18 +207,19 @@ export class TiposCalculoTarifa implements OnInit {
           nombre: val.nombre!
         }).subscribe({
           next: () => {
-            this.toast.success(`Tipo de cálculo ${actionName} exitosamente`);
+            this.toast.success(`Tipo de cálculo "${val.nombre}" ${actionName} exitosamente`);
             this.closeSlideOver();
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el tipo de cálculo`);
+            this.toast.error(formatUserErrorMessage(err, 'crear el tipo de cálculo'));
             console.error(err);
           }
         });
       }
     } else {
       this.tipoCalculoForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }
