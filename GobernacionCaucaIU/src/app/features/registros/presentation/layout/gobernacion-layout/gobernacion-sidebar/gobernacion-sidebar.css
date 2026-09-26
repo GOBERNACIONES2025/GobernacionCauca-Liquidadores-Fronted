@@ -59,3 +59,19 @@ a.active-configuracion .item-icon {
   border-color: #d97706 !important;
   box-shadow: 0 2px 4px 0 rgba(217, 119, 6, 0.25);
 }
+
+/* 5. Reportes e Informes (Índigo Analítico) */
+a.active-reportes {
+  background: #eef2ff !important; /* indigo-50 */
+  color: #312e81 !important; /* indigo-950 */
+  font-weight: 700 !important;
+  border-left-color: #4f46e5 !important; /* indigo-600 */
+  box-shadow: 0 1px 3px 0 rgba(79, 70, 229, 0.08);
+}
+a.active-reportes .item-icon {
+  background: #4f46e5 !important;
+  color: #ffffff !important;
+  border-color: #4f46e5 !important;
+  box-shadow: 0 2px 4px 0 rgba(79, 70, 229, 0.25);
+}
+

@@ -1,4 +1,4 @@
-﻿export interface CrearSolicitudDto {
+export interface CrearSolicitudDto {
   numeroRadicado: string;
   vigenciaId: number;
   departamentoId: number;
@@ -144,6 +144,17 @@ export interface SolicitudCompletaDto {
   departamentoId: number;
   contribuyente?: SolicitudContribuyenteDto;
   documentos: SolicitudDocumentoRegistroDto[];
+  historial?: HistorialSolicitudDto[];
+}
+
+export interface HistorialSolicitudDto {
+  id: number;
+  fecha: string;
+  motivo?: string;
+  estadoSolicitudAnteriorId?: number;
+  estadoSolicitudNuevoId: number;
+  estadoNuevoNombre: string;
+  usuarioNombre: string;
 }
 
 export interface DevolverSolicitudRequest {

@@ -109,6 +109,10 @@ export const registrosRoutes: Routes = [
         path: 'liquidaciones',
         loadComponent: () => import('./presentation/pages/gobernacion/gobernacion-liquidaciones/gobernacion-liquidaciones').then(m => m.GobernacionLiquidacionesComponent)
       },
+      {
+        path: 'reportes',
+        loadComponent: () => import('./presentation/pages/gobernacion/gobernacion-reportes/gobernacion-reportes').then(m => m.GobernacionReportesComponent)
+      },
       // CONFIGURACIÓN Y PARAMETRIZACIÓN NORMATIVA (EXCLUSIVO GOBERNACIÓN)
       {
         path: 'configuracion',

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { SolicitudesLiquidacionFacade } from '../../../../application/facades/Radicacion/solicitudes-liquidacion.facade';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { RegistrosPermissionsPolicy } from '../../../../domain/policies/registros-permissions.policy';
@@ -10,11 +11,13 @@ import { SolicitudListadoDto } from '../../../../domain/models/Radicacion/solici
 import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
+import { DocumentViewerComponent } from '../../../../../../shared/components/document-viewer/document-viewer';
+import { DocumentItem } from '../../../../../../shared/components/document-viewer/document-viewer.model';
 
 @Component({
   selector: 'app-gobernacion-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, TableSearchComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, TableSearchComponent, DocumentViewerComponent],
   templateUrl: './gobernacion-solicitudes.html',
   styleUrl: './gobernacion-solicitudes.css'
 })
@@ -24,6 +27,7 @@ export class GobernacionSolicitudesComponent implements OnInit {
   public permissions = inject(RegistrosPermissionsPolicy);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
 
   // Estados de fiscalización: 
   // 2 = En Revisión Técnica (default), 5 = Devuelta a Notaría, 4 = Liquidada, 0 = Todas
@@ -48,6 +52,16 @@ export class GobernacionSolicitudesComponent implements OnInit {
   preliquidacion = signal<LiquidacionSimuladaResponse | null>(null);
   isPreliquidando = signal<boolean>(false);
   isAprobando = signal<boolean>(false);
+
+  // Pestaña activa del Modal de Fiscalización
+  activeFiscalizarTab = signal<'EXPEDIENTE' | 'DOCUMENTO' | 'HISTORIAL'>('EXPEDIENTE');
+
+  // Visor de Documentos PDF
+  showDocumentViewerModal = signal<boolean>(false);
+  documentosVisor = signal<DocumentItem[]>([]);
+  documentoIframeUrl = signal<SafeResourceUrl | null>(null);
+  documentoDescargaUrl = signal<string>('');
+  documentoNombreArchivo = signal<string>('');
 
   // Modal Devolver con Requerimiento
   showDevolverModal = signal<boolean>(false);
@@ -133,6 +147,7 @@ export class GobernacionSolicitudesComponent implements OnInit {
   abrirFiscalizacion(id: number): void {
     this.isLoading.set(true);
     this.preliquidacion.set(null);
+    this.activeFiscalizarTab.set('EXPEDIENTE');
     this.facade.obtenerSolicitudPorId(id).subscribe({
       next: (res) => {
         this.isLoading.set(false);
@@ -141,6 +156,24 @@ export class GobernacionSolicitudesComponent implements OnInit {
           data.id = data.solicitudId || data.id || id;
           data.solicitudId = data.id;
           this.selectedSolicitud.set(data);
+
+          // Configurar datos para el Visor de PDF (Documento notarial / minuta)
+          const doc = data.documentos?.[0] || data.documentoRegistro;
+          const downloadUrl = this.facade.obtenerUrlDescargaDocumento(data.id, true);
+          const rawName = doc?.nombreArchivo || `Expediente_${data.numeroRadicado}.pdf`;
+
+          this.documentoDescargaUrl.set(downloadUrl);
+          this.documentoNombreArchivo.set(rawName);
+          this.documentoIframeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(downloadUrl));
+
+          this.documentosVisor.set([
+            {
+              id: doc?.id || data.id,
+              nombreArchivo: rawName,
+              rutaArchivo: downloadUrl
+            }
+          ]);
+
           this.showFiscalizarModal.set(true);
           // Simula preliquidación automática
           this.simularPreliquidacion(data.id);
@@ -151,6 +184,31 @@ export class GobernacionSolicitudesComponent implements OnInit {
         this.toast.error('No se pudo cargar el expediente para fiscalización');
       }
     });
+  }
+
+  cambiarFiscalizarTab(tab: 'EXPEDIENTE' | 'DOCUMENTO' | 'HISTORIAL'): void {
+    this.activeFiscalizarTab.set(tab);
+  }
+
+  abrirVisorCompleto(): void {
+    this.showDocumentViewerModal.set(true);
+  }
+
+  cerrarVisorCompleto(): void {
+    this.showDocumentViewerModal.set(false);
+  }
+
+  descargarDocumentoDirecto(): void {
+    const sol = this.selectedSolicitud();
+    if (!sol) return;
+    const url = this.facade.obtenerUrlDescargaDocumento(sol.id, false);
+    window.open(url, '_blank');
+  }
+
+  esBaseInferiorAvaluo(acto: any): boolean {
+    const avaluo = Number(acto?.inmuebleAvaluo || 0);
+    const base = Number(acto?.baseDeclarada || 0);
+    return avaluo > 0 && base < avaluo;
   }
 
   simularPreliquidacion(solicitudId: number): void {

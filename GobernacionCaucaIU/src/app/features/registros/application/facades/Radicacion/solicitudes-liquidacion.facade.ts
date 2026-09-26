@@ -99,4 +99,12 @@ export class SolicitudesLiquidacionFacade {
       finalize(() => this.actionLoading.set(false))
     );
   }
+
+  obtenerUrlDescargaDocumento(id: number, inline: boolean = true): string {
+    return this.apiService.obtenerUrlDescargaDocumento(id, inline);
+  }
+
+  descargarDocumentoArchivo(id: number, inline: boolean = true): Observable<Blob> {
+    return this.apiService.descargarDocumentoArchivo(id, inline);
+  }
 }

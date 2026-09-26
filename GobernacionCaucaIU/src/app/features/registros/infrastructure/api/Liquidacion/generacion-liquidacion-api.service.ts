@@ -43,7 +43,12 @@ export class GeneracionLiquidacionApiService {
     pageNumber: number = 1, 
     pageSize: number = 10, 
     search?: string, 
-    estadoId?: number | null
+    estadoId?: number | null,
+    fechaDesde?: string | null,
+    fechaHasta?: string | null,
+    entidadRegistroId?: number | null,
+    municipioJurisdiccionId?: number | null,
+    tipoActoRegistroId?: number | null
   ): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
     let url = `${this.baseUrl}?PageNumber=${pageNumber}&PageSize=${pageSize}`;
     if (search && search.trim() !== '') {
@@ -51,6 +56,21 @@ export class GeneracionLiquidacionApiService {
     }
     if (estadoId !== undefined && estadoId !== null) {
       url += `&EstadoId=${estadoId}`;
+    }
+    if (fechaDesde) {
+      url += `&FechaDesde=${encodeURIComponent(fechaDesde)}`;
+    }
+    if (fechaHasta) {
+      url += `&FechaHasta=${encodeURIComponent(fechaHasta)}`;
+    }
+    if (entidadRegistroId) {
+      url += `&EntidadRegistroId=${entidadRegistroId}`;
+    }
+    if (municipioJurisdiccionId) {
+      url += `&MunicipioJurisdiccionId=${municipioJurisdiccionId}`;
+    }
+    if (tipoActoRegistroId) {
+      url += `&TipoActoRegistroId=${tipoActoRegistroId}`;
     }
     return this.api.get<ApiResponse<PagedResult<LiquidacionListadoDto>>>(url, {}, 'REGISTROS');
   }

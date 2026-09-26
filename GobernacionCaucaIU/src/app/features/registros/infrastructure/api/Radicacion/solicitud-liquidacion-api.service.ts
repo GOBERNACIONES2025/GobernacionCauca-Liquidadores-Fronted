@@ -109,4 +109,14 @@ export class SolicitudLiquidacionApiService {
   devolverSolicitud(id: number, motivo: string): Observable<ApiResponse<boolean>> {
     return this.api.post<ApiResponse<boolean>>(`${this.baseUrl}/${id}/devolver`, { motivoDevolucion: motivo }, {}, this.dbContext);
   }
+
+  obtenerUrlDescargaDocumento(id: number, inline: boolean = true): string {
+    return this.api.buildUrl(`${this.baseUrl}/${id}/documento/descargar?inline=${inline}`, this.dbContext);
+  }
+
+  descargarDocumentoArchivo(id: number, inline: boolean = true): Observable<Blob> {
+    return this.api.get<Blob>(`${this.baseUrl}/${id}/documento/descargar?inline=${inline}`, {
+      responseType: 'blob'
+    }, this.dbContext);
+  }
 }

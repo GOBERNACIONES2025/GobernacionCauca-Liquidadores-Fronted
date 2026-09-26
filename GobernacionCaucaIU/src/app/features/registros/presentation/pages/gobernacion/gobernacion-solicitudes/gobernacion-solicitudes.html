@@ -288,118 +288,442 @@
   <!-- MODAL / DRAWER DE FISCALIZACIÓN Y PRELIQUIDACIÓN -->
   @if (showFiscalizarModal() && selectedSolicitud()) {
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
-      <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 border border-slate-200 my-8 animate-in fade-in zoom-in-95 duration-200">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full p-6 border border-slate-200 my-6 animate-in fade-in zoom-in-95 duration-200 max-h-[92vh] flex flex-col">
         
         <!-- Modal Header -->
-        <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4 shrink-0">
           <div class="flex items-center gap-3">
             <div class="p-2.5 bg-blue-100 text-blue-800 rounded-xl">
               <i class="fa-solid fa-scale-balanced text-lg"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-slate-900">Auditoría y Fiscalización de Expediente</h3>
-              <p class="text-xs text-slate-500">
+              <div class="flex items-center gap-2">
+                <h3 class="text-base font-bold text-slate-900">Auditoría y Fiscalización de Expediente</h3>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                  {{ selectedSolicitud()?.nombreEstado || 'En Revisión' }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
                 Radicado: <strong class="font-mono text-slate-800">{{ selectedSolicitud()?.numeroRadicado }}</strong> | 
-                Entidad: <span class="font-semibold text-slate-700">{{ selectedSolicitud()?.nombreEntidadRegistro || 'Notaría' }}</span>
+                Entidad: <span class="font-semibold text-slate-700">{{ selectedSolicitud()?.documentos?.[0]?.entidadRegistroNombre || selectedSolicitud()?.nombreEntidadRegistro || 'Despacho Notarial' }}</span> |
+                Jurisdicción: <span class="font-semibold text-slate-700">{{ selectedSolicitud()?.documentos?.[0]?.municipioJurisdiccionNombre || 'Cauca' }}</span>
               </p>
             </div>
           </div>
-          <button (click)="showFiscalizarModal.set(false)" class="text-slate-400 hover:text-slate-600 p-2 cursor-pointer rounded-lg hover:bg-slate-100 transition">
-            <i class="fa-solid fa-xmark text-lg"></i>
-          </button>
-        </div>
-
-        <!-- Cuerpo del Modal en 2 Columnas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs mb-6">
-          <!-- Columna 1: Datos del Contribuyente y Soporte Notarial -->
-          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/80 space-y-4">
-            <div>
-              <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 mb-2">1. Datos del Contribuyente</h4>
-              <div class="grid grid-cols-2 gap-2 text-[11px]">
-                <div><span class="text-slate-400 block">Nombre / Razón:</span> <strong class="text-slate-800">{{ selectedSolicitud()?.contribuyente?.nombre || 'No asignado' }}</strong></div>
-                <div><span class="text-slate-400 block">Identificación:</span> <strong class="text-slate-800 font-mono">{{ selectedSolicitud()?.contribuyente?.numeroIdentificacion }}</strong></div>
-                <div><span class="text-slate-400 block">Correo:</span> <span class="text-slate-700">{{ selectedSolicitud()?.contribuyente?.email || '-' }}</span></div>
-                <div><span class="text-slate-400 block">Teléfono:</span> <span class="text-slate-700">{{ selectedSolicitud()?.contribuyente?.telefono || '-' }}</span></div>
-              </div>
-            </div>
-
-            <div class="pt-3 border-t border-slate-200">
-              <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 mb-2">2. Documento y Soporte</h4>
-              <div class="space-y-1.5 text-[11px]">
-                <div>
-                  <span class="text-slate-400 block">Documento No.:</span>
-                  <strong class="text-slate-800">{{ selectedSolicitud()?.documentoRegistro?.numeroDocumento || selectedSolicitud()?.documentoRegistros?.[0]?.numeroDocumento || 'Escritura / Minuta' }}</strong>
-                </div>
-                <div>
-                  <span class="text-slate-400 block">Fecha Documento:</span>
-                  <span class="text-slate-700">{{ selectedSolicitud()?.documentoRegistro?.fechaDocumento ? (selectedSolicitud()?.documentoRegistro?.fechaDocumento | date:'dd/MM/yyyy') : 'Reciente' }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Columna 2: Preliquidación Simulada Automática -->
-          <div class="bg-blue-50/40 p-4 rounded-xl border border-blue-200 space-y-3 flex flex-col justify-between">
-            <div>
-              <div class="flex items-center justify-between mb-2">
-                <h4 class="font-bold text-blue-950 text-[11px] uppercase tracking-wider">3. Preliquidación Automática</h4>
-                @if (isPreliquidando()) {
-                  <span class="text-[10px] text-blue-700 animate-pulse font-bold">
-                    <i class="fa-solid fa-spinner fa-spin mr-1"></i>Calculando tarifas...
-                  </span>
-                }
-              </div>
-
-              @if (preliquidacion()) {
-                <div class="space-y-2 text-xs">
-                  <div class="flex justify-between py-1.5 border-b border-blue-100">
-                    <span class="text-slate-600">Base Gravable Total:</span>
-                    <strong class="font-mono text-slate-900">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                  </div>
-                  <div class="flex justify-between py-1.5 border-b border-blue-100">
-                    <span class="text-slate-600">Impuesto de Registro:</span>
-                    <strong class="font-mono text-slate-900">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                  </div>
-                  <div class="flex justify-between py-1.5 border-b border-blue-100">
-                    <span class="text-slate-600">Sanción por Extemporaneidad:</span>
-                    <strong class="font-mono text-amber-700">{{ preliquidacion()?.sancionExtemporaneidad | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                  </div>
-                  <div class="flex justify-between py-1.5 border-b border-blue-100">
-                    <span class="text-slate-600">Intereses Moratorios:</span>
-                    <strong class="font-mono text-amber-700">{{ preliquidacion()?.interesesMora | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
-                  </div>
-                  <div class="flex justify-between py-2 pt-2 text-sm font-black bg-blue-100/60 px-3 rounded-lg text-blue-950 mt-2">
-                    <span>Total a Liquidar:</span>
-                    <span class="font-mono">{{ preliquidacion()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
-                  </div>
-                </div>
-              } @else if (!isPreliquidando()) {
-                <div class="py-6 text-center text-slate-400">
-                  <i class="fa-solid fa-calculator text-2xl mb-1 text-blue-300"></i>
-                  <p class="text-xs">Haga clic en simular para validar el cálculo oficial.</p>
-                </div>
-              }
-            </div>
-
-            <!-- Botón para recalcular si fuese necesario -->
-            <button
-              (click)="simularPreliquidacion(selectedSolicitud()?.id)"
-              [disabled]="isPreliquidando()"
-              type="button"
-              class="w-full py-2 bg-white hover:bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200 transition text-xs cursor-pointer text-center"
+          <div class="flex items-center gap-2">
+            <button 
+              (click)="abrirVisorCompleto()" 
+              type="button" 
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-lg text-xs font-semibold transition border border-slate-200 cursor-pointer"
+              title="Previsualizar documento en pantalla completa"
             >
-              <i class="fa-solid fa-arrows-rotate mr-1" [class.fa-spin]="isPreliquidando()"></i>
-              <span>Recalcular Preliquidación</span>
+              <i class="fa-solid fa-file-pdf text-red-500"></i>
+              <span>Visor PDF</span>
+            </button>
+            <button (click)="showFiscalizarModal.set(false)" class="text-slate-400 hover:text-slate-600 p-2 cursor-pointer rounded-lg hover:bg-slate-100 transition">
+              <i class="fa-solid fa-xmark text-lg"></i>
             </button>
           </div>
         </div>
 
+        <!-- Pestañas Superiores de Navegación del Expediente -->
+        <div class="flex border-b border-slate-200 mb-4 shrink-0 text-xs font-semibold gap-1">
+          <button
+            type="button"
+            (click)="cambiarFiscalizarTab('EXPEDIENTE')"
+            class="px-4 py-2 border-b-2 transition cursor-pointer flex items-center gap-2"
+            [class.border-blue-600]="activeFiscalizarTab() === 'EXPEDIENTE'"
+            [class.text-blue-700]="activeFiscalizarTab() === 'EXPEDIENTE'"
+            [class.border-transparent]="activeFiscalizarTab() !== 'EXPEDIENTE'"
+            [class.text-slate-500]="activeFiscalizarTab() !== 'EXPEDIENTE'"
+          >
+            <i class="fa-solid fa-file-invoice"></i>
+            <span>Expediente y Actos</span>
+          </button>
+          <button
+            type="button"
+            (click)="cambiarFiscalizarTab('DOCUMENTO')"
+            class="px-4 py-2 border-b-2 transition cursor-pointer flex items-center gap-2"
+            [class.border-blue-600]="activeFiscalizarTab() === 'DOCUMENTO'"
+            [class.text-blue-700]="activeFiscalizarTab() === 'DOCUMENTO'"
+            [class.border-transparent]="activeFiscalizarTab() !== 'DOCUMENTO'"
+            [class.text-slate-500]="activeFiscalizarTab() !== 'DOCUMENTO'"
+          >
+            <i class="fa-solid fa-file-pdf text-red-500"></i>
+            <span>Previsualización Minuta / Escritura</span>
+          </button>
+          <button
+            type="button"
+            (click)="cambiarFiscalizarTab('HISTORIAL')"
+            class="px-4 py-2 border-b-2 transition cursor-pointer flex items-center gap-2"
+            [class.border-blue-600]="activeFiscalizarTab() === 'HISTORIAL'"
+            [class.text-blue-700]="activeFiscalizarTab() === 'HISTORIAL'"
+            [class.border-transparent]="activeFiscalizarTab() !== 'HISTORIAL'"
+            [class.text-slate-500]="activeFiscalizarTab() !== 'HISTORIAL'"
+          >
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>Historial y Requerimientos</span>
+            @if (selectedSolicitud()?.historial?.length > 0) {
+              <span class="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                {{ selectedSolicitud()?.historial?.length }}
+              </span>
+            }
+          </button>
+        </div>
+
+        <!-- Contenedor con Scroll del Modal -->
+        <div class="flex-1 overflow-y-auto pr-1 text-xs">
+
+          <!-- PESTAÑA 1: EXPEDIENTE, ACTOS, INTERVINIENTES Y LIQUIDACIÓN -->
+          @if (activeFiscalizarTab() === 'EXPEDIENTE') {
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-4">
+              
+              <!-- Columna Izquierda: Sujeto Pasivo, Documento y Desglose de Actos (7 cols) -->
+              <div class="lg:col-span-7 space-y-4">
+                
+                <!-- 1. Sujeto Pasivo / Contribuyente -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                      <i class="fa-solid fa-user-check"></i>
+                      <span>1. Sujeto Pasivo Principal</span>
+                    </h4>
+                    <span class="text-[10px] text-slate-500 font-mono">{{ selectedSolicitud()?.contribuyente?.tipoIdentificacionNombre || 'Doc' }}</span>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-[11px]">
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">Nombre / Razón Social:</span>
+                      <strong class="text-slate-800">{{ selectedSolicitud()?.contribuyente?.nombre || 'No asignado' }}</strong>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">Número de Identificación:</span>
+                      <strong class="text-slate-800 font-mono">{{ selectedSolicitud()?.contribuyente?.numeroIdentificacion }}</strong>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">Correo Electrónico:</span>
+                      <span class="text-slate-700 truncate block">{{ selectedSolicitud()?.contribuyente?.email || 'No registrado' }}</span>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">Teléfono de Contacto:</span>
+                      <span class="text-slate-700">{{ selectedSolicitud()?.contribuyente?.telefono || 'No registrado' }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Instrumento Público / Soporte Notarial -->
+                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                      <i class="fa-solid fa-stamp"></i>
+                      <span>2. Documento y Soporte Notarial</span>
+                    </h4>
+                    <button 
+                      (click)="cambiarFiscalizarTab('DOCUMENTO')" 
+                      type="button" 
+                      class="text-blue-700 hover:text-blue-900 font-bold text-[11px] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <i class="fa-solid fa-eye"></i>
+                      <span>Ver Previsualización</span>
+                    </button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-[11px]">
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">Documento / Escritura:</span>
+                      <strong class="text-slate-800 font-mono">
+                        {{ selectedSolicitud()?.documentos?.[0]?.numeroDocumento || selectedSolicitud()?.documentoRegistro?.numeroDocumento || 'Escritura / Minuta' }}
+                      </strong>
+                    </div>
+                    <div>
+                      <span class="text-slate-400 block text-[10px]">Fecha Otorgamiento:</span>
+                      <span class="text-slate-700">
+                        {{ selectedSolicitud()?.documentos?.[0]?.fechaDocumento ? (selectedSolicitud()?.documentos?.[0]?.fechaDocumento | date:'dd/MM/yyyy') : 'Reciente' }}
+                      </span>
+                    </div>
+                    <div class="col-span-2">
+                      <span class="text-slate-400 block text-[10px]">Archivo Adjunto:</span>
+                      <span class="text-slate-700 font-mono text-[10px] flex items-center gap-1.5 truncate">
+                        <i class="fa-solid fa-paperclip text-slate-400"></i>
+                        {{ selectedSolicitud()?.documentos?.[0]?.nombreArchivo || 'Soporte cargado en servidor' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. Desglose Detallado de Actos Registrales -->
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h4 class="font-bold text-slate-800 text-[11px] uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                      <i class="fa-solid fa-list-check"></i>
+                      <span>3. Actos Registrales Solicitados</span>
+                    </h4>
+                    <span class="text-[10px] font-bold text-slate-500">
+                      Total: {{ selectedSolicitud()?.documentos?.[0]?.actos?.length || 0 }} acto(s)
+                    </span>
+                  </div>
+
+                  @for (acto of selectedSolicitud()?.documentos?.[0]?.actos; track acto.id) {
+                    <div class="p-3.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-2.5">
+                      
+                      <!-- Cabecera del Acto -->
+                      <div class="flex items-start justify-between gap-2 border-b border-slate-100 pb-2">
+                        <div>
+                          <strong class="text-slate-900 font-bold text-xs block">
+                            {{ acto.tipoActoRegistroNombre || acto.tipoActoNombre || 'Acto Registral' }}
+                          </strong>
+                          <span class="text-[10px] text-slate-500">
+                            Categoría: <span class="font-medium text-slate-700">{{ acto.categoriaActoNombre || 'General' }}</span>
+                          </span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-50 text-blue-800 border border-blue-100">
+                          ID: #{{ acto.id }}
+                        </span>
+                      </div>
+
+                      <!-- Control Tributario: Base vs Avalúo (Regla de Oro Ley 223/95) -->
+                      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/70 text-[11px]">
+                        <div>
+                          <span class="text-slate-400 block text-[10px]">Base Declarada:</span>
+                          <strong class="font-mono text-slate-900 text-xs">{{ acto.baseDeclarada | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div>
+                          <span class="text-slate-400 block text-[10px]">Avalúo Catastral:</span>
+                          <strong class="font-mono text-slate-700 text-xs">{{ (acto.inmuebleAvaluo || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div>
+                          <span class="text-slate-400 block text-[10px]">Matrícula Inmueble:</span>
+                          <span class="font-mono text-slate-800 font-bold">{{ acto.inmuebleMatricula || 'No aplica' }}</span>
+                        </div>
+                      </div>
+
+                      <!-- Alerta Tributaria si la Base es inferior al Avalúo -->
+                      @if (esBaseInferiorAvaluo(acto)) {
+                        <div class="p-2 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 text-[10px] font-semibold">
+                          <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm shrink-0"></i>
+                          <span>Advertencia Fiscal: La base declarada es menor al avalúo catastral. Conforme al Art. 229 Ley 223/95, la base mínima es el avalúo catastral.</span>
+                        </div>
+                      } @else if (acto.inmuebleAvaluo > 0) {
+                        <div class="px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 text-[10px] font-medium flex items-center gap-1.5 border border-emerald-200">
+                          <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                          <span>Base declarada conforme a Ley 223/1995 (igual o superior al avalúo catastral).</span>
+                        </div>
+                      }
+
+                      <!-- Exenciones Aplicadas al Acto -->
+                      <div>
+                        <span class="text-slate-500 font-semibold block text-[10px] mb-1">Exención Tributaria:</span>
+                        @if (acto.exenciones && acto.exenciones.length > 0) {
+                          <div class="flex flex-wrap gap-1.5">
+                            @for (ex of acto.exenciones; track ex.id || ex.codigo) {
+                              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                                <i class="fa-solid fa-tag text-[9px]"></i>
+                                {{ ex.nombre }} ({{ ex.porcentajeDescuento }}% desc.)
+                              </span>
+                            }
+                          </div>
+                        } @else {
+                          <span class="text-[10px] text-slate-400 italic">No aplican exenciones en este acto registral.</span>
+                        }
+                      </div>
+
+                      <!-- Intervinientes por Acto -->
+                      @if (acto.intervinientes && acto.intervinientes.length > 0) {
+                        <div class="pt-1.5 border-t border-slate-100">
+                          <span class="text-slate-500 font-semibold block text-[10px] mb-1">Intervinientes del Acto:</span>
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                            @for (inter of acto.intervinientes; track inter.id) {
+                              <div class="p-1.5 rounded-md bg-slate-50 border border-slate-200 text-[10px] flex items-center justify-between">
+                                <div>
+                                  <strong class="text-slate-800">{{ inter.contribuyente?.nombre || 'Interviniente' }}</strong>
+                                  <span class="text-slate-500 block font-mono text-[9px]">{{ inter.contribuyente?.numeroIdentificacion }}</span>
+                                </div>
+                                <div class="text-right">
+                                  <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-900">
+                                    {{ inter.rolIntervinienteNombre || 'Compareciente' }}
+                                  </span>
+                                  <span class="text-[9px] font-mono text-slate-500 block">{{ inter.porcentajeParticipacion }}%</span>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                    </div>
+                  } @empty {
+                    <div class="p-4 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                      No hay actos registrados en este expediente.
+                    </div>
+                  }
+                </div>
+
+              </div>
+
+              <!-- Columna Derecha: Preliquidación Oficial y Decisión (5 cols) -->
+              <div class="lg:col-span-5 space-y-4">
+                
+                <!-- Tarjeta de Preliquidación Simulada -->
+                <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-200 shadow-xs flex flex-col justify-between h-full">
+                  <div>
+                    <div class="flex items-center justify-between border-b border-blue-200/80 pb-2 mb-3">
+                      <h4 class="font-bold text-blue-950 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fa-solid fa-calculator text-blue-700"></i>
+                        <span>Liquidación Oficial Sugerida</span>
+                      </h4>
+                      @if (isPreliquidando()) {
+                        <span class="text-[10px] text-blue-700 animate-pulse font-bold">
+                          <i class="fa-solid fa-spinner fa-spin mr-1"></i>Calculando...
+                        </span>
+                      }
+                    </div>
+
+                    @if (preliquidacion()) {
+                      <div class="space-y-2 text-xs">
+                        <div class="flex justify-between py-1 border-b border-blue-100">
+                          <span class="text-slate-600">Base Gravable Total:</span>
+                          <strong class="font-mono text-slate-900">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-blue-100">
+                          <span class="text-slate-600">Impuesto de Registro:</span>
+                          <strong class="font-mono text-slate-900">{{ preliquidacion()?.subtotal | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-blue-100">
+                          <span class="text-slate-600">Sanción Extemporaneidad:</span>
+                          <strong class="font-mono text-amber-700">{{ preliquidacion()?.sancionExtemporaneidad | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        <div class="flex justify-between py-1 border-b border-blue-100">
+                          <span class="text-slate-600">Intereses de Mora:</span>
+                          <strong class="font-mono text-amber-700">{{ preliquidacion()?.interesesMora | currency:'COP':'symbol-narrow':'1.0-0' }}</strong>
+                        </div>
+                        
+                        <!-- Total Destacado -->
+                        <div class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-900 to-indigo-900 text-white mt-3 shadow-sm">
+                          <span class="text-[10px] uppercase font-bold tracking-wider text-blue-200 block">Total a Liquidar:</span>
+                          <span class="text-lg font-black font-mono tracking-tight">{{ preliquidacion()?.granTotalPagar | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                        </div>
+                      </div>
+                    } @else if (!isPreliquidando()) {
+                      <div class="py-6 text-center text-slate-400">
+                        <i class="fa-solid fa-calculator text-2xl mb-1 text-blue-300"></i>
+                        <p class="text-xs">Haga clic en recalcular para verificar la tarifa oficial.</p>
+                      </div>
+                    }
+                  </div>
+
+                  <div class="mt-4 pt-3 border-t border-blue-200/80 space-y-2">
+                    <button
+                      (click)="simularPreliquidacion(selectedSolicitud()?.id)"
+                      [disabled]="isPreliquidando()"
+                      type="button"
+                      class="w-full py-2 bg-white hover:bg-blue-50 text-blue-700 font-bold rounded-lg border border-blue-200 transition text-xs cursor-pointer text-center"
+                    >
+                      <i class="fa-solid fa-arrows-rotate mr-1" [class.fa-spin]="isPreliquidando()"></i>
+                      <span>Recalcular Preliquidación</span>
+                    </button>
+                    
+                    <button
+                      (click)="abrirVisorCompleto()"
+                      type="button"
+                      class="w-full py-2 bg-blue-100/70 hover:bg-blue-200/70 text-blue-900 font-bold rounded-lg transition text-xs cursor-pointer text-center flex items-center justify-center gap-1.5"
+                    >
+                      <i class="fa-solid fa-file-pdf text-red-600"></i>
+                      <span>Inspeccionar Minuta Notarial</span>
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          }
+
+          <!-- PESTAÑA 2: VISOR DE DOCUMENTO NOTARIAL (PDF EMBEBIDO) -->
+          @if (activeFiscalizarTab() === 'DOCUMENTO') {
+            <div class="space-y-3">
+              <div class="flex items-center justify-between bg-slate-100 p-2.5 rounded-xl border border-slate-200 text-xs">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-file-pdf text-red-500 text-base"></i>
+                  <strong class="font-mono text-slate-800">{{ documentoNombreArchivo() }}</strong>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button 
+                    (click)="descargarDocumentoDirecto()" 
+                    type="button" 
+                    class="px-2.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg text-[11px] font-bold text-slate-700 transition cursor-pointer flex items-center gap-1"
+                  >
+                    <i class="fa-solid fa-download"></i>
+                    <span>Descargar</span>
+                  </button>
+                  <button 
+                    (click)="abrirVisorCompleto()" 
+                    type="button" 
+                    class="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11px] font-bold transition cursor-pointer flex items-center gap-1"
+                  >
+                    <i class="fa-solid fa-maximize"></i>
+                    <span>Pantalla Completa</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Iframe del PDF con streaming seguro desde la API -->
+              @if (documentoIframeUrl()) {
+                <div class="w-full h-[520px] rounded-xl overflow-hidden border border-slate-300 shadow-inner bg-slate-200 relative">
+                  <iframe 
+                    [src]="documentoIframeUrl()" 
+                    class="w-full h-full border-0" 
+                    title="Visor de Documento Notarial"
+                  ></iframe>
+                </div>
+              } @else {
+                <div class="py-16 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <i class="fa-solid fa-file-circle-xmark text-3xl mb-2 text-slate-300"></i>
+                  <p class="text-xs">No se encontró archivo adjunto o está en proceso de carga.</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- PESTAÑA 3: HISTORIAL DE TRAZABILIDAD Y REQUERIMIENTOS -->
+          @if (activeFiscalizarTab() === 'HISTORIAL') {
+            <div class="space-y-3">
+              @if (selectedSolicitud()?.historial && selectedSolicitud()?.historial?.length > 0) {
+                <div class="space-y-2.5">
+                  @for (h of selectedSolicitud()?.historial; track h.id) {
+                    <div class="p-3 bg-white rounded-xl border border-slate-200 shadow-2xs flex items-start gap-3">
+                      <div class="p-2 bg-amber-100 text-amber-800 rounded-lg shrink-0">
+                        <i class="fa-solid fa-arrow-rotate-left text-xs"></i>
+                      </div>
+                      <div class="flex-1 text-xs">
+                        <div class="flex items-center justify-between mb-1">
+                          <strong class="text-slate-800 font-bold">{{ h.estadoNuevoNombre || 'Evento del Trámite' }}</strong>
+                          <span class="text-slate-400 font-mono text-[10px]">{{ h.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+                        </div>
+                        <p class="text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100 text-[11px] mb-1">
+                          {{ h.motivo || 'Sin detalle de observaciones' }}
+                        </p>
+                        <span class="text-[10px] text-slate-400">
+                          Registrado por: <strong class="text-slate-600">{{ h.usuarioNombre || 'Funcionario Gobernación' }}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="py-12 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <i class="fa-solid fa-clock text-3xl mb-2 text-slate-300"></i>
+                  <p class="text-xs">Este expediente se encuentra en su primera revisión técnica, sin antecedentes de devolución.</p>
+                </div>
+              }
+            </div>
+          }
+
+        </div>
+
         <!-- Footer con Acciones de Decisión Fiscal -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100 shrink-0">
           <button
             (click)="showFiscalizarModal.set(false)"
             type="button"
-            class="px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer w-full sm:w-auto"
+            class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer w-full sm:w-auto"
           >
             Cerrar Expediente
           </button>
@@ -431,6 +755,14 @@
       </div>
     </div>
   }
+
+  <!-- MODAL EXTERNO DE VISOR DE DOCUMENTO PDF PANTALLA COMPLETA -->
+  <app-document-viewer
+    [isOpen]="showDocumentViewerModal()"
+    [title]="'Soporte Notarial - ' + (selectedSolicitud()?.numeroRadicado || '')"
+    [documentos]="documentosVisor()"
+    (onClose)="cerrarVisorCompleto()"
+  ></app-document-viewer>
 
   <!-- MODAL DE DEVOLUCIÓN TÉCNICA CON REQUERIMIENTO -->
   @if (showDevolverModal()) {

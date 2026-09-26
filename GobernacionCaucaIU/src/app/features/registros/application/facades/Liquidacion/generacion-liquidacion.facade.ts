@@ -23,10 +23,15 @@ export class GeneracionLiquidacionFacade {
     pageNumber: number = 1, 
     pageSize: number = 10, 
     search?: string, 
-    estadoId?: number | null
+    estadoId?: number | null,
+    fechaDesde?: string | null,
+    fechaHasta?: string | null,
+    entidadRegistroId?: number | null,
+    municipioJurisdiccionId?: number | null,
+    tipoActoRegistroId?: number | null
   ): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
     this.actionLoading.set(true);
-    return this.apiService.listarLiquidaciones(pageNumber, pageSize, search, estadoId).pipe(
+    return this.apiService.listarLiquidaciones(pageNumber, pageSize, search, estadoId, fechaDesde, fechaHasta, entidadRegistroId, municipioJurisdiccionId, tipoActoRegistroId).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }

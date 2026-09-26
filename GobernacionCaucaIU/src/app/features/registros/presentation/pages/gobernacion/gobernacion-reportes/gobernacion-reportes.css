@@ -1,0 +1,29 @@
+/* Estilos específicos para la vista de reportes e impresión institucional */
+@media print {
+  /* Ocultar elementos no imprimibles */
+  button, 
+  aside, 
+  header, 
+  nav, 
+  .no-print,
+  app-gobernacion-sidebar,
+  app-gobernacion-topbar {
+    display: none !important;
+  }
+
+  body, main {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  th, td {
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 8px !important;
+  }
+}
