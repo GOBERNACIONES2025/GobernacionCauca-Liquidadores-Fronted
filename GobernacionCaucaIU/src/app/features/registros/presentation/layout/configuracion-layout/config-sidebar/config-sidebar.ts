@@ -29,6 +29,7 @@ import { EstadosLiquidacionFacade } from '../../../../application/facades/Liquid
 import { CausalesReliquidacionFacade } from '../../../../application/facades/Liquidacion/causales-reliquidacion.facade';
 import { CausalesAnulacionFacade } from '../../../../application/facades/Liquidacion/causales-anulacion.facade';
 import { EstadosPagoFacade } from '../../../../application/facades/Pagos/estados-pago.facade';
+import { MediosPagoFacade } from '../../../../application/facades/Pagos/medios-pago.facade';
 import { EstadosSolicitudFacade } from '../../../../application/facades/Radicacion/estados-solicitud.facade';
 import { EntidadesTipoActoPermitidoFacade } from '../../../../application/facades/Registro/entidades-tipo-acto-permitido.facade';
 import { ContribuyentesFacade } from '../../../../application/facades/Contribuyentes/contribuyentes.facade';
@@ -83,6 +84,7 @@ export class ConfigSidebar {
   public causalesReliquidacionFacade = inject(CausalesReliquidacionFacade);
   public causalesAnulacionFacade = inject(CausalesAnulacionFacade);
   private estadosPagoFacade = inject(EstadosPagoFacade);
+  private mediosPagoFacade = inject(MediosPagoFacade);
   private estadosSolicitudFacade = inject(EstadosSolicitudFacade);
   private entidadesTipoActoPermitidoFacade = inject(EntidadesTipoActoPermitidoFacade);
   private contribuyentesFacade = inject(ContribuyentesFacade);
@@ -327,6 +329,11 @@ export class ConfigSidebar {
           name: 'Estado de Pago', 
           route: '/registros/gobernacion/configuracion/pagos/estados-pago',
           count: this.estadosPagoFacade.totalEstadosPago() || this.estadosPagoFacade.estadosPago().length 
+        },
+        { 
+          name: 'Medios de Pago', 
+          route: '/registros/gobernacion/configuracion/pagos/medios-pago',
+          count: this.mediosPagoFacade.totalMediosPago() || this.mediosPagoFacade.mediosPago().length 
         }
       ]
     },

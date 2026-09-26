@@ -1,12 +1,15 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { GeneracionLiquidacionFacade } from '../../../../application/facades/Liquidacion/generacion-liquidacion.facade';
 import { RegistrosPermissionsPolicy } from '../../../../domain/policies/registros-permissions.policy';
 import { LiquidacionListadoDto, SolicitudReliquidacionDto } from '../../../../domain/models/Liquidacion/generacion-liquidacion.model';
 import { ToastService } from '../../../../../../core/services/toast.service';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
+
+import { MediosPagoFacade } from '../../../../application/facades/Pagos/medios-pago.facade';
 
 @Component({
   selector: 'app-gobernacion-liquidaciones',
@@ -15,10 +18,13 @@ import { TableSearchComponent } from '../../../shared/components/table-search/ta
   templateUrl: './gobernacion-liquidaciones.html',
   styleUrl: './gobernacion-liquidaciones.css'
 })
-export class GobernacionLiquidacionesComponent implements OnInit {
-  private facade = inject(GeneracionLiquidacionFacade);
+export class GobernacionLiquidacionesComponent implements OnInit, OnDestroy {
+  public facade = inject(GeneracionLiquidacionFacade);
+  public mediosPagoFacade = inject(MediosPagoFacade);
   public permissions = inject(RegistrosPermissionsPolicy);
   private toast = inject(ToastService);
+
+  private activeRequestSub: Subscription | null = null;
 
   // Subpestañas:
   // 1 = Solicitudes de Reliquidación Pendientes
@@ -26,10 +32,16 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   // 3 = Directorio Oficial Departamental de Liquidaciones
   activeTab = signal<1 | 2 | 3>(1);
 
+  // Subfiltro específico para Directorio Departamental (Tab 3)
+  filtroDirectorio = signal<'todas' | 'pagadas' | 'vigentes' | 'vencidas' | 'anuladas'>('todas');
+
   // Tarjetas KPI Operativas
   kpiReliquidaciones = signal<number>(0);
   kpiAnulaciones = signal<number>(0);
   kpiDirectorio = signal<number>(0);
+  kpiPagadas = signal<number>(0);
+  kpiVigentes = signal<number>(0);
+  kpiVencidas = signal<number>(0);
   kpiAnuladas = signal<number>(0);
 
   // Datos de tabla
@@ -59,6 +71,22 @@ export class GobernacionLiquidacionesComponent implements OnInit {
   motivoOficio = signal<string>('');
   isProcesandoOficio = signal<boolean>(false);
 
+  // Modal y Formulario de Recaudo Oficial en Ventanilla / Certificación
+  showPagoModal = signal<boolean>(false);
+  showComprobanteModal = signal<boolean>(false);
+  selectedLiquidacion = signal<any | null>(null);
+  selectedComprobante = signal<any | null>(null);
+  isLoadingComprobante = signal<boolean>(false);
+  isSubmittingPago = signal<boolean>(false);
+
+  pagoMedioPagoId = signal<number | null>(null);
+  pagoValor = signal<number>(0);
+  pagoReferencia = signal<string>('');
+  pagoFecha = signal<string>(new Date().toISOString().substring(0, 10));
+  pagoObservaciones = signal<string>('');
+  pagoArchivo = signal<File | null>(null);
+  pagoArchivoNombre = signal<string>('');
+
   ngOnInit(): void {
     this.cargarMetricasKpi();
     this.cargarDatos();
@@ -77,17 +105,48 @@ export class GobernacionLiquidacionesComponent implements OnInit {
       error: () => {}
     });
 
-    // 3. Directorio general de liquidaciones
+    // 3. Directorio general de liquidaciones (todas)
     this.facade.listarLiquidaciones(1, 1).subscribe({
       next: (res) => this.kpiDirectorio.set(res?.data?.totalCount || 0),
       error: () => {}
     });
 
-    // 4. Anuladas formalmente (estadoId = 3)
-    this.facade.listarLiquidaciones(1, 1, undefined, 3).subscribe({
+    // 4. Pagadas / Recaudadas
+    this.facade.listarLiquidaciones(1, 1, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'pagadas').subscribe({
+      next: (res) => this.kpiPagadas.set(res?.data?.totalCount || 0),
+      error: () => {}
+    });
+
+    // 5. Vigentes (en plazo activo)
+    this.facade.listarLiquidaciones(1, 1, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'vigentes').subscribe({
+      next: (res) => this.kpiVigentes.set(res?.data?.totalCount || 0),
+      error: () => {}
+    });
+
+    // 6. Vencidas (plazo expirado con mora)
+    this.facade.listarLiquidaciones(1, 1, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'vencidas').subscribe({
+      next: (res) => this.kpiVencidas.set(res?.data?.totalCount || 0),
+      error: () => {}
+    });
+
+    // 7. Anuladas formalmente
+    this.facade.listarLiquidaciones(1, 1, undefined, undefined, undefined, undefined, undefined, undefined, undefined, 'anuladas').subscribe({
       next: (res) => this.kpiAnuladas.set(res?.data?.totalCount || 0),
       error: () => {}
     });
+  }
+
+  seleccionarKpi(kpi: 'reliquidacion' | 'anulacion' | 'vigentes' | 'vencidas' | 'pagadas'): void {
+    if (kpi === 'reliquidacion') {
+      this.activeTab.set(1);
+    } else if (kpi === 'anulacion') {
+      this.activeTab.set(2);
+    } else {
+      this.activeTab.set(3);
+      this.filtroDirectorio.set(kpi);
+    }
+    this.pageNumber.set(1);
+    this.cargarDatos();
   }
 
   cambiarPestana(tab: 1 | 2 | 3): void {
@@ -96,12 +155,25 @@ export class GobernacionLiquidacionesComponent implements OnInit {
     this.cargarDatos();
   }
 
+  setFiltroDirectorio(filtro: 'todas' | 'pagadas' | 'vigentes' | 'vencidas' | 'anuladas'): void {
+    this.activeTab.set(3);
+    this.filtroDirectorio.set(filtro);
+    this.pageNumber.set(1);
+    this.cargarDatos();
+  }
+
   cargarDatos(): void {
+    // 1. Cancelar cualquier petición previa en vuelo para evitar condiciones de carrera
+    if (this.activeRequestSub) {
+      this.activeRequestSub.unsubscribe();
+      this.activeRequestSub = null;
+    }
+
     this.isLoading.set(true);
     const tab = this.activeTab();
 
     if (tab === 1) {
-      this.facade.listarReliquidacionesPendientes(
+      this.activeRequestSub = this.facade.listarReliquidacionesPendientes(
         this.pageNumber(),
         this.pageSize(),
         this.searchText()
@@ -119,7 +191,7 @@ export class GobernacionLiquidacionesComponent implements OnInit {
         }
       });
     } else if (tab === 2) {
-      this.facade.listarAnulacionesPendientes(
+      this.activeRequestSub = this.facade.listarAnulacionesPendientes(
         this.pageNumber(),
         this.pageSize(),
         this.searchText()
@@ -137,10 +209,20 @@ export class GobernacionLiquidacionesComponent implements OnInit {
         }
       });
     } else {
-      this.facade.listarLiquidaciones(
+      const f = this.filtroDirectorio();
+      const estadoFiltro = f === 'todas' ? undefined : f;
+
+      this.activeRequestSub = this.facade.listarLiquidaciones(
         this.pageNumber(),
         this.pageSize(),
-        this.searchText()
+        this.searchText(),
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        estadoFiltro
       ).subscribe({
         next: (res) => {
           this.isLoading.set(false);
@@ -154,6 +236,13 @@ export class GobernacionLiquidacionesComponent implements OnInit {
           this.toast.error('Error al consultar directorio departamental');
         }
       });
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.activeRequestSub) {
+      this.activeRequestSub.unsubscribe();
+      this.activeRequestSub = null;
     }
   }
 
@@ -356,5 +445,155 @@ export class GobernacionLiquidacionesComponent implements OnInit {
         this.toast.error(err?.error?.message || 'Error al ejecutar la anulación de oficio');
       }
     });
+  }
+
+  // --- RECAUDO EN VENTANILLA Y COMPROBANTES DE PAGO ---
+  abrirModalPago(liq: any): void {
+    this.selectedLiquidacion.set(liq);
+    this.pagoValor.set(liq.totales?.totalPagar || liq.totalPagar || 0);
+    this.pagoReferencia.set('');
+    this.pagoFecha.set(new Date().toISOString().substring(0, 10));
+    this.pagoObservaciones.set('');
+    this.pagoArchivo.set(null);
+    this.pagoArchivoNombre.set('');
+
+    this.mediosPagoFacade.cargarMediosPago(1, 100, undefined, true);
+    const medios = this.mediosPagoFacade.mediosPago();
+    if (medios.length > 0) {
+      this.pagoMedioPagoId.set(medios[0].id);
+    }
+    this.showPagoModal.set(true);
+  }
+
+  onPagoFileSelected(event: any): void {
+    const file: File = event.target.files?.[0];
+    if (file) {
+      if (file.size > 15 * 1024 * 1024) {
+        this.toast.warning('El comprobante no debe superar los 15 MB.');
+        return;
+      }
+      this.pagoArchivo.set(file);
+      this.pagoArchivoNombre.set(file.name);
+    } else {
+      this.pagoArchivo.set(null);
+      this.pagoArchivoNombre.set('');
+    }
+  }
+
+  enviarRegistroPago(): void {
+    const liq = this.selectedLiquidacion();
+    if (!liq) return;
+
+    if (!this.pagoMedioPagoId()) {
+      this.toast.warning('Por favor seleccione el canal o medio de pago.');
+      return;
+    }
+
+    if (!this.pagoReferencia().trim()) {
+      this.toast.warning('Por favor ingrese el número de aprobación o recibo de caja.');
+      return;
+    }
+
+    const medioSeleccionado = this.mediosPagoFacade.mediosPago().find(m => m.id === this.pagoMedioPagoId());
+    if (medioSeleccionado?.requiereComprobante && !this.pagoArchivo()) {
+      this.toast.warning(`El canal ${medioSeleccionado.nombre} exige adjuntar el soporte físico o voucher digital.`);
+      return;
+    }
+
+    this.isSubmittingPago.set(true);
+    const formData = new FormData();
+    formData.append('MedioPagoId', this.pagoMedioPagoId()!.toString());
+    formData.append('Valor', (this.pagoValor() || liq.totales?.totalPagar || liq.totalPagar || 0).toString());
+    formData.append('Referencia', this.pagoReferencia().trim());
+    formData.append('FechaPago', this.pagoFecha());
+    if (this.pagoObservaciones().trim()) {
+      formData.append('Observaciones', this.pagoObservaciones().trim());
+    }
+    const file = this.pagoArchivo();
+    if (file) {
+      formData.append('SoporteVoucher', file, file.name);
+    }
+
+    this.facade.registrarPago(liq.id, formData).subscribe({
+      next: () => {
+        this.isSubmittingPago.set(false);
+        this.showPagoModal.set(false);
+        this.toast.success('Pago fiscal certificado exitosamente. El título ahora figura como PAGADA.');
+        this.cargarDatos();
+        this.cargarMetricasKpi();
+      },
+      error: (err) => {
+        this.isSubmittingPago.set(false);
+        this.toast.error(err?.error?.message || 'Error al certificar el pago en la Gobernación.');
+      }
+    });
+  }
+
+  verComprobante(liq: any): void {
+    this.selectedLiquidacion.set(liq);
+    this.isLoadingComprobante.set(true);
+    this.showComprobanteModal.set(true);
+    this.facade.obtenerPago(liq.id).subscribe({
+      next: (res) => {
+        this.isLoadingComprobante.set(false);
+        this.selectedComprobante.set(res.data);
+      },
+      error: () => {
+        this.isLoadingComprobante.set(false);
+        this.toast.error('No se pudo cargar la constancia fiscal de recaudo.');
+      }
+    });
+  }
+
+  descargarSoporte(liqId: number): void {
+    this.facade.descargarSoportePago(liqId, false).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Soporte_Pago_Liq_${liqId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.toast.success('Soporte bancario descargado');
+      },
+      error: () => this.toast.error('Error al descargar el comprobante.')
+    });
+  }
+
+  esPagada(item: any): boolean {
+    return item.pago?.estaPagada === true ||
+           item.pago?.pagado === true || 
+           item.estadoLiquidacionId === 4 ||
+           item.estado?.id === 4 ||
+           item.estado?.codigo === 'PAGADA' ||
+           (item.nombreEstado ? item.nombreEstado.toLowerCase().includes('pagad') : false);
+  }
+
+  esAnulada(item: any): boolean {
+    return item.estadoLiquidacionId === 6 ||
+           item.estado?.id === 6 ||
+           item.estado?.codigo === 'ANULADA' ||
+           (item.nombreEstado ? item.nombreEstado.toLowerCase().includes('anulad') : false);
+  }
+
+  esReliquidada(item: any): boolean {
+    return item.estadoLiquidacionId === 7 ||
+           item.estado?.id === 7 ||
+           item.estado?.codigo === 'RELIQUIDADA' ||
+           (item.nombreEstado ? item.nombreEstado.toLowerCase().includes('reliquidad') : false);
+  }
+
+  esVencida(item: any): boolean {
+    if (this.esPagada(item) || this.esAnulada(item) || this.esReliquidada(item)) return false;
+    return item.vencimiento?.estaVencida === true ||
+           (item.vencimiento?.diasRestantes !== undefined && item.vencimiento.diasRestantes < 0) ||
+           item.estaVencida === true ||
+           item.estadoLiquidacionId === 5 ||
+           item.estado?.id === 5 ||
+           item.estado?.codigo === 'VENCIDA';
+  }
+
+  esVigente(item: any): boolean {
+    return !this.esPagada(item) && !this.esAnulada(item) && !this.esReliquidada(item) && !this.esVencida(item);
   }
 }

@@ -15,18 +15,18 @@
     </div>
   </div>
 
-  <!-- Barra de 4 Tarjetas KPI Operativas (Interactivas y Filtrables) -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <!-- Barra de Tarjetas KPI Operativas y Financieras (Interactivas y Filtrables) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
     <!-- KPI 1: Reliquidaciones Pendientes -->
     <div
-      (click)="cambiarPestana(1)"
+      (click)="seleccionarKpi('reliquidacion')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
       [class]="activeTab() === 1 
         ? 'border-amber-500 ring-2 ring-amber-500/20 shadow-md shadow-amber-500/5' 
         : 'border-slate-200 hover:border-amber-300 hover:shadow-xs'"
     >
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Reliquidaciones Pendientes</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Reliquidaciones</span>
         <span class="p-2 rounded-xl bg-amber-50 text-amber-600 group-hover:scale-110 transition-transform">
           <i class="fa-solid fa-arrows-rotate text-sm"></i>
         </span>
@@ -39,19 +39,19 @@
           </span>
         }
       </div>
-      <p class="text-[11px] text-slate-400 mt-1">Correcciones solicitadas por notarías</p>
+      <p class="text-[11px] text-slate-400 mt-1">Correcciones notariales</p>
     </div>
 
     <!-- KPI 2: Anulaciones Pendientes -->
     <div
-      (click)="cambiarPestana(2)"
+      (click)="seleccionarKpi('anulacion')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
       [class]="activeTab() === 2 
         ? 'border-rose-500 ring-2 ring-rose-500/20 shadow-md shadow-rose-500/5' 
         : 'border-slate-200 hover:border-rose-300 hover:shadow-xs'"
     >
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Anulaciones en Trámite</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Anulaciones</span>
         <span class="p-2 rounded-xl bg-rose-50 text-rose-600 group-hover:scale-110 transition-transform">
           <i class="fa-solid fa-ban text-sm"></i>
         </span>
@@ -64,49 +64,78 @@
           </span>
         }
       </div>
-      <p class="text-[11px] text-slate-400 mt-1">Peticiones de baja de liquidación</p>
+      <p class="text-[11px] text-slate-400 mt-1">Baja de liquidación</p>
     </div>
 
-    <!-- KPI 3: Directorio General de Liquidaciones -->
+    <!-- KPI 3: Vigentes para Pago -->
     <div
-      (click)="cambiarPestana(3)"
+      (click)="seleccionarKpi('vigentes')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
-      [class]="activeTab() === 3 
+      [class]="activeTab() === 3 && filtroDirectorio() === 'vigentes' 
+        ? 'border-blue-600 ring-2 ring-blue-600/20 shadow-md shadow-blue-600/5' 
+        : 'border-slate-200 hover:border-blue-300 hover:shadow-xs'"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-blue-700">Vigentes</span>
+        <span class="p-2 rounded-xl bg-blue-50 text-blue-600 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-clock text-sm"></i>
+        </span>
+      </div>
+      <div class="mt-2 flex items-baseline gap-2">
+        <span class="text-2xl font-black text-blue-800">{{ kpiVigentes() }}</span>
+        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
+          En plazo
+        </span>
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">Plazo activo sin mora</p>
+    </div>
+
+    <!-- KPI 4: Cartera Vencida (Intereses de Mora) -->
+    <div
+      (click)="seleccionarKpi('vencidas')"
+      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
+      [class]="activeTab() === 3 && filtroDirectorio() === 'vencidas' 
+        ? 'border-rose-500 ring-2 ring-rose-500/20 shadow-md shadow-rose-500/5' 
+        : 'border-slate-200 hover:border-rose-300 hover:shadow-xs'"
+    >
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Vencidas</span>
+        <span class="p-2 rounded-xl bg-rose-50 text-rose-600 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+        </span>
+      </div>
+      <div class="mt-2 flex items-baseline gap-2">
+        <span class="text-2xl font-black text-rose-800">{{ kpiVencidas() }}</span>
+        @if (kpiVencidas() > 0) {
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 animate-pulse">
+            Mora activa
+          </span>
+        }
+      </div>
+      <p class="text-[11px] text-slate-400 mt-1">Plazo legal expirado</p>
+    </div>
+
+    <!-- KPI 5: Recaudadas / Pagadas -->
+    <div
+      (click)="seleccionarKpi('pagadas')"
+      class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
+      [class]="activeTab() === 3 && filtroDirectorio() === 'pagadas' 
         ? 'border-emerald-500 ring-2 ring-emerald-500/20 shadow-md shadow-emerald-500/5' 
         : 'border-slate-200 hover:border-emerald-300 hover:shadow-xs'"
     >
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Directorio Departamental</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Pagadas</span>
         <span class="p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-file-invoice text-sm"></i>
+          <i class="fa-solid fa-circle-check text-sm"></i>
         </span>
       </div>
       <div class="mt-2 flex items-baseline gap-2">
-        <span class="text-2xl font-black text-emerald-800">{{ kpiDirectorio() }}</span>
+        <span class="text-2xl font-black text-emerald-800">{{ kpiPagadas() }}</span>
         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-          Emitidas
+          Recaudadas
         </span>
       </div>
-      <p class="text-[11px] text-slate-400 mt-1">Total títulos oficiales en firme</p>
-    </div>
-
-    <!-- KPI 4: Liquidaciones Anuladas / Historial -->
-    <div
-      class="bg-white p-4 rounded-2xl border border-slate-200 select-none relative overflow-hidden"
-    >
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Títulos Anulados</span>
-        <span class="p-2 rounded-xl bg-slate-100 text-slate-600">
-          <i class="fa-solid fa-file-circle-xmark text-sm"></i>
-        </span>
-      </div>
-      <div class="mt-2 flex items-baseline gap-2">
-        <span class="text-2xl font-black text-slate-800">{{ kpiAnuladas() }}</span>
-        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
-          Inactivas
-        </span>
-      </div>
-      <p class="text-[11px] text-slate-400 mt-1">Histórico formal de cancelaciones</p>
+      <p class="text-[11px] text-slate-400 mt-1">Conciliadas con banco</p>
     </div>
   </div>
 
@@ -322,6 +351,55 @@
 
     <!-- PESTAÑA 3: DIRECTORIO DEPARTAMENTAL DE LIQUIDACIONES -->
     @if (activeTab() === 3) {
+      <!-- Barra de Filtros Segmentados de Recaudo y Vencimiento -->
+      <div class="px-4 py-2.5 bg-slate-100/70 border-b border-slate-200 flex flex-wrap items-center gap-2">
+        <span class="text-xs font-bold text-slate-500 mr-1">Filtrar por Recaudo:</span>
+        <button 
+          (click)="setFiltroDirectorio('todas')"
+          [class]="filtroDirectorio() === 'todas'
+            ? 'px-3 py-1 bg-slate-900 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer'
+            : 'px-3 py-1 bg-white text-slate-600 hover:bg-slate-200 font-medium text-xs rounded-lg border border-slate-200 cursor-pointer'"
+        >
+          Todas ({{ kpiDirectorio() }})
+        </button>
+        <button 
+          (click)="setFiltroDirectorio('pagadas')"
+          [class]="filtroDirectorio() === 'pagadas'
+            ? 'px-3 py-1 bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer'
+            : 'px-3 py-1 bg-white text-emerald-800 hover:bg-emerald-50 font-medium text-xs rounded-lg border border-emerald-200 cursor-pointer'"
+        >
+          <i class="fa-solid fa-circle-check text-[10px] mr-1"></i>
+          Pagadas ({{ kpiPagadas() }})
+        </button>
+        <button 
+          (click)="setFiltroDirectorio('vigentes')"
+          [class]="filtroDirectorio() === 'vigentes'
+            ? 'px-3 py-1 bg-blue-700 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer'
+            : 'px-3 py-1 bg-white text-blue-800 hover:bg-blue-50 font-medium text-xs rounded-lg border border-blue-200 cursor-pointer'"
+        >
+          <i class="fa-solid fa-clock text-[10px] mr-1"></i>
+          Vigentes ({{ kpiVigentes() }})
+        </button>
+        <button 
+          (click)="setFiltroDirectorio('vencidas')"
+          [class]="filtroDirectorio() === 'vencidas'
+            ? 'px-3 py-1 bg-rose-700 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer'
+            : 'px-3 py-1 bg-white text-rose-800 hover:bg-rose-50 font-medium text-xs rounded-lg border border-rose-200 cursor-pointer'"
+        >
+          <i class="fa-solid fa-triangle-exclamation text-[10px] mr-1"></i>
+          Vencidas ({{ kpiVencidas() }})
+        </button>
+        <button 
+          (click)="setFiltroDirectorio('anuladas')"
+          [class]="filtroDirectorio() === 'anuladas'
+            ? 'px-3 py-1 bg-slate-700 text-white font-bold text-xs rounded-lg shadow-xs cursor-pointer'
+            : 'px-3 py-1 bg-white text-slate-600 hover:bg-slate-200 font-medium text-xs rounded-lg border border-slate-200 cursor-pointer'"
+        >
+          <i class="fa-solid fa-ban text-[10px] mr-1"></i>
+          Anuladas ({{ kpiAnuladas() }})
+        </button>
+      </div>
+
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
@@ -330,7 +408,7 @@
               <th class="py-3 px-4">Contribuyente</th>
               <th class="py-3 px-4 text-right">Total Liquidado</th>
               <th class="py-3 px-4">Fecha Expedición</th>
-              <th class="py-3 px-4 text-center">Estado Oficial</th>
+              <th class="py-3 px-4 text-center">Estado Oficial & Recaudo</th>
               <th class="py-3 px-4 text-right">Descarga & Acciones</th>
             </tr>
           </thead>
@@ -347,7 +425,7 @@
                 <td colspan="6" class="py-12 text-center text-slate-400">
                   <i class="fa-solid fa-file-circle-question text-3xl text-slate-300 mb-2"></i>
                   <p class="font-bold text-slate-700 text-sm">No se encontraron liquidaciones oficiales</p>
-                  <p class="text-xs text-slate-400 mt-0.5">Pruebe modificando los términos de búsqueda.</p>
+                  <p class="text-xs text-slate-400 mt-0.5">Pruebe modificando los términos de búsqueda o filtros.</p>
                 </td>
               </tr>
             } @else {
@@ -355,46 +433,64 @@
                 <tr class="hover:bg-slate-50/90 transition-colors">
                   <td class="py-3.5 px-4 font-mono font-bold text-slate-900">
                     <div class="flex items-center gap-1.5">
-                      <i class="fa-solid fa-barcode text-slate-400"></i>
+                      <i class="fa-solid fa-receipt text-slate-500"></i>
                       <span>#{{ item.numeroLiquidacion || item.id }}</span>
                     </div>
-                    @if (item.numeroRadicado) {
+                    @if (item.radicacion?.numeroRadicado || item.numeroRadicado) {
                       <div class="text-[10px] text-slate-400 font-sans">
-                        Rad: {{ item.numeroRadicado }}
+                        Rad: {{ item.radicacion?.numeroRadicado || item.numeroRadicado }}
                       </div>
                     }
                   </td>
                   <td class="py-3.5 px-4">
-                    <div class="font-bold text-slate-800">{{ item.nombreContribuyente || 'Contribuyente' }}</div>
-                    <div class="text-[11px] text-slate-400 font-mono">Doc: {{ item.numeroIdentificacionContribuyente || '-' }}</div>
+                    <div class="font-bold text-slate-800">{{ item.contribuyente?.nombreCompleto || item.nombreContribuyente || 'Contribuyente' }}</div>
+                    <div class="text-[11px] text-slate-400 font-mono">Doc: {{ item.contribuyente?.numeroIdentificacion || item.numeroIdentificacionContribuyente || '-' }}</div>
                   </td>
                   <td class="py-3.5 px-4 text-right font-mono font-bold text-slate-900 text-xs">
                     {{ (item.totales?.totalPagar || item.totalPagar) | currency:'COP':'symbol-narrow':'1.0-0' }}
                   </td>
                   <td class="py-3.5 px-4 text-slate-600">
-                    {{ item.fechaExpedicion | date:'dd/MM/yyyy HH:mm' }}
+                    {{ (item.fechaLiquidacion || item.fechaExpedicion) | date:'dd/MM/yyyy HH:mm' }}
                   </td>
                   <td class="py-3.5 px-4 text-center">
-                    @if (item.estadoLiquidacionId === 1 || item.nombreEstado === 'VIGENTE') {
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        Vigente para Pago
+                    @if (esPagada(item)) {
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        PAGADA
                       </span>
-                    } @else if (item.estadoLiquidacionId === 3 || item.nombreEstado === 'ANULADA') {
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                      <div class="text-[10px] text-emerald-700 font-mono mt-0.5">
+                        {{ item.pago?.medioPagoNombre || 'Recaudo confirmado' }}
+                      </div>
+                    } @else if (esVencida(item)) {
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+                        VENCIDA (MORA)
+                      </span>
+                      <div class="text-[10px] text-rose-700 font-medium mt-0.5">
+                        {{ item.vencimiento?.diasRestantes ? (-item.vencimiento.diasRestantes + 'd en mora') : 'Plazo expirado' }}
+                      </div>
+                    } @else if (esAnulada(item)) {
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
                         Anulada
                       </span>
-                    } @else if (item.estadoLiquidacionId === 4 || item.nombreEstado === 'RELIQUIDADA') {
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                    } @else if (esReliquidada(item)) {
+                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-300">
                         Reliquidada
                       </span>
+                    } @else if (item.vencimiento?.diasRestantes !== undefined && item.vencimiento?.diasRestantes <= 5) {
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                        <i class="fa-solid fa-clock text-amber-600"></i>
+                        Vence en {{ item.vencimiento.diasRestantes }}d
+                      </span>
                     } @else {
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                        {{ item.nombreEstado || 'Emitida' }}
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                        Vigente ({{ item.vencimiento?.diasRestantes || 30 }}d)
                       </span>
                     }
                   </td>
                   <td class="py-3.5 px-4 text-right">
-                    <div class="flex items-center justify-end gap-2">
+                    <div class="flex items-center justify-end gap-1.5">
                       <button
                         (click)="descargarPdf(item.id)"
                         class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 rounded-lg font-bold text-[11px] transition cursor-pointer"
@@ -404,14 +500,31 @@
                         <span>PDF</span>
                       </button>
 
-                      @if (item.estadoLiquidacionId !== 3 && item.nombreEstado !== 'ANULADA') {
+                      @if (esPagada(item)) {
+                        <button
+                          (click)="verComprobante(item)"
+                          class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-[11px] transition cursor-pointer"
+                          title="Ver constancia de pago y voucher bancario"
+                        >
+                          <i class="fa-solid fa-receipt"></i>
+                          <span>Ver Pago</span>
+                        </button>
+                      } @else if (!esAnulada(item) && !esReliquidada(item)) {
+                        <button
+                          (click)="abrirModalPago(item)"
+                          class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[11px] shadow-xs transition cursor-pointer"
+                          title="Registrar recaudo oficial en ventanilla de tesorería"
+                        >
+                          <i class="fa-solid fa-money-bill-wave"></i>
+                          <span>Certificar Pago</span>
+                        </button>
+
                         <button
                           (click)="abrirAnulacionOficio(item)"
-                          class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 rounded-lg font-bold text-[11px] transition cursor-pointer"
+                          class="inline-flex items-center gap-1 px-2 py-1.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 rounded-lg font-bold text-[11px] transition cursor-pointer"
                           title="Anulación Administrativa de Oficio"
                         >
                           <i class="fa-solid fa-ban"></i>
-                          <span>De Oficio</span>
                         </button>
                       }
                     </div>
@@ -716,4 +829,300 @@
       </div>
     </div>
   }
+
+  <!-- MODAL DE CERTIFICACIÓN DE PAGO EN VENTANILLA DE GOBERNACIÓN -->
+  @if (showPagoModal() && selectedLiquidacion()) {
+    <div class="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in">
+      <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-emerald-100 text-emerald-800 rounded-2xl">
+              <i class="fa-solid fa-receipt text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Certificar Recaudo Oficial</h3>
+              <p class="text-xs text-slate-500">Caja / Tesorería Departamental del Cauca</p>
+            </div>
+          </div>
+          <button 
+            (click)="showPagoModal.set(false)" 
+            class="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Tarjeta Informativa de la Liquidación -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 mb-4 text-xs space-y-1.5">
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 font-medium">Liquidación Oficial:</span>
+            <span class="font-mono font-bold text-slate-900">#{{ selectedLiquidacion()?.numeroLiquidacion || selectedLiquidacion()?.id }}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span class="text-slate-500 font-medium">Contribuyente:</span>
+            <span class="font-semibold text-slate-800 truncate max-w-[240px]">{{ selectedLiquidacion()?.contribuyente?.nombreCompleto || selectedLiquidacion()?.nombreContribuyente || 'Contribuyente' }}</span>
+          </div>
+          <div class="flex justify-between items-center pt-1 border-t border-slate-200">
+            <span class="text-slate-700 font-bold">Total Liquidado:</span>
+            <span class="font-mono font-black text-emerald-700 text-sm">
+              {{ (selectedLiquidacion()?.totales?.totalPagar || selectedLiquidacion()?.totalPagar) | currency:'COP':'symbol-narrow':'1.0-0' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Formulario de Pago -->
+        <div class="space-y-4 text-xs">
+          <!-- Canal / Medio de Pago -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">
+              Canal / Entidad Bancaria <span class="text-rose-500">*</span>
+            </label>
+            <select 
+              [ngModel]="pagoMedioPagoId()" 
+              (ngModelChange)="pagoMedioPagoId.set(+$event)"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800 cursor-pointer"
+            >
+              @for (m of mediosPagoFacade.mediosPago(); track m.id) {
+                <option [value]="m.id">
+                  {{ m.nombre }} {{ m.requiereComprobante ? '(Exige Comprobante)' : '(En línea)' }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <!-- Referencia / No. Aprobación & Fecha -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">
+                No. Recibo de Caja / Ref. Bancaria <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="text" 
+                [ngModel]="pagoReferencia()" 
+                (ngModelChange)="pagoReferencia.set($event)"
+                placeholder="Ej. RC-2026-00491 / Pin"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+              />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">
+                Fecha de Recaudo <span class="text-rose-500">*</span>
+              </label>
+              <input 
+                type="date" 
+                [ngModel]="pagoFecha()" 
+                (ngModelChange)="pagoFecha.set($event)"
+                class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+              />
+            </div>
+          </div>
+
+          <!-- Valor Pagado -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">
+              Valor Recaudado ($) <span class="text-rose-500">*</span>
+            </label>
+            <input 
+              type="number" 
+              [ngModel]="pagoValor()" 
+              (ngModelChange)="pagoValor.set(+$event)"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-mono font-bold text-slate-800"
+            />
+          </div>
+
+          <!-- Adjuntar Soporte Digital (Voucher / Recibo) -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">
+              Soporte Digital de Pago (Voucher / Consignación / Recibo)
+            </label>
+            <div class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 text-center bg-slate-50 transition cursor-pointer relative">
+              <input 
+                type="file" 
+                accept=".pdf,.png,.jpg,.jpeg"
+                (change)="onPagoFileSelected($event)" 
+                class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              />
+              <i class="fa-solid fa-cloud-arrow-up text-2xl text-emerald-600 mb-1"></i>
+              <p class="text-slate-600 font-medium">Haga clic o arrastre el archivo aquí</p>
+              <p class="text-[10px] text-slate-400 mt-0.5">Formatos PDF, PNG, JPG hasta 15MB</p>
+            </div>
+            @if (pagoArchivoNombre()) {
+              <div class="mt-2 flex items-center justify-between p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-[11px] font-medium">
+                <span class="truncate max-w-[280px]">
+                  <i class="fa-solid fa-file-check mr-1 text-emerald-600"></i>{{ pagoArchivoNombre() }}
+                </span>
+                <button 
+                  type="button" 
+                  (click)="pagoArchivo.set(null); pagoArchivoNombre.set('')"
+                  class="text-rose-600 hover:text-rose-800 font-bold ml-2 cursor-pointer"
+                  title="Quitar archivo"
+                >
+                  ✕
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Observaciones -->
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Observaciones Fiscales</label>
+            <textarea 
+              rows="2" 
+              [ngModel]="pagoObservaciones()" 
+              (ngModelChange)="pagoObservaciones.set($event)"
+              placeholder="Notas opcionales del cajero o funcionario recaudador..."
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="flex items-center justify-end gap-2.5 pt-4 mt-4 border-t border-slate-100">
+          <button 
+            type="button" 
+            (click)="showPagoModal.set(false)" 
+            class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+            [disabled]="isSubmittingPago()"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            (click)="enviarRegistroPago()" 
+            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md transition active:scale-[0.98] cursor-pointer"
+            [disabled]="isSubmittingPago()"
+          >
+            @if (isSubmittingPago()) {
+              <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+              <span>Certificando en Tesorería...</span>
+            } @else {
+              <i class="fa-solid fa-check text-xs"></i>
+              <span>Certificar y Aplicar Recaudo</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- MODAL: Ver Comprobante y Constancia de Pago -->
+  @if (showComprobanteModal() && selectedLiquidacion()) {
+    <div class="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in">
+      <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-emerald-100 text-emerald-800 rounded-2xl">
+              <i class="fa-solid fa-receipt text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Constancia de Pago Oficial</h3>
+              <p class="text-xs text-slate-500">Impuesto de Registro - Rentas Departamentales</p>
+            </div>
+          </div>
+          <button 
+            (click)="showComprobanteModal.set(false)" 
+            class="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        @if (isLoadingComprobante()) {
+          <div class="py-12 text-center text-slate-400 text-xs">
+            <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
+            <p>Consultando constancia fiscal de recaudo...</p>
+          </div>
+        } @else {
+          <!-- Detalles del Pago -->
+          <div class="space-y-4 text-xs">
+            <!-- Badge de Confirmación -->
+            <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
+              <span class="inline-flex items-center gap-1.5 text-emerald-800 font-bold text-sm">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                Pago Confirmado y Conciliado
+              </span>
+              <div class="mt-1 font-mono font-black text-xl text-emerald-950">
+                {{ (selectedComprobante()?.valor || selectedLiquidacion()?.totales?.totalPagar || selectedLiquidacion()?.totalPagar) | currency:'COP':'symbol-narrow':'1.0-0' }}
+              </div>
+            </div>
+
+            <!-- Fila de Detalles -->
+            <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200/80 space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Liquidación No.:</span>
+                <span class="font-mono font-bold text-slate-800">#{{ selectedLiquidacion()?.numeroLiquidacion || selectedLiquidacion()?.id }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Contribuyente:</span>
+                <span class="font-semibold text-slate-800 truncate max-w-[200px]">
+                  {{ selectedLiquidacion()?.contribuyente?.nombreCompleto || selectedLiquidacion()?.nombreContribuyente || 'Contribuyente' }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Medio de Pago:</span>
+                <span class="font-semibold text-slate-800">{{ selectedComprobante()?.medioPagoNombre || selectedLiquidacion()?.pago?.medioPagoNombre || 'Recaudo Bancario' }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Referencia / Aprobación:</span>
+                <span class="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {{ selectedComprobante()?.numeroAprobacion || selectedLiquidacion()?.pago?.numeroAprobacion || 'REF-CONFIRMADA' }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Fecha de Recaudo:</span>
+                <span class="font-mono text-slate-700">
+                  {{ (selectedComprobante()?.fechaPago || selectedLiquidacion()?.pago?.fechaPago) | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+              @if (selectedComprobante()?.registradoPor) {
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500 font-medium">Funcionario Recaudador:</span>
+                  <span class="text-slate-700">{{ selectedComprobante()?.registradoPor }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Soporte Bancario Adjunto -->
+            @if (selectedComprobante()?.tieneSoporteDigital || selectedLiquidacion()?.pago?.tieneSoporteDigital) {
+              <div class="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 truncate">
+                  <i class="fa-solid fa-file-invoice text-blue-600 text-lg shrink-0"></i>
+                  <div class="truncate">
+                    <span class="font-bold text-blue-900 block truncate">Voucher Bancario Adjunto</span>
+                    <span class="text-[10px] text-blue-700 block truncate">{{ selectedComprobante()?.nombreArchivoSoporte || 'Soporte_Pago.pdf' }}</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  (click)="descargarSoporte(selectedLiquidacion()!.id)"
+                  class="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-[11px] shadow-xs transition active:scale-[0.98] cursor-pointer"
+                  title="Descargar comprobante bancario original"
+                >
+                  <i class="fa-solid fa-download mr-1"></i>Ver Soporte
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Footer -->
+        <div class="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+          <button 
+            type="button" 
+            (click)="showComprobanteModal.set(false)" 
+            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
 </div>

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * DTO para la informaciÃ³n de un contribuyente en el proceso de generaciÃ³n de liquidaciÃ³n.
  */
 export interface ContribuyenteLiquidacionDto {
@@ -157,10 +157,54 @@ export interface LiquidacionListadoDto {
   creadoPor: string;
   radicacion: RadicacionLiquidacionListadoDto;
   estado: EstadoLiquidacionListadoDto;
+  estadoLiquidacionId?: number;
   accionesPermitidas: AccionesPermitidasDto;
   contribuyente: ContribuyenteLiquidacionListadoDto;
   documentoRegistro: DocumentoRegistroListadoDto;
   totales: TotalesLiquidacionListadoDto;
+  pago?: PagoInfoDto;
+  vencimiento?: VencimientoInfoDto;
+}
+
+export interface PagoInfoDto {
+  estaPagada: boolean;
+  pagado?: boolean;
+  fechaPago?: string | null;
+  valorPagado?: number | null;
+  medioPagoId?: number | null;
+  medioPagoCodigo?: string;
+  medioPagoNombre?: string;
+  referenciaPago?: string;
+  numeroAprobacion?: string;
+  tieneSoporteAdjunto?: boolean;
+  tieneSoporteDigital?: boolean;
+  nombreArchivoSoporte?: string | null;
+  registradoPor?: string;
+}
+
+export interface VencimientoInfoDto {
+  fechaVencimiento: string;
+  diasRestantes: number;
+  estaVencida: boolean;
+  semaforo: 'NORMAL' | 'VIGENTE' | 'POR_VENCER' | 'VENCIDA' | 'PAGADA';
+}
+
+export interface ComprobantePagoDto {
+  pagoId: number;
+  liquidacionId: number;
+  numeroLiquidacion: string;
+  valorTotal: number;
+  valorPagado: number;
+  medioPagoId?: number | null;
+  medioPagoCodigo: string;
+  medioPagoNombre: string;
+  referencia: string;
+  fechaPago: string;
+  nombreArchivoSoporte?: string | null;
+  tieneSoporteAdjunto: boolean;
+  observaciones?: string | null;
+  fechaRegistro: string;
+  registradoPor: string;
 }
 
 export interface SolicitarReliquidacionRequest {

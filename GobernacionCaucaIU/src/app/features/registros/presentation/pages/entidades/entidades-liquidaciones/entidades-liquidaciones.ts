@@ -12,7 +12,9 @@ import { LiquidacionListadoDto } from '../../../../domain/models/Liquidacion/gen
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
 
-export type TabLiquidacion = 'todas' | 'vigentes' | 'por-vencer' | 'reliquidacion' | 'anuladas';
+import { MediosPagoFacade } from '../../../../application/facades/Pagos/medios-pago.facade';
+
+export type TabLiquidacion = 'todas' | 'vigentes' | 'pagadas' | 'por-vencer' | 'reliquidacion' | 'anuladas';
 
 @Component({
   selector: 'app-entidades-liquidaciones',
@@ -25,11 +27,11 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   public facade = inject(GeneracionLiquidacionFacade);
   public causalesReliquidacionFacade = inject(CausalesReliquidacionFacade);
   public causalesAnulacionFacade = inject(CausalesAnulacionFacade);
+  public mediosPagoFacade = inject(MediosPagoFacade);
   private router = inject(Router);
   private toast = inject(ToastService);
 
-  // Pestaña de filtrado activa:
-  // 'todas' | 'vigentes' | 'por-vencer' | 'reliquidacion' | 'anuladas'
+  // Pestaña de filtrado activa
   activeTab = signal<TabLiquidacion>('todas');
 
   allLiquidaciones = signal<LiquidacionListadoDto[]>([]);
@@ -44,6 +46,20 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   showReliquidacionModal = signal<boolean>(false);
   showAnulacionModal = signal<boolean>(false);
   selectedLiquidacion = signal<LiquidacionListadoDto | null>(null);
+
+  // Modal y Formulario de Registro de Pago (Adjuntar Comprobante Bancario)
+  showPagoModal = signal<boolean>(false);
+  showComprobanteModal = signal<boolean>(false);
+  selectedComprobante = signal<any | null>(null);
+  isLoadingComprobante = signal<boolean>(false);
+
+  pagoMedioPagoId = signal<number | null>(null);
+  pagoValor = signal<number>(0);
+  pagoReferencia = signal<string>('');
+  pagoFecha = signal<string>(new Date().toISOString().substring(0, 10));
+  pagoObservaciones = signal<string>('');
+  pagoArchivo = signal<File | null>(null);
+  pagoArchivoNombre = signal<string>('');
 
   // Formulario Reliquidación Dinámica
   selectedCausalReliquidacion = signal<CausalReliquidacion | null>(null);
@@ -69,8 +85,13 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   // Métricas para Tarjetas KPI y Pestañas
   kpiTotal = computed(() => this.allLiquidaciones().length);
 
+  kpiPagadas = computed(() => {
+    return this.allLiquidaciones().filter(item => this.esPagada(item)).length;
+  });
+
   kpiVigentes = computed(() => {
     return this.allLiquidaciones().filter(item => 
+      !this.esPagada(item) &&
       !item.estaVencida && 
       (item.diasParaVencer === undefined || item.diasParaVencer > 5) && 
       !this.estaEnTramiteReliquidacion(item) &&
@@ -80,6 +101,7 @@ export class EntidadesLiquidacionesComponent implements OnInit {
 
   kpiPorVencer = computed(() => {
     return this.allLiquidaciones().filter(item => 
+      !this.esPagada(item) &&
       (item.estaVencida || (item.diasParaVencer !== undefined && item.diasParaVencer <= 5)) &&
       !this.esAnulada(item)
     ).length;
@@ -93,6 +115,12 @@ export class EntidadesLiquidacionesComponent implements OnInit {
 
   kpiAnuladas = computed(() => {
     return this.allLiquidaciones().filter(item => this.esAnulada(item)).length;
+  });
+
+  montoPagado = computed(() => {
+    return this.allLiquidaciones()
+      .filter(item => this.esPagada(item))
+      .reduce((acc, item) => acc + (item.totales?.totalPagar || 0), 0);
   });
 
   // Lista filtrada según pestaña y término de búsqueda
@@ -117,14 +145,19 @@ export class EntidadesLiquidacionesComponent implements OnInit {
     switch (tab) {
       case 'vigentes':
         return list.filter(item => 
+          !this.esPagada(item) &&
           !item.estaVencida && 
           (item.diasParaVencer === undefined || item.diasParaVencer > 5) && 
           !this.estaEnTramiteReliquidacion(item) &&
           !this.esAnulada(item)
         );
 
+      case 'pagadas':
+        return list.filter(item => this.esPagada(item));
+
       case 'por-vencer':
         return list.filter(item => 
+          !this.esPagada(item) &&
           (item.estaVencida || (item.diasParaVencer !== undefined && item.diasParaVencer <= 5)) &&
           !this.esAnulada(item)
         );
@@ -445,7 +478,126 @@ export class EntidadesLiquidacionesComponent implements OnInit {
     });
   }
 
+  // --- GESTIÓN DE RECAUDO Y COMPROBANTES DE PAGO ---
+  abrirModalPago(liq: LiquidacionListadoDto): void {
+    this.selectedLiquidacion.set(liq);
+    this.pagoValor.set(liq.totales?.totalPagar || 0);
+    this.pagoReferencia.set('');
+    this.pagoFecha.set(new Date().toISOString().substring(0, 10));
+    this.pagoObservaciones.set('');
+    this.pagoArchivo.set(null);
+    this.pagoArchivoNombre.set('');
+    
+    this.mediosPagoFacade.cargarMediosPago(1, 100, undefined, true);
+    const medios = this.mediosPagoFacade.mediosPago();
+    if (medios.length > 0) {
+      this.pagoMedioPagoId.set(medios[0].id);
+    }
+    this.showPagoModal.set(true);
+  }
+
+  onPagoFileSelected(event: any): void {
+    const file: File = event.target.files?.[0];
+    if (file) {
+      if (file.size > 15 * 1024 * 1024) {
+        this.toast.warning('El comprobante no debe superar los 15 MB.');
+        return;
+      }
+      this.pagoArchivo.set(file);
+      this.pagoArchivoNombre.set(file.name);
+    } else {
+      this.pagoArchivo.set(null);
+      this.pagoArchivoNombre.set('');
+    }
+  }
+
+  enviarRegistroPago(): void {
+    const liq = this.selectedLiquidacion();
+    if (!liq) return;
+
+    if (!this.pagoMedioPagoId()) {
+      this.toast.warning('Por favor seleccione el canal o entidad de pago.');
+      return;
+    }
+
+    if (!this.pagoReferencia().trim()) {
+      this.toast.warning('Por favor ingrese el número de aprobación o referencia de la consignación.');
+      return;
+    }
+
+    const medioSeleccionado = this.mediosPagoFacade.mediosPago().find(m => m.id === this.pagoMedioPagoId());
+    if (medioSeleccionado?.requiereComprobante && !this.pagoArchivo()) {
+      this.toast.warning(`El canal ${medioSeleccionado.nombre} requiere adjuntar el soporte físico o voucher bancario.`);
+      return;
+    }
+
+    this.isSubmitting.set(true);
+    const formData = new FormData();
+    formData.append('MedioPagoId', this.pagoMedioPagoId()!.toString());
+    formData.append('Valor', (this.pagoValor() || liq.totales?.totalPagar || 0).toString());
+    formData.append('Referencia', this.pagoReferencia().trim());
+    formData.append('FechaPago', this.pagoFecha());
+    if (this.pagoObservaciones().trim()) {
+      formData.append('Observaciones', this.pagoObservaciones().trim());
+    }
+    const file = this.pagoArchivo();
+    if (file) {
+      formData.append('SoporteVoucher', file, file.name);
+    }
+
+    this.facade.registrarPago(liq.id, formData).subscribe({
+      next: () => {
+        this.isSubmitting.set(false);
+        this.showPagoModal.set(false);
+        this.toast.success('¡Pago registrado exitosamente! La liquidación ahora figura como PAGADA.');
+        this.cargarLiquidaciones();
+      },
+      error: (err) => {
+        this.isSubmitting.set(false);
+        this.toast.error(err?.error?.message || 'Error al certificar el pago de la liquidación.');
+      }
+    });
+  }
+
+  verComprobante(liq: LiquidacionListadoDto): void {
+    this.selectedLiquidacion.set(liq);
+    this.isLoadingComprobante.set(true);
+    this.showComprobanteModal.set(true);
+    this.facade.obtenerPago(liq.id).subscribe({
+      next: (res) => {
+        this.isLoadingComprobante.set(false);
+        this.selectedComprobante.set(res.data);
+      },
+      error: () => {
+        this.isLoadingComprobante.set(false);
+        this.toast.error('No se pudo cargar la información del comprobante de pago.');
+      }
+    });
+  }
+
+  descargarSoporte(liqId: number): void {
+    this.facade.descargarSoportePago(liqId, false).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Soporte_Pago_Liq_${liqId}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.toast.success('Soporte de pago descargado');
+      },
+      error: () => this.toast.error('Error al descargar el soporte de pago.')
+    });
+  }
+
   // --- HELPERS DE NEGOCIO Y ESTADOS ---
+  esPagada(item: LiquidacionListadoDto): boolean {
+    return item.pago?.pagado === true || 
+           item.estado?.codigo === 'PAGADA' || 
+           item.estadoLiquidacionId === 4 ||
+           (item.estado?.nombre ? item.estado.nombre.toLowerCase().includes('pagad') : false);
+  }
+
   estaEnTramiteReliquidacion(item: LiquidacionListadoDto): boolean {
     const obs = item.radicacion?.observacion;
     if (obs) {
@@ -456,7 +608,9 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   }
 
   esAnulada(item: LiquidacionListadoDto): boolean {
-    return item.estado?.codigo === 'ANULADA' || (item.estado?.nombre ? item.estado.nombre.toLowerCase().includes('anulad') : false);
+    return item.estado?.codigo === 'ANULADA' || 
+           item.estadoLiquidacionId === 3 ||
+           (item.estado?.nombre ? item.estado.nombre.toLowerCase().includes('anulad') : false);
   }
 
   irAWizard(item: LiquidacionListadoDto): void {

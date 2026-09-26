@@ -28,10 +28,11 @@ export class GeneracionLiquidacionFacade {
     fechaHasta?: string | null,
     entidadRegistroId?: number | null,
     municipioJurisdiccionId?: number | null,
-    tipoActoRegistroId?: number | null
+    tipoActoRegistroId?: number | null,
+    estadoFiltro?: string | null
   ): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
     this.actionLoading.set(true);
-    return this.apiService.listarLiquidaciones(pageNumber, pageSize, search, estadoId, fechaDesde, fechaHasta, entidadRegistroId, municipioJurisdiccionId, tipoActoRegistroId).pipe(
+    return this.apiService.listarLiquidaciones(pageNumber, pageSize, search, estadoId, fechaDesde, fechaHasta, entidadRegistroId, municipioJurisdiccionId, tipoActoRegistroId, estadoFiltro).pipe(
       finalize(() => this.actionLoading.set(false))
     );
   }
@@ -153,4 +154,28 @@ export class GeneracionLiquidacionFacade {
       finalize(() => this.actionLoading.set(false))
     );
   }
+
+  // --- RECAUDO Y PAGOS ---
+  registrarPago(liquidacionId: number, formData: FormData): Observable<ApiResponse<number>> {
+    this.actionLoading.set(true);
+    return this.apiService.registrarPago(liquidacionId, formData).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  obtenerPago(liquidacionId: number): Observable<ApiResponse<any>> {
+    this.actionLoading.set(true);
+    return this.apiService.obtenerPago(liquidacionId).pipe(
+      finalize(() => this.actionLoading.set(false))
+    );
+  }
+
+  obtenerUrlSoportePago(liquidacionId: number, inline: boolean = true): string {
+    return this.apiService.obtenerUrlSoportePago(liquidacionId, inline);
+  }
+
+  descargarSoportePago(liquidacionId: number, inline: boolean = true): Observable<Blob> {
+    return this.apiService.descargarSoportePago(liquidacionId, inline);
+  }
 }
+

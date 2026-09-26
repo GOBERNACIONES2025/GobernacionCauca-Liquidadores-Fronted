@@ -48,7 +48,8 @@ export class GeneracionLiquidacionApiService {
     fechaHasta?: string | null,
     entidadRegistroId?: number | null,
     municipioJurisdiccionId?: number | null,
-    tipoActoRegistroId?: number | null
+    tipoActoRegistroId?: number | null,
+    estadoFiltro?: string | null
   ): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
     let url = `${this.baseUrl}?PageNumber=${pageNumber}&PageSize=${pageSize}`;
     if (search && search.trim() !== '') {
@@ -56,6 +57,9 @@ export class GeneracionLiquidacionApiService {
     }
     if (estadoId !== undefined && estadoId !== null) {
       url += `&EstadoId=${estadoId}`;
+    }
+    if (estadoFiltro && estadoFiltro.trim() !== '') {
+      url += `&EstadoFiltro=${encodeURIComponent(estadoFiltro.trim())}`;
     }
     if (fechaDesde) {
       url += `&FechaDesde=${encodeURIComponent(fechaDesde)}`;
@@ -194,4 +198,35 @@ export class GeneracionLiquidacionApiService {
   obtenerHistorial(liquidacionId: number): Observable<ApiResponse<any>> {
     return this.api.get<ApiResponse<any>>(`${this.baseUrl}/${liquidacionId}/historial`, {}, 'REGISTROS');
   }
+
+  // --- GESTIÓN DE RECAUDO Y PAGOS ---
+  registrarPago(liquidacionId: number, formData: FormData): Observable<ApiResponse<number>> {
+    return this.api.post<ApiResponse<number>>(
+      `${this.baseUrl}/${liquidacionId}/pago`,
+      formData,
+      {},
+      'REGISTROS'
+    );
+  }
+
+  obtenerPago(liquidacionId: number): Observable<ApiResponse<any>> {
+    return this.api.get<ApiResponse<any>>(
+      `${this.baseUrl}/${liquidacionId}/pago`,
+      {},
+      'REGISTROS'
+    );
+  }
+
+  obtenerUrlSoportePago(liquidacionId: number, inline: boolean = true): string {
+    return this.api.buildUrl(`${this.baseUrl}/${liquidacionId}/pago/soporte?inline=${inline}`, 'REGISTROS');
+  }
+
+  descargarSoportePago(liquidacionId: number, inline: boolean = true): Observable<Blob> {
+    return this.api.get<Blob>(
+      `${this.baseUrl}/${liquidacionId}/pago/soporte?inline=${inline}`,
+      { responseType: 'blob' },
+      'REGISTROS'
+    );
+  }
 }
+

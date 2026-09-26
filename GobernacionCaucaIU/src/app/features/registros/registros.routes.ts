@@ -150,6 +150,7 @@ export const registrosRoutes: Routes = [
           { path: 'liquidacion/causales-reliquidacion', component: CausalesReliquidacionComponent },
           { path: 'liquidacion/causales-anulacion', component: CausalesAnulacionComponent },
           { path: 'pagos/estados-pago', component: EstadosPago },
+          { path: 'pagos/medios-pago', loadComponent: () => import('./presentation/pages/configuracion/pagos/medios-pago/medios-pago').then(m => m.MediosPago) },
           { path: 'radicacion/estados-solicitud', component: EstadosSolicitud },
           { path: 'seguridad/roles', component: RolesComponent },
           { path: 'seguridad/usuarios', component: UsuariosComponent }
