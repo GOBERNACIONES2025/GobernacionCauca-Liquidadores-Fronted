@@ -1,4 +1,36 @@
-/* Estilos específicos para la vista de reportes e impresión institucional */
+/* Estilos específicos para la vista de reportes e informes fiscales departamentales */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Scrollbars discretos para tablas anchas */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f8fafc;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Reglas de Impresión Institucional */
 @media print {
   /* Ocultar elementos no imprimibles */
   button, 
@@ -7,7 +39,11 @@
   nav, 
   .no-print,
   app-gobernacion-sidebar,
-  app-gobernacion-topbar {
+  app-gobernacion-topbar,
+  app-pagination,
+  .chips-container,
+  input,
+  select {
     display: none !important;
   }
 
@@ -15,15 +51,33 @@
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
+    color: #0f172a !important;
+  }
+
+  .border, .border-slate-200, .border-slate-200\/80 {
+    border-color: #cbd5e1 !important;
   }
 
   table {
     width: 100% !important;
     border-collapse: collapse !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
   }
 
   th, td {
     border: 1px solid #cbd5e1 !important;
     padding: 6px 8px !important;
+    font-size: 10px !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
   }
 }
+
