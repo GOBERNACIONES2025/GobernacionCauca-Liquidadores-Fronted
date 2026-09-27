@@ -61,8 +61,8 @@ export class GobernacionReportesComponent implements OnInit {
   selectedComprobante = signal<any | null>(null);
   isLoadingComprobante = signal<boolean>(false);
 
-  ngOnInit(): void {
-    this.facade.cargarCatalogosFiltros();
+  async ngOnInit(): Promise<void> {
+    await this.facade.cargarCatalogosFiltros();
     this.facade.consultarReporte();
   }
 

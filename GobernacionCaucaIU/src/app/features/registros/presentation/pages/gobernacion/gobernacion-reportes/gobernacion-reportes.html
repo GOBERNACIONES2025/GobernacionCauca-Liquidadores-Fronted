@@ -9,9 +9,6 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="text-xl font-black text-slate-900 tracking-tight">Centro de Reportes e Informes Fiscales</h1>
-          <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-            Base de Datos Oficial
-          </span>
         </div>
         <p class="text-xs text-slate-500 mt-0.5">
           Gobernación del Cauca • Secretaría de Hacienda Departamental • <strong class="text-blue-700 font-bold">{{ facade.vigenciaLabel() }}</strong>
@@ -35,17 +32,13 @@
             class="pl-2.5 pr-7 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-800 shadow-2xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-hidden cursor-pointer"
           >
             @for (vig of facade.vigencias(); track vig.id) {
-              <option [value]="vig.id">
-                Año {{ vig.anio }} {{ vig.activo ? '★ (Activa)' : '' }}
+              <option [ngValue]="vig.id">
+                {{ vig.anio }}
               </option>
             }
             <option [ngValue]="null">Todas las Vigencias</option>
           </select>
         </div>
-        <span *ngIf="facade.vigenciaSeleccionadaObj()?.activo" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black border border-emerald-200/80">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          En Curso
-        </span>
       </div>
       <button
         (click)="facade.consultarReporte()"
@@ -586,7 +579,7 @@
           @if (facade.isLoading()) {
             <div class="py-20 text-center text-slate-400">
               <i class="fa-solid fa-spinner fa-spin text-4xl mb-3 text-blue-600"></i>
-              <p class="text-sm font-bold text-slate-700">Consultando base de datos oficial...</p>
+              <p class="text-sm font-bold text-slate-700">Consultando registros...</p>
               <p class="text-xs text-slate-400 mt-1">Calculando auditoría y rentas departamentales en tiempo real</p>
             </div>
           } @else if (facade.liquidacionesPaginadas().length > 0) {
@@ -730,7 +723,6 @@
                             <i class="fa-regular fa-copy text-[11px]"></i>
                           </button>
                         </div>
-                        <span class="text-[10px] text-slate-400">Registro ID: #{{ liq.id }}</span>
                       </td>
 
                       <!-- Celda: Radicado / Fecha -->
@@ -1168,7 +1160,7 @@
             <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-2.5">
               <div class="flex justify-between items-center">
                 <span class="text-slate-500 font-medium">Liquidación No.:</span>
-                <span class="font-mono font-bold text-slate-800">#{{ selectedLiquidacion()?.numeroLiquidacion || selectedLiquidacion()?.id }}</span>
+                <span class="font-mono font-bold text-slate-800">{{ selectedLiquidacion()?.numeroLiquidacion || 'N/A' }}</span>
               </div>
               <div class="flex justify-between items-center">
                 <span class="text-slate-500 font-medium">Contribuyente:</span>

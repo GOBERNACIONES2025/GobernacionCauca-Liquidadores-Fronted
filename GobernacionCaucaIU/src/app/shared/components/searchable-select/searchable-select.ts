@@ -128,7 +128,9 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
     if (this.disabled) return;
     this.isOpen.set(!this.isOpen());
     if (this.isOpen()) {
-      this.loadOptions(this.searchTerm);
+      if (this.options().length === 0) {
+        this.loadOptions('');
+      }
       setTimeout(() => {
         if (this.searchInput) {
           this.searchInput.nativeElement.focus();
@@ -140,8 +142,8 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
   }
 
   onSearchInput(event: any) {
+    // Solo captura el término escrito sin ejecutar búsqueda por coincidencia automática
     this.searchTerm = event?.target ? event.target.value : (event || '');
-    this.loadOptions(this.searchTerm.trim());
   }
 
   onSearchSubmit(event?: Event) {
@@ -149,6 +151,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
       event.preventDefault();
       event.stopPropagation();
     }
+    // Solo aquí se ejecuta la búsqueda al pulsar el botón Buscar o presionar Enter
     this.loadOptions(this.searchTerm.trim());
   }
 
@@ -173,6 +176,8 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
     this.value = option[this.valueKey];
     this.displayValue = option[this.labelKey];
     this.isOpen.set(false);
+    this.searchTerm = '';
+    this.loadOptions('');
     this.onChange(this.value);
     this.onTouch();
   }

@@ -8,9 +8,9 @@
     <div 
       (mouseenter)="isSidebarHovered.set(true)"
       (mouseleave)="isSidebarHovered.set(false)"
-      class="shrink-0 h-full transition-all duration-300 overflow-hidden shadow-xs z-10"
+      class="shrink-0 h-full transition-all duration-300 overflow-visible shadow-xs z-20"
       [class.w-64]="!isSidebarCollapsed() || isSidebarHovered()"
-      [class.w-16]="isSidebarCollapsed() && !isSidebarHovered()"
+      [class.w-20]="isSidebarCollapsed() && !isSidebarHovered()"
     >
       <app-entidades-sidebar 
         [isCollapsed]="isSidebarCollapsed() && !isSidebarHovered()" 

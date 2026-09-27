@@ -3,75 +3,75 @@
 /* 1. Dashboard */
 a.active-dashboard {
   background: #f0f9ff !important; /* sky-50 */
-  color: #0c4a6e !important; /* sky-900 */
+  color: #0369a1 !important; /* sky-700 */
   font-weight: 700 !important;
-  border-left-color: #0284c7 !important; /* sky-600 */
-  box-shadow: 0 1px 3px 0 rgba(2, 132, 199, 0.08);
+  border-color: #bae6fd !important; /* sky-200 */
+  box-shadow: 0 1px 3px 0 rgba(2, 132, 199, 0.12);
 }
 a.active-dashboard .item-icon {
   background: #0284c7 !important;
   color: #ffffff !important;
   border-color: #0284c7 !important;
-  box-shadow: 0 2px 4px 0 rgba(2, 132, 199, 0.25);
+  box-shadow: 0 2px 6px 0 rgba(2, 132, 199, 0.35);
 }
 
 /* 2. Solicitudes (Azul Fiscal Institucional) */
 a.active-solicitudes {
   background: #eff6ff !important; /* blue-50 */
-  color: #1e3a8a !important; /* blue-900 */
+  color: #1d4ed8 !important; /* blue-700 */
   font-weight: 700 !important;
-  border-left-color: #1d4ed8 !important; /* blue-700 */
-  box-shadow: 0 1px 3px 0 rgba(29, 78, 216, 0.08);
+  border-color: #bfdbfe !important; /* blue-200 */
+  box-shadow: 0 1px 3px 0 rgba(29, 78, 216, 0.12);
 }
 a.active-solicitudes .item-icon {
   background: #1d4ed8 !important;
   color: #ffffff !important;
   border-color: #1d4ed8 !important;
-  box-shadow: 0 2px 4px 0 rgba(29, 78, 216, 0.25);
+  box-shadow: 0 2px 6px 0 rgba(29, 78, 216, 0.35);
 }
 
 /* 3. Liquidaciones (Verde Esmeralda Fiscal) */
 a.active-liquidaciones {
   background: #ecfdf5 !important; /* emerald-50 */
-  color: #064e3b !important; /* emerald-900 */
+  color: #047857 !important; /* emerald-700 */
   font-weight: 700 !important;
-  border-left-color: #059669 !important; /* emerald-600 */
-  box-shadow: 0 1px 3px 0 rgba(5, 150, 105, 0.08);
+  border-color: #a7f3d0 !important; /* emerald-200 */
+  box-shadow: 0 1px 3px 0 rgba(5, 150, 105, 0.12);
 }
 a.active-liquidaciones .item-icon {
   background: #059669 !important;
   color: #ffffff !important;
   border-color: #059669 !important;
-  box-shadow: 0 2px 4px 0 rgba(5, 150, 105, 0.25);
+  box-shadow: 0 2px 6px 0 rgba(5, 150, 105, 0.35);
 }
 
-/* 4. Configuración Normativa (Ámbar / Dorado) */
-a.active-configuracion {
-  background: #fffbeb !important; /* amber-50 */
-  color: #78350f !important; /* amber-900 */
-  font-weight: 700 !important;
-  border-left-color: #d97706 !important; /* amber-600 */
-  box-shadow: 0 1px 3px 0 rgba(217, 119, 6, 0.08);
-}
-a.active-configuracion .item-icon {
-  background: #d97706 !important;
-  color: #ffffff !important;
-  border-color: #d97706 !important;
-  box-shadow: 0 2px 4px 0 rgba(217, 119, 6, 0.25);
-}
-
-/* 5. Reportes e Informes (Índigo Analítico) */
+/* 4. Reportes e Informes (Índigo Analítico) */
 a.active-reportes {
   background: #eef2ff !important; /* indigo-50 */
-  color: #312e81 !important; /* indigo-950 */
+  color: #4338ca !important; /* indigo-700 */
   font-weight: 700 !important;
-  border-left-color: #4f46e5 !important; /* indigo-600 */
-  box-shadow: 0 1px 3px 0 rgba(79, 70, 229, 0.08);
+  border-color: #c7d2fe !important; /* indigo-200 */
+  box-shadow: 0 1px 3px 0 rgba(79, 70, 229, 0.12);
 }
 a.active-reportes .item-icon {
   background: #4f46e5 !important;
   color: #ffffff !important;
   border-color: #4f46e5 !important;
-  box-shadow: 0 2px 4px 0 rgba(79, 70, 229, 0.25);
+  box-shadow: 0 2px 6px 0 rgba(79, 70, 229, 0.35);
+}
+
+/* 5. Configuración Normativa (Ámbar / Dorado) */
+a.active-configuracion {
+  background: #fffbeb !important; /* amber-50 */
+  color: #b45309 !important; /* amber-700 */
+  font-weight: 700 !important;
+  border-color: #fde68a !important; /* amber-200 */
+  box-shadow: 0 1px 3px 0 rgba(217, 119, 6, 0.12);
+}
+a.active-configuracion .item-icon {
+  background: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 2px 6px 0 rgba(217, 119, 6, 0.35);
 }
 

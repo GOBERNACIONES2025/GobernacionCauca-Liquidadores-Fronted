@@ -73,11 +73,11 @@ export class ReportesRegistrosFacade {
     return null;
   });
 
-  // Etiqueta legible de la vigencia fiscal activa/seleccionada
+  // Etiqueta legible de la vigencia fiscal seleccionada (solo la vigencia, sin estado activo)
   readonly vigenciaLabel = computed(() => {
     const v = this.vigenciaSeleccionadaObj();
-    if (!v) return 'Todas las Vigencias Históricas';
-    return `Vigencia Fiscal ${v.anio}${v.activo ? ' (Activa)' : ''}`;
+    if (!v) return 'Todas las Vigencias';
+    return `Vigencia ${v.anio}`;
   });
 
   // ── ESTADO DE INTERFAZ Y PROCESOS ─────────────────────────────────────
@@ -286,7 +286,7 @@ export class ReportesRegistrosFacade {
       activos.push({
         id: 'vigencia',
         etiqueta: 'Vigencia Fiscal',
-        valor: `${v.anio}${v.activo ? ' (Activa)' : ''}`,
+        valor: `${v.anio}`,
         remover: () => { this.setFiltroVigencia(null); }
       });
     }
@@ -885,7 +885,7 @@ export class ReportesRegistrosFacade {
         firstValueFrom(this.municipiosApi.obtenerTodos(1, 100)),
         firstValueFrom(this.tiposActoApi.obtenerTodos(1, 200, undefined, true)),
         firstValueFrom(this.tiposEntidadApi.obtenerTodos(1, 50, undefined, true)),
-        firstValueFrom(this.vigenciasApi.obtenerTodos(1, 50)).catch(() => null)
+        firstValueFrom(this.vigenciasApi.obtenerTodos(1, 100)).catch(() => null)
       ]);
 
       if (resEnt?.data?.items) {
