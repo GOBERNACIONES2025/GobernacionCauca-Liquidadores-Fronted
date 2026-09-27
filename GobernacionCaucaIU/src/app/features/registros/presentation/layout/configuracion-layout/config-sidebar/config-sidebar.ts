@@ -22,6 +22,7 @@ import { TiposBeneficiarioExencionFacade } from '../../../../application/facades
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 import { TiposPersonaFacade } from '../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
+import { TiposRolFacade } from '../../../../application/facades/Seguridad/tipos-rol.facade';
 import { RolesFacade } from '../../../../application/facades/Seguridad/roles.facade';
 import { UsuariosFacade } from '../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesIntervinienteFacade } from '../../../../application/facades/Intervinientes/roles-interviniente.facade';
@@ -77,6 +78,7 @@ export class ConfigSidebar {
   private exencionesFacade = inject(ExencionesFacade);
   private tiposPersonaFacade = inject(TiposPersonaFacade);
   private tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
+  private tiposRolFacade = inject(TiposRolFacade);
   private rolesFacade = inject(RolesFacade);
   private usuariosFacade = inject(UsuariosFacade);
   private rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
@@ -341,6 +343,11 @@ export class ConfigSidebar {
       name: 'Seguridad',
       icon: 'shield-check',
       items: [
+        { 
+          name: 'Tipos de Rol', 
+          route: '/registros/gobernacion/configuracion/seguridad/tipos-rol',
+          count: this.tiposRolFacade.totalTiposRol() || this.tiposRolFacade.tiposRol().length 
+        },
         { 
           name: 'Roles', 
           route: '/registros/gobernacion/configuracion/seguridad/roles',

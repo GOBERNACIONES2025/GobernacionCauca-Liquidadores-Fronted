@@ -384,6 +384,7 @@ export class BreadcrumbService {
       'estados-liquidacion': 'Estados de Liquidación',
       'estados-pago': 'Estados de Pago',
       'estados-solicitud': 'Estados de Solicitud',
+      'tipos-rol': 'Tipos de Rol',
       'roles': 'Roles de Seguridad',
       'usuarios': 'Usuarios del Sistema'
     };

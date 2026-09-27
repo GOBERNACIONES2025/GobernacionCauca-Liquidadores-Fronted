@@ -6,8 +6,8 @@
     <!-- Left: Page Header -->
     <app-page-header
       [breadcrumbs]="breadcrumbs"
-      title="Roles de Seguridad"
-      [tags]="[{ text: 'Seguridad', type: 'info' }, { text: 'Perfiles y Permisos', type: 'neutral' }]"
+      title="Tipos de Rol de Seguridad"
+      [tags]="[{ text: 'Seguridad', type: 'info' }, { text: 'Catálogo Maestro', type: 'neutral' }]"
       [counts]="counts()"
     ></app-page-header>
 
@@ -16,7 +16,7 @@
       
       <!-- Search in Table -->
       <app-table-search
-        placeholder="Buscar rol..."
+        placeholder="Buscar tipo de rol..."
         [value]="searchText()"
         [loading]="facade.loading()"
         (search)="onSearch($event)"
@@ -58,7 +58,7 @@
         <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
         </svg>
-        Nuevo rol
+        Nuevo tipo de rol
       </button>
 
     </div>
@@ -69,10 +69,10 @@
     <table class="w-full text-left border-collapse">
       <thead class="sticky top-0 bg-base-100 z-10 border-b border-slate-200">
         <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-          <th class="py-3 px-4 w-36">Código</th>
-          <th class="py-3 px-4">Nombre del Rol</th>
-          <th class="py-3 px-4 w-56">Tipo de Rol / Ámbito</th>
-          <th class="py-3 px-4 w-36">Estado</th>
+          <th class="py-3 px-4 w-44">Código / Ámbito</th>
+          <th class="py-3 px-4 w-60">Nombre</th>
+          <th class="py-3 px-4">Descripción y Alcance</th>
+          <th class="py-3 px-4 w-32">Estado</th>
           <th class="py-3 px-4 w-28 text-right">Acciones</th>
         </tr>
       </thead>
@@ -83,35 +83,34 @@
               <span class="loading loading-spinner text-primary"></span>
             </td>
           </tr>
-        } @else if (rolesFiltrados().length === 0) {
+        } @else if (tiposRolFiltrados().length === 0) {
           <tr>
             <td colspan="5" class="text-center py-12 text-slate-400 text-xs">
-              No se encontraron roles coincidentes.
+              No se encontraron tipos de rol coincidentes.
             </td>
           </tr>
         }
         
-        @for (item of rolesFiltrados(); track item.id) {
+        @for (item of tiposRolFiltrados(); track item.id) {
           <tr class="hover:bg-slate-50/70 transition-colors group">
-            <!-- Codigo -->
-            <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
-              <span class="font-mono bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-700 font-semibold border border-slate-200">
-                {{ item.codigo }}
-              </span>
+            
+            <!-- Codigo con Badge -->
+            <td class="py-3.5 px-4">
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-2xs"
+                   [ngClass]="getBadgeClass(item.codigo)">
+                <i [class]="getIconClass(item.codigo)" class="text-[11px]"></i>
+                <span>{{ item.codigo }}</span>
+              </div>
             </td>
             
             <!-- Nombre -->
-            <td class="py-3.5 px-4 text-slate-800 font-semibold text-sm">
+            <td class="py-3.5 px-4 font-semibold text-slate-800 text-sm">
               {{ item.nombre }}
             </td>
 
-            <!-- Tipo de Rol -->
-            <td class="py-3.5 px-4">
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-2xs"
-                    [ngClass]="getTipoRolBadgeClass(item.tipoRolCodigo)">
-                <i [class]="getTipoRolIcon(item.tipoRolCodigo)" class="text-[11px]"></i>
-                <span>{{ item.tipoRolNombre || item.tipoRolCodigo || 'Gobernación / Departamental' }}</span>
-              </span>
+            <!-- Descripcion -->
+            <td class="py-3.5 px-4 text-slate-600 text-xs leading-relaxed">
+              {{ item.descripcion || 'Sin descripción detallada.' }}
             </td>
             
             <!-- Estado -->
@@ -135,7 +134,7 @@
                 <button 
                   (click)="edit(item)" 
                   [disabled]="loadingEditId() !== null"
-                  title="Editar rol"
+                  title="Editar tipo de rol"
                   class="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded border border-transparent hover:border-blue-200 transition-colors disabled:opacity-50">
                   @if (loadingEditId() === item.id) {
                     <span class="loading loading-spinner loading-xs text-blue-600"></span>
@@ -148,7 +147,7 @@
                 
                 <button 
                   (click)="promptToggleActivo(item)"
-                  [title]="item.activo ? 'Desactivar rol' : 'Activar rol'"
+                  [title]="item.activo ? 'Desactivar tipo de rol' : 'Activar tipo de rol'"
                   class="p-1 rounded border border-transparent transition-colors"
                   [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -172,73 +171,67 @@
     (pageChange)="onPageChange($event)"
     (pageSizeChange)="onPageSizeChange($event)">
   </app-pagination>
+
   <!-- Footer Counter -->
   <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
-    Mostrando {{ rolesFiltrados().length }} de {{ counts().total }} registros
+    Mostrando {{ tiposRolFiltrados().length }} de {{ counts().total }} registros
   </div>
 </div>
 
 <!-- Modal Component for Create / Edit -->
 <app-slide-over 
   [isOpen]="isSlideOverOpen" 
-  [title]="isEditMode ? 'Editar Rol' : 'Nuevo Rol'" 
-  [description]="isEditMode ? 'Modifica los datos del rol y su tipo de clasificación' : 'Ingresa los datos del nuevo rol de seguridad y asigna su ámbito'"
+  [title]="isEditMode ? 'Editar Tipo de Rol' : 'Nuevo Tipo de Rol'" 
+  [description]="isEditMode ? 'Modifica los datos del tipo de rol en el catálogo maestro' : 'Registra una nueva categoría o ámbito de clasificación para roles'"
   [isSaving]="facade.actionLoading()"
   (onClose)="closeSlideOver()" 
-  (onSave)="saveRol()">
+  (onSave)="saveTipoRol()">
   
-  <form [formGroup]="rolForm" class="flex flex-col gap-4">
+  <form [formGroup]="tipoRolForm" class="flex flex-col gap-4">
     <!-- Código -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Código del Rol <span class="text-rose-500 font-bold">*</span></span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Código del Ámbito <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="codigo" 
-        placeholder="Ej. LIQUIDADOR_GOBERNACION" 
+        placeholder="Ej. GOBERNACION, ENTIDAD_REGISTRO, GLOBAL" 
         class="input input-sm input-bordered w-full uppercase font-mono text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
-        [class.input-error]="rolForm.get('codigo')?.invalid && (rolForm.get('codigo')?.touched || rolForm.get('codigo')?.dirty)" 
+        [class.input-error]="tipoRolForm.get('codigo')?.invalid && (tipoRolForm.get('codigo')?.touched || tipoRolForm.get('codigo')?.dirty)" 
       />
-      <app-form-error [control]="rolForm.get('codigo')" fieldName="Código"></app-form-error>
+      <span class="text-[10px] text-slate-400 mt-1">Identificador único en mayúsculas sin espacios (ej. GOBERNACION).</span>
+      <app-form-error [control]="tipoRolForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
 
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Rol <span class="text-rose-500 font-bold">*</span></span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Tipo de Rol <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
-        placeholder="Ej. Liquidador Departamental" 
+        placeholder="Ej. Gobernación / Departamental" 
         class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
-        [class.input-error]="rolForm.get('nombre')?.invalid && (rolForm.get('nombre')?.touched || rolForm.get('nombre')?.dirty)" 
+        [class.input-error]="tipoRolForm.get('nombre')?.invalid && (tipoRolForm.get('nombre')?.touched || tipoRolForm.get('nombre')?.dirty)" 
       />
-      <app-form-error [control]="rolForm.get('nombre')" fieldName="Nombre del Rol"></app-form-error>
+      <app-form-error [control]="tipoRolForm.get('nombre')" fieldName="Nombre"></app-form-error>
     </div>
 
-    <!-- Tipo de Rol Selector -->
+    <!-- Descripción -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">
-          Tipo de Rol / Ámbito <span class="text-rose-500 font-bold">*</span>
-        </span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Descripción / Alcance Institucional</span>
       </label>
-      <app-searchable-select
-        formControlName="tipoRolId"
-        [searchFn]="searchTiposRolFn"
-        [resolveIdFn]="resolveTipoRolFn"
-        labelKey="nombre"
-        valueKey="id"
-        placeholder="Seleccione el tipo de rol..."
-        icon="fa-solid fa-layer-group"
-        [isInvalid]="rolForm.get('tipoRolId')?.invalid && (rolForm.get('tipoRolId')?.touched || rolForm.get('tipoRolId')?.dirty)"
-      ></app-searchable-select>
-      <span class="text-[10px] text-slate-400 mt-1">
-        Clasifica si este rol pertenece a la Gobernación del Cauca, a Entidades de Registro (Notarías/Cámaras/ORIP) o es Global.
-      </span>
-      <app-form-error [control]="rolForm.get('tipoRolId')" fieldName="Tipo de Rol"></app-form-error>
+      <textarea 
+        formControlName="descripcion" 
+        rows="3" 
+        placeholder="Describa el propósito de este tipo de rol y a qué tipo de entidades o portales aplica..."
+        class="textarea textarea-bordered textarea-sm w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none leading-relaxed"
+        [class.textarea-error]="tipoRolForm.get('descripcion')?.invalid && (tipoRolForm.get('descripcion')?.touched || tipoRolForm.get('descripcion')?.dirty)">
+      </textarea>
+      <app-form-error [control]="tipoRolForm.get('descripcion')" fieldName="Descripción"></app-form-error>
     </div>
 
     <!-- Estado -->
@@ -247,7 +240,7 @@
         <span class="label-text font-bold text-xs uppercase text-slate-600">Estado Activo</span>
         <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
       </label>
-      <p class="text-[10px] text-slate-400 mt-1">Si está inactivo, los usuarios no podrán tener este rol asignado.</p>
+      <p class="text-[10px] text-slate-400 mt-1">Si está inactivo, no se podrán crear nuevos roles asignados a esta categoría.</p>
     </div>
   </form>
 
@@ -256,13 +249,13 @@
 <!-- Smart Confirmation Modal for Status Toggle -->
 <app-confirm-modal
   [isOpen]="isConfirmModalOpen()"
-  [title]="itemToToggle()?.activo ? 'Desactivar Rol de Seguridad' : 'Activar Rol de Seguridad'"
+  [title]="itemToToggle()?.activo ? 'Desactivar Tipo de Rol' : 'Activar Tipo de Rol'"
   [message]="itemToToggle()?.activo 
-    ? '¿Está seguro de que desea desactivar el rol «' + itemToToggle()?.nombre + '»?' 
-    : '¿Está seguro de que desea activar el rol «' + itemToToggle()?.nombre + '»?'"
+    ? '¿Está seguro de que desea desactivar el tipo de rol «' + itemToToggle()?.nombre + '»?' 
+    : '¿Está seguro de que desea activar el tipo de rol «' + itemToToggle()?.nombre + '»?'"
   [impactMessage]="itemToToggle()?.activo 
-    ? 'Al desactivar este rol, los usuarios que lo tengan asignado perderán de inmediato los permisos y accesos asociados en el sistema.' 
-    : 'Al reactivar este rol, se restablecerán los permisos y accesos correspondientes a los usuarios asignados.'"
+    ? 'Al desactivar este tipo de rol, no podrá ser seleccionado al crear o editar roles de seguridad. Los roles existentes mantendrán su clasificación histórica.' 
+    : 'Al reactivar este tipo de rol, volverá a estar disponible en el selector de roles de seguridad.'"
   [confirmText]="itemToToggle()?.activo ? 'Desactivar' : 'Activar'"
   [type]="itemToToggle()?.activo ? 'warning' : 'primary'"
   [isProcessing]="isTogglingStatus()"

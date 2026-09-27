@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { map, of, distinctUntilChanged } from 'rxjs';
@@ -23,6 +23,7 @@ import { TiposEntidadRegistroApiService } from '../../../../../infrastructure/ap
 import { MunicipiosApiService } from '../../../../../infrastructure/api/Territorios/municipios-api.service';
 
 import { Usuario } from '../../../../../domain/models/Seguridad/usuario.model';
+import { Rol } from '../../../../../domain/models/Seguridad/rol.model';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
@@ -72,6 +73,12 @@ export class UsuariosComponent implements OnInit {
   itemToToggle = signal<Usuario | null>(null);
   isTogglingStatus = signal<boolean>(false);
 
+  // --- Multi-Select de Roles con Buscador y Chips ---
+  selectedRolesIds = signal<number[]>([]);
+  currentTipoAcceso = signal<'GOBERNACION' | 'ENTIDAD_REGISTRO'>('GOBERNACION');
+  rolSearchTerm = signal<string>('');
+  isRolesDropdownOpen = signal<boolean>(false);
+
   get isEditMode(): boolean {
     return this.selectedId !== null;
   }
@@ -108,6 +115,77 @@ export class UsuariosComponent implements OnInit {
       total: this.facade.totalUsuarios()
     };
   });
+
+  // Lista detallada de los roles actualmente seleccionados (para renderizar Chips/Tags)
+  selectedRolesList = computed<Rol[]>(() => {
+    const ids = this.selectedRolesIds();
+    const allRoles = this.rolesFacade.roles();
+    return ids.map(id => {
+      const found = allRoles.find(r => r.id === id);
+      if (found) return found;
+      return {
+        id,
+        nombre: `Rol #${id}`,
+        codigo: `ROL_${id}`,
+        activo: true,
+        tipoRolId: 1,
+        tipoRolCodigo: 'GLOBAL',
+        tipoRolNombre: 'Transversal / Global'
+      } as Rol;
+    });
+  });
+
+  // Roles disponibles para seleccionar según tipo de acceso y filtro de búsqueda (sin duplicados)
+  availableRolesForSelection = computed<Rol[]>(() => {
+    const allRoles = this.rolesFacade.roles();
+    const selectedIds = this.selectedRolesIds();
+    const access = this.currentTipoAcceso();
+    const term = this.rolSearchTerm().trim().toLowerCase();
+
+    const entityRoleCodes = ['NOTARIA', 'CAMARA_COMERCIO', 'ORIP'];
+    const gobRoleCodes = ['GOBERNACION', 'LIQUIDADOR_GOBERNACION', 'CONSULTA_GOBERNACION'];
+
+    return allRoles.filter(rol => {
+      // 1. Debe estar activo
+      if (rol.activo === false) return false;
+
+      // 2. Excluir roles ya seleccionados (sin duplicados)
+      if (selectedIds.includes(rol.id)) return false;
+
+      // 3. Aislamiento institucional según Tipo de Acceso
+      const tipoCod = (rol.tipoRolCodigo || '').toUpperCase();
+      const code = (rol.codigo || '').toUpperCase();
+
+      if (access === 'GOBERNACION') {
+        // En Gobernación: mostrar roles clasificados como GOBERNACION o GLOBAL
+        if (tipoCod === 'ENTIDAD_REGISTRO') return false;
+        if (!tipoCod && entityRoleCodes.includes(code)) return false;
+      } else {
+        // En Entidades de Registro: mostrar roles clasificados como ENTIDAD_REGISTRO o GLOBAL
+        if (tipoCod === 'GOBERNACION') return false;
+        if (!tipoCod && gobRoleCodes.includes(code)) return false;
+      }
+
+      // 4. Filtro por término de búsqueda si existe
+      if (term) {
+        const matchName = (rol.nombre || '').toLowerCase().includes(term);
+        const matchCode = (rol.codigo || '').toLowerCase().includes(term);
+        const matchTipo = (rol.tipoRolNombre || '').toLowerCase().includes(term);
+        return matchName || matchCode || matchTipo;
+      }
+
+      return true;
+    });
+  });
+
+  // Cerrar el dropdown al hacer clic fuera del componente
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.roles-multiselect-container')) {
+      this.isRolesDropdownOpen.set(false);
+    }
+  }
 
   // --- Funciones de Búsqueda y Resolución para SearchableSelectComponent ---
   searchMunicipiosFn = (term: string) => {
@@ -162,12 +240,17 @@ export class UsuariosComponent implements OnInit {
     this.entidadesFacade.cargarEntidadesRegistro(1, 100);
     this.departamentosFacade.cargarDepartamentos(1, 100);
     this.municipiosFacade.cargarMunicipios(1, 200);
-    this.rolesFacade.cargarRoles(1, 50);
+    this.rolesFacade.cargarRoles(1, 100);
     this.cargarItems();
     this.setupFormSubscriptions();
   }
 
   private setupFormSubscriptions() {
+    // Sincronizar el signal selectedRolesIds con el control de formulario
+    this.usuarioForm.get('rolesIds')?.valueChanges.subscribe(val => {
+      this.selectedRolesIds.set(val || []);
+    });
+
     // Al cambiar municipio o tipo de entidad manualmente, limpiar la entidad seleccionada
     this.usuarioForm.get('municipioId')?.valueChanges.pipe(distinctUntilChanged()).subscribe(() => {
       const ctrl = this.usuarioForm.get('municipioId');
@@ -187,7 +270,7 @@ export class UsuariosComponent implements OnInit {
       }
     });
 
-    // Al seleccionar una entidad de registro, auto-configurar departamento y sugerir rol una sola vez
+    // Al seleccionar una entidad de registro, auto-configurar departamento y sugerir rol
     this.usuarioForm.get('entidadRegistroId')?.valueChanges.pipe(distinctUntilChanged()).subscribe(entId => {
       if (entId) {
         this.onEntidadChange(Number(entId));
@@ -220,7 +303,11 @@ export class UsuariosComponent implements OnInit {
   }
 
   onTipoAccesoChange(tipo: 'GOBERNACION' | 'ENTIDAD_REGISTRO') {
+    this.currentTipoAcceso.set(tipo);
     this.usuarioForm.patchValue({ tipoAcceso: tipo });
+    const allRoles = this.rolesFacade.roles();
+    const current = this.usuarioForm.get('rolesIds')?.value || [];
+
     if (tipo === 'GOBERNACION') {
       // Para gobernación, municipio y entidad son estrictamente null (visibilidad departamental)
       this.usuarioForm.patchValue({
@@ -231,18 +318,47 @@ export class UsuariosComponent implements OnInit {
       });
       this.setEntidadValidators(false);
 
-      // Auto-sugerir rol de Gobernación si no tiene roles asignados o solo tenía roles de entidades
-      const currentRoles = this.usuarioForm.get('rolesIds')?.value || [];
+      // Filtrar roles incompatibles con Gobernación (quitar roles exclusivos de entidades)
       const entityRoleCodes = ['NOTARIA', 'CAMARA_COMERCIO', 'ORIP'];
-      const hasOnlyEntityRoles = currentRoles.length === 0 || this.rolesFacade.roles().some(r => currentRoles.includes(r.id) && entityRoleCodes.includes(r.codigo.toUpperCase()));
-      if (hasOnlyEntityRoles) {
-        const gobRole = this.rolesFacade.roles().find(r => r.codigo.toUpperCase() === 'GOBERNACION' || r.codigo.toUpperCase() === 'LIQUIDADOR_GOBERNACION' || r.codigo.toUpperCase() === 'ADMINISTRADOR');
+      const compatibleRoles = current.filter(id => {
+        const rol = allRoles.find(r => r.id === id);
+        if (!rol) return false;
+        if (rol.tipoRolCodigo) {
+          return rol.tipoRolCodigo === 'GOBERNACION' || rol.tipoRolCodigo === 'GLOBAL';
+        }
+        return !entityRoleCodes.includes(rol.codigo.toUpperCase());
+      });
+
+      // Si no queda ningún rol o estaba vacío, sugerir rol de Gobernación por defecto
+      if (compatibleRoles.length === 0) {
+        const gobRole = allRoles.find(r => 
+          r.codigo.toUpperCase() === 'GOBERNACION' || 
+          r.codigo.toUpperCase() === 'LIQUIDADOR_GOBERNACION' || 
+          r.codigo.toUpperCase() === 'ADMINISTRADOR'
+        );
         if (gobRole) {
-          this.usuarioForm.patchValue({ rolesIds: [gobRole.id] });
+          compatibleRoles.push(gobRole.id);
         }
       }
+
+      this.usuarioForm.patchValue({ rolesIds: compatibleRoles });
+      this.selectedRolesIds.set(compatibleRoles);
     } else {
       this.setEntidadValidators(true);
+
+      // Filtrar roles incompatibles con Entidades de Registro (quitar roles exclusivos de Gobernación)
+      const gobRoleCodes = ['GOBERNACION', 'LIQUIDADOR_GOBERNACION', 'CONSULTA_GOBERNACION'];
+      const compatibleRoles = current.filter(id => {
+        const rol = allRoles.find(r => r.id === id);
+        if (!rol) return false;
+        if (rol.tipoRolCodigo) {
+          return rol.tipoRolCodigo === 'ENTIDAD_REGISTRO' || rol.tipoRolCodigo === 'GLOBAL';
+        }
+        return !gobRoleCodes.includes(rol.codigo.toUpperCase());
+      });
+
+      this.usuarioForm.patchValue({ rolesIds: compatibleRoles });
+      this.selectedRolesIds.set(compatibleRoles);
     }
   }
 
@@ -275,14 +391,87 @@ export class UsuariosComponent implements OnInit {
 
           const roleMatch = this.rolesFacade.roles().find(r => r.codigo.toUpperCase() === targetRoleCode);
           if (roleMatch) {
-            this.usuarioForm.patchValue({ rolesIds: [roleMatch.id] }, { emitEvent: false });
-            this.toast.info(`Rol sugerido preseleccionado: ${roleMatch.nombre}`);
+            const currentRoles = this.usuarioForm.get('rolesIds')?.value || [];
+            if (!currentRoles.includes(roleMatch.id)) {
+              // Reemplazar roles de otra entidad si había uno previo
+              const entityCodes = ['NOTARIA', 'CAMARA_COMERCIO', 'ORIP'];
+              const filtered = currentRoles.filter(id => {
+                const r = this.rolesFacade.roles().find(x => x.id === id);
+                return !r || !entityCodes.includes(r.codigo.toUpperCase());
+              });
+              const updated = [...filtered, roleMatch.id];
+              this.usuarioForm.patchValue({ rolesIds: updated });
+              this.selectedRolesIds.set(updated);
+              this.toast.info(`Rol asignado automáticamente: ${roleMatch.nombre}`);
+            }
           }
         }
       },
       error: (err) => console.error('Error al resolver entidad seleccionada', err)
     });
   }
+
+  // --- Operaciones del Multi-Select de Roles ---
+  onRolSearchInput(event: Event) {
+    const val = (event.target as HTMLInputElement).value;
+    this.rolSearchTerm.set(val);
+    this.isRolesDropdownOpen.set(true);
+  }
+
+  clearRolSearch() {
+    this.rolSearchTerm.set('');
+  }
+
+  toggleRolesDropdown(open?: boolean) {
+    if (open !== undefined) {
+      this.isRolesDropdownOpen.set(open);
+    } else {
+      this.isRolesDropdownOpen.set(!this.isRolesDropdownOpen());
+    }
+  }
+
+  addRole(roleId: number) {
+    const current = this.usuarioForm.get('rolesIds')?.value || [];
+    if (!current.includes(roleId)) {
+      const updated = [...current, roleId];
+      this.usuarioForm.patchValue({ rolesIds: updated });
+      this.selectedRolesIds.set(updated);
+      this.usuarioForm.get('rolesIds')?.markAsDirty();
+      this.usuarioForm.get('rolesIds')?.markAsTouched();
+    }
+    this.rolSearchTerm.set('');
+    this.isRolesDropdownOpen.set(false);
+  }
+
+  removeRole(roleId: number, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const current = this.usuarioForm.get('rolesIds')?.value || [];
+    const updated = current.filter(id => id !== roleId);
+    this.usuarioForm.patchValue({ rolesIds: updated });
+    this.selectedRolesIds.set(updated);
+    this.usuarioForm.get('rolesIds')?.markAsDirty();
+    this.usuarioForm.get('rolesIds')?.markAsTouched();
+  }
+
+  getRoleBadgeClass(tipoRolCodigo?: string): string {
+    const code = (tipoRolCodigo || '').toUpperCase();
+    if (code === 'GOBERNACION') return 'bg-blue-50 text-blue-700 border-blue-200/80';
+    if (code === 'ENTIDAD_REGISTRO') return 'bg-emerald-50 text-emerald-700 border-emerald-200/80';
+    if (code === 'GLOBAL') return 'bg-purple-50 text-purple-700 border-purple-200/80';
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+  }
+
+  getRoleIcon(tipoRolCodigo?: string): string {
+    const code = (tipoRolCodigo || '').toUpperCase();
+    if (code === 'GOBERNACION') return 'fa-solid fa-landmark';
+    if (code === 'ENTIDAD_REGISTRO') return 'fa-solid fa-building-columns';
+    if (code === 'GLOBAL') return 'fa-solid fa-globe';
+    return 'fa-solid fa-shield-halved';
+  }
+
+  // --- Fin Multi-Select ---
 
   cargarItems() {
     let activo: boolean | undefined = undefined;
@@ -322,6 +511,19 @@ export class UsuariosComponent implements OnInit {
 
   openNew() {
     this.selectedId = null;
+    this.currentTipoAcceso.set('GOBERNACION');
+    this.rolSearchTerm.set('');
+    this.isRolesDropdownOpen.set(false);
+
+    // Sugerir rol institucional por defecto de Gobernación
+    const gobRole = this.rolesFacade.roles().find(r => 
+      r.codigo.toUpperCase() === 'GOBERNACION' || 
+      r.codigo.toUpperCase() === 'LIQUIDADOR_GOBERNACION' || 
+      r.codigo.toUpperCase() === 'ADMINISTRADOR'
+    );
+    const initialRoles = gobRole ? [gobRole.id] : [];
+    this.selectedRolesIds.set(initialRoles);
+
     this.usuarioForm.reset({
       nombre: '',
       email: '',
@@ -331,7 +533,7 @@ export class UsuariosComponent implements OnInit {
       entidadRegistroId: null,
       departamentoId: null,
       municipioId: null,
-      rolesIds: [],
+      rolesIds: initialRoles,
       activo: true
     });
     this.usuarioForm.get('password')?.setValidators([Validators.required, Validators.minLength(6)]);
@@ -349,6 +551,11 @@ export class UsuariosComponent implements OnInit {
         this.selectedId = data.id;
         const roleIds = data.roles ? data.roles.map(r => r.id) : [];
         const isEntidad = !!data.entidadRegistroId;
+
+        this.selectedRolesIds.set(roleIds);
+        this.currentTipoAcceso.set(isEntidad ? 'ENTIDAD_REGISTRO' : 'GOBERNACION');
+        this.rolSearchTerm.set('');
+        this.isRolesDropdownOpen.set(false);
 
         if (isEntidad && data.entidadRegistroId) {
           // Resolver detalles de la entidad para precargar municipio y tipo de entidad en la cascada
@@ -422,25 +629,6 @@ export class UsuariosComponent implements OnInit {
     });
   }
 
-  isRoleSelected(roleId: number): boolean {
-    const current = this.usuarioForm.get('rolesIds')?.value || [];
-    return current.includes(roleId);
-  }
-
-  toggleRole(roleId: number) {
-    const current = this.usuarioForm.get('rolesIds')?.value || [];
-    if (current.includes(roleId)) {
-      this.usuarioForm.patchValue({
-        rolesIds: current.filter(id => id !== roleId)
-      });
-    } else {
-      this.usuarioForm.patchValue({
-        rolesIds: [...current, roleId]
-      });
-    }
-    this.usuarioForm.get('rolesIds')?.markAsTouched();
-  }
-
   promptToggleActivo(item: Usuario) {
     this.itemToToggle.set(item);
     this.isConfirmModalOpen.set(true);
@@ -485,6 +673,8 @@ export class UsuariosComponent implements OnInit {
   closeSlideOver() {
     this.isSlideOverOpen = false;
     this.selectedId = null;
+    this.rolSearchTerm.set('');
+    this.isRolesDropdownOpen.set(false);
   }
 
   saveUsuario() {

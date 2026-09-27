@@ -24,6 +24,7 @@ import { TiposBeneficiarioExencionComponent } from './presentation/pages/configu
 import { Exenciones } from './presentation/pages/configuracion/exenciones/exenciones/exenciones';
 import { TiposPersona } from './presentation/pages/configuracion/contribuyentes/tipos-persona/tipos-persona';
 import { TiposIdentificacion } from './presentation/pages/configuracion/contribuyentes/tipos-identificacion/tipos-identificacion';
+import { TiposRolComponent } from './presentation/pages/configuracion/seguridad/tipos-rol/tipos-rol';
 import { RolesComponent } from './presentation/pages/configuracion/seguridad/roles/roles';
 import { UsuariosComponent } from './presentation/pages/configuracion/seguridad/usuarios/usuarios';
 import { RolesInterviniente } from './presentation/pages/configuracion/intervinientes/roles-interviniente/roles-interviniente';
@@ -155,6 +156,7 @@ export const registrosRoutes: Routes = [
           { path: 'pagos/estados-pago', component: EstadosPago },
           { path: 'pagos/medios-pago', loadComponent: () => import('./presentation/pages/configuracion/pagos/medios-pago/medios-pago').then(m => m.MediosPago) },
           { path: 'radicacion/estados-solicitud', component: EstadosSolicitud },
+          { path: 'seguridad/tipos-rol', component: TiposRolComponent },
           { path: 'seguridad/roles', component: RolesComponent },
           { path: 'seguridad/usuarios', component: UsuariosComponent }
         ]
