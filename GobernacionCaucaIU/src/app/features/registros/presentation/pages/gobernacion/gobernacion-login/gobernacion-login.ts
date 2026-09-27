@@ -19,20 +19,12 @@ export class GobernacionLoginComponent {
   private toast = inject(ToastService);
 
   loginForm: FormGroup = this.fb.group({
-    usuario: ['liquidador_rentas', [Validators.required]],
-    clave: ['admin123', [Validators.required]]
+    usuario: ['', [Validators.required]],
+    clave: ['', [Validators.required]]
   });
 
   isLoading = signal(false);
   showPassword = signal(false);
-
-  fillDemo(nombre: string, user: string, rol: string): void {
-    this.loginForm.patchValue({
-      usuario: user,
-      clave: 'admin123'
-    });
-    this.toast.info(`Datos cargados para: ${nombre}`);
-  }
 
   togglePassword(): void {
     this.showPassword.update(v => !v);

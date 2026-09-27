@@ -19,22 +19,12 @@ export class EntidadesLoginComponent {
   private toast = inject(ToastService);
 
   loginForm: FormGroup = this.fb.group({
-    usuario: ['notaria1_popayan', [Validators.required]],
-    clave: ['notaria123', [Validators.required]],
-    entidadId: [1]
+    usuario: ['', [Validators.required]],
+    clave: ['', [Validators.required]]
   });
 
   isLoading = signal(false);
   showPassword = signal(false);
-
-  fillDemo(nombre: string, user: string, entidadId: number): void {
-    this.loginForm.patchValue({
-      usuario: user,
-      clave: 'clave123',
-      entidadId: entidadId
-    });
-    this.toast.info(`Datos cargados para: ${nombre}`);
-  }
 
   togglePassword(): void {
     this.showPassword.update(v => !v);
@@ -57,12 +47,12 @@ export class EntidadesLoginComponent {
       next: (response) => {
         this.isLoading.set(false);
         const entidadNombre = response.usuario.entidadRegistro?.nombre || response.usuario.nombre;
-        this.toast.success(`¡Bienvenido al Portal Notarial, ${entidadNombre}!`);
+        this.toast.success(`Bienvenido al Portal Notarial, ${entidadNombre}!`);
         this.router.navigate(['/registros/entidades/solicitudes']);
       },
       error: (err) => {
         this.isLoading.set(false);
-        const errorDetail = err?.error?.detail || err?.error?.title || 'Credenciales inválidas o sin acceso al portal de entidades';
+        const errorDetail = err?.error?.detail || err?.error?.title || 'Credenciales invalidas o sin acceso al portal de entidades';
         this.toast.error(errorDetail);
       }
     });
