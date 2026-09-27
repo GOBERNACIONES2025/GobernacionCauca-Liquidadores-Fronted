@@ -99,6 +99,8 @@ export interface RadicacionLiquidacionListadoDto {
   solicitudId: number;
   numeroRadicado: string;
   fechaRadicacion: string;
+  vigenciaId?: number | null;
+  vigenciaAnio?: number | null;
   observacion?: string | null;
 }
 

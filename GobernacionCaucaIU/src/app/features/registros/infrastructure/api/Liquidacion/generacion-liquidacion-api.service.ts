@@ -49,7 +49,9 @@ export class GeneracionLiquidacionApiService {
     entidadRegistroId?: number | null,
     municipioJurisdiccionId?: number | null,
     tipoActoRegistroId?: number | null,
-    estadoFiltro?: string | null
+    estadoFiltro?: string | null,
+    vigenciaId?: number | null,
+    vigenciaAnio?: number | null
   ): Observable<ApiResponse<PagedResult<LiquidacionListadoDto>>> {
     let url = `${this.baseUrl}?PageNumber=${pageNumber}&PageSize=${pageSize}`;
     if (search && search.trim() !== '') {
@@ -75,6 +77,12 @@ export class GeneracionLiquidacionApiService {
     }
     if (tipoActoRegistroId) {
       url += `&TipoActoRegistroId=${tipoActoRegistroId}`;
+    }
+    if (vigenciaId) {
+      url += `&VigenciaId=${vigenciaId}`;
+    }
+    if (vigenciaAnio) {
+      url += `&VigenciaAnio=${vigenciaAnio}`;
     }
     return this.api.get<ApiResponse<PagedResult<LiquidacionListadoDto>>>(url, {}, 'REGISTROS');
   }

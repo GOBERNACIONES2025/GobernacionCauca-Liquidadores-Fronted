@@ -1,11 +1,16 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { firstValueFrom, Observable } from 'rxjs';
+import { firstValueFrom, Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import * as XLSX from 'xlsx';
 import { GeneracionLiquidacionApiService } from '../../infrastructure/api/Liquidacion/generacion-liquidacion-api.service';
 import { EntidadesRegistroApiService } from '../../infrastructure/api/Registro/entidades-registro-api.service';
 import { MunicipiosApiService } from '../../infrastructure/api/Territorios/municipios-api.service';
 import { TiposActoRegistroApiService } from '../../infrastructure/api/Registro/tipos-acto-registro-api.service';
+import { TiposEntidadRegistroApiService } from '../../infrastructure/api/Registro/tipos-entidad-registro-api.service';
+import { EntidadesTipoActoPermitidoApiService } from '../../infrastructure/api/Registro/entidades-tipo-acto-permitido-api.service';
+import { VigenciasApiService } from '../../infrastructure/api/Normatividad/vigencias-api.service';
 import { LiquidacionListadoDto } from '../../domain/models/Liquidacion/generacion-liquidacion.model';
+import { Vigencia } from '../../domain/models/Normatividad/vigencia.model';
 import { ToastService } from '../../../../core/services/toast.service';
 import { ApiResponse } from '../../../../core/shared/models/shared.model';
 
@@ -13,6 +18,7 @@ export interface ResumenAgrupado {
   nombre: string;
   cantidad: number;
   total: number;
+  recaudado: number;
   promedio: number;
   porcentaje?: number;
   codigo?: string;
@@ -36,11 +42,18 @@ export class ReportesRegistrosFacade {
   private entidadesApi = inject(EntidadesRegistroApiService);
   private municipiosApi = inject(MunicipiosApiService);
   private tiposActoApi = inject(TiposActoRegistroApiService);
+  private tiposEntidadApi = inject(TiposEntidadRegistroApiService);
+  private entidadesTipoActoPermitidoApi = inject(EntidadesTipoActoPermitidoApiService);
+  private vigenciasApi = inject(VigenciasApiService);
   private toast = inject(ToastService);
 
-  // ── FILTROS REACTIVOS CON SIGNALS ─────────────────────────────────────
-  readonly filtroEntidadId = signal<number | null>(null);
+  // ── FILTROS REACTIVOS CON SIGNALS EN CASCADA Y VIGENCIA FISCAL ────────
+  readonly vigencias = signal<Vigencia[]>([]);
+  readonly filtroVigenciaId = signal<number | null>(null);
+  readonly filtroVigenciaAnio = signal<number | null>(null);
   readonly filtroMunicipioId = signal<number | null>(null);
+  readonly filtroTipoEntidadId = signal<number | null>(null);
+  readonly filtroEntidadId = signal<number | null>(null);
   readonly filtroTipoActoId = signal<number | null>(null);
   readonly filtroEstado = signal<string | null>(null); // 'vigentes' | 'vencidas' | 'pagadas' | 'anuladas' | '2' | '7' | null
   readonly filtroFechaDesde = signal<string>('');
@@ -48,10 +61,30 @@ export class ReportesRegistrosFacade {
   readonly filtroBusqueda = signal<string>('');
   readonly filtroRangoFechaRapido = signal<RangoFechaRapido>('todo');
 
+  // Vigencia activa del sistema
+  readonly vigenciaActiva = computed(() => this.vigencias().find(v => v.activo) || null);
+  
+  // Objeto de la vigencia fiscal seleccionada
+  readonly vigenciaSeleccionadaObj = computed(() => {
+    const vId = this.filtroVigenciaId();
+    if (vId) return this.vigencias().find(v => v.id === vId) || null;
+    const vAnio = this.filtroVigenciaAnio();
+    if (vAnio) return this.vigencias().find(v => v.anio === vAnio) || null;
+    return null;
+  });
+
+  // Etiqueta legible de la vigencia fiscal activa/seleccionada
+  readonly vigenciaLabel = computed(() => {
+    const v = this.vigenciaSeleccionadaObj();
+    if (!v) return 'Todas las Vigencias Históricas';
+    return `Vigencia Fiscal ${v.anio}${v.activo ? ' (Activa)' : ''}`;
+  });
+
   // ── ESTADO DE INTERFAZ Y PROCESOS ─────────────────────────────────────
   readonly isLoading = signal<boolean>(false);
   readonly isExporting = signal<boolean>(false);
   readonly downloadingPdfId = signal<number | null>(null);
+  readonly isLoadingActosPermitidos = signal<boolean>(false);
 
   // ── CONTROL DE ORDENAMIENTO Y PAGINACIÓN ──────────────────────────────
   readonly sortColumn = signal<string>('fechaLiquidacion');
@@ -62,9 +95,11 @@ export class ReportesRegistrosFacade {
 
   // ── DATOS CRUDOS Y CATÁLOGOS OFICIALES ────────────────────────────────
   readonly todasLiquidaciones = signal<LiquidacionListadoDto[]>([]);
-  readonly entidades = signal<any[]>([]);
   readonly municipios = signal<any[]>([]);
+  readonly tiposEntidad = signal<any[]>([]);
+  readonly entidades = signal<any[]>([]);
   readonly tiposActo = signal<any[]>([]);
+  readonly actosPermitidosCache = signal<Map<number, number[]>>(new Map());
 
   // Opciones de estados de liquidación con semántica de negocio
   readonly estadosDisponibles = [
@@ -157,9 +192,12 @@ export class ReportesRegistrosFacade {
     return Math.min(this.pageNumber() * this.pageSize(), this.totalRegistros());
   });
 
-  readonly kpiTotalRecaudado = computed(() => {
+  readonly kpiTotalLiquidado = computed(() => {
     return this.todasLiquidaciones().reduce((sum, item) => sum + (item.totales?.totalPagar || 0), 0);
   });
+
+  // Alias para retrocompatibilidad
+  readonly kpiTotalRecaudado = this.kpiTotalLiquidado;
 
   readonly kpiTotalBaseGravable = computed(() => {
     return this.todasLiquidaciones().reduce((sum, item) => sum + (item.totales?.subtotal || 0), 0);
@@ -201,23 +239,59 @@ export class ReportesRegistrosFacade {
     return total > 0 ? (this.kpiTotalPagadas() / total) * 100 : 0;
   });
 
+  // ── COMPUTEDS DE FILTROS EN CASCADA INTELIGENTE ───────────────────────
+  
+  // 1. Tipos de Entidad disponibles (si hay municipio, muestra los presentes en dicho municipio)
+  readonly tiposEntidadDisponibles = computed(() => {
+    const munId = this.filtroMunicipioId();
+    const todosTipos = this.tiposEntidad();
+    if (!munId) return todosTipos;
+
+    const entidadesMun = this.entidades().filter(e => e.municipio?.id === munId);
+    const tiposPresentes = new Set(entidadesMun.map(e => e.tipoEntidadRegistro?.id).filter(Boolean));
+    return todosTipos.filter(t => tiposPresentes.has(t.id));
+  });
+
+  // 2. Entidades de Registro filtradas en cascada por Municipio y/o Tipo de Entidad
+  readonly entidadesFiltradas = computed(() => {
+    const munId = this.filtroMunicipioId();
+    const tipoId = this.filtroTipoEntidadId();
+
+    return this.entidades().filter(e => {
+      const coincideMun = !munId || e.municipio?.id === munId;
+      const coincideTipo = !tipoId || e.tipoEntidadRegistro?.id === tipoId;
+      return coincideMun && coincideTipo;
+    });
+  });
+
+  // 3. Tipos de Acto Registral disponibles condicionados según la Entidad seleccionada
+  readonly tiposActoDisponibles = computed(() => {
+    const entId = this.filtroEntidadId();
+    const todosActos = this.tiposActo();
+    if (!entId) return todosActos;
+
+    const permitidos = this.actosPermitidosCache().get(entId);
+    if (!permitidos || permitidos.length === 0) return todosActos;
+
+    return todosActos.filter(a => permitidos.includes(a.id));
+  });
+
   // ── CHIPS DE FILTROS ACTIVOS (UX FEEDBACK & RECOVERY) ──────────────────
   readonly filtrosActivos = computed<FiltroActivoItem[]>(() => {
     const activos: FiltroActivoItem[] = [];
 
-    // Entidad
-    const entId = this.filtroEntidadId();
-    if (entId) {
-      const ent = this.entidades().find(e => e.id === entId);
+    // 0. Vigencia Fiscal
+    const v = this.vigenciaSeleccionadaObj();
+    if (v) {
       activos.push({
-        id: 'entidad',
-        etiqueta: 'Entidad',
-        valor: ent ? ent.nombre : `ID #${entId}`,
-        remover: () => { this.filtroEntidadId.set(null); this.consultarReporte(); }
+        id: 'vigencia',
+        etiqueta: 'Vigencia Fiscal',
+        valor: `${v.anio}${v.activo ? ' (Activa)' : ''}`,
+        remover: () => { this.setFiltroVigencia(null); }
       });
     }
 
-    // Municipio
+    // 1. Municipio (Paso 1)
     const munId = this.filtroMunicipioId();
     if (munId) {
       const mun = this.municipios().find(m => m.id === munId);
@@ -225,11 +299,35 @@ export class ReportesRegistrosFacade {
         id: 'municipio',
         etiqueta: 'Municipio',
         valor: mun ? mun.nombre : `ID #${munId}`,
-        remover: () => { this.filtroMunicipioId.set(null); this.consultarReporte(); }
+        remover: () => { this.setFiltroMunicipio(null); this.consultarReporte(); }
       });
     }
 
-    // Tipo Acto
+    // 2. Tipo Entidad (Paso 2)
+    const tipoEntId = this.filtroTipoEntidadId();
+    if (tipoEntId) {
+      const tipo = this.tiposEntidad().find(t => t.id === tipoEntId);
+      activos.push({
+        id: 'tipoEntidad',
+        etiqueta: 'Tipo Entidad',
+        valor: tipo ? tipo.nombre : `ID #${tipoEntId}`,
+        remover: () => { this.setFiltroTipoEntidad(null); this.consultarReporte(); }
+      });
+    }
+
+    // 3. Entidad de Registro (Paso 3)
+    const entId = this.filtroEntidadId();
+    if (entId) {
+      const ent = this.entidades().find(e => e.id === entId);
+      activos.push({
+        id: 'entidad',
+        etiqueta: 'Entidad',
+        valor: ent ? ent.nombre : `ID #${entId}`,
+        remover: () => { this.setFiltroEntidad(null); this.consultarReporte(); }
+      });
+    }
+
+    // 4. Tipo Acto (Paso 4)
     const actoId = this.filtroTipoActoId();
     if (actoId) {
       const acto = this.tiposActo().find(a => a.id === actoId);
@@ -237,11 +335,11 @@ export class ReportesRegistrosFacade {
         id: 'tipoActo',
         etiqueta: 'Tipo de Acto',
         valor: acto ? `${acto.codigo} - ${acto.nombre}` : `ID #${actoId}`,
-        remover: () => { this.filtroTipoActoId.set(null); this.consultarReporte(); }
+        remover: () => { this.setFiltroTipoActo(null); this.consultarReporte(); }
       });
     }
 
-    // Estado
+    // 5. Estado
     const est = this.filtroEstado();
     if (est) {
       const estObj = this.estadosDisponibles.find(e => e.valor === est);
@@ -249,7 +347,7 @@ export class ReportesRegistrosFacade {
         id: 'estado',
         etiqueta: 'Estado',
         valor: estObj ? estObj.nombre.replace(/^[🟢🔴🔵⚪🟡🟣]\s*/, '') : est,
-        remover: () => { this.filtroEstado.set(null); this.consultarReporte(); }
+        remover: () => { this.setFiltroEstado(null); this.consultarReporte(); }
       });
     }
 
@@ -291,14 +389,18 @@ export class ReportesRegistrosFacade {
 
   // ── COMPUTEDS AGRUPADOS (ANÁLISIS DE NEGOCIO Y BI) ────────────────────
   readonly resumenPorEntidad = computed<ResumenAgrupado[]>(() => {
-    const mapa = new Map<string, { cantidad: number; total: number }>();
+    const mapa = new Map<string, { cantidad: number; total: number; recaudado: number }>();
     const totalGral = this.kpiTotalRecaudado();
 
     for (const item of this.todasLiquidaciones()) {
       const nombre = item.documentoRegistro?.entidadRegistro?.trim() || 'Despacho No Identificado';
-      const actual = mapa.get(nombre) || { cantidad: 0, total: 0 };
+      const actual = mapa.get(nombre) || { cantidad: 0, total: 0, recaudado: 0 };
       actual.cantidad++;
-      actual.total += (item.totales?.totalPagar || 0);
+      const val = (item.totales?.totalPagar || 0);
+      actual.total += val;
+      if (this.esPagada(item)) {
+        actual.recaudado += val;
+      }
       mapa.set(nombre, actual);
     }
 
@@ -306,20 +408,25 @@ export class ReportesRegistrosFacade {
       nombre,
       cantidad: val.cantidad,
       total: val.total,
+      recaudado: val.recaudado,
       promedio: val.cantidad > 0 ? val.total / val.cantidad : 0,
       porcentaje: totalGral > 0 ? (val.total / totalGral) * 100 : 0
     })).sort((a, b) => b.total - a.total);
   });
 
   readonly resumenPorMunicipio = computed<ResumenAgrupado[]>(() => {
-    const mapa = new Map<string, { cantidad: number; total: number }>();
+    const mapa = new Map<string, { cantidad: number; total: number; recaudado: number }>();
     const totalGral = this.kpiTotalRecaudado();
 
     for (const item of this.todasLiquidaciones()) {
       const nombre = item.documentoRegistro?.municipioJurisdiccion?.trim() || 'Cauca';
-      const actual = mapa.get(nombre) || { cantidad: 0, total: 0 };
+      const actual = mapa.get(nombre) || { cantidad: 0, total: 0, recaudado: 0 };
       actual.cantidad++;
-      actual.total += (item.totales?.totalPagar || 0);
+      const val = (item.totales?.totalPagar || 0);
+      actual.total += val;
+      if (this.esPagada(item)) {
+        actual.recaudado += val;
+      }
       mapa.set(nombre, actual);
     }
 
@@ -327,6 +434,7 @@ export class ReportesRegistrosFacade {
       nombre,
       cantidad: val.cantidad,
       total: val.total,
+      recaudado: val.recaudado,
       promedio: val.cantidad > 0 ? val.total / val.cantidad : 0,
       porcentaje: totalGral > 0 ? (val.total / totalGral) * 100 : 0
     })).sort((a, b) => b.total - a.total);
@@ -354,12 +462,14 @@ export class ReportesRegistrosFacade {
 
       const cantidad = items.length;
       const total = items.reduce((s, it) => s + (it.totales?.totalPagar || 0), 0);
+      const recaudado = cat.id === 'pagadas' ? total : 0;
 
       return {
         codigo: cat.id,
         nombre: cat.nombre,
         cantidad,
         total,
+        recaudado,
         promedio: cantidad > 0 ? total / cantidad : 0,
         porcentaje: totalGral > 0 ? (total / totalGral) * 100 : 0,
         badgeClase: cat.badgeClase
@@ -445,16 +555,254 @@ export class ReportesRegistrosFacade {
     return +val;
   }
 
-  setFiltroEntidad(val: any): void {
-    this.filtroEntidadId.set(this.parseId(val));
+  // ── MÉTODOS DE MUTACIÓN DE FILTROS EN CASCADA CON AUTO-RESET ─────────
+
+  // 0. Mutación de Vigencia Fiscal (Gobernanza y Período Presupuestal)
+  setFiltroVigencia(val: any): void {
+    const id = this.parseId(val);
+    this.filtroVigenciaId.set(id);
+    if (id) {
+      const v = this.vigencias().find(item => item.id === id);
+      this.filtroVigenciaAnio.set(v ? v.anio : null);
+    } else {
+      this.filtroVigenciaAnio.set(null);
+    }
+    this.consultarReporte();
   }
 
+  // 1. Mutación de Municipio (Paso 1)
   setFiltroMunicipio(val: any): void {
-    this.filtroMunicipioId.set(this.parseId(val));
+    const id = this.parseId(val);
+    this.filtroMunicipioId.set(id);
+
+    // Si hay un Tipo de Entidad seleccionado que ya no tiene presencia en el nuevo municipio, resetearlo
+    if (id) {
+      const tiposDisponiblesIds = this.tiposEntidadDisponibles().map(t => t.id);
+      const tipoActual = this.filtroTipoEntidadId();
+      if (tipoActual && !tiposDisponiblesIds.includes(tipoActual)) {
+        this.filtroTipoEntidadId.set(null);
+      }
+    }
+
+    // Si la Entidad de Registro seleccionada ya no pertenece a este municipio, resetearla
+    const entActualId = this.filtroEntidadId();
+    if (entActualId && id) {
+      const ent = this.entidades().find(e => e.id === entActualId);
+      if (ent && ent.municipio?.id !== id) {
+        this.filtroEntidadId.set(null);
+        this.filtroTipoActoId.set(null);
+      }
+    }
   }
 
+  // 2. Mutación de Tipo de Entidad (Paso 2)
+  setFiltroTipoEntidad(val: any): void {
+    const id = this.parseId(val);
+    this.filtroTipoEntidadId.set(id);
+
+    // Si la Entidad de Registro actual no pertenece al nuevo Tipo de Entidad, resetearla
+    const entActualId = this.filtroEntidadId();
+    if (entActualId && id) {
+      const ent = this.entidades().find(e => e.id === entActualId);
+      if (ent && ent.tipoEntidadRegistro?.id !== id) {
+        this.filtroEntidadId.set(null);
+        this.filtroTipoActoId.set(null);
+      }
+    }
+  }
+
+  // 3. Mutación de Entidad de Registro (Paso 3)
+  setFiltroEntidad(val: any): void {
+    const id = this.parseId(val);
+    this.filtroEntidadId.set(id);
+
+    if (id) {
+      const ent = this.entidades().find(e => e.id === id);
+      if (ent) {
+        // Inferencia ascendente UX: si no había municipio o tipo seleccionado, inferirlos automáticamente
+        if (!this.filtroMunicipioId() && ent.municipio?.id) {
+          this.filtroMunicipioId.set(ent.municipio.id);
+        }
+        if (!this.filtroTipoEntidadId() && ent.tipoEntidadRegistro?.id) {
+          this.filtroTipoEntidadId.set(ent.tipoEntidadRegistro.id);
+        }
+      }
+      // Cargar actos permitidos para esta entidad
+      this.cargarActosPermitidosEntidad(id);
+    }
+  }
+
+  // 4. Mutación de Tipo de Acto (Paso 4)
   setFiltroTipoActo(val: any): void {
     this.filtroTipoActoId.set(this.parseId(val));
+  }
+
+  // Carga bajo demanda de Actos Autorizados para la Entidad Registral
+  async cargarActosPermitidosEntidad(entidadId: number): Promise<void> {
+    if (!entidadId || this.actosPermitidosCache().has(entidadId)) {
+      return;
+    }
+
+    this.isLoadingActosPermitidos.set(true);
+    try {
+      const res = await firstValueFrom(
+        this.entidadesTipoActoPermitidoApi.obtenerTodos(1, 200, undefined, entidadId, undefined, true)
+      );
+      const items = res?.data?.items || [];
+      const ids: number[] = items
+        .map((x: any) => x.tipoActoRegistro?.id || x.tipoActoRegistroId)
+        .filter(Boolean);
+
+      const nuevoMapa = new Map(this.actosPermitidosCache());
+      nuevoMapa.set(entidadId, ids);
+      this.actosPermitidosCache.set(nuevoMapa);
+
+      // Si el acto actualmente seleccionado ya no es permitido para esta entidad, resetearlo
+      const actoActual = this.filtroTipoActoId();
+      if (actoActual && ids.length > 0 && !ids.includes(actoActual)) {
+        this.filtroTipoActoId.set(null);
+      }
+    } catch (e) {
+      console.warn('No se pudieron consultar actos permitidos para la entidad', entidadId, e);
+    } finally {
+      this.isLoadingActosPermitidos.set(false);
+    }
+  }
+
+  // ── MÉTODOS DE BÚSQUEDA Y RESOLUCIÓN PARA SELECTS PAGINADOS Y BUSCABLES ──
+
+  buscarMunicipios(term: string): Observable<any[]> {
+    if (this.municipios().length === 0) {
+      return this.municipiosApi.obtenerTodos(1, 100, term).pipe(
+        map(res => {
+          const items = res?.data?.items || [];
+          return items.sort((a: any, b: any) => a.nombre.localeCompare(b.nombre, 'es'));
+        }),
+        catchError(() => of([]))
+      );
+    }
+    const todos = this.municipios();
+    if (!term || !term.trim()) {
+      return of(todos);
+    }
+    const cleanTerm = term.trim().toLowerCase();
+    return of(todos.filter(m => m.nombre && m.nombre.toLowerCase().includes(cleanTerm)));
+  }
+
+  resolverMunicipio(id: any): Observable<any> {
+    const numId = this.parseId(id);
+    if (!numId) return of(null);
+    const encontrado = this.municipios().find(m => m.id === numId);
+    if (encontrado) return of(encontrado);
+    return this.municipiosApi.obtenerPorId(numId).pipe(
+      map(res => res?.data || null),
+      catchError(() => of(null))
+    );
+  }
+
+  buscarTiposEntidad(term: string): Observable<any[]> {
+    if (this.tiposEntidad().length === 0) {
+      return this.tiposEntidadApi.obtenerTodos(1, 50, term, true).pipe(
+        map(res => res?.data?.items || []),
+        catchError(() => of([]))
+      );
+    }
+    const disponibles = this.tiposEntidadDisponibles();
+    if (!term || !term.trim()) {
+      return of(disponibles);
+    }
+    const cleanTerm = term.trim().toLowerCase();
+    return of(disponibles.filter(t => t.nombre && t.nombre.toLowerCase().includes(cleanTerm)));
+  }
+
+  resolverTipoEntidad(id: any): Observable<any> {
+    const numId = this.parseId(id);
+    if (!numId) return of(null);
+    const encontrado = this.tiposEntidad().find(t => t.id === numId);
+    if (encontrado) return of(encontrado);
+    return this.tiposEntidadApi.obtenerPorId(numId).pipe(
+      map(res => res?.data || null),
+      catchError(() => of(null))
+    );
+  }
+
+  buscarEntidades(term: string): Observable<any[]> {
+    if (this.entidades().length === 0) {
+      return this.entidadesApi.obtenerTodos(1, 200, term, undefined, undefined, undefined, true).pipe(
+        map(res => res?.data?.items || []),
+        catchError(() => of([]))
+      );
+    }
+    const disponibles = this.entidadesFiltradas();
+    if (!term || !term.trim()) {
+      return of(disponibles);
+    }
+    const cleanTerm = term.trim().toLowerCase();
+    return of(disponibles.filter(e => 
+      (e.nombre && e.nombre.toLowerCase().includes(cleanTerm)) ||
+      (e.codigo && e.codigo.toLowerCase().includes(cleanTerm)) ||
+      (e.nit && e.nit.toLowerCase().includes(cleanTerm))
+    ));
+  }
+
+  resolverEntidad(id: any): Observable<any> {
+    const numId = this.parseId(id);
+    if (!numId) return of(null);
+    const encontrado = this.entidades().find(e => e.id === numId);
+    if (encontrado) return of(encontrado);
+    return this.entidadesApi.obtenerPorId(numId).pipe(
+      map(res => res?.data || null),
+      catchError(() => of(null))
+    );
+  }
+
+  buscarTiposActo(term: string): Observable<any[]> {
+    const disponibles = this.tiposActoDisponibles().map(a => ({
+      ...a,
+      nombreCompleto: a.codigo ? `${a.codigo} - ${a.nombre}` : a.nombre
+    }));
+    if (disponibles.length === 0) {
+      return this.tiposActoApi.obtenerTodos(1, 200, term, true).pipe(
+        map(res => (res?.data?.items || []).map((a: any) => ({
+          ...a,
+          nombreCompleto: a.codigo ? `${a.codigo} - ${a.nombre}` : a.nombre
+        }))),
+        catchError(() => of([]))
+      );
+    }
+    if (!term || !term.trim()) {
+      return of(disponibles);
+    }
+    const cleanTerm = term.trim().toLowerCase();
+    return of(disponibles.filter(a => 
+      (a.nombre && a.nombre.toLowerCase().includes(cleanTerm)) ||
+      (a.codigo && a.codigo.toLowerCase().includes(cleanTerm)) ||
+      (a.nombreCompleto && a.nombreCompleto.toLowerCase().includes(cleanTerm))
+    ));
+  }
+
+  resolverTipoActo(id: any): Observable<any> {
+    const numId = this.parseId(id);
+    if (!numId) return of(null);
+    const encontrado = this.tiposActo().find(a => a.id === numId);
+    if (encontrado) {
+      return of({
+        ...encontrado,
+        nombreCompleto: encontrado.codigo ? `${encontrado.codigo} - ${encontrado.nombre}` : encontrado.nombre
+      });
+    }
+    return this.tiposActoApi.obtenerPorId(numId).pipe(
+      map(res => {
+        if (res?.data) {
+          return {
+            ...res.data,
+            nombreCompleto: res.data.codigo ? `${res.data.codigo} - ${res.data.nombre}` : res.data.nombre
+          };
+        }
+        return null;
+      }),
+      catchError(() => of(null))
+    );
   }
 
   setFiltroEstado(val: any): void {
@@ -532,22 +880,36 @@ export class ReportesRegistrosFacade {
   // ── MÉTODOS DE CONSULTA Y CARGA ──────────────────────────────────────
   async cargarCatalogosFiltros(): Promise<void> {
     try {
-      // 1. Entidades de Registro (Notarías / Cámaras de Comercio del Cauca)
-      const resEnt = await firstValueFrom(this.entidadesApi.obtenerTodos(1, 200, undefined, undefined, undefined, undefined, true));
+      const [resEnt, resMun, resAct, resTiposEnt, resVig] = await Promise.all([
+        firstValueFrom(this.entidadesApi.obtenerTodos(1, 200, undefined, undefined, undefined, undefined, true)),
+        firstValueFrom(this.municipiosApi.obtenerTodos(1, 100)),
+        firstValueFrom(this.tiposActoApi.obtenerTodos(1, 200, undefined, true)),
+        firstValueFrom(this.tiposEntidadApi.obtenerTodos(1, 50, undefined, true)),
+        firstValueFrom(this.vigenciasApi.obtenerTodos(1, 50)).catch(() => null)
+      ]);
+
       if (resEnt?.data?.items) {
         this.entidades.set(resEnt.data.items);
       }
-
-      // 2. Municipios del Departamento del Cauca
-      const resMun = await firstValueFrom(this.municipiosApi.obtenerTodos(1, 100));
       if (resMun?.data?.items) {
-        this.municipios.set(resMun.data.items);
+        // Ordenar municipios alfabéticamente para una óptima UX
+        const ordenados = [...resMun.data.items].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+        this.municipios.set(ordenados);
       }
-
-      // 3. Tipos de Acto Registral vigentes
-      const resAct = await firstValueFrom(this.tiposActoApi.obtenerTodos(1, 200, undefined, true));
       if (resAct?.data?.items) {
         this.tiposActo.set(resAct.data.items);
+      }
+      if (resTiposEnt?.data?.items) {
+        this.tiposEntidad.set(resTiposEnt.data.items);
+      }
+      if (resVig?.data?.items && resVig.data.items.length > 0) {
+        const ordenadasVig = [...resVig.data.items].sort((a: any, b: any) => b.anio - a.anio);
+        this.vigencias.set(ordenadasVig);
+        const activa = ordenadasVig.find((v: any) => v.activo) || ordenadasVig[0];
+        if (activa && !this.filtroVigenciaId()) {
+          this.filtroVigenciaId.set(activa.id);
+          this.filtroVigenciaAnio.set(activa.anio);
+        }
       }
     } catch (e) {
       console.warn('Advertencia al sincronizar catálogos de reportes:', e);
@@ -582,7 +944,9 @@ export class ReportesRegistrosFacade {
           this.filtroEntidadId() || null,
           this.filtroMunicipioId() || null,
           this.filtroTipoActoId() || null,
-          estadoFiltro
+          estadoFiltro,
+          this.filtroVigenciaId() || null,
+          this.filtroVigenciaAnio() || null
         )
       );
 
@@ -601,8 +965,9 @@ export class ReportesRegistrosFacade {
   }
 
   limpiarFiltros(): void {
-    this.filtroEntidadId.set(null);
     this.filtroMunicipioId.set(null);
+    this.filtroTipoEntidadId.set(null);
+    this.filtroEntidadId.set(null);
     this.filtroTipoActoId.set(null);
     this.filtroEstado.set(null);
     this.filtroFechaDesde.set('');
@@ -611,7 +976,7 @@ export class ReportesRegistrosFacade {
     this.filtroRangoFechaRapido.set('todo');
     this.pageNumber.set(1);
     this.consultarReporte();
-    this.toast.info('Filtros restablecidos a la vista general');
+    this.toast.info('Filtros secundarios restablecidos. Manteniendo la vigencia fiscal.');
   }
 
   // ── MÉTODOS DE OPERACIÓN SOBRE LIQUIDACIONES INDIVIDUALES ──────────────
@@ -679,9 +1044,11 @@ export class ReportesRegistrosFacade {
         'Posición': idx + 1,
         'Entidad Notarial / Registral': e.nombre,
         'Trámites Liquidados': e.cantidad,
-        'Total Recaudado ($ COP)': e.total,
+        'Total Liquidado ($ COP)': e.total,
+        'Recaudo Efectivo ($ COP)': e.recaudado,
         'Promedio por Acto ($ COP)': Math.round(e.promedio),
-        '% de Participación Departamental': e.porcentaje ? `${e.porcentaje.toFixed(2)}%` : '0.00%'
+        '% Cumplimiento de Recaudo': e.total > 0 ? `${((e.recaudado / e.total) * 100).toFixed(1)}%` : '0.0%',
+        '% Participación Departamental': e.porcentaje ? `${e.porcentaje.toFixed(2)}%` : '0.00%'
       }));
 
       // 3. Mapeo Hoja 3: Consolidado por Municipio
@@ -689,8 +1056,10 @@ export class ReportesRegistrosFacade {
         'Posición': idx + 1,
         'Municipio Jurisdicción': m.nombre,
         'Cantidad de Trámites': m.cantidad,
-        'Recaudo Fiscal Total ($ COP)': m.total,
+        'Total Liquidado ($ COP)': m.total,
+        'Recaudo Efectivo ($ COP)': m.recaudado,
         'Promedio por Trámite ($ COP)': Math.round(m.promedio),
+        '% Cumplimiento de Recaudo': m.total > 0 ? `${((m.recaudado / m.total) * 100).toFixed(1)}%` : '0.0%',
         '% del Total Departamental': m.porcentaje ? `${m.porcentaje.toFixed(2)}%` : '0.00%'
       }));
 
@@ -698,9 +1067,10 @@ export class ReportesRegistrosFacade {
       const datosEstados = this.resumenPorEstado().map(est => ({
         'Estado de Liquidación': est.nombre,
         'Expedientes': est.cantidad,
-        'Total Cuantía ($ COP)': est.total,
+        'Total Liquidado ($ COP)': est.total,
+        'Recaudo Efectivo ($ COP)': est.recaudado,
         'Promedio ($ COP)': Math.round(est.promedio),
-        '% del Recaudo General': est.porcentaje ? `${est.porcentaje.toFixed(2)}%` : '0.00%'
+        '% de la Cartera Total': est.porcentaje ? `${est.porcentaje.toFixed(2)}%` : '0.00%'
       }));
 
       // 5. Construcción del Libro de Trabajo XLSX
@@ -720,7 +1090,8 @@ export class ReportesRegistrosFacade {
 
       // 6. Descargar archivo
       const fechaHoy = new Date().toISOString().substring(0, 10).replace(/-/g, '');
-      const nombreArchivo = `Reporte_Fiscal_GobernacionCauca_${fechaHoy}.xlsx`;
+      const vigSuffix = this.vigenciaSeleccionadaObj() ? `_Vigencia_${this.vigenciaSeleccionadaObj()!.anio}` : '_Historico';
+      const nombreArchivo = `Reporte_Fiscal_GobernacionCauca${vigSuffix}_${fechaHoy}.xlsx`;
       XLSX.writeFile(wb, nombreArchivo);
 
       this.toast.success(`Libro Excel descargado exitosamente (${items.length} expedientes)`);
@@ -786,7 +1157,8 @@ export class ReportesRegistrosFacade {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `Reporte_Liquidaciones_Cauca_${new Date().toISOString().substring(0, 10)}.csv`);
+    const vigSuffix = this.vigenciaSeleccionadaObj() ? `_Vigencia_${this.vigenciaSeleccionadaObj()!.anio}` : '_Historico';
+    link.setAttribute('download', `Reporte_Liquidaciones_Cauca${vigSuffix}_${new Date().toISOString().substring(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

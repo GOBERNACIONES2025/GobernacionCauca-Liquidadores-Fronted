@@ -4,18 +4,49 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ReportesRegistrosFacade, RangoFechaRapido } from '../../../../application/facades/reportes-registros.facade';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
+import { SearchableSelectComponent } from '../../../../../../shared/components/searchable-select/searchable-select';
 import { ToastService } from '../../../../../../core/services/toast.service';
 
 @Component({
   selector: 'app-gobernacion-reportes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, SearchableSelectComponent],
   templateUrl: './gobernacion-reportes.html',
   styleUrl: './gobernacion-reportes.css'
 })
 export class GobernacionReportesComponent implements OnInit {
   public facade = inject(ReportesRegistrosFacade);
   private toast = inject(ToastService);
+
+  // Delegados para selects buscables y paginados
+  searchMunicipiosFn = (term: string) => this.facade.buscarMunicipios(term);
+  resolveMunicipioFn = (id: any) => this.facade.resolverMunicipio(id);
+
+  searchTiposEntidadFn = (term: string) => this.facade.buscarTiposEntidad(term);
+  resolveTipoEntidadFn = (id: any) => this.facade.resolverTipoEntidad(id);
+
+  searchEntidadesFn = (term: string) => this.facade.buscarEntidades(term);
+  resolveEntidadFn = (id: any) => this.facade.resolverEntidad(id);
+
+  searchTiposActoFn = (term: string) => this.facade.buscarTiposActo(term);
+  resolveTipoActoFn = (id: any) => this.facade.resolverTipoActo(id);
+
+  // Manejadores reactivos de cambio en cascada
+  onMunicipioChange(val: any): void {
+    this.facade.setFiltroMunicipio(val);
+  }
+
+  onTipoEntidadChange(val: any): void {
+    this.facade.setFiltroTipoEntidad(val);
+  }
+
+  onEntidadChange(val: any): void {
+    this.facade.setFiltroEntidad(val);
+  }
+
+  onTipoActoChange(val: any): void {
+    this.facade.setFiltroTipoActo(val);
+  }
 
   // Pestañas del módulo de reportes y auditoría:
   // 1: Detalle de Liquidaciones Fiscales

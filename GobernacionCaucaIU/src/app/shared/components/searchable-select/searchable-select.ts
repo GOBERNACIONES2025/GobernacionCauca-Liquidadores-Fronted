@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnInit, signal, effect, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, OnChanges, SimpleChanges, signal, computed, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { Observable, of } from 'rxjs';
@@ -17,7 +17,7 @@ import { catchError } from 'rxjs/operators';
     }
   ]
 })
-export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
+export class SearchableSelectComponent implements ControlValueAccessor, OnInit, OnChanges {
   @Input() searchFn!: (term: string) => Observable<any[]>;
   @Input() resolveIdFn?: (id: any) => Observable<any>;
   @Input() labelKey: string = 'nombre';
@@ -25,12 +25,17 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
   @Input() placeholder: string = 'Seleccione...';
   @Input() disabled: boolean = false;
   @Input() isInvalid: boolean | undefined | null = false;
+  @Input() pageSize: number = 8;
+  @Input() enablePagination: boolean = true;
+  @Input() dependency?: any;
+  @Input() icon?: string;
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   options = signal<any[]>([]);
   isLoading = signal<boolean>(false);
   isOpen = signal<boolean>(false);
+  currentPage = signal<number>(1);
   
   searchTerm = '';
 
@@ -40,6 +45,21 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
   onChange: any = () => {};
   onTouch: any = () => {};
 
+  paginatedOptions = computed(() => {
+    if (!this.enablePagination || this.pageSize <= 0) {
+      return this.options();
+    }
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.options().slice(start, start + this.pageSize);
+  });
+
+  totalPages = computed(() => {
+    if (!this.enablePagination || this.pageSize <= 0 || this.options().length === 0) {
+      return 1;
+    }
+    return Math.ceil(this.options().length / this.pageSize);
+  });
+
   constructor(private eRef: ElementRef) {}
 
   ngOnInit(): void {
@@ -47,13 +67,36 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
     this.loadOptions('');
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['dependency'] && !changes['dependency'].firstChange) {
+      this.loadOptions('');
+      this.currentPage.set(1);
+    }
+  }
+
+  prevPage(event?: Event) {
+    if (event) event.stopPropagation();
+    if (this.currentPage() > 1) {
+      this.currentPage.set(this.currentPage() - 1);
+    }
+  }
+
+  nextPage(event?: Event) {
+    if (event) event.stopPropagation();
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.set(this.currentPage() + 1);
+    }
+  }
+
   loadOptions(term: string) {
+    if (!this.searchFn) return;
     this.isLoading.set(true);
     this.searchFn(term).pipe(
       catchError(() => of([]))
     ).subscribe(results => {
       this.options.set(results || []);
       this.isLoading.set(false);
+      this.currentPage.set(1);
       this.resolveDisplayValueFromOptions();
     });
   }
@@ -85,9 +128,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
     if (this.disabled) return;
     this.isOpen.set(!this.isOpen());
     if (this.isOpen()) {
-      if (this.options().length === 0) {
-        this.loadOptions('');
-      }
+      this.loadOptions(this.searchTerm);
       setTimeout(() => {
         if (this.searchInput) {
           this.searchInput.nativeElement.focus();
@@ -100,6 +141,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit {
 
   onSearchInput(event: any) {
     this.searchTerm = event?.target ? event.target.value : (event || '');
+    this.loadOptions(this.searchTerm.trim());
   }
 
   onSearchSubmit(event?: Event) {

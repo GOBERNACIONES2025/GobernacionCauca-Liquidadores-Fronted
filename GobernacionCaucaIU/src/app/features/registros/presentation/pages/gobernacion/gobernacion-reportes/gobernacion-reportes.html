@@ -14,13 +14,39 @@
           </span>
         </div>
         <p class="text-xs text-slate-500 mt-0.5">
-          Gobernación del Cauca • Secretaría de Hacienda Departamental • Rentas de Impuesto de Registro
+          Gobernación del Cauca • Secretaría de Hacienda Departamental • <strong class="text-blue-700 font-bold">{{ facade.vigenciaLabel() }}</strong>
         </p>
       </div>
     </div>
 
-    <!-- Botones de Acción de Exportación y Descarga -->
+    <!-- Selector de Vigencia Fiscal Destacado y Botones de Acción -->
     <div class="flex items-center gap-2 flex-wrap">
+      
+      <!-- Control de Vigencia Fiscal Oficial -->
+      <div class="flex items-center gap-2 bg-slate-50 border border-slate-200/90 rounded-2xl p-1 shadow-2xs mr-1">
+        <div class="flex items-center gap-1.5 px-2 text-slate-700">
+          <i class="fa-solid fa-calendar-check text-blue-700 text-sm"></i>
+          <span class="text-[11px] font-black uppercase tracking-wider text-slate-600">Vigencia:</span>
+        </div>
+        <div class="relative">
+          <select
+            [ngModel]="facade.filtroVigenciaId()"
+            (ngModelChange)="facade.setFiltroVigencia($event)"
+            class="pl-2.5 pr-7 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-800 shadow-2xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-hidden cursor-pointer"
+          >
+            @for (vig of facade.vigencias(); track vig.id) {
+              <option [value]="vig.id">
+                Año {{ vig.anio }} {{ vig.activo ? '★ (Activa)' : '' }}
+              </option>
+            }
+            <option [ngValue]="null">Todas las Vigencias</option>
+          </select>
+        </div>
+        <span *ngIf="facade.vigenciaSeleccionadaObj()?.activo" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black border border-emerald-200/80">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          En Curso
+        </span>
+      </div>
       <button
         (click)="facade.consultarReporte()"
         [disabled]="facade.isLoading()"
@@ -69,29 +95,29 @@
   <!-- TARJETAS DE INDICADORES FINANCIEROS Y OPERATIVOS (KPIS) -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
     
-    <!-- KPI 1: Total Liquidado / Recaudado -->
+    <!-- KPI 1: Total Liquidado / Cartera Emitida -->
     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Total Liquidado</span>
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Total Liquidado (Cartera Emitida)</span>
         <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200/60">
-          <i class="fa-solid fa-sack-dollar text-sm"></i>
+          <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
         </div>
       </div>
       <div>
         <h3 class="text-lg sm:text-xl font-black font-mono text-slate-900 tracking-tight">
-          {{ facade.kpiTotalRecaudado() | currency:'COP':'symbol-narrow':'1.0-0' }}
+          {{ facade.kpiTotalLiquidado() | currency:'COP':'symbol-narrow':'1.0-0' }}
         </h3>
         <span class="text-[10px] text-blue-600 font-bold mt-1 inline-flex items-center gap-1">
           <i class="fa-solid fa-filter"></i>
-          {{ facade.totalRegistros() }} acto(s) filtrados
+          {{ facade.totalRegistros() }} acto(s) determinados
         </span>
       </div>
     </div>
 
-    <!-- KPI 2: Recaudo Efectivo Pagado -->
+    <!-- KPI 2: Recaudo Real Efectivo -->
     <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition">
       <div class="flex items-center justify-between mb-2">
-        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-600">Recaudo Efectivo Pagado</span>
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Recaudo Real Efectivo (Pagado)</span>
         <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200/60">
           <i class="fa-solid fa-circle-check text-sm"></i>
         </div>
@@ -102,7 +128,7 @@
         </h3>
         <span class="text-[10px] text-emerald-700 font-bold mt-1 inline-flex items-center gap-1">
           <i class="fa-solid fa-arrow-trend-up"></i>
-          {{ facade.kpiTotalPagadas() }} pagadas ({{ facade.kpiTasaCumplimiento() | number:'1.1-1' }}%)
+          {{ facade.kpiTotalPagadas() }} pagada(s) ({{ facade.kpiTasaCumplimiento() | number:'1.1-1' }}% recaudado)
         </span>
       </div>
     </div>
@@ -162,9 +188,13 @@
     
     <!-- Barra superior de filtros con presets rápidos -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
         <i class="fa-solid fa-filter text-blue-700"></i>
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Criterios de Filtrado y Búsqueda Fiscal</h3>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-800 font-extrabold text-[11px] border border-blue-200/80">
+          <i class="fa-solid fa-calendar-check text-[10px] text-blue-600"></i>
+          {{ facade.vigenciaLabel() }}
+        </span>
       </div>
 
       <!-- Presets de fecha rápidos -->
@@ -257,88 +287,168 @@
       </div>
     </div>
 
-    <!-- Rejilla de Filtros -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 text-xs">
+    <!-- Rejilla de Filtros Jerárquicos en Cascada -->
+    <div class="space-y-3 text-xs">
       
-      <!-- 1. Entidad de Registro -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Entidad de Registro:</label>
-        <select
-          [ngModel]="facade.filtroEntidadId()"
-          (ngModelChange)="facade.setFiltroEntidad($event)"
-          class="w-full px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition cursor-pointer font-medium"
-        >
-          <option [ngValue]="null">Todas las Entidades (126)</option>
-          @for (ent of facade.entidades(); track ent.id) {
-            <option [value]="ent.id">{{ ent.nombre }}</option>
-          }
-        </select>
+      <!-- Fila 1: Filtros en Cascada (Municipio -> Tipo Entidad -> Entidad Registral -> Tipo de Acto) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        
+        <!-- 1. Municipio Jurisdicción (Paso 1) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-blue-100 text-blue-700 inline-flex items-center justify-center text-[10px] font-black">1</span>
+              <span>Municipio:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ facade.municipios().length }} disp.</span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroMunicipioId()"
+            (ngModelChange)="onMunicipioChange($event)"
+            [searchFn]="searchMunicipiosFn"
+            [resolveIdFn]="resolveMunicipioFn"
+            labelKey="nombre"
+            valueKey="id"
+            placeholder="Todos los Municipios (Cauca)"
+            icon="fa-solid fa-location-dot"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
+        <!-- 2. Tipo de Entidad (Paso 2 - Condicionado por Municipio) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 inline-flex items-center justify-center text-[10px] font-black">2</span>
+              <span>Tipo de Entidad:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">
+              {{ facade.tiposEntidadDisponibles().length }} {{ facade.filtroMunicipioId() ? 'en mun.' : 'disp.' }}
+            </span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroTipoEntidadId()"
+            (ngModelChange)="onTipoEntidadChange($event)"
+            [dependency]="facade.filtroMunicipioId()"
+            [searchFn]="searchTiposEntidadFn"
+            [resolveIdFn]="resolveTipoEntidadFn"
+            labelKey="nombre"
+            valueKey="id"
+            placeholder="Todos los Tipos de Entidad"
+            icon="fa-solid fa-building"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
+        <!-- 3. Entidad de Registro (Paso 3 - Condicionado por Municipio y Tipo) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center justify-center text-[10px] font-black">3</span>
+              <span>Entidad Registral:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">
+              {{ facade.entidadesFiltradas().length }} disp.
+            </span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroEntidadId()"
+            (ngModelChange)="onEntidadChange($event)"
+            [dependency]="(facade.filtroMunicipioId() || 0) + '-' + (facade.filtroTipoEntidadId() || 0)"
+            [searchFn]="searchEntidadesFn"
+            [resolveIdFn]="resolveEntidadFn"
+            labelKey="nombre"
+            valueKey="id"
+            [placeholder]="'Todas las Entidades (' + facade.entidadesFiltradas().length + ')'"
+            icon="fa-solid fa-landmark"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
+        <!-- 4. Tipo de Acto Registral (Paso 4 - Condicionado por Entidad) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-amber-100 text-amber-800 inline-flex items-center justify-center text-[10px] font-black">4</span>
+              <span>Tipo de Acto:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">
+              {{ facade.isLoadingActosPermitidos() ? 'Cargando...' : (facade.tiposActoDisponibles().length + ' disp.') }}
+            </span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroTipoActoId()"
+            (ngModelChange)="onTipoActoChange($event)"
+            [dependency]="(facade.filtroEntidadId() || 0) + '-' + facade.isLoadingActosPermitidos()"
+            [searchFn]="searchTiposActoFn"
+            [resolveIdFn]="resolveTipoActoFn"
+            labelKey="nombreCompleto"
+            valueKey="id"
+            [placeholder]="facade.filtroEntidadId() ? ('Actos Autorizados (' + facade.tiposActoDisponibles().length + ')') : ('Todos los Actos (' + facade.tiposActoDisponibles().length + ')')"
+            icon="fa-solid fa-file-signature"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
       </div>
 
-      <!-- 2. Municipio Jurisdicción -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Municipio Jurisdicción:</label>
-        <select
-          [ngModel]="facade.filtroMunicipioId()"
-          (ngModelChange)="facade.setFiltroMunicipio($event)"
-          class="w-full px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition cursor-pointer font-medium"
-        >
-          <option [ngValue]="null">Todos los Municipios (Cauca)</option>
-          @for (mun of facade.municipios(); track mun.id) {
-            <option [value]="mun.id">{{ mun.nombre }}</option>
-          }
-        </select>
-      </div>
+      <!-- Fila 2: Criterios Temporales y de Estado Fiscal -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        
+        <!-- 5. Estado de Liquidación -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-purple-100 text-purple-700 inline-flex items-center justify-center text-[10px] font-black">5</span>
+              <span>Estado Fiscal:</span>
+            </span>
+          </label>
+          <div class="relative">
+            <select
+              [ngModel]="facade.filtroEstado()"
+              (ngModelChange)="facade.setFiltroEstado($event)"
+              class="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition cursor-pointer font-medium"
+            >
+              @for (est of facade.estadosDisponibles; track est.valor) {
+                <option [value]="est.valor">{{ est.nombre }}</option>
+              }
+            </select>
+            <i class="fa-solid fa-chart-pie absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+          </div>
+        </div>
 
-      <!-- 3. Tipo de Acto Registral -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Tipo de Acto:</label>
-        <select
-          [ngModel]="facade.filtroTipoActoId()"
-          (ngModelChange)="facade.setFiltroTipoActo($event)"
-          class="w-full px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition cursor-pointer font-medium"
-        >
-          <option [ngValue]="null">Todos los Actos Registrales</option>
-          @for (acto of facade.tiposActo(); track acto.id) {
-            <option [value]="acto.id">{{ acto.codigo }} - {{ acto.nombre }}</option>
-          }
-        </select>
-      </div>
+        <!-- 6. Fecha Desde -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[10px] font-black">6</span>
+              <span>Expedición Desde:</span>
+            </span>
+          </label>
+          <input
+            type="date"
+            [ngModel]="facade.filtroFechaDesde()"
+            (ngModelChange)="facade.setFiltroFechaDesde($event)"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition font-medium"
+          />
+        </div>
 
-      <!-- 4. Estado de Liquidación -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Estado de Liquidación:</label>
-        <select
-          [ngModel]="facade.filtroEstado()"
-          (ngModelChange)="facade.setFiltroEstado($event)"
-          class="w-full px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition cursor-pointer font-medium"
-        >
-          @for (est of facade.estadosDisponibles; track est.valor) {
-            <option [value]="est.valor">{{ est.nombre }}</option>
-          }
-        </select>
-      </div>
+        <!-- 7. Fecha Hasta -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[10px] font-black">7</span>
+              <span>Expedición Hasta:</span>
+            </span>
+          </label>
+          <input
+            type="date"
+            [ngModel]="facade.filtroFechaHasta()"
+            (ngModelChange)="facade.setFiltroFechaHasta($event)"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition font-medium"
+          />
+        </div>
 
-      <!-- 5. Fecha Desde -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Expedición Desde:</label>
-        <input
-          type="date"
-          [ngModel]="facade.filtroFechaDesde()"
-          (ngModelChange)="facade.setFiltroFechaDesde($event)"
-          class="w-full px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition font-medium"
-        />
-      </div>
-
-      <!-- 6. Fecha Hasta -->
-      <div>
-        <label class="block text-[11px] font-bold text-slate-600 mb-1">Expedición Hasta:</label>
-        <input
-          type="date"
-          [ngModel]="facade.filtroFechaHasta()"
-          (ngModelChange)="facade.setFiltroFechaHasta($event)"
-          class="w-full px-2.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition font-medium"
-        />
       </div>
 
     </div>
@@ -461,7 +571,7 @@
         [class.text-slate-500]="activeTab() !== 4"
       >
         <i class="fa-solid fa-chart-simple"></i>
-        <span>Distribución por Estados y Recaudo</span>
+        <span>Distribución por Estados y Cartera</span>
       </button>
     </div>
 
@@ -777,7 +887,7 @@
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Ranking de Liquidaciones por Entidad Registral (Notarías y Cámaras)
+              Consolidado de Liquidaciones y Recaudo por Entidad Registral (Notarías y Cámaras)
             </h3>
             <span class="text-xs text-slate-500">
               {{ facade.resumenPorEntidad().length }} entidades con trámites registrados
@@ -791,9 +901,10 @@
                   <th class="p-3.5 text-center w-12">#</th>
                   <th class="p-3.5">Entidad Notarial / Despacho</th>
                   <th class="p-3.5 text-center">Trámites Liquidados</th>
-                  <th class="p-3.5 text-right">Recaudo Liquidado ($ COP)</th>
+                  <th class="p-3.5 text-right">Total Liquidado ($ COP)</th>
+                  <th class="p-3.5 text-right">Recaudo Efectivo ($ COP)</th>
                   <th class="p-3.5 text-right">Promedio / Trámite</th>
-                  <th class="p-3.5 w-64">% de Participación</th>
+                  <th class="p-3.5 w-56">% de Participación</th>
                   <th class="p-3.5 text-center w-24">Acción</th>
                 </tr>
               </thead>
@@ -812,8 +923,11 @@
                     <td class="p-3.5 text-center font-mono font-bold text-slate-700">
                       {{ ent.cantidad }}
                     </td>
-                    <td class="p-3.5 text-right font-mono font-bold text-blue-950">
+                    <td class="p-3.5 text-right font-mono font-bold text-slate-900">
                       {{ ent.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono font-bold" [class.text-emerald-700]="ent.recaudado > 0" [class.text-slate-400]="ent.recaudado === 0">
+                      {{ ent.recaudado | currency:'COP':'symbol-narrow':'1.0-0' }}
                     </td>
                     <td class="p-3.5 text-right font-mono text-slate-600">
                       {{ ent.promedio | currency:'COP':'symbol-narrow':'1.0-0' }}
@@ -841,7 +955,7 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="p-10 text-center text-slate-400">
+                    <td colspan="8" class="p-10 text-center text-slate-400">
                       Sin datos consolidados disponibles para el filtro actual
                     </td>
                   </tr>
@@ -857,7 +971,7 @@
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Distribución Geográfica de Recaudo Fiscal por Municipio del Cauca
+              Distribución Geográfica de Liquidaciones y Recaudo por Municipio
             </h3>
             <span class="text-xs text-slate-500">
               {{ facade.resumenPorMunicipio().length }} municipios con expedientes
@@ -871,9 +985,10 @@
                   <th class="p-3.5 text-center w-12">#</th>
                   <th class="p-3.5">Municipio Jurisdicción</th>
                   <th class="p-3.5 text-center">Cantidad de Actos</th>
-                  <th class="p-3.5 text-right">Recaudo Fiscal Generado ($ COP)</th>
+                  <th class="p-3.5 text-right">Total Liquidado ($ COP)</th>
+                  <th class="p-3.5 text-right">Recaudo Efectivo ($ COP)</th>
                   <th class="p-3.5 text-right">Promedio / Trámite</th>
-                  <th class="p-3.5 w-64">% Participación Departamental</th>
+                  <th class="p-3.5 w-56">% Participación Departamental</th>
                   <th class="p-3.5 text-center w-24">Acción</th>
                 </tr>
               </thead>
@@ -892,8 +1007,11 @@
                     <td class="p-3.5 text-center font-mono font-bold text-slate-700">
                       {{ mun.cantidad }}
                     </td>
-                    <td class="p-3.5 text-right font-mono font-bold text-emerald-950">
+                    <td class="p-3.5 text-right font-mono font-bold text-slate-900">
                       {{ mun.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono font-bold" [class.text-emerald-700]="mun.recaudado > 0" [class.text-slate-400]="mun.recaudado === 0">
+                      {{ mun.recaudado | currency:'COP':'symbol-narrow':'1.0-0' }}
                     </td>
                     <td class="p-3.5 text-right font-mono text-slate-600">
                       {{ mun.promedio | currency:'COP':'symbol-narrow':'1.0-0' }}
@@ -921,7 +1039,7 @@
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="7" class="p-10 text-center text-slate-400">
+                    <td colspan="8" class="p-10 text-center text-slate-400">
                       Sin datos consolidados disponibles para el filtro actual
                     </td>
                   </tr>
@@ -932,12 +1050,12 @@
         </div>
       }
 
-      <!-- ── PESTAÑA 4: DISTRIBUCIÓN POR ESTADOS Y RECAUDO ────────────── -->
+      <!-- ── PESTAÑA 4: DISTRIBUCIÓN POR ESTADOS Y CARTERA ─────────────── -->
       @if (activeTab() === 4) {
         <div class="space-y-6">
           <div class="flex items-center justify-between">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Comportamiento del Estado de los Títulos Fiscales y Conciliación
+              Auditoría y Conciliación de Cartera por Estado Fiscal
             </h3>
             <span class="text-xs text-slate-500">
               Auditoría sobre el 100% de la muestra filtrada
@@ -957,16 +1075,24 @@
                   </span>
                 </div>
 
-                <div>
-                  <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Monto en Cuantía</span>
-                  <div class="text-xl font-black font-mono text-slate-900 mt-0.5">
-                    {{ est.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Liquidado</span>
+                    <div class="text-base font-black font-mono text-slate-900 mt-0.5">
+                      {{ est.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </div>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Recaudo Efectivo</span>
+                    <div class="text-base font-black font-mono mt-0.5" [class.text-emerald-700]="est.recaudado > 0" [class.text-slate-400]="est.recaudado === 0">
+                      {{ est.recaudado | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </div>
                   </div>
                 </div>
 
                 <div class="space-y-1.5 pt-2 border-t border-slate-100">
                   <div class="flex justify-between text-[11px] text-slate-500">
-                    <span>% del Universo Fiscal:</span>
+                    <span>% de la Cartera Total:</span>
                     <strong class="font-mono text-slate-700">{{ (est.porcentaje || 0).toFixed(1) }}%</strong>
                   </div>
                   <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
