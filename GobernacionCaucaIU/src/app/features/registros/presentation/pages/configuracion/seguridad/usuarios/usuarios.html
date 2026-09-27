@@ -34,6 +34,24 @@
           Todos
         </button>
         <button 
+          (click)="setFilter('gobernacion')"
+          [class]="selectedFilter() === 'gobernacion' 
+            ? 'bg-blue-600 text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all flex items-center gap-1">
+          <i class="fa-solid fa-landmark text-[10px]"></i>
+          Gobernación
+        </button>
+        <button 
+          (click)="setFilter('entidades')"
+          [class]="selectedFilter() === 'entidades' 
+            ? 'bg-emerald-600 text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all flex items-center gap-1">
+          <i class="fa-solid fa-building-columns text-[10px]"></i>
+          Entidades
+        </button>
+        <button 
           (click)="setFilter('activos')"
           [class]="selectedFilter() === 'activos' 
             ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
@@ -70,22 +88,23 @@
       <thead class="sticky top-0 bg-base-100 z-10 border-b border-slate-200">
         <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
           <th class="py-3 px-4">Usuario</th>
-          <th class="py-3 px-4">Correo Electrónico</th>
+          <th class="py-3 px-4">Tipo / Portal</th>
+          <th class="py-3 px-4">Entidad / Jurisdicción</th>
           <th class="py-3 px-4">Roles Asignados</th>
-          <th class="py-3 px-4 w-32">Estado</th>
+          <th class="py-3 px-4 w-28">Estado</th>
           <th class="py-3 px-4 w-28 text-right">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
         @if (facade.loading()) {
           <tr>
-            <td colspan="5" class="text-center py-12">
+            <td colspan="6" class="text-center py-12">
               <span class="loading loading-spinner text-primary"></span>
             </td>
           </tr>
         } @else if (usuariosFiltrados().length === 0) {
           <tr>
-            <td colspan="5" class="text-center py-12 text-slate-400 text-xs">
+            <td colspan="6" class="text-center py-12 text-slate-400 text-xs">
               No se encontraron usuarios coincidentes.
             </td>
           </tr>
@@ -96,28 +115,64 @@
             <!-- Usuario -->
             <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
               <div class="flex items-center gap-2.5">
-                <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-[#0f3b73]">
+                <div 
+                  [class]="item.entidadRegistroId ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-blue-50 text-[#0f3b73] border-blue-200'"
+                  class="w-8 h-8 rounded-full border flex items-center justify-center text-xs font-bold shrink-0">
                   {{ item.nombre ? item.nombre.charAt(0).toUpperCase() : 'U' }}
                 </div>
-                <span>{{ item.nombre }}</span>
+                <div class="flex flex-col">
+                  <span class="font-semibold text-slate-900 leading-tight">{{ item.nombre }}</span>
+                  <span class="text-xs font-normal text-slate-500 font-mono mt-0.5">{{ item.email }}</span>
+                </div>
               </div>
             </td>
             
-            <!-- Email -->
-            <td class="py-3.5 px-4 text-slate-600 font-mono text-xs">
-              {{ item.email }}
+            <!-- Tipo / Portal -->
+            <td class="py-3.5 px-4">
+              @if (item.entidadRegistroId) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Entidad Externa
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  Gobernación del Cauca
+                </span>
+              }
+            </td>
+
+            <!-- Entidad / Jurisdicción -->
+            <td class="py-3.5 px-4">
+              @if (item.entidadRegistroId) {
+                <div class="flex flex-col">
+                  <span class="text-xs font-semibold text-slate-800 leading-tight">
+                    {{ item.entidadRegistroNombre || 'Entidad de Registro #' + item.entidadRegistroId }}
+                  </span>
+                  <span class="text-[11px] text-slate-400 mt-0.5">
+                    {{ item.municipioNombre || 'Popayán' }}, {{ item.departamentoNombre || 'Cauca' }}
+                  </span>
+                </div>
+              } @else {
+                <div class="flex flex-col">
+                  <span class="text-xs font-semibold text-slate-800 leading-tight">Secretaría de Hacienda</span>
+                  <span class="text-[11px] text-slate-400 mt-0.5">Jurisdicción Departamental (Cauca)</span>
+                </div>
+              }
             </td>
 
             <!-- Roles -->
             <td class="py-3.5 px-4">
               <div class="flex flex-wrap gap-1">
                 @for (rol of item.roles; track rol.id) {
-                  <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+                  <span 
+                    [class]="item.entidadRegistroId ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : 'bg-blue-50 text-blue-700 border-blue-100'"
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold border">
                     {{ rol.nombre }}
                   </span>
                 }
                 @if (!item.roles || item.roles.length === 0) {
-                  <span class="text-slate-400 text-xs">Sin rol</span>
+                  <span class="text-slate-400 text-xs">Sin rol asignado</span>
                 }
               </div>
             </td>
@@ -190,21 +245,178 @@
 <app-slide-over 
   [isOpen]="isSlideOverOpen" 
   [title]="isEditMode ? 'Editar Usuario' : 'Nuevo Usuario'" 
-  [description]="isEditMode ? 'Modifica los datos y roles del usuario' : 'Ingresa los datos para registrar un nuevo usuario con acceso al sistema'"
+  [description]="isEditMode ? 'Modifica los datos y roles del usuario' : 'Registra un nuevo usuario con encriptación BCrypt y alcance asignado'"
   [isSaving]="facade.actionLoading()"
   (onClose)="closeSlideOver()" 
   (onSave)="saveUsuario()">
   
   <form [formGroup]="usuarioForm" class="flex flex-col gap-4">
+
+    <!-- Selector de Tipo de Acceso / Portal -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Usuario / Portal <span class="text-rose-500 font-bold">*</span></span>
+      </label>
+      <div class="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          (click)="onTipoAccesoChange('GOBERNACION')"
+          [class]="usuarioForm.get('tipoAcceso')?.value === 'GOBERNACION' 
+            ? 'border-blue-600 bg-blue-50 text-blue-900 shadow-xs ring-1 ring-blue-600 font-bold' 
+            : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-medium'"
+          class="p-2.5 rounded-lg border text-left transition flex flex-col gap-0.5 cursor-pointer">
+          <div class="flex items-center gap-1.5 text-xs">
+            <i class="fa-solid fa-landmark text-blue-600"></i>
+            <span>Gobernación</span>
+          </div>
+          <span class="text-[10px] text-slate-500 leading-tight">Fiscalización y Rentas Departamentales</span>
+        </button>
+
+        <button
+          type="button"
+          (click)="onTipoAccesoChange('ENTIDAD_REGISTRO')"
+          [class]="usuarioForm.get('tipoAcceso')?.value === 'ENTIDAD_REGISTRO' 
+            ? 'border-emerald-600 bg-emerald-50 text-emerald-900 shadow-xs ring-1 ring-emerald-600 font-bold' 
+            : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50 font-medium'"
+          class="p-2.5 rounded-lg border text-left transition flex flex-col gap-0.5 cursor-pointer">
+          <div class="flex items-center gap-1.5 text-xs">
+            <i class="fa-solid fa-building-columns text-emerald-600"></i>
+            <span>Entidad de Registro</span>
+          </div>
+          <span class="text-[10px] text-slate-500 leading-tight">Notaría, Cámara o Registro ORIP</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Si es Entidad de Registro: Flujo en Cascada Inteligente (3 Selects con app-searchable-select) -->
+    @if (usuarioForm.get('tipoAcceso')?.value === 'ENTIDAD_REGISTRO') {
+      <div class="p-3.5 bg-emerald-50/50 border border-emerald-200/80 rounded-2xl flex flex-col gap-3.5 shadow-2xs">
+        
+        <div class="flex items-center gap-2 pb-2 border-b border-emerald-100">
+          <i class="fa-solid fa-sitemap text-emerald-600 text-sm"></i>
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-950">Jurisdicción de Entidad Registral</h4>
+            <p class="text-[11px] text-emerald-800/80">Seleccione el municipio y tipo para filtrar la entidad correspondiente.</p>
+          </div>
+        </div>
+
+        <!-- Paso 1: Municipio -->
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1 flex items-center justify-between">
+            <span class="label-text font-bold text-xs uppercase text-slate-700">
+              1. Municipio de Operación <span class="text-rose-500 font-bold">*</span>
+            </span>
+            <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-100/70 px-2 py-0.5 rounded-full">Paso 1 de 3</span>
+          </label>
+          <app-searchable-select
+            formControlName="municipioId"
+            [searchFn]="searchMunicipiosFn"
+            [resolveIdFn]="resolveMunicipioFn"
+            [isInvalid]="usuarioForm.get('municipioId')?.invalid && (usuarioForm.get('municipioId')?.touched || usuarioForm.get('municipioId')?.dirty)"
+            labelKey="nombre"
+            valueKey="id"
+            icon="fa-solid fa-location-dot"
+            placeholder="Buscar municipio (ej. Popayán, Santander de Quilichao)..."
+          ></app-searchable-select>
+          <app-form-error 
+            [control]="usuarioForm.get('municipioId')" 
+            fieldName="Municipio de Operación"
+            [customMessages]="{ required: 'Debe seleccionar el municipio de la entidad' }">
+          </app-form-error>
+        </div>
+
+        <!-- Paso 2: Tipo de Entidad -->
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1 flex items-center justify-between">
+            <span class="label-text font-bold text-xs uppercase text-slate-700">
+              2. Tipo de Entidad <span class="text-rose-500 font-bold">*</span>
+            </span>
+            <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-100/70 px-2 py-0.5 rounded-full">Paso 2 de 3</span>
+          </label>
+          <app-searchable-select
+            formControlName="tipoEntidadRegistroId"
+            [searchFn]="searchTiposEntidadFn"
+            [resolveIdFn]="resolveTipoEntidadFn"
+            [isInvalid]="usuarioForm.get('tipoEntidadRegistroId')?.invalid && (usuarioForm.get('tipoEntidadRegistroId')?.touched || usuarioForm.get('tipoEntidadRegistroId')?.dirty)"
+            labelKey="nombre"
+            valueKey="id"
+            icon="fa-solid fa-tags"
+            placeholder="Seleccione tipo (Notaría, Cámara de Comercio, ORIP)..."
+          ></app-searchable-select>
+          <app-form-error 
+            [control]="usuarioForm.get('tipoEntidadRegistroId')" 
+            fieldName="Tipo de Entidad"
+            [customMessages]="{ required: 'Debe seleccionar el tipo de entidad registral' }">
+          </app-form-error>
+        </div>
+
+        <!-- Paso 3: Entidad de Registro (Filtrada dinámicamente) -->
+        <div class="form-control w-full">
+          <label class="label pt-0 pb-1 flex items-center justify-between">
+            <span class="label-text font-bold text-xs uppercase text-slate-700">
+              3. Entidad de Registro Asignada <span class="text-rose-500 font-bold">*</span>
+            </span>
+            <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-100/70 px-2 py-0.5 rounded-full">Paso 3 de 3</span>
+          </label>
+          <app-searchable-select
+            formControlName="entidadRegistroId"
+            [searchFn]="searchEntidadesFn"
+            [resolveIdFn]="resolveEntidadFn"
+            [dependency]="(usuarioForm.get('municipioId')?.value || '') + '_' + (usuarioForm.get('tipoEntidadRegistroId')?.value || '')"
+            [disabled]="!usuarioForm.get('municipioId')?.value || !usuarioForm.get('tipoEntidadRegistroId')?.value"
+            [isInvalid]="usuarioForm.get('entidadRegistroId')?.invalid && (usuarioForm.get('entidadRegistroId')?.touched || usuarioForm.get('entidadRegistroId')?.dirty)"
+            labelKey="nombre"
+            valueKey="id"
+            icon="fa-solid fa-building-columns"
+            [placeholder]="(!usuarioForm.get('municipioId')?.value || !usuarioForm.get('tipoEntidadRegistroId')?.value) ? 'Seleccione primero municipio y tipo de entidad...' : 'Buscar entidad de registro...'"
+          ></app-searchable-select>
+          <app-form-error 
+            [control]="usuarioForm.get('entidadRegistroId')" 
+            fieldName="Entidad de Registro"
+            [customMessages]="{ required: 'Debe seleccionar la entidad de registro específica' }">
+          </app-form-error>
+          
+          @if (!usuarioForm.get('municipioId')?.value || !usuarioForm.get('tipoEntidadRegistroId')?.value) {
+            <span class="text-[11px] text-amber-600 mt-1 flex items-center gap-1.5 font-medium">
+              <i class="fa-solid fa-triangle-exclamation text-xs shrink-0"></i>
+              <span>Complete primero los pasos 1 y 2 para listar las entidades registradas en esta jurisdicción.</span>
+            </span>
+          }
+        </div>
+
+        <!-- Banner informativo de aislamiento -->
+        <div class="flex items-start gap-2 p-2.5 bg-emerald-100/50 rounded-xl text-[11px] text-emerald-900 border border-emerald-200/50 leading-relaxed">
+          <i class="fa-solid fa-shield-halved text-emerald-600 mt-0.5 shrink-0"></i>
+          <span>
+            <strong>Seguridad Institucional:</strong> El usuario quedará estrictamente restringido a esta entidad y su municipio. Al seleccionarla, se auto-configura el rol operativo sugerido (Notaría, Cámara o Registro).
+          </span>
+        </div>
+
+      </div>
+    } @else {
+      <!-- Mensaje de Alcance Departamental Gobernación -->
+      <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-2xl flex items-start gap-3 text-xs text-blue-900 shadow-2xs">
+        <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-landmark text-sm"></i>
+        </div>
+        <div class="flex flex-col gap-0.5 text-[11px]">
+          <span class="font-bold text-blue-950 text-xs">Alcance Institucional Gobernación (Cauca)</span>
+          <span class="text-blue-800 leading-relaxed">
+            Este usuario operará en el portal central de la Gobernación del Cauca. Tendrá jurisdicción sobre todo el departamento sin restricción de entidad ni municipio (quedan en nulo).
+          </span>
+        </div>
+      </div>
+    }
+
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre Completo <span class="text-rose-500 font-bold">*</span></span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre Completo o Razón Social <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
-        placeholder="Ej. Juan Pérez" 
+        placeholder="Ej. Notaría Primera de Popayán / Carlos Pérez" 
         class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="usuarioForm.get('nombre')?.invalid && (usuarioForm.get('nombre')?.touched || usuarioForm.get('nombre')?.dirty)" 
       />
@@ -214,12 +426,12 @@
     <!-- Correo -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Correo Electrónico <span class="text-rose-500 font-bold">*</span></span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Correo Electrónico (Usuario Login) <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="email" 
         formControlName="email" 
-        placeholder="usuario@cauca.gov.co" 
+        placeholder="ejemplo@notaria1popayan.gov.co" 
         class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="usuarioForm.get('email')?.invalid && (usuarioForm.get('email')?.touched || usuarioForm.get('email')?.dirty)" 
       />
@@ -243,6 +455,10 @@
         class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="usuarioForm.get('password')?.invalid && (usuarioForm.get('password')?.touched || usuarioForm.get('password')?.dirty)" 
       />
+      <span class="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
+        <i class="fa-solid fa-lock text-[10px] text-emerald-600"></i>
+        <span>Se almacenará automáticamente con encriptación BCrypt de alta seguridad en la base de datos.</span>
+      </span>
       <app-form-error [control]="usuarioForm.get('password')" fieldName="Contraseña"></app-form-error>
     </div>
 
@@ -263,7 +479,10 @@
               (change)="toggleRole(rol.id)"
               class="checkbox checkbox-primary checkbox-xs" 
             />
-            <span class="label-text text-xs text-slate-700 font-medium">{{ rol.nombre }}</span>
+            <div class="flex flex-col">
+              <span class="label-text text-xs text-slate-700 font-medium">{{ rol.nombre }}</span>
+              <span class="text-[10px] text-slate-400 font-mono">{{ rol.codigo }}</span>
+            </div>
           </label>
         }
         @if (rolesFacade.roles().length === 0) {
@@ -287,7 +506,6 @@
     </div>
 
   </form>
-
 </app-slide-over>
 
 <!-- Smart Confirmation Modal for Status Toggle -->

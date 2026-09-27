@@ -1,7 +1,8 @@
 import { Component, inject, computed, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { AuthStateService } from '../../../../../../core/auth/auth-state.service';
+import { RegistrosAuthStateService } from '../../../../core/auth/registros-auth-state.service';
+import { RegistrosAuthService } from '../../../../core/auth/registros-auth.service';
 import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
@@ -12,7 +13,8 @@ import { BreadcrumbComponent } from '../../../../../../shared/components/breadcr
   styleUrl: './gobernacion-topbar.css'
 })
 export class GobernacionTopbarComponent {
-  private authState = inject(AuthStateService);
+  private authState = inject(RegistrosAuthStateService);
+  private authService = inject(RegistrosAuthService);
   private router = inject(Router);
 
   readonly toggleSidebar = output<void>();
@@ -23,6 +25,7 @@ export class GobernacionTopbarComponent {
   }
 
   currentUser = this.authState.currentUser;
+  currentDepartamento = this.authState.currentDepartamento;
 
   userName = computed(() => {
     const u = this.currentUser();
@@ -30,7 +33,12 @@ export class GobernacionTopbarComponent {
   });
 
   userRole = computed(() => {
-    return 'Fiscalización y Rentas Departamentales';
+    const u = this.currentUser();
+    return u?.rol || u?.roles?.[0] || 'Fiscalización y Rentas Departamentales';
+  });
+
+  departamentoName = computed(() => {
+    return this.currentDepartamento()?.nombre || 'Cauca';
   });
 
   userInitials = computed(() => {
@@ -42,7 +50,7 @@ export class GobernacionTopbarComponent {
   });
 
   logout() {
-    this.authState.clearSession();
+    this.authService.logout();
     this.router.navigate(['/registros/gobernacion/login']);
   }
 }

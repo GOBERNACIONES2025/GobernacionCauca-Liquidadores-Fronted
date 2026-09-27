@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { registrosGobernacionGuard, registrosEntidadesGuard } from './core/guards/registros-auth.guard';
 import { ConfiguracionLayoutComponent } from './presentation/layout/configuracion-layout/configuracion-layout';
 import { EntidadesLayoutComponent } from './presentation/layout/entidades-layout/entidades-layout';
 import { GobernacionLayoutComponent } from './presentation/layout/gobernacion-layout/gobernacion-layout';
@@ -57,6 +58,7 @@ export const registrosRoutes: Routes = [
   {
     path: 'entidades',
     component: EntidadesLayoutComponent,
+    canActivate: [registrosEntidadesGuard],
     children: [
       {
         path: '',
@@ -91,6 +93,7 @@ export const registrosRoutes: Routes = [
   {
     path: 'gobernacion',
     component: GobernacionLayoutComponent,
+    canActivate: [registrosGobernacionGuard],
     children: [
       {
         path: '',

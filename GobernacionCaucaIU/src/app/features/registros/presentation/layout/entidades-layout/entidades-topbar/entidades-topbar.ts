@@ -1,7 +1,8 @@
 import { Component, inject, computed, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { AuthStateService } from '../../../../../../core/auth/auth-state.service';
+import { RegistrosAuthStateService } from '../../../../core/auth/registros-auth-state.service';
+import { RegistrosAuthService } from '../../../../core/auth/registros-auth.service';
 import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
@@ -12,7 +13,8 @@ import { BreadcrumbComponent } from '../../../../../../shared/components/breadcr
   styleUrl: './entidades-topbar.css'
 })
 export class EntidadesTopbarComponent {
-  private authState = inject(AuthStateService);
+  private authState = inject(RegistrosAuthStateService);
+  private authService = inject(RegistrosAuthService);
   private router = inject(Router);
 
   readonly toggleSidebar = output<void>();
@@ -23,14 +25,30 @@ export class EntidadesTopbarComponent {
   }
 
   currentUser = this.authState.currentUser;
+  currentEntidad = this.authState.currentEntidad;
+  currentMunicipio = this.authState.currentMunicipio;
+  currentDepartamento = this.authState.currentDepartamento;
 
   userName = computed(() => {
     const u = this.currentUser();
-    return u?.nombre || 'Notaría 1 de Popayán';
+    return u?.nombre || 'Usuario Entidad';
   });
 
   userRole = computed(() => {
-    return 'Entidad Registral Externa';
+    const u = this.currentUser();
+    return u?.rol || u?.roles?.[0] || 'Entidad Registral Externa';
+  });
+
+  entidadName = computed(() => {
+    return this.currentEntidad()?.nombre || 'Entidad Registral';
+  });
+
+  tipoEntidad = computed(() => {
+    return this.currentEntidad()?.tipoEntidadCodigo || 'Ventanilla Externa';
+  });
+
+  municipioName = computed(() => {
+    return this.currentMunicipio()?.nombre || 'Cauca';
   });
 
   userInitials = computed(() => {
@@ -42,7 +60,7 @@ export class EntidadesTopbarComponent {
   });
 
   logout() {
-    this.authState.clearSession();
+    this.authService.logout();
     this.router.navigate(['/registros/entidades/login']);
   }
 }

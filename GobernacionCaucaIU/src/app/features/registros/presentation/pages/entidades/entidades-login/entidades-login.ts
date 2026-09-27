@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthStateService } from '../../../../../../core/auth/auth-state.service';
+import { RegistrosAuthService } from '../../../../core/auth/registros-auth.service';
 import { ToastService } from '../../../../../../core/services/toast.service';
 
 @Component({
@@ -14,7 +14,7 @@ import { ToastService } from '../../../../../../core/services/toast.service';
 })
 export class EntidadesLoginComponent {
   private fb = inject(FormBuilder);
-  private authState = inject(AuthStateService);
+  private authService = inject(RegistrosAuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
 
@@ -47,25 +47,24 @@ export class EntidadesLoginComponent {
     }
 
     this.isLoading.set(true);
-    const { usuario, entidadId } = this.loginForm.value;
+    const { usuario, clave } = this.loginForm.value;
 
-    setTimeout(() => {
-      this.isLoading.set(false);
-      let entidadNombre = 'Notaría 1 de Popayán';
-      if (usuario.includes('notaria2')) entidadNombre = 'Notaría 2 de Popayán';
-      if (usuario.includes('camara')) entidadNombre = 'Cámara de Comercio del Cauca';
-      if (usuario.includes('orip')) entidadNombre = 'Oficina de Registro de Instrumentos Públicos';
-
-      const mockUser = {
-        id: entidadId || 1,
-        nombre: entidadNombre,
-        email: `${usuario}@notariascauca.gov.co`,
-        roles: ['NOTARIA', 'ENTIDAD_EXTERNA']
-      };
-
-      this.authState.setSession(mockUser, 'REGISTROS');
-      this.toast.success(`¡Bienvenido al Portal Notarial, ${entidadNombre}!`);
-      this.router.navigate(['/registros/entidades/solicitudes']);
-    }, 400);
+    this.authService.login({
+      emailOrUsuario: usuario,
+      password: clave,
+      portalRequerido: 'ENTIDAD_REGISTRO'
+    }).subscribe({
+      next: (response) => {
+        this.isLoading.set(false);
+        const entidadNombre = response.usuario.entidadRegistro?.nombre || response.usuario.nombre;
+        this.toast.success(`¡Bienvenido al Portal Notarial, ${entidadNombre}!`);
+        this.router.navigate(['/registros/entidades/solicitudes']);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        const errorDetail = err?.error?.detail || err?.error?.title || 'Credenciales inválidas o sin acceso al portal de entidades';
+        this.toast.error(errorDetail);
+      }
+    });
   }
 }

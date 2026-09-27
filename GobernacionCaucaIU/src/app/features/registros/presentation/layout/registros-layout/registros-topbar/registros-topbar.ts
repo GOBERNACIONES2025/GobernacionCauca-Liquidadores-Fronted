@@ -1,7 +1,8 @@
 import { Component, inject, computed, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { AuthStateService } from '../../../../../../core/auth/auth-state.service';
+import { RegistrosAuthStateService } from '../../../../core/auth/registros-auth-state.service';
+import { RegistrosAuthService } from '../../../../core/auth/registros-auth.service';
 import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 import { BreadcrumbService } from '../../../../../../core/services/breadcrumb.service';
 
@@ -13,7 +14,8 @@ import { BreadcrumbService } from '../../../../../../core/services/breadcrumb.se
   styleUrl: './registros-topbar.css',
 })
 export class RegistrosTopbar {
-  private authState = inject(AuthStateService);
+  private authState = inject(RegistrosAuthStateService);
+  private authService = inject(RegistrosAuthService);
   private router = inject(Router);
   public breadcrumbService = inject(BreadcrumbService);
 
@@ -47,7 +49,7 @@ export class RegistrosTopbar {
   });
 
   logout() {
-    this.authState.clearSession();
-    this.router.navigate(['/']);
+    this.authService.logout();
+    this.router.navigate(['/registros/gobernacion/login']);
   }
 }

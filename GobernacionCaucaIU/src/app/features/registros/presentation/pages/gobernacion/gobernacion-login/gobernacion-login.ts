@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthStateService } from '../../../../../../core/auth/auth-state.service';
+import { RegistrosAuthService } from '../../../../core/auth/registros-auth.service';
 import { ToastService } from '../../../../../../core/services/toast.service';
 
 @Component({
@@ -14,7 +14,7 @@ import { ToastService } from '../../../../../../core/services/toast.service';
 })
 export class GobernacionLoginComponent {
   private fb = inject(FormBuilder);
-  private authState = inject(AuthStateService);
+  private authService = inject(RegistrosAuthService);
   private router = inject(Router);
   private toast = inject(ToastService);
 
@@ -45,31 +45,23 @@ export class GobernacionLoginComponent {
     }
 
     this.isLoading.set(true);
-    const { usuario } = this.loginForm.value;
+    const { usuario, clave } = this.loginForm.value;
 
-    setTimeout(() => {
-      this.isLoading.set(false);
-      let nombreCompleto = 'Liquidador Oficial de Rentas';
-      let roles = ['LIQUIDADOR', 'FUNCIONARIO'];
-
-      if (usuario.includes('supervisor')) {
-        nombreCompleto = 'Supervisor Fiscal de Registro';
-        roles = ['SUPERVISOR_RENTAS', 'FUNCIONARIO'];
-      } else if (usuario.includes('admin')) {
-        nombreCompleto = 'Administrador de Rentas Departamentales';
-        roles = ['ADMIN', 'SUPERVISOR_RENTAS'];
+    this.authService.login({
+      emailOrUsuario: usuario,
+      password: clave,
+      portalRequerido: 'GOBERNACION'
+    }).subscribe({
+      next: (response) => {
+        this.isLoading.set(false);
+        this.toast.success(`¡Bienvenido, ${response.usuario.nombre}!`);
+        this.router.navigate(['/registros/gobernacion/dashboard']);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        const errorDetail = err?.error?.detail || err?.error?.title || 'Credenciales inválidas o sin acceso al portal';
+        this.toast.error(errorDetail);
       }
-
-      const mockUser = {
-        id: 99,
-        nombre: nombreCompleto,
-        email: `${usuario}@cauca.gov.co`,
-        roles: roles
-      };
-
-      this.authState.setSession(mockUser, 'REGISTROS');
-      this.toast.success(`¡Bienvenido, ${nombreCompleto}!`);
-      this.router.navigate(['/registros/gobernacion/dashboard']);
-    }, 400);
+    });
   }
 }

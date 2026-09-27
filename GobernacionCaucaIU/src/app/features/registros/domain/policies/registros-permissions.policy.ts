@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { AuthStateService } from '../../../../core/auth/auth-state.service';
+import { RegistrosAuthStateService } from '../../core/auth/registros-auth-state.service';
 
 /**
  * Política de Permisos Desacoplada para el Módulo de Registros (Gobernación).
@@ -12,7 +12,7 @@ import { AuthStateService } from '../../../../core/auth/auth-state.service';
   providedIn: 'root'
 })
 export class RegistrosPermissionsPolicy {
-  private authState = inject(AuthStateService);
+  private authState = inject(RegistrosAuthStateService);
 
   // Bandera de modo estricto: false = permisivo actual; true = validación rigurosa por roles
   readonly isStrictRoleChecking = signal<boolean>(false);
