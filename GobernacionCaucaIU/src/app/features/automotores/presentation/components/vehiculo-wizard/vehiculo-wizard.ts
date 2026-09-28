@@ -21,6 +21,7 @@ import {
   VehiculoItem,
   CatalogoCiudad
 } from '../../../domain/models/vehiculo.model';
+import { VehiculosFtpFacade } from '../../../application/facades/vehiculos/vehiculos-ftp.facade';
 
 @Component({
   selector: 'app-vehiculo-wizard',
@@ -34,6 +35,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   readonly facade = inject(VehiculosFacade);
   readonly validator = inject(VehiculoCompletoValidator);
   private fb = inject(FormBuilder);
+  readonly ftpSevicesFacade = inject(VehiculosFtpFacade);
 
   // ─── Outputs ──────────────────────────────────────────────────────────────
   @Output() toastEmit = new EventEmitter<{
@@ -45,8 +47,13 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
   // ─── Estado local del wizard ──────────────────────────────────────────────
   readonly erroresPaso = signal<FieldError[]>([]);
   readonly propietarioEncontradoMsgs = signal<Record<number, string | null>>({});
-  readonly ciudadesPorPropietario = signal<Record<number, CatalogoCiudad[]>>({});
   readonly buscandoPropietarioIndex = signal<number | null>(null);
+
+  // ─── Estado de Archivo / FTP ──────────────────────────────────────────────
+  readonly selectedFile = signal<File | null>(null);
+  readonly subiendoArchivo = signal<boolean>(false);
+  readonly archivoSubidoNombre = signal<string | null>(null);
+  readonly archivoSubidoUrl = signal<string | null>(null);
 
   // ─── Formulario ───────────────────────────────────────────────────────────
   form!: FormGroup;
@@ -282,7 +289,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     this.configurarCascadas();
     this.erroresPaso.set([]);
     this.propietarioEncontradoMsgs.set({});
-    this.ciudadesPorPropietario.set({});
   }
 
   // ─── Creacion de FormGroup para cada propietario ──────────────────────────
@@ -297,17 +303,11 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       correoElectronico: [datos?.correoElectronico || ''],
       telefono: [datos?.telefono || ''],
       direccion: [datos?.direccion || ''],
-      departamentoId: [datos?.departamentoId || null],
-      ciudadId: [datos?.ciudadId || null],
       tipoVinculoPersonaId: [datos?.tipoVinculoPersonaId || 1],
       porcentajePropiedad: [datos?.porcentajePropiedad !== undefined ? datos.porcentajePropiedad : 100],
       fechaInicio: [datos?.fechaInicio || new Date().toISOString().split('T')[0]],
       esResponsablePrincipal: [datos?.esResponsablePrincipal !== undefined ? datos.esResponsablePrincipal : true]
     });
-
-    if (datos?.departamentoId) {
-      this.cargarCiudadesPropietario(this.propietariosArray?.length || 0, Number(datos.departamentoId));
-    }
 
     return fg;
   }
@@ -372,29 +372,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     currentControl.get('porcentajePropiedad')?.setValue(nuevoVal);
   }
 
-  cargarCiudadesPropietario(index: number, deptId: number | null): void {
-    if (!deptId) {
-      const map = { ...this.ciudadesPorPropietario() };
-      map[index] = [];
-      this.ciudadesPorPropietario.set(map);
-      this.propietariosArray.at(index)?.get('ciudadId')?.setValue(null, { emitEvent: false });
-      return;
-    }
 
-    this.facade.cargarCiudadesPorDepartamento(Number(deptId));
-    // La facade actualiza ciudadesDisponibles; guardamos copia local
-    setTimeout(() => {
-      const map = { ...this.ciudadesPorPropietario() };
-      map[index] = this.facade.ciudadesDisponibles();
-      this.ciudadesPorPropietario.set(map);
-    }, 150);
-  }
-
-  onDepartamentoChange(index: number, event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const deptId = select.value ? Number(select.value) : null;
-    this.cargarCiudadesPropietario(index, deptId);
-  }
 
   // ─── Cascadas de dependencias vehiculares ────────────────────────────────
   private configurarCascadas(): void {
@@ -448,6 +426,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
   // ─── Pre-poblado para edicion ─────────────────────────────────────────────
   poblarParaEdicion(v: VehiculoItem): void {
+    this.limpiarArchivo();
     const tipoInicial = v.tipoVehiculo || v.clase || 'Automovil';
     const marcaInicial = v.marca || '';
     const lineaInicial = v.linea || '';
@@ -520,8 +499,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
               correoElectronico: prop.correoElectronico || '',
               telefono: prop.telefono || '',
               direccion: prop.direccion || '',
-              departamentoId: prop.departamentoId ? Number(prop.departamentoId) : null,
-              ciudadId: prop.ciudadId ? Number(prop.ciudadId) : null,
               tipoVinculoPersonaId: prop.tipoVinculoId ? Number(prop.tipoVinculoId) : 1,
               porcentajePropiedad: prop.porcentajePropiedad || 100,
               fechaInicio: prop.fechaInicio || '',
@@ -543,8 +520,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     if (!pGroup) return;
     const campos = [
       'tipoDocumentoId', 'numeroDocumento', 'naturalezaJuridicaId',
-      'nombreRazonSocial', 'correoElectronico', 'telefono',
-      'direccion', 'departamentoId', 'ciudadId'
+      'nombreRazonSocial', 'correoElectronico', 'telefono', 'direccion'
     ];
     campos.forEach(c => pGroup.get(c)?.disable({ emitEvent: false }));
   }
@@ -554,8 +530,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     if (!pGroup) return;
     const campos = [
       'tipoDocumentoId', 'numeroDocumento', 'naturalezaJuridicaId',
-      'nombreRazonSocial', 'correoElectronico', 'telefono',
-      'direccion', 'departamentoId', 'ciudadId'
+      'nombreRazonSocial', 'correoElectronico', 'telefono', 'direccion'
     ];
     campos.forEach(c => pGroup.get(c)?.enable({ emitEvent: false }));
   }
@@ -588,13 +563,8 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           const nombreCompleto = propietario.nombreCompleto ||
             propietario.razonSocial ||
             [propietario.primerNombre, propietario.segundoNombre,
-             propietario.primerApellido, propietario.segundoApellido]
+            propietario.primerApellido, propietario.segundoApellido]
               .filter(Boolean).join(' ');
-
-          const deptId = propietario.departamentoId ? Number(propietario.departamentoId) : null;
-          if (deptId) {
-            this.cargarCiudadesPropietario(index, deptId);
-          }
 
           pGroup.patchValue({
             personaId: propietario.id || propietario.personaId,
@@ -604,9 +574,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
             digitoVerificacion: propietario.digitoVerificacion || null,
             correoElectronico: propietario.correoElectronico || propietario.email || '',
             telefono: propietario.telefono || '',
-            direccion: propietario.direccion || propietario.direccionResidencia || '',
-            departamentoId: deptId,
-            ciudadId: propietario.ciudadId || propietario.municipioId || null
+            direccion: propietario.direccion || propietario.direccionResidencia || ''
           }, { emitEvent: false });
 
           this.bloquearCamposPropietario(index);
@@ -639,9 +607,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       digitoVerificacion: null,
       correoElectronico: '',
       telefono: '',
-      direccion: '',
-      departamentoId: null,
-      ciudadId: null
+      direccion: ''
     });
   }
 
@@ -768,8 +734,6 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
             correoElectronico: p.correoElectronico ? String(p.correoElectronico).trim() : null,
             telefono: p.telefono ? String(p.telefono).trim() : null,
             direccion: p.direccion ? String(p.direccion).trim() : null,
-            departamentoId: p.departamentoId ? Number(p.departamentoId) : null,
-            ciudadId: p.ciudadId ? Number(p.ciudadId) : null,
             tipoVinculoPersonaId: Number(p.tipoVinculoPersonaId) || 1,
             porcentajePropiedad: Number(p.porcentajePropiedad) || 100,
             fechaInicio: p.fechaInicio || new Date().toISOString().split('T')[0],
@@ -881,5 +845,77 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+
+  // Autor: Juan Sebastián Montaño Pérez
+  // Fecha: 21/09/2026
+  // Módulo: Modulo de Ftp - Vehiculos
+  // Descripción: Se implemento el modulo de carga de comprobante integrado al Ftp
+  
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files || input.files.length === 0) {
+      this.selectedFile.set(null);
+      return;
+    }
+
+    this.selectedFile.set(input.files[0]);
+  }
+
+  limpiarArchivo(): void {
+    this.selectedFile.set(null);
+    this.archivoSubidoNombre.set(null);
+    this.archivoSubidoUrl.set(null);
+    this.subiendoArchivo.set(false);
+    if (typeof document !== 'undefined') {
+      const input = document.getElementById('file_input_comprobante') as HTMLInputElement | null;
+      if (input) {
+        input.value = '';
+      }
+    }
+  }
+
+  uploadDocument(): void {
+    const file = this.selectedFile();
+    if (!file) {
+      this.toastEmit.emit({
+        title: 'Archivo requerido',
+        desc: 'Por favor seleccione un comprobante antes de anexar.',
+        type: 'info'
+      });
+      return;
+    }
+
+    const placaVal = (this.form?.get('placa')?.value || '').toString().trim().toUpperCase();
+    const remoteDir = placaVal ? `${placaVal}/Comprobante` : 'GENERAL/Comprobante';
+
+    this.subiendoArchivo.set(true);
+
+    this.ftpSevicesFacade
+      .uploadAnyDocument(file, remoteDir)
+      .subscribe({
+        next: (resp) => {
+          this.subiendoArchivo.set(false);
+          this.archivoSubidoNombre.set(resp.originalFileName || file.name);
+          this.archivoSubidoUrl.set(resp.remoteFullPath || resp.fileName || file.name);
+          this.toastEmit.emit({
+            title: 'Documento Anexado',
+            desc: `El comprobante '${file.name}' se subió exitosamente al directorio ${remoteDir}.`,
+            type: 'success'
+          });
+        },
+        error: (error: any) => {
+          this.subiendoArchivo.set(false);
+          const msg = error?.error?.message || error?.message || 'Ocurrió un error al subir el comprobante al servidor FTP.';
+          this.toastEmit.emit({
+            title: 'Error al Anexar',
+            desc: msg,
+            type: 'error'
+          });
+        }
+      });
+  }
 }
+
 

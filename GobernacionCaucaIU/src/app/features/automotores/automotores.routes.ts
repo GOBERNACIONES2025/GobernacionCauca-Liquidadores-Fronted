@@ -23,6 +23,11 @@ import { TiposVinculoPage } from './presentation/pages/configuracion/transito/ti
 import { TiposDocumentoPage } from './presentation/pages/configuracion/contribuyentes/tipos-documento';
 import { NaturalezasJuridicasPage } from './presentation/pages/configuracion/contribuyentes/naturalezas-juridicas';
 import { PendientesAprobacionPage } from './presentation/pages/configuracion/control/pendientes-aprobacion';
+import { TarifasTributariasPage } from './presentation/pages/configuracion/tributaria/tarifas-tributarias/tarifas-tributarias';
+import { ExencionesTributariasPage } from './presentation/pages/configuracion/tributaria/exenciones-tributarias/exenciones-tributarias';
+import { VigenciasFiscalesPage } from './presentation/pages/configuracion/tributaria/vigencias-fiscales/vigencias-fiscales';
+import { NormasTributariasPage } from './presentation/pages/configuracion/tributaria/normas-tributarias/normas-tributarias';
+import { CalendariosTributariosPage } from './presentation/pages/configuracion/tributaria/calendarios-tributarios/calendarios-tributarios';
 
 export const automotoresRoutes: Routes = [
   {
@@ -64,6 +69,36 @@ export const automotoresRoutes: Routes = [
         pathMatch: 'full'
       },
       {
+        path: 'vigencias-fiscales',
+        redirectTo: 'configuracion/reglas-tributarias/vigencias',
+        pathMatch: 'full'
+      },
+      {
+        path: 'reglas-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/vigencias',
+        pathMatch: 'full'
+      },
+      {
+        path: 'tarifas-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/tarifas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'exenciones-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/exenciones',
+        pathMatch: 'full'
+      },
+      {
+        path: 'normas-tributarias',
+        redirectTo: 'configuracion/reglas-tributarias/normas',
+        pathMatch: 'full'
+      },
+      {
+        path: 'calendarios-tributarios',
+        redirectTo: 'configuracion/reglas-tributarias/calendarios',
+        pathMatch: 'full'
+      },
+      {
         path: 'valores-estatales',
         component: ValoresEstatalesPage
       },
@@ -79,6 +114,51 @@ export const automotoresRoutes: Routes = [
             path: '',
             redirectTo: 'territorio/departamentos',
             pathMatch: 'full'
+          },
+          {
+            path: 'reglas-tributarias',
+            redirectTo: 'reglas-tributarias/vigencias',
+            pathMatch: 'full'
+          },
+          {
+            path: 'reglas-tributarias/vigencias',
+            component: VigenciasFiscalesPage
+          },
+          {
+            path: 'reglas-tributarias/normas',
+            component: NormasTributariasPage
+          },
+          {
+            path: 'reglas-tributarias/tarifas',
+            component: TarifasTributariasPage
+          },
+          {
+            path: 'reglas-tributarias/exenciones',
+            component: ExencionesTributariasPage
+          },
+          {
+            path: 'reglas-tributarias/calendarios',
+            component: CalendariosTributariosPage
+          },
+          {
+            path: 'tributaria/vigencias',
+            component: VigenciasFiscalesPage
+          },
+          {
+            path: 'tributaria/normas',
+            component: NormasTributariasPage
+          },
+          {
+            path: 'tributaria/tarifas',
+            component: TarifasTributariasPage
+          },
+          {
+            path: 'tributaria/exenciones',
+            component: ExencionesTributariasPage
+          },
+          {
+            path: 'tributaria/calendarios',
+            component: CalendariosTributariosPage
           },
           {
             path: 'territorio/departamentos',
@@ -157,3 +237,4 @@ export const automotoresRoutes: Routes = [
     ]
   }
 ];
+
