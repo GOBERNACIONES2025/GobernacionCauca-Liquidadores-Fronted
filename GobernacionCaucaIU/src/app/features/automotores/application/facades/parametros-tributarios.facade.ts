@@ -2,6 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { BaseApiService } from '../../../../core/services/base-api.service';
+import { ParametrosSharedService } from '../../../../shared/services/parametros-shared.service';
 import {
   ParametroTributario,
   VigenciaFiscalItem,
@@ -15,17 +16,28 @@ import {
 })
 export class ParametrosTributariosFacade {
   private api = inject(BaseApiService);
+  /** Single source of truth: vigencias en memoria con cookie como respaldo */
+  readonly shared = inject(ParametrosSharedService);
 
-  // Catálogo de Vigencias Fiscales oficiales
-  readonly vigencias = signal<VigenciaFiscalItem[]>([
-    { id: 1, anio: 2026, activa: true, fechaInicio: '2026-01-01', fechaFin: '2026-12-31' },
-    { id: 2, anio: 2025, activa: false, fechaInicio: '2025-01-01', fechaFin: '2025-12-31' },
-    { id: 3, anio: 2024, activa: false, fechaInicio: '2024-01-01', fechaFin: '2024-12-31' },
-    { id: 10002, anio: 2023, activa: false, fechaInicio: '2023-01-01', fechaFin: '2023-12-31' },
-  ]);
+  // ── Vigencias delegadas a ParametrosSharedService (sin datos quemados) ──
+  /**
+   * Vigencias fiscales disponibles: provienen de la API (ya cacheadas en memoria por
+   * ParametrosSharedService). Si la cookie tiene el año seleccionado, se restaura automáticamente.
+   */
+  readonly vigencias = computed(() =>
+    this.shared.vigencias().map((v): VigenciaFiscalItem => ({
+      id: v.id,
+      anio: v.anio,
+      activa: v.activa,
+      fechaInicio: v.fechaInicio ?? undefined,
+      fechaFin: v.fechaFin ?? undefined,
+    }))
+  );
+  readonly vigenciaActiva = computed(() => {
+    const items = this.vigencias();
+    return items.find(v => v.activa) ?? items[0] ?? null;
+  });
 
-  // Vigencia Activa actual
-  readonly vigenciaActiva = computed(() => this.vigencias().find((v) => v.activa) ?? this.vigencias()[0]);
 
   // Estados Reactivos con Signals
   readonly parametros = signal<ParametroTributario[]>([]);
@@ -151,7 +163,8 @@ export class ParametrosTributariosFacade {
   ];
 
   constructor() {
-    this.cargarVigencias();
+    // Asegura que las vigencias estén disponibles; si ya cargaron, no hace nada
+    this.shared.cargarParametrosGenerales();
     this.cargarTodos();
   }
 
@@ -171,31 +184,10 @@ export class ParametrosTributariosFacade {
   }
 
   /**
-   * Carga las vigencias desde el endpoint de vigencias/catálogos
+   * Refresca las vigencias a través del servicio compartido
    */
   public cargarVigencias(): void {
-    this.api.get<any>('Vigencias', {}, 'REGISTROS').pipe(
-      catchError(() => this.api.get<any>('Catalogo/vigencias', {}, 'AUTOMOTORES')),
-      catchError(() => of(null))
-    ).subscribe((res) => {
-      if (res) {
-        let lista: any[] = [];
-        if (Array.isArray(res)) lista = res;
-        else if (Array.isArray(res.data)) lista = res.data;
-        else if (Array.isArray(res.data?.items)) lista = res.data.items;
-
-        if (lista.length > 0) {
-          const itemsMapeados: VigenciaFiscalItem[] = lista.map((item) => ({
-            id: Number(item.id),
-            anio: Number(item.anio),
-            activa: Boolean(item.activa ?? item.activo),
-            fechaInicio: item.fechaInicio,
-            fechaFin: item.fechaFin,
-          }));
-          this.vigencias.set(itemsMapeados);
-        }
-      }
-    });
+    this.shared.refrescarVigencias();
   }
 
   // Lista Filtrada Calculada

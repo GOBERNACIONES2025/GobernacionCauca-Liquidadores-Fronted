@@ -194,22 +194,6 @@ export class ContribuyenteValidator {
       });
     }
 
-    // ── DEPARTAMENTO (OBLIGATORIO) ────────────────────────────────────────
-    if (!isValidId(val.departamentoId)) {
-      errors.push({
-        campo: 'departamentoId',
-        mensaje: 'Seleccione el departamento.'
-      });
-    }
-
-    // ── CIUDAD / MUNICIPIO (OBLIGATORIO) ──────────────────────────────────
-    if (!isValidId(val.ciudadId)) {
-      errors.push({
-        campo: 'ciudadId',
-        mensaje: 'Seleccione la ciudad o municipio.'
-      });
-    }
-
     // ── ESTADO TRIBUTARIO (OBLIGATORIO) ───────────────────────────────────
     if (!isRequired(val.estadoTributario)) {
       errors.push({

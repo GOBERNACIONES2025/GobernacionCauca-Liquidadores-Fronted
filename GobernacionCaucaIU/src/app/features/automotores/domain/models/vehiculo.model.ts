@@ -67,8 +67,6 @@ export interface PropietarioInicialDto {
   correoElectronico?: string | null;
   telefono?: string | null;
   direccion?: string | null;
-  departamentoId?: number | null;
-  ciudadId?: number | null;
   tipoVinculoPersonaId: number;
   porcentajePropiedad: number;
   fechaInicio: string;

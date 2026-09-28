@@ -128,4 +128,69 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISOR OFICIAL DE DOCUMENTOS TRIBUTARIOS (DOSSIER MULTIPÁGINA 1 Y 2)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dossier-page-sheet {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22), 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 4px !important;
+  padding: 38px 42px !important;
+  margin: 0 auto 28px auto !important;
+  width: 100% !important;
+  max-width: 800px !important;
+  min-height: 1040px !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
+
+.dossier-page-gap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+  margin: 10px auto 28px auto !important;
+  max-width: 800px !important;
+  color: #334155 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.dossier-page-gap .gap-line {
+  flex: 1 !important;
+  height: 1px !important;
+  border-top: 2px dashed #94a3b8 !important;
+}
+
+.dossier-page-gap .gap-pill {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  padding: 5px 16px !important;
+  border-radius: 9999px !important;
+  border: 1px solid #94a3b8 !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+  font-size: 10.5px !important;
+}
+
+@media print {
+  .dossier-page-gap {
+    display: none !important;
+  }
+  .dossier-page-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+}
+
 

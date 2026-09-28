@@ -1,5 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { AuthStateService } from '../../../../core/auth/auth-state.service';
 import { 
   DeclaracionDeguelloData, 
   ConsultaGuiaRequest, 
@@ -13,6 +16,14 @@ import {
   providedIn: 'root',
 })
 export class DeguelloService {
+  private http = inject(HttpClient);
+  private authState = inject(AuthStateService);
+
+  private get apiUrl(): string {
+    const urls = this.authState.moduleApiUrls();
+    return urls['DEGUELLO'] || 'http://localhost:5045/api/v1';
+  }
+
   private readonly TARIFA_BASE_2026 = 49800; // Tarifa referencial Cauca 2026 (~1 UVT)
 
   /** Declaración seleccionada para reliquidar / corrección */
@@ -189,6 +200,23 @@ export class DeguelloService {
     const doc = req.documento.trim().replace(/\D/g, '');
     const guia = req.numeroGuia.trim().toUpperCase();
 
+    return this.http.get<{ success: boolean; data: { declaraciones: DeclaracionDeguelloData[] } }>(
+      `${this.apiUrl}/portalciudadano/consultar?documento=${encodeURIComponent(doc)}&secondaryStr=${encodeURIComponent(guia)}`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data?.declaraciones && res.data.declaraciones.length > 0) {
+          return res.data.declaraciones[0];
+        }
+        return this.consultarGuiaMock(req);
+      }),
+      catchError(() => of(this.consultarGuiaMock(req)))
+    );
+  }
+
+  private consultarGuiaMock(req: ConsultaGuiaRequest): DeclaracionDeguelloData | null {
+    const doc = req.documento.trim().replace(/\D/g, '');
+    const guia = req.numeroGuia.trim().toUpperCase();
+
     const encontrada = this.guiasSimuladas.find((item) => {
       const itemDoc = item.nit.replace(/\D/g, '');
       const itemGuia = (item.numeroGuiaIca || '').toUpperCase();
@@ -200,11 +228,28 @@ export class DeguelloService {
       return matchDoc && matchGuia;
     });
 
-    return of(encontrada ? { ...encontrada } : null);
+    return encontrada ? { ...encontrada } : null;
   }
 
   /** Consultar todas las declaraciones y guías para el Portal del Contribuyente */
   consultarDeclaracionesCiudadano(docStr: string, secondaryStr: string): Observable<DeclaracionDeguelloData[]> {
+    const doc = docStr ? docStr.trim().replace(/\D/g, '') : '';
+    const guia = secondaryStr ? secondaryStr.trim().toUpperCase() : '';
+
+    return this.http.get<{ success: boolean; data: { declaraciones: DeclaracionDeguelloData[] } }>(
+      `${this.apiUrl}/portalciudadano/consultar?documento=${encodeURIComponent(doc)}&secondaryStr=${encodeURIComponent(guia)}`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data?.declaraciones && res.data.declaraciones.length > 0) {
+          return res.data.declaraciones;
+        }
+        return this.consultarDeclaracionesCiudadanoMock(docStr, secondaryStr);
+      }),
+      catchError(() => of(this.consultarDeclaracionesCiudadanoMock(docStr, secondaryStr)))
+    );
+  }
+
+  private consultarDeclaracionesCiudadanoMock(docStr: string, secondaryStr: string): DeclaracionDeguelloData[] {
     const doc = docStr ? docStr.trim().replace(/\D/g, '') : '';
     const guia = secondaryStr ? secondaryStr.trim().toUpperCase() : '';
 
@@ -230,7 +275,7 @@ export class DeguelloService {
       return false;
     });
 
-    return of(filtradas.map((d) => ({ ...d })));
+    return filtradas.map((d) => ({ ...d }));
   }
 
   /** Calcular liquidación matemática a partir de cabezas y valores */
@@ -328,7 +373,17 @@ export class DeguelloService {
 
   /** Listar todas las declaraciones y formularios registrados */
   listarDeclaraciones(): Observable<DeclaracionDeguelloData[]> {
-    return of([...this.guiasSimuladas]);
+    return this.http.get<{ success: boolean; data: { items: DeclaracionDeguelloData[] } }>(
+      `${this.apiUrl}/declaraciones?pageSize=100`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data?.items && res.data.items.length > 0) {
+          return res.data.items;
+        }
+        return [...this.guiasSimuladas];
+      }),
+      catchError(() => of([...this.guiasSimuladas]))
+    );
   }
 
   /** Catálogo de Plantas de Beneficio Animal (PBA) autorizadas en el Cauca */
@@ -387,16 +442,42 @@ export class DeguelloService {
   };
 
   listarPlantasBeneficio(): Observable<PlantaBeneficio[]> {
-    return of([...this.plantasBeneficio]);
+    return this.http.get<{ success: boolean; data: PlantaBeneficio[] }>(
+      `${this.apiUrl}/plantas-beneficio`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data && res.data.length > 0) {
+          return res.data;
+        }
+        return [...this.plantasBeneficio];
+      }),
+      catchError(() => of([...this.plantasBeneficio]))
+    );
   }
 
   obtenerParametros(): Observable<ParametrosDeguello> {
-    return of({ ...this.parametrosActuales });
+    return this.http.get<{ success: boolean; data: ParametrosDeguello }>(
+      `${this.apiUrl}/parametrizacion`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          return res.data;
+        }
+        return { ...this.parametrosActuales };
+      }),
+      catchError(() => of({ ...this.parametrosActuales }))
+    );
   }
 
   guardarParametros(nuevos: ParametrosDeguello): Observable<ParametrosDeguello> {
     this.parametrosActuales = { ...nuevos };
-    return of({ ...this.parametrosActuales });
+    return this.http.post<{ success: boolean; data: ParametrosDeguello }>(
+      `${this.apiUrl}/parametrizacion`,
+      nuevos
+    ).pipe(
+      map(res => res?.success && res.data ? res.data : { ...this.parametrosActuales }),
+      catchError(() => of({ ...this.parametrosActuales }))
+    );
   }
 
   setDeclaracionEnEdicion(d: DeclaracionDeguelloData | null): void {
@@ -535,6 +616,20 @@ export class DeguelloService {
    * Generar informe consolidado de recaudo y participación del 10% por municipio
    */
   obtenerInformeMunicipios(): Observable<InformeMunicipioRecaudo[]> {
+    return this.http.get<{ success: boolean; data: InformeMunicipioRecaudo[] }>(
+      `${this.apiUrl}/informes/municipios`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data && res.data.length > 0) {
+          return res.data;
+        }
+        return this.obtenerInformeMunicipiosMock();
+      }),
+      catchError(() => of(this.obtenerInformeMunicipiosMock()))
+    );
+  }
+
+  private obtenerInformeMunicipiosMock(): InformeMunicipioRecaudo[] {
     const mapa = new Map<string, InformeMunicipioRecaudo>();
 
     // Inicializar municipios oficiales del Cauca
@@ -572,14 +667,28 @@ export class DeguelloService {
       row.formularios += 1;
     });
 
-    return of(Array.from(mapa.values()));
+    return Array.from(mapa.values());
   }
 
   /**
    * Generar informe de sacrificios y recaudo por Planta de Beneficio Animal (PBA)
    */
   obtenerInformePlantas(): Observable<InformePlantaBeneficio[]> {
-    const result: InformePlantaBeneficio[] = this.plantasBeneficio.map((p) => {
+    return this.http.get<{ success: boolean; data: InformePlantaBeneficio[] }>(
+      `${this.apiUrl}/informes/plantas`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data && res.data.length > 0) {
+          return res.data;
+        }
+        return this.obtenerInformePlantasMock();
+      }),
+      catchError(() => of(this.obtenerInformePlantasMock()))
+    );
+  }
+
+  private obtenerInformePlantasMock(): InformePlantaBeneficio[] {
+    return this.plantasBeneficio.map((p) => {
       const declaracionDePlanta = this.guiasSimuladas.filter((d) =>
         (d.plantaBeneficio || '').toLowerCase().includes(p.municipio.toLowerCase()) ||
         (d.plantaBeneficio || '').toLowerCase().includes(p.nombre.toLowerCase().substring(0, 8))
@@ -599,8 +708,6 @@ export class DeguelloService {
         porcentajeOcupacion: ocupacion || 68
       };
     });
-
-    return of(result);
   }
 
   /** Formatear moneda colombiana */

@@ -744,6 +744,13 @@ export class StepActosComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Respaldar los intervinientes actuales para que no se pierdan si se mutan los actos
+    const respaldoIntervinientes = this.wizardService.actosExpediente().map(a => ({
+      tipoActoId: a.tipoActoId,
+      inmuebleId: a.inmuebleId,
+      intervinientes: [...(a.intervinientes || [])]
+    }));
+
     const actosPayload: ActoRegistradoDto[] = this.wizardService.actosExpediente().map(a => ({
       tipoActoRegistroId: a.tipoActoId,
       inmuebleId: a.inmuebleId || null,
@@ -768,10 +775,39 @@ export class StepActosComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (res) => {
         if (res.success && res.data) {
+          const etapaPrevia = this.wizardService.etapaGuardada();
           this.wizardService.cargarDatosDesdeSolicitud(res.data);
+
+          // Si algún acto resultante en el cliente no tiene intervinientes y teníamos respaldo, restaurarlo
+          this.wizardService.actosExpediente.update(actosNuevos => {
+            const usadosRespaldo = new Set<number>();
+            return actosNuevos.map(actoNuevo => {
+              if (actoNuevo.intervinientes && actoNuevo.intervinientes.length > 0) {
+                return actoNuevo;
+              }
+              const indexMatch = respaldoIntervinientes.findIndex((r, idx) => 
+                !usadosRespaldo.has(idx) && 
+                r.tipoActoId === actoNuevo.tipoActoId && 
+                r.inmuebleId === actoNuevo.inmuebleId
+              );
+              const fallbackMatch = indexMatch !== -1 ? indexMatch : respaldoIntervinientes.findIndex((r, idx) => 
+                !usadosRespaldo.has(idx) && r.tipoActoId === actoNuevo.tipoActoId
+              );
+
+              if (fallbackMatch !== -1) {
+                usadosRespaldo.add(fallbackMatch);
+                return {
+                  ...actoNuevo,
+                  intervinientes: respaldoIntervinientes[fallbackMatch].intervinientes
+                };
+              }
+              return actoNuevo;
+            });
+          });
+
           this.wizardService.currentStep.set(4);
-          this.wizardService.etapaGuardada.set(3);
-          this.toastService.success('Actos guardados exitosamente. Ahora añada los intervinientes.');
+          this.wizardService.etapaGuardada.set(Math.max(etapaPrevia, 3));
+          this.toastService.success('Actos guardados exitosamente. Ahora verifique los intervinientes.');
         }
       }
     });

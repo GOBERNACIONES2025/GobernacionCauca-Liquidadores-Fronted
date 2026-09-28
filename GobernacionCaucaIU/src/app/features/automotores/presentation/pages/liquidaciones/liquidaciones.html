@@ -376,10 +376,56 @@
                     <span class="text-sm font-black text-slate-900">${{ grupo.totalVehiculo | number:'1.0-0' }}</span>
                   </td>
 
-                  <td class="py-3.5 px-4 text-center">
-                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold bg-red-100 text-red-800 border border-red-200">
-                      EN MORA
-                    </span>
+                  <td class="py-3 px-4 text-center min-w-[160px]">
+                    <div class="flex flex-col items-center gap-1">
+                      <!-- Badge Estado Principal -->
+                      @if (grupo.estadoConsolidado === 'EN MORA') {
+                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold bg-red-100 text-red-800 border border-red-200 shadow-2xs">
+                          <i class="fa-solid fa-triangle-exclamation text-[9px]"></i>
+                          EN MORA
+                        </span>
+                      } @else if (grupo.estadoConsolidado === 'PRESCRITA') {
+                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold bg-purple-100 text-purple-800 border border-purple-200">
+                          <i class="fa-solid fa-clock-rotate-left text-[9px]"></i>
+                          PRESCRITA
+                        </span>
+                      } @else {
+                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <i class="fa-solid fa-circle-check text-[9px]"></i>
+                          AL DÍA
+                        </span>
+                      }
+
+                      <!-- Tarjeta compacta explicativa de fechas y mora -->
+                      <div class="w-full bg-white/90 border border-slate-200/80 rounded-md p-1 text-[10px] text-left leading-tight shadow-2xs">
+                        @if (grupo.diasMoraMaximo > 0) {
+                          <div class="text-red-700 font-bold flex items-center gap-1 truncate" [title]="grupo.motivoMoraConsolidado">
+                            <i class="fa-solid fa-calendar-xmark text-[9px] shrink-0"></i>
+                            <span class="truncate">{{ grupo.motivoMoraConsolidado }}</span>
+                          </div>
+                        } @else {
+                          <div class="text-emerald-700 font-semibold flex items-center gap-1 truncate">
+                            <i class="fa-solid fa-calendar-check text-[9px] shrink-0"></i>
+                            <span>{{ grupo.motivoMoraConsolidado }}</span>
+                          </div>
+                        }
+
+                        <div class="text-slate-500 text-[9.5px] mt-0.5 flex items-center justify-between border-t border-slate-100 pt-0.5">
+                          <span title="Fecha base con la que se liquidó la mora">
+                            Calc: {{ (grupo.fechaCalculoMora | date:'dd/MM/yyyy') || 'Hoy' }}
+                          </span>
+                          @if (grupo.esCalculoHoy) {
+                            <span class="inline-flex items-center px-1 rounded text-[8.5px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Intereses liquidados con la fecha de hoy">
+                              ✓ Hoy
+                            </span>
+                          } @else {
+                            <span class="inline-flex items-center px-1 rounded text-[8.5px] font-bold bg-amber-50 text-amber-700 border border-amber-200" title="Liquidación emitida en fecha previa">
+                              Emitida
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    </div>
                   </td>
 
                   <td class="py-3.5 px-4 text-center whitespace-nowrap">
@@ -458,10 +504,25 @@
                         ${{ v.totalPagar | number:'1.0-0' }}
                       </td>
 
-                      <td class="py-2.5 px-4 text-center">
-                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                          EMITIDA
-                        </span>
+                      <td class="py-2.5 px-4 text-center min-w-[140px]">
+                        <div class="flex flex-col items-center gap-0.5">
+                          @if (v.interesesMora > 0 || v.sancionExtemporaneidad > 0 || (v.diasMora && v.diasMora > 0)) {
+                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-red-100 text-red-800 border border-red-200">
+                              MORA ({{ v.diasMora || 0 }}d)
+                            </span>
+                          } @else {
+                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              AL DÍA
+                            </span>
+                          }
+
+                          <div class="text-[9.5px] text-slate-500 text-center leading-none mt-0.5">
+                            @if (v.fechaLimitePago) {
+                              <span class="text-slate-600 block">Vence: {{ v.fechaLimitePago | date:'dd/MM/yyyy' }}</span>
+                            }
+                            <span class="text-[9px] text-slate-400 block mt-0.5">Calc: {{ (v.fechaCalculoMora || v.fechaCalculo) | date:'dd/MM/yyyy' }}</span>
+                          </div>
+                        </div>
                       </td>
 
                       <td class="py-2.5 px-4 text-center whitespace-nowrap text-slate-400 text-xs">

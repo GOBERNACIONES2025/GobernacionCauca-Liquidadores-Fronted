@@ -1,0 +1,750 @@
+<div class="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
+  <!-- Encabezado de la página -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
+          <i class="fa-solid fa-scale-balanced text-[10px]"></i>
+          Reglas Tributarias
+        </span>
+        <span class="text-xs text-slate-400">•</span>
+        <span class="text-xs font-medium text-slate-500">general.NormasTributarias</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-[#0F3067] text-white flex items-center justify-center shadow-xs">
+          <i class="fa-solid fa-gavel text-sm"></i>
+        </div>
+        Normas Tributarias
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-500 mt-1">
+        Gestión de leyes, decretos, ordenanzas y actos administrativos que sustentan las tarifas, exenciones y calendarios tributarios.
+      </p>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="flex items-center gap-2.5 shrink-0">
+      <button
+        type="button"
+        (click)="facade.cargarNormas()"
+        class="p-2.5 text-slate-600 hover:text-slate-900 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition shadow-xs cursor-pointer"
+        title="Recargar listado"
+      >
+        <i class="fa-solid fa-rotate-right text-sm" [class.fa-spin]="facade.loading()"></i>
+      </button>
+
+      <button
+        type="button"
+        (click)="abrirCrear()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 bg-[#0F3067] hover:bg-[#1b53ad] text-white text-xs sm:text-sm font-semibold rounded-xl shadow-xs transition cursor-pointer"
+      >
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>Nueva Norma</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs / Tarjetas Informativas -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-book-bookmark"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Normas</p>
+        <p class="text-2xl font-bold text-slate-800">{{ facade.totalNormas() }}</p>
+        <p class="text-[11px] text-slate-500">Actos registrados</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Normas Activas</p>
+        <p class="text-2xl font-bold text-emerald-700">{{ facade.totalActivas() }}</p>
+        <p class="text-[11px] text-emerald-600">Vigentes y aplicables</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-ban"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Normas Inactivas</p>
+        <p class="text-2xl font-bold text-slate-600">{{ facade.totalInactivas() }}</p>
+        <p class="text-[11px] text-slate-400">Derogadas / Históricas</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+      <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shrink-0">
+        <i class="fa-solid fa-file-pdf"></i>
+      </div>
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Con Documento</p>
+        <p class="text-2xl font-bold text-rose-700">{{ facade.totalConDocumento() }}</p>
+        <p class="text-[11px] text-rose-600">En repositorio FTP</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros & Búsqueda -->
+  <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <!-- Búsqueda por texto -->
+      <div class="md:col-span-2 relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+        </div>
+        <input
+          type="text"
+          [ngModel]="facade.searchTerm()"
+          (ngModelChange)="onSearch($event)"
+          placeholder="Buscar por número, título o entidad emisora..."
+          class="w-full pl-9 pr-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] transition shadow-2xs"
+        />
+      </div>
+
+      <!-- Filtro Tipo de Norma -->
+      <div>
+        <select
+          [ngModel]="facade.tipoNormaFiltro()"
+          (ngModelChange)="onFilterTipo($event)"
+          class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:bg-white focus:border-[#0F3067] transition shadow-2xs"
+        >
+          <option value="TODOS">Todos los Tipos</option>
+          @for (t of tiposNormaList; track t.value) {
+            <option [value]="t.value">{{ t.label }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filtro Estado -->
+      <div>
+        <select
+          [ngModel]="facade.estadoFiltro()"
+          (ngModelChange)="onFilterEstado($event)"
+          class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:bg-white focus:border-[#0F3067] transition shadow-2xs"
+        >
+          <option value="TODOS">Todos los Estados</option>
+          <option value="ACTIVOS">Solo Activas</option>
+          <option value="INACTIVOS">Solo Inactivas</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabla de Normas Tributarias -->
+  <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+    @if (facade.loading()) {
+      <div class="p-12 text-center text-slate-500">
+        <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-600 mb-3"></i>
+        <p class="text-sm font-medium">Cargando normas tributarias...</p>
+      </div>
+    } @else if (facade.error()) {
+      <div class="p-8 text-center text-rose-600">
+        <i class="fa-solid fa-circle-exclamation text-3xl mb-2"></i>
+        <p class="text-sm font-semibold">{{ facade.error() }}</p>
+        <button
+          (click)="facade.cargarNormas()"
+          class="mt-3 px-4 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg transition border border-rose-200"
+        >
+          Reintentar
+        </button>
+      </div>
+    } @else if (facade.normas().length === 0) {
+      <div class="p-12 text-center text-slate-400">
+        <div class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 text-2xl">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <p class="text-sm font-semibold text-slate-700">No se encontraron normas tributarias</p>
+        <p class="text-xs text-slate-400 mt-1">Pruebe ajustando los filtros de búsqueda o registre una nueva norma.</p>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-4">Norma</th>
+              <th class="py-3 px-4">Número</th>
+              <th class="py-3 px-4">Título / Descripción</th>
+              <th class="py-3 px-4">Emisor</th>
+              <th class="py-3 px-4 text-center">Expedición</th>
+              <th class="py-3 px-4 text-center">Documento PDF</th>
+              <th class="py-3 px-4 text-center">Estado</th>
+              <th class="py-3 px-4 text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-xs text-slate-700">
+            @for (norma of facade.normas(); track norma.id) {
+              <tr class="hover:bg-slate-50/60 transition-colors">
+                <!-- Tipo de Norma Badge -->
+                <td class="py-3.5 px-4 font-medium">
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border {{ getTipoBadgeClass(norma.tipoNorma) }}">
+                    <i class="fa-solid {{ getTipoIcon(norma.tipoNorma) }} text-[11px]"></i>
+                    {{ norma.tipoNorma }}
+                  </span>
+                </td>
+
+                <!-- Número -->
+                <td class="py-3.5 px-4 font-bold text-slate-900 font-mono">
+                  {{ norma.numero }}
+                </td>
+
+                <!-- Título -->
+                <td class="py-3.5 px-4 max-w-xs">
+                  <div class="truncate font-medium text-slate-800" [title]="norma.titulo || 'Sin título especificado'">
+                    {{ norma.titulo || '—' }}
+                  </div>
+                </td>
+
+                <!-- Entidad Emisora -->
+                <td class="py-3.5 px-4 text-slate-600">
+                  <div class="truncate max-w-[180px]" [title]="norma.entidadEmisora || ''">
+                    {{ norma.entidadEmisora || '—' }}
+                  </div>
+                </td>
+
+                <!-- Fecha Expedición -->
+                <td class="py-3.5 px-4 text-center text-slate-600 font-mono text-[11px]">
+                  {{ norma.fechaExpedicion ? (norma.fechaExpedicion | date:'dd/MM/yyyy') : '—' }}
+                </td>
+
+                <!-- Documento Fuente (PDF / FTP) -->
+                <td class="py-3.5 px-4 text-center">
+                  @if (norma.urlFuente) {
+                    <div class="inline-flex items-center gap-1.5">
+                      <a
+                        [href]="norma.urlFuente"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100 transition shadow-2xs"
+                        title="Ver documento en nueva pestaña"
+                      >
+                        <i class="fa-solid fa-file-pdf text-rose-600"></i>
+                        <span>PDF</span>
+                      </a>
+
+                      @if (norma.hashDocumento) {
+                        <button
+                          type="button"
+                          (click)="copiarTexto(norma.hashDocumento, 'Hash SHA-256')"
+                          class="p-1 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                          title="Copiar Hash SHA-256: {{ norma.hashDocumento }}"
+                        >
+                          <i class="fa-solid fa-shield-halved text-xs text-blue-500"></i>
+                        </button>
+                      }
+                    </div>
+                  } @else {
+                    <span class="text-slate-400 text-[11px] italic">Sin adjunto</span>
+                  }
+                </td>
+
+                <!-- Estado (Toggle) -->
+                <td class="py-3.5 px-4 text-center">
+                  <button
+                    type="button"
+                    (click)="toggleActiva(norma)"
+                    class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold transition cursor-pointer"
+                    [class.bg-emerald-50]="norma.activa"
+                    [class.text-emerald-700]="norma.activa"
+                    [class.border]="true"
+                    [class.border-emerald-200]="norma.activa"
+                    [class.bg-slate-100]="!norma.activa"
+                    [class.text-slate-600]="!norma.activa"
+                    [class.border-slate-300]="!norma.activa"
+                  >
+                    <span class="w-1.5 h-1.5 rounded-full" [class.bg-emerald-500]="norma.activa" [class.bg-slate-400]="!norma.activa"></span>
+                    {{ norma.activa ? 'Activa' : 'Inactiva' }}
+                  </button>
+                </td>
+
+                <!-- Acciones -->
+                <td class="py-3.5 px-4 text-right whitespace-nowrap">
+                  <div class="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      (click)="abrirDetalles(norma)"
+                      class="p-1.5 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition cursor-pointer"
+                      title="Ver detalles"
+                    >
+                      <i class="fa-solid fa-eye text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="abrirEditar(norma)"
+                      class="p-1.5 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition cursor-pointer"
+                      title="Editar norma"
+                    >
+                      <i class="fa-solid fa-pen-to-square text-xs"></i>
+                    </button>
+                    <button
+                      type="button"
+                      (click)="abrirConfirmarEliminar(norma)"
+                      class="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                      title="Eliminar norma"
+                    >
+                      <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <div class="p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50">
+        <div class="text-xs text-slate-500 font-medium">
+          Mostrando página <span class="font-bold text-slate-800">{{ facade.pageNumber() }}</span> de <span class="font-bold text-slate-800">{{ facade.totalPages() }}</span>
+          ({{ facade.totalNormas() }} registros en total)
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Page size selector -->
+          <select
+            [ngModel]="facade.pageSize()"
+            (ngModelChange)="onPageSizeChange($event)"
+            class="px-2.5 py-1 text-xs bg-white border border-slate-300 rounded-lg text-slate-700 font-medium focus:outline-none focus:border-[#0F3067]"
+          >
+            <option [value]="5">5 por pág.</option>
+            <option [value]="10">10 por pág.</option>
+            <option [value]="20">20 por pág.</option>
+            <option [value]="50">50 por pág.</option>
+          </select>
+
+          <!-- Navigation buttons -->
+          <div class="inline-flex items-center gap-1">
+            <button
+              type="button"
+              (click)="onPageChange(facade.pageNumber() - 1)"
+              [disabled]="facade.pageNumber() <= 1"
+              class="px-2.5 py-1 text-xs font-semibold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <i class="fa-solid fa-chevron-left text-[10px] mr-1"></i> Anterior
+            </button>
+            <button
+              type="button"
+              (click)="onPageChange(facade.pageNumber() + 1)"
+              [disabled]="facade.pageNumber() >= facade.totalPages()"
+              class="px-2.5 py-1 text-xs font-semibold bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Siguiente <i class="fa-solid fa-chevron-right text-[10px] ml-1"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- SLIDE-OVER: CREAR / EDITAR NORMA TRIBUTARIA                               -->
+  <!-- ========================================================================= -->
+  @if (isSlideOverOpen()) {
+    <div class="fixed inset-0 z-50 overflow-hidden" aria-labelledby="slide-over-title" role="dialog" aria-modal="true">
+      <!-- Backdrop -->
+      <div
+        class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+        (click)="cerrarSlideOver()"
+      ></div>
+
+      <div class="fixed inset-y-0 right-0 max-w-full flex pl-10">
+        <div class="w-screen max-w-lg bg-white shadow-2xl flex flex-col">
+          <!-- Header Slide-over -->
+          <div class="p-6 bg-[#0F3067] text-white flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-lg">
+                <i class="fa-solid {{ isEditMode() ? 'fa-pen-to-square' : 'fa-plus' }}"></i>
+              </div>
+              <div>
+                <h2 class="text-base font-bold" id="slide-over-title">
+                  {{ isEditMode() ? 'Editar Norma Tributaria' : 'Nueva Norma Tributaria' }}
+                </h2>
+                <p class="text-xs text-blue-200">
+                  {{ isEditMode() ? 'Modifique los datos y/o reemplace el archivo fuente' : 'Complete el formulario y adjunte el documento PDF' }}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              (click)="cerrarSlideOver()"
+              class="text-white/70 hover:text-white p-2 rounded-lg hover:bg-white/10 transition cursor-pointer"
+            >
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+
+          <!-- Body Slide-over -->
+          <form [formGroup]="normaForm" (ngSubmit)="guardarNorma()" class="flex-1 overflow-y-auto p-6 space-y-5">
+            <!-- Tipo de Norma y Número -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Tipo de Norma <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  formControlName="tipoNorma"
+                  class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-semibold focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067]"
+                >
+                  @for (t of tiposNormaList; track t.value) {
+                    <option [value]="t.value">{{ t.label }} ({{ t.value }})</option>
+                  }
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Número de Norma <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  formControlName="numero"
+                  placeholder="Ej: 488 de 1998, 001..."
+                  class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-semibold focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067]"
+                />
+                @if (normaForm.get('numero')?.touched && normaForm.get('numero')?.invalid) {
+                  <p class="text-[11px] text-rose-600 mt-1">El número de norma es obligatorio.</p>
+                }
+              </div>
+            </div>
+
+            <!-- Fecha de Expedición y Entidad Emisora -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Fecha de Expedición
+                </label>
+                <input
+                  type="date"
+                  formControlName="fechaExpedicion"
+                  class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067]"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Entidad Emisora
+                </label>
+                <input
+                  type="text"
+                  formControlName="entidadEmisora"
+                  placeholder="Ej: Asamblea Dptal, MinHacienda..."
+                  class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067]"
+                />
+              </div>
+            </div>
+
+            <!-- Título / Objeto de la norma -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Título / Objeto de la Norma
+              </label>
+              <textarea
+                formControlName="titulo"
+                rows="3"
+                placeholder="Descripción del propósito o alcance normativo..."
+                class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-xl text-slate-800 font-medium focus:outline-none focus:border-[#0F3067] focus:ring-1 focus:ring-[#0F3067] resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Adjunto de Archivo PDF (FTP) -->
+            <div class="border-t border-slate-200 pt-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                <span>Documento Fuente (PDF)</span>
+                <span class="text-[11px] font-normal text-slate-400">Opcional • Máx 15MB</span>
+              </label>
+
+              <!-- Archivo actual si está en modo edición -->
+              @if (isEditMode() && selectedItem()?.urlFuente && !selectedFile()) {
+                <div class="mb-3 p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
+                  <div class="flex items-center gap-2.5 overflow-hidden">
+                    <div class="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                      <i class="fa-solid fa-file-pdf"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                      <p class="text-xs font-semibold text-slate-800 truncate">Documento en servidor FTP</p>
+                      <p class="text-[10px] text-slate-400 font-mono truncate">{{ selectedItem()?.urlFuente }}</p>
+                    </div>
+                  </div>
+                  <a
+                    [href]="selectedItem()?.urlFuente"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-xs font-semibold text-blue-600 hover:text-blue-800 px-2 py-1 rounded-lg hover:bg-blue-50 transition shrink-0"
+                  >
+                    Ver <i class="fa-solid fa-external-link text-[10px] ml-1"></i>
+                  </a>
+                </div>
+              }
+
+              <!-- Zona de Dropzone / Carga -->
+              <div
+                (dragover)="onDragOver($event)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event)"
+                class="border-2 border-dashed rounded-2xl p-4 text-center transition cursor-pointer"
+                [class.border-blue-500]="isDragging()"
+                [class.bg-blue-50]="isDragging()"
+                [class.border-slate-300]="!isDragging()"
+                [class.bg-slate-50]="!isDragging()"
+              >
+                @if (selectedFile()) {
+                  <div class="flex items-center justify-between p-2 bg-white rounded-xl border border-blue-200">
+                    <div class="flex items-center gap-2.5 overflow-hidden">
+                      <div class="w-9 h-9 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-file-pdf text-base"></i>
+                      </div>
+                      <div class="text-left overflow-hidden">
+                        <p class="text-xs font-bold text-slate-800 truncate">{{ selectedFileName() }}</p>
+                        <p class="text-[11px] text-slate-500">{{ selectedFileSize() }} • Listo para subir</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="limpiarArchivo()"
+                      class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition"
+                      title="Quitar archivo"
+                    >
+                      <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                  </div>
+                } @else {
+                  <input
+                    type="file"
+                    id="pdfFileInput"
+                    accept=".pdf,application/pdf"
+                    (change)="onFileSelected($event)"
+                    class="hidden"
+                  />
+                  <label for="pdfFileInput" class="cursor-pointer block">
+                    <div class="w-10 h-10 rounded-xl bg-blue-100 text-[#0F3067] flex items-center justify-center mx-auto mb-2 text-lg">
+                      <i class="fa-solid fa-cloud-arrow-up"></i>
+                    </div>
+                    <p class="text-xs font-bold text-slate-700">
+                      {{ isEditMode() && selectedItem()?.urlFuente ? 'Haga clic para reemplazar el PDF' : 'Haga clic para seleccionar o arrastre el archivo PDF' }}
+                    </p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Se subirá al servidor FTP institucional</p>
+                  </label>
+                }
+              </div>
+            </div>
+
+            <!-- Estado Activa -->
+            <div class="border-t border-slate-200 pt-4 flex items-center justify-between">
+              <div>
+                <label class="text-xs font-bold text-slate-800">Estado de la Norma</label>
+                <p class="text-[11px] text-slate-500">Determina si la norma está vigente y disponible para tarifas y exenciones.</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" formControlName="activa" class="sr-only peer" />
+                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F3067]"></div>
+              </label>
+            </div>
+          </form>
+
+          <!-- Footer Slide-over -->
+          <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end gap-2.5">
+            <button
+              type="button"
+              (click)="cerrarSlideOver()"
+              class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              (click)="guardarNorma()"
+              [disabled]="facade.loading()"
+              class="px-5 py-2 text-xs font-semibold text-white bg-[#0F3067] hover:bg-[#1b53ad] rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              @if (facade.loading()) {
+                <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                <span>Guardando...</span>
+              } @else {
+                <i class="fa-solid fa-check text-xs"></i>
+                <span>{{ isEditMode() ? 'Actualizar Norma' : 'Guardar Norma' }}</span>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DETALLES DE LA NORMA TRIBUTARIA                                    -->
+  <!-- ========================================================================= -->
+  @if (isDetailsModalOpen() && selectedItem()) {
+    <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" (click)="cerrarDetallesModal()"></div>
+
+      <div class="relative bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden z-10">
+        <!-- Modal Header -->
+        <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#0F3067] text-white flex items-center justify-center text-lg">
+              <i class="fa-solid fa-scale-balanced"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Detalle de Norma Tributaria</h3>
+              <p class="text-xs text-slate-500 font-mono">{{ selectedItem()?.tipoNorma }} {{ selectedItem()?.numero }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarDetallesModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200 transition">
+            <i class="fa-solid fa-xmark text-base"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-4 text-xs">
+          <div class="grid grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Tipo y Número</span>
+              <span class="font-bold text-slate-800 text-sm">{{ selectedItem()?.tipoNorma }} {{ selectedItem()?.numero }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Estado</span>
+              <span
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold mt-0.5"
+                [class.bg-emerald-100]="selectedItem()?.activa"
+                [class.text-emerald-800]="selectedItem()?.activa"
+                [class.bg-slate-200]="!selectedItem()?.activa"
+                [class.text-slate-700]="!selectedItem()?.activa"
+              >
+                <span class="w-1.5 h-1.5 rounded-full" [class.bg-emerald-500]="selectedItem()?.activa" [class.bg-slate-500]="!selectedItem()?.activa"></span>
+                {{ selectedItem()?.activa ? 'Activa' : 'Inactiva' }}
+              </span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Fecha de Expedición</span>
+              <span class="font-medium text-slate-700 font-mono">
+                {{ selectedItem()?.fechaExpedicion ? (selectedItem()?.fechaExpedicion | date:'dd/MM/yyyy') : 'No especificada' }}
+              </span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase font-bold">Entidad Emisora</span>
+              <span class="font-medium text-slate-700">{{ selectedItem()?.entidadEmisora || 'No especificada' }}</span>
+            </div>
+          </div>
+
+          @if (selectedItem()?.titulo) {
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase font-bold mb-1">Título / Objeto</span>
+              <p class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 leading-relaxed font-normal">
+                {{ selectedItem()?.titulo }}
+              </p>
+            </div>
+          }
+
+          <!-- Documento e Integridad Criptográfica -->
+          <div class="border-t border-slate-200 pt-3 space-y-2">
+            <span class="text-slate-400 block text-[10px] uppercase font-bold">Repositorio & Documento Digital</span>
+            @if (selectedItem()?.urlFuente) {
+              <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-200 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2 text-blue-900 font-semibold">
+                    <i class="fa-solid fa-file-pdf text-rose-600"></i>
+                    <span>Documento en FTP</span>
+                  </div>
+                  <a
+                    [href]="selectedItem()?.urlFuente"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="px-2.5 py-1 bg-white border border-blue-200 text-blue-700 rounded-lg font-bold hover:bg-blue-100 transition shadow-2xs inline-flex items-center gap-1 text-[11px]"
+                  >
+                    Abrir PDF <i class="fa-solid fa-external-link text-[9px]"></i>
+                  </a>
+                </div>
+                <p class="text-[10.5px] text-slate-500 font-mono break-all">{{ selectedItem()?.urlFuente }}</p>
+
+                @if (selectedItem()?.hashDocumento) {
+                  <div class="pt-2 border-t border-blue-100 flex items-center justify-between gap-2">
+                    <div class="overflow-hidden">
+                      <span class="text-[9.5px] uppercase font-bold text-slate-400 block">Hash SHA-256 (Integridad)</span>
+                      <p class="text-[10px] text-slate-600 font-mono truncate select-all">{{ selectedItem()?.hashDocumento }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      (click)="copiarTexto(selectedItem()!.hashDocumento!, 'Hash SHA-256')"
+                      class="px-2 py-1 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-lg transition shrink-0 font-semibold"
+                    >
+                      <i class="fa-solid fa-copy mr-1"></i> Copiar
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-400 italic">
+                Esta norma no tiene un documento digital PDF adjunto en el servidor FTP.
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-end">
+          <button
+            type="button"
+            (click)="cerrarDetallesModal()"
+            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: CONFIRMAR ELIMINACIÓN                                              -->
+  <!-- ========================================================================= -->
+  @if (itemParaEliminar()) {
+    <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4" role="dialog" aria-modal="true">
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" (click)="cerrarConfirmarEliminar()"></div>
+
+      <div class="relative bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 p-6 z-10 text-center space-y-4">
+        <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div>
+          <h3 class="text-base font-bold text-slate-900">¿Eliminar Norma Tributaria?</h3>
+          <p class="text-xs text-slate-500 mt-1">
+            Se eliminará permanentemente la norma <span class="font-bold text-slate-800">{{ itemParaEliminar()?.tipoNorma }} {{ itemParaEliminar()?.numero }}</span> de la base de datos.
+          </p>
+          @if (itemParaEliminar()?.urlFuente) {
+            <p class="text-[11px] text-rose-600 mt-2 bg-rose-50 p-2 rounded-lg border border-rose-100 font-medium">
+              <i class="fa-solid fa-trash-can mr-1"></i> El archivo PDF adjunto también será eliminado del servidor FTP.
+            </p>
+          }
+        </div>
+
+        <div class="flex items-center justify-center gap-3 pt-2">
+          <button
+            type="button"
+            (click)="cerrarConfirmarEliminar()"
+            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarEliminacion()"
+            [disabled]="facade.loading()"
+            class="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition cursor-pointer disabled:opacity-50"
+          >
+            @if (facade.loading()) {
+              <i class="fa-solid fa-spinner fa-spin mr-1"></i> Eliminando...
+            } @else {
+              <i class="fa-solid fa-trash-can mr-1"></i> Sí, Eliminar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

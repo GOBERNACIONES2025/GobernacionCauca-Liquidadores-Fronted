@@ -73,4 +73,6 @@ export class CatalogoApiService {
 
     return this.api.get<ApiResponse<LineaDto[]>>('/catalogo/lineas', { params }, 'AUTOMOTORES');
   }
+
 }
+

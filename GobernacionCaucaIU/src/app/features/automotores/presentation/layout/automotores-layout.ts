@@ -18,6 +18,7 @@ export class AutomotoresLayout {
   readonly isSidebarOpen = signal<boolean>(false);
   readonly isSidebarHovered = signal<boolean>(false);
   readonly isProfileMenuOpen = signal<boolean>(false);
+  readonly isCobroCoactivoOpen = signal<boolean>(true);
 
   constructor() {
     this.router.events.pipe(
@@ -35,5 +36,9 @@ export class AutomotoresLayout {
 
   toggleProfileMenu(): void {
     this.isProfileMenuOpen.update(v => !v);
+  }
+
+  toggleCobroCoactivo(): void {
+    this.isCobroCoactivoOpen.update(v => !v);
   }
 }
