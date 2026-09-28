@@ -24,6 +24,7 @@ import { TiposPersonaFacade } from '../../../../application/facades/Contribuyent
 import { TiposIdentificacionFacade } from '../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
 import { TiposRolFacade } from '../../../../application/facades/Seguridad/tipos-rol.facade';
 import { RolesFacade } from '../../../../application/facades/Seguridad/roles.facade';
+import { PermisosFacade } from '../../../../application/facades/Seguridad/permisos.facade';
 import { UsuariosFacade } from '../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesIntervinienteFacade } from '../../../../application/facades/Intervinientes/roles-interviniente.facade';
 import { EstadosLiquidacionFacade } from '../../../../application/facades/Liquidacion/estados-liquidacion.facade';
@@ -80,6 +81,7 @@ export class ConfigSidebar {
   private tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
   private tiposRolFacade = inject(TiposRolFacade);
   private rolesFacade = inject(RolesFacade);
+  private permisosFacade = inject(PermisosFacade);
   private usuariosFacade = inject(UsuariosFacade);
   private rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
   private estadosLiquidacionFacade = inject(EstadosLiquidacionFacade);
@@ -351,6 +353,16 @@ export class ConfigSidebar {
         { 
           name: 'Roles', 
           route: '/registros/gobernacion/configuracion/seguridad/roles',
+          count: this.rolesFacade.totalRoles() || this.rolesFacade.roles().length 
+        },
+        { 
+          name: 'Permisos', 
+          route: '/registros/gobernacion/configuracion/seguridad/permisos',
+          count: this.permisosFacade.totalPermisos() || this.permisosFacade.permisos().length 
+        },
+        { 
+          name: 'Permisos por Rol', 
+          route: '/registros/gobernacion/configuracion/seguridad/rol-permisos',
           count: this.rolesFacade.totalRoles() || this.rolesFacade.roles().length 
         },
         { 

@@ -1,0 +1,277 @@
+<div class="p-6 h-full flex flex-col relative bg-base-100">
+  
+  <!-- Top Section (Header) -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/80 pb-4 mb-4 gap-4">
+    <app-page-header
+      [breadcrumbs]="breadcrumbs"
+      title="Permisos por Rol"
+      [tags]="tags"
+      [counts]="counts()"
+    ></app-page-header>
+  </div>
+
+  <!-- Master-Detail Layout -->
+  <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden">
+    
+    <!-- LEFT PANEL: Roles Selector -->
+    <div class="w-full lg:w-80 flex flex-col border border-slate-200/80 rounded-xl bg-white shadow-2xs overflow-hidden shrink-0">
+      
+      <div class="p-3.5 border-b border-slate-100 bg-slate-50/60">
+        <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Roles del Sistema</h3>
+        <p class="text-[11px] text-slate-500 mt-0.5">Seleccione un rol para configurar sus privilegios</p>
+      </div>
+
+      <div class="flex-1 overflow-y-auto divide-y divide-slate-100 p-2 space-y-1 custom-scrollbar">
+        @if (loadingRoles()) {
+          <div class="py-8 text-center">
+            <span class="loading loading-spinner text-primary loading-sm"></span>
+          </div>
+        } @else if (roles().length === 0) {
+          <div class="py-8 text-center text-xs text-slate-400">
+            No se encontraron roles activos.
+          </div>
+        }
+
+        @for (rol of roles(); track rol.id) {
+          <button 
+            type="button"
+            (click)="onSelectRol(rol.id)"
+            [class]="selectedRolId() === rol.id 
+              ? 'bg-[#0f3b73]/10 border-[#0f3b73] text-[#0f3b73] font-semibold shadow-2xs' 
+              : 'hover:bg-slate-50 border-transparent text-slate-700 font-medium'"
+            class="w-full text-left p-2.5 rounded-lg border transition-all flex items-center justify-between group">
+            
+            <div class="min-w-0 pr-2">
+              <div class="text-xs truncate font-semibold" [class.text-[#0f3b73]]="selectedRolId() === rol.id">
+                {{ rol.nombre }}
+              </div>
+              <div class="mt-0.5 font-mono text-[10px] text-slate-500">
+                {{ rol.codigo }}
+              </div>
+            </div>
+
+            <div class="shrink-0 flex items-center">
+              @if (selectedRolId() === rol.id) {
+                <span class="w-2 h-2 rounded-full bg-[#0f3b73]"></span>
+              } @else {
+                <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+              }
+            </div>
+
+          </button>
+        }
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: Permissions Matrix Accordions -->
+    <div class="flex-1 flex flex-col border border-slate-200/80 rounded-xl bg-white shadow-2xs overflow-hidden relative">
+      
+      @if (!selectedRol()) {
+        <div class="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+          <svg class="w-12 h-12 text-slate-300 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          <div class="text-sm font-semibold text-slate-600">Ningún rol seleccionado</div>
+          <p class="text-xs text-slate-400 mt-1">Seleccione un rol de la lista izquierda para visualizar y configurar sus privilegios.</p>
+        </div>
+      } @else {
+
+        <!-- Role Header Bar -->
+        <div class="p-4 border-b border-slate-100 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-bold text-slate-800">{{ selectedRol()?.nombre }}</h2>
+              <span class="font-mono text-[11px] bg-slate-200/70 px-2 py-0.5 rounded font-semibold text-slate-700">
+                {{ selectedRol()?.codigo }}
+              </span>
+            </div>
+            <div class="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
+              <span>Asignados: <strong class="text-slate-800">{{ facade.totalAsignados() }}</strong> de {{ facade.totalPermisos() }} permisos</span>
+              <span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span>
+              <span class="text-emerald-700 font-medium">
+                {{ facade.totalPermisos() > 0 ? ((facade.totalAsignados() / facade.totalPermisos()) * 100 | number:'1.0-0') : 0 }}% cobertura
+              </span>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Search -->
+          <div class="flex items-center gap-2">
+            
+            <input 
+              type="text" 
+              [ngModel]="filterTerm()" 
+              (ngModelChange)="filterTerm.set($event)"
+              placeholder="Filtrar permisos..."
+              class="input input-xs input-bordered w-44 text-xs" 
+            />
+
+            <button 
+              type="button"
+              (click)="onSelectAllPermisos()" 
+              title="Asignar todos los permisos"
+              class="btn btn-xs btn-ghost text-slate-600 font-medium">
+              Marcar todos
+            </button>
+            <button 
+              type="button"
+              (click)="onDeselectAllPermisos()" 
+              title="Desmarcar todos los permisos"
+              class="btn btn-xs btn-ghost text-slate-600 font-medium">
+              Desmarcar
+            </button>
+            <button 
+              type="button"
+              (click)="expandAll()" 
+              title="Expandir todos los módulos"
+              class="btn btn-xs btn-ghost text-slate-600 font-medium">
+              Expandir
+            </button>
+            <button 
+              type="button"
+              (click)="collapseAll()" 
+              title="Colapsar todos los módulos"
+              class="btn btn-xs btn-ghost text-slate-600 font-medium">
+              Colapsar
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Modules Accordion List -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar pb-24">
+          
+          @if (facade.loading()) {
+            <div class="py-16 text-center">
+              <span class="loading loading-spinner text-primary loading-md"></span>
+              <div class="text-xs text-slate-500 mt-2 font-medium">Cargando permisos del rol...</div>
+            </div>
+          } @else if (filteredGrupos().length === 0) {
+            <div class="py-16 text-center text-xs text-slate-400">
+              No se encontraron módulos o permisos con el término de búsqueda "{{ filterTerm() }}".
+            </div>
+          }
+
+          @for (grupo of filteredGrupos(); track grupo.modulo) {
+            <div class="border border-slate-200/90 rounded-xl overflow-hidden shadow-2xs bg-white transition-all">
+              
+              <!-- Accordion Header -->
+              <div class="p-3 bg-slate-50 hover:bg-slate-100/70 cursor-pointer flex items-center justify-between select-none transition-colors"
+                   (click)="toggleModuloAccordion(grupo.modulo)">
+                
+                <div class="flex items-center gap-3">
+                  <svg 
+                    [class.rotate-90]="isModuloExpanded(grupo.modulo)"
+                    class="w-4 h-4 text-slate-400 transition-transform" 
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                  </svg>
+                  
+                  <span class="text-xs font-bold text-slate-800 tracking-wide uppercase">
+                    {{ grupo.modulo }}
+                  </span>
+
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/80 text-slate-700">
+                    {{ getModuloAssignedCount(grupo.modulo) }} / {{ grupo.permisos.length }} asignados
+                  </span>
+                </div>
+
+                <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
+                  <label class="label cursor-pointer gap-2 p-0">
+                    <span class="label-text text-[11px] font-medium text-slate-500">Marcar módulo</span>
+                    <input 
+                      type="checkbox" 
+                      [checked]="isModuloAllChecked(grupo.modulo)"
+                      (change)="onToggleModuloCheckboxes(grupo.modulo, $event)"
+                      class="checkbox checkbox-xs checkbox-primary rounded" 
+                    />
+                  </label>
+                </div>
+
+              </div>
+
+              <!-- Accordion Body: Permissions list -->
+              @if (isModuloExpanded(grupo.modulo)) {
+                <div class="p-3 divide-y divide-slate-100 bg-white">
+                  @for (permiso of grupo.permisos; track permiso.permisoId) {
+                    <div class="py-2.5 px-2 flex items-center justify-between gap-4 hover:bg-slate-50/80 rounded-lg transition-colors">
+                      
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                          <span class="text-xs font-semibold text-slate-800">{{ permiso.nombre }}</span>
+                          <span class="font-mono text-[10px] bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-slate-600 font-semibold">
+                            {{ permiso.codigo }}
+                          </span>
+                        </div>
+                        @if (permiso.descripcion) {
+                          <p class="text-[11px] text-slate-500 mt-0.5 truncate">{{ permiso.descripcion }}</p>
+                        }
+                      </div>
+
+                      <div class="shrink-0 flex items-center">
+                        <input 
+                          type="checkbox" 
+                          [checked]="isPermisoChecked(permiso.permisoId)"
+                          (change)="onTogglePermiso(permiso.permisoId)"
+                          class="toggle toggle-primary toggle-sm" 
+                        />
+                      </div>
+
+                    </div>
+                  }
+                </div>
+              }
+
+            </div>
+          }
+
+        </div>
+
+        <!-- Sticky Floating Save Bar when isDirty is true -->
+        @if (facade.isDirty()) {
+          <div class="absolute bottom-4 left-4 right-4 bg-slate-900/95 text-white p-3.5 rounded-xl shadow-xl flex items-center justify-between gap-4 backdrop-blur-xs z-20 border border-slate-800 animate-slide-up">
+            
+            <div class="flex items-center gap-2.5 pl-2">
+              <span class="flex h-2.5 w-2.5 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+              </span>
+              <span class="text-xs font-medium text-slate-200">
+                Tiene cambios de permisos sin guardar en el rol <strong>{{ selectedRol()?.nombre }}</strong>.
+              </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button 
+                type="button" 
+                (click)="onRevertir()"
+                [disabled]="facade.saving()"
+                class="btn btn-xs btn-ghost text-slate-300 hover:text-white">
+                Descartar cambios
+              </button>
+              
+              <button 
+                type="button" 
+                (click)="onGuardar()"
+                [disabled]="facade.saving()"
+                class="btn btn-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-xs gap-1.5 border-none">
+                @if (facade.saving()) {
+                  <span class="loading loading-spinner loading-xs"></span>
+                }
+                Guardar cambios
+              </button>
+            </div>
+
+          </div>
+        }
+
+      }
+
+    </div>
+
+  </div>
+
+</div>

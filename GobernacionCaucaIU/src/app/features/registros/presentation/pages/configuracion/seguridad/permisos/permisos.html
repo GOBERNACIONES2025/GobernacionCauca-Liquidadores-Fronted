@@ -1,0 +1,287 @@
+<div class="p-6 h-full flex flex-col relative bg-base-100">
+  
+  <!-- Top Section (Header + Controls) -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-200/80 pb-4 mb-4 gap-4">
+    
+    <!-- Left: Page Header -->
+    <app-page-header
+      [breadcrumbs]="breadcrumbs"
+      title="Catálogo de Permisos"
+      [tags]="tags"
+      [counts]="counts()"
+    ></app-page-header>
+
+    <!-- Right: Search, Filter Tabs & Add Button -->
+    <div class="flex flex-wrap items-center gap-3">
+      
+      <!-- Search in Table -->
+      <app-table-search
+        placeholder="Buscar por código, nombre o módulo..."
+        [value]="searchText()"
+        [loading]="facade.loading()"
+        (search)="onSearch($event)"
+        (clear)="onClearSearch()"
+      ></app-table-search>
+
+      <!-- Selector por Módulo -->
+      <div class="inline-flex items-center">
+        <select 
+          [ngModel]="selectedModulo()" 
+          (ngModelChange)="setModulo($event)"
+          class="select select-sm select-bordered text-xs font-semibold text-slate-700 bg-white border-slate-200/80 focus:border-[#0f3b73] focus:ring-0">
+          <option value="todos">Todos los Módulos</option>
+          @for (mod of facade.modulos(); track mod) {
+            <option [value]="mod">{{ mod }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Filter Tabs Segmented Control -->
+      <div class="inline-flex p-0.5 bg-slate-100/90 border border-slate-200/80 rounded-lg">
+        <button 
+          (click)="setFilter('todos')"
+          [class]="selectedFilter() === 'todos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Todos
+        </button>
+        <button 
+          (click)="setFilter('activos')"
+          [class]="selectedFilter() === 'activos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Activos
+        </button>
+        <button 
+          (click)="setFilter('inactivos')"
+          [class]="selectedFilter() === 'inactivos' 
+            ? 'bg-[#0f3b73] text-white shadow-xs font-semibold' 
+            : 'text-slate-600 hover:text-slate-800 font-medium'"
+          class="px-3 py-1 text-xs rounded-md transition-all">
+          Inactivos
+        </button>
+      </div>
+
+      <!-- Add New Record Button -->
+      <button 
+        (click)="openNew()" 
+        class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0f3b73] hover:bg-[#0a274d] text-white text-xs font-semibold rounded-lg shadow-xs transition-colors shrink-0">
+        <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Nuevo permiso
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Table Container -->
+  <div class="flex-1 overflow-auto bg-base-100 relative custom-scrollbar">
+    <table class="w-full text-left border-collapse">
+      <thead class="sticky top-0 bg-base-100 z-10 border-b border-slate-200">
+        <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <th class="py-3 px-4 w-40">Módulo</th>
+          <th class="py-3 px-4 w-60">Código</th>
+          <th class="py-3 px-4">Nombre del Permiso</th>
+          <th class="py-3 px-4">Descripción</th>
+          <th class="py-3 px-4 w-32">Estado</th>
+          <th class="py-3 px-4 w-28 text-right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        @if (facade.loading()) {
+          <tr>
+            <td colspan="6" class="text-center py-12">
+              <span class="loading loading-spinner text-primary"></span>
+            </td>
+          </tr>
+        } @else if (permisosFiltrados().length === 0) {
+          <tr>
+            <td colspan="6" class="text-center py-12 text-slate-400 text-xs">
+              No se encontraron permisos registrados con los criterios seleccionados.
+            </td>
+          </tr>
+        }
+        
+        @for (item of permisosFiltrados(); track item.id) {
+          <tr class="hover:bg-slate-50/70 transition-colors group">
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold border uppercase tracking-wider shadow-2xs"
+                    [ngClass]="getModuloBadgeClass(item.modulo)">
+                {{ item.modulo }}
+              </span>
+            </td>
+
+            <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
+              <span class="font-mono bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-800 font-semibold border border-slate-200">
+                {{ item.codigo }}
+              </span>
+            </td>
+            
+            <td class="py-3.5 px-4 text-slate-800 font-semibold text-sm">
+              {{ item.nombre }}
+            </td>
+
+            <td class="py-3.5 px-4 text-slate-500 text-xs max-w-xs truncate">
+              {{ item.descripcion || '—' }}
+            </td>
+            
+            <td class="py-3.5 px-4">
+              @if (item.activo) {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Activo
+                </span>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200/60 shadow-2xs">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                  Inactivo
+                </span>
+              }
+            </td>
+
+            <td class="py-3.5 px-4 text-right">
+              <div class="inline-flex items-center justify-end gap-1 opacity-90 group-hover:opacity-100">
+                
+                <button 
+                  (click)="openEdit(item)"
+                  title="Editar permiso"
+                  class="p-1.5 text-slate-400 hover:text-primary hover:bg-slate-100 rounded-md transition-colors">
+                  <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                  </svg>
+                </button>
+
+                @if (item.activo) {
+                  <button 
+                    (click)="confirmarDesactivacion(item)"
+                    title="Desactivar permiso (Borrado Lógico)"
+                    class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Bottom: Pagination -->
+  <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+    <app-pagination
+    [pageNumber]="pageNumber()"
+    [pageSize]="pageSize()"
+    [totalCount]="counts().total"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)">
+  </app-pagination>
+  <div class="pt-3 border-t border-slate-100 text-xs text-slate-400 font-medium">
+    Mostrando {{ permisosFiltrados().length }} de {{ counts().total }} registros
+  </div>
+  </div>
+
+  <!-- Slide-Over Drawer for Create / Edit -->
+  <app-slide-over
+    [isOpen]="isSlideOverOpen"
+    [title]="isEditMode ? 'Editar Permiso' : 'Registrar Nuevo Permiso'"
+    [description]="isEditMode ? 'Modifique los atributos del permiso' : 'Defina un nuevo privilegio para asignación a roles'"
+    [isSaving]="facade.actionLoading()"
+    (onClose)="closeSlideOver()"
+    (onSave)="savePermiso()"
+  >
+    <form [formGroup]="permisoForm" class="flex flex-col gap-4">
+      
+      <!-- Modulo -->
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Módulo del Sistema <span class="text-rose-500 font-bold">*</span></span>
+        </label>
+        <input 
+          type="text" 
+          formControlName="modulo" 
+          placeholder="Ej: SEGURIDAD, LIQUIDACION, CONFIGURACION"
+          class="input input-sm input-bordered w-full text-xs uppercase font-semibold" 
+          [class.input-error]="permisoForm.get('modulo')?.invalid && (permisoForm.get('modulo')?.touched || permisoForm.get('modulo')?.dirty)"
+        />
+        <app-form-error [control]="permisoForm.get('modulo')" fieldName="Módulo"></app-form-error>
+      </div>
+
+      <!-- Codigo -->
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Código Identificador <span class="text-rose-500 font-bold">*</span></span>
+        </label>
+        <input 
+          type="text" 
+          formControlName="codigo" 
+          placeholder="Ej: LIQUIDACION.CREAR, USUARIOS.EDITAR"
+          class="input input-sm input-bordered w-full text-xs font-mono uppercase" 
+          [class.input-error]="permisoForm.get('codigo')?.invalid && (permisoForm.get('codigo')?.touched || permisoForm.get('codigo')?.dirty)"
+        />
+        <span class="text-[10px] text-slate-400 mt-1">Identificador único utilizado por el sistema para control de acceso.</span>
+        <app-form-error [control]="permisoForm.get('codigo')" fieldName="Código"></app-form-error>
+      </div>
+
+      <!-- Nombre -->
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre Descriptivo <span class="text-rose-500 font-bold">*</span></span>
+        </label>
+        <input 
+          type="text" 
+          formControlName="nombre" 
+          placeholder="Ej: Crear nuevas liquidaciones tributarias"
+          class="input input-sm input-bordered w-full text-xs font-medium" 
+          [class.input-error]="permisoForm.get('nombre')?.invalid && (permisoForm.get('nombre')?.touched || permisoForm.get('nombre')?.dirty)"
+        />
+        <app-form-error [control]="permisoForm.get('nombre')" fieldName="Nombre"></app-form-error>
+      </div>
+
+      <!-- Descripcion -->
+      <div class="form-control w-full">
+        <label class="label pt-0 pb-1">
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Descripción Detallada</span>
+        </label>
+        <textarea 
+          formControlName="descripcion" 
+          placeholder="Explique el alcance y efectos de este permiso..."
+          rows="3"
+          class="textarea textarea-bordered textarea-sm w-full text-xs"
+        ></textarea>
+      </div>
+
+      <!-- Activo (Only in Edit Mode) -->
+      @if (isEditMode) {
+        <div class="form-control w-full mt-2">
+          <label class="label cursor-pointer justify-start gap-4 p-0">
+            <span class="label-text font-bold text-xs uppercase text-slate-600">Estado Activo</span>
+            <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
+          </label>
+          <p class="text-[10px] text-slate-400 mt-1">Si está inactivo, ningún rol podrá ejercer este privilegio.</p>
+        </div>
+      }
+
+    </form>
+  </app-slide-over>
+
+  <!-- Modal de Confirmación de Desactivación (Soft Delete) -->
+  <app-confirm-modal
+    [isOpen]="isConfirmModalOpen()"
+    title="Desactivar Permiso"
+    message="¿Está seguro de que desea desactivar este permiso? Los roles asignados perderán este privilegio inmediatamente."
+    impactMessage="El permiso no se eliminará de la base de datos; quedará inactivo para preservar la trazabilidad histórica y auditoría (Borrado Lógico)."
+    confirmText="Desactivar Permiso"
+    cancelText="Cancelar"
+    type="warning"
+    [isProcessing]="isTogglingStatus()"
+    (confirm)="ejecutarDesactivacion()"
+    (cancel)="cancelarDesactivacion()"
+  ></app-confirm-modal>
+
+</div>

@@ -158,6 +158,8 @@ export const registrosRoutes: Routes = [
           { path: 'radicacion/estados-solicitud', component: EstadosSolicitud },
           { path: 'seguridad/tipos-rol', component: TiposRolComponent },
           { path: 'seguridad/roles', component: RolesComponent },
+          { path: 'seguridad/permisos', loadComponent: () => import('./presentation/pages/configuracion/seguridad/permisos/permisos').then(m => m.PermisosComponent) },
+          { path: 'seguridad/rol-permisos', loadComponent: () => import('./presentation/pages/configuracion/seguridad/rol-permisos/rol-permisos').then(m => m.RolPermisosComponent) },
           { path: 'seguridad/usuarios', component: UsuariosComponent }
         ]
       }
