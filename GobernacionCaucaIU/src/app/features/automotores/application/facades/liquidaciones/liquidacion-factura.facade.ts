@@ -5,25 +5,16 @@ import { downloadPdfFromHtml } from '../../../../../shared/utils/pdf-exporter.ut
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-/**
- * Sub-facade responsable del visor de facturas/declaraciones:
- * previsualización HTML en iframe, descarga PDF e impresión.
- */
+
 @Injectable({ providedIn: 'root' })
 export class LiquidacionFacturaFacade {
   private api = inject(LiquidacionesApiService);
 
-  // ── Estado del visor ──────────────────────────────────────────────
   readonly isFacturaModalOpen = signal<boolean>(false);
   readonly isFacturaLoading = signal<boolean>(false);
   readonly facturaPreviewData = signal<FacturaPreview | null>(null);
   readonly facturaPreviewHtml = computed(() => this.facturaPreviewData()?.htmlContent ?? '');
 
-  // ── Métodos ───────────────────────────────────────────────────────
-
-  /**
-   * Abre el visor y carga la previsualización HTML oficial de la factura.
-   */
   abrirFacturaPreview(placa: string, vigencia?: number, esUnificado: boolean = false): void {
     this.isFacturaLoading.set(true);
     this.facturaPreviewData.set(null);
@@ -42,30 +33,23 @@ export class LiquidacionFacturaFacade {
     });
   }
 
-  /** Cierra el modal de previsualización y limpia estado */
   cerrarFacturaModal(): void {
     this.isFacturaModalOpen.set(false);
     this.facturaPreviewData.set(null);
     this.isFacturaLoading.set(false);
   }
 
-  /**
-   * Descarga el documento oficial de liquidación en PDF.
-   * Prioridad: HTML en memoria → HTML desde API → Blob binario directo.
-   */
   descargarFacturaPdf(placa: string, vigencia?: number, esUnificado: boolean = false): void {
     const fileName = esUnificado
       ? `Recibo_Unificado_${placa}.pdf`
       : `Recibo_${placa}_${vigencia || 2026}.pdf`;
 
-    // 1. Usar HTML en memoria si ya está cargado
     const preview = this.facturaPreviewData();
     if (preview && preview.placa?.toUpperCase() === placa.toUpperCase() && preview.htmlContent) {
       downloadPdfFromHtml(preview.htmlContent, fileName);
       return;
     }
 
-    // 2. Obtener HTML oficial desde la API y compilar PDF
     this.api.previsualizarFactura(placa, vigencia, esUnificado).pipe(
       catchError(err => {
         console.warn('Error al consultar HTML de factura, usando fallback binario:', err);
@@ -75,7 +59,6 @@ export class LiquidacionFacturaFacade {
       if (res && res.data && res.data.htmlContent) {
         downloadPdfFromHtml(res.data.htmlContent, fileName);
       } else {
-        // 3. Fallback al endpoint binario del backend
         this.api.descargarPdfBlob(placa, vigencia, esUnificado).pipe(
           catchError(blobErr => {
             console.error('Error al descargar PDF del backend:', blobErr);
@@ -96,9 +79,6 @@ export class LiquidacionFacturaFacade {
     });
   }
 
-  /**
-   * Imprime el documento renderizado en la previsualización del iframe.
-   */
   imprimirFacturaPreview(): void {
     const iframe = document.getElementById('facturaIframe') as HTMLIFrameElement;
     if (iframe && iframe.contentWindow) {

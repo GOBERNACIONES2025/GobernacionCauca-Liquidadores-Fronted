@@ -4,29 +4,25 @@ import {
   SimulacionLiquidacion,
   SimularLiquidacionRequest
 } from '../../../domain/models/liquidacion.model';
-import { catchError } from 'rxjs/operators';
+import { catchError, finalize } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-/**
- * Sub-facade responsable del proceso de simulación y liquidación individual:
- * modal, selección de vigencias, cálculos de resumen y oficialización.
- */
 @Injectable({ providedIn: 'root' })
 export class LiquidacionSimulacionFacade {
   private api = inject(LiquidacionesApiService);
 
-  // ── Estado del modal de simulación ───────────────────────────────
   readonly isModalOpen = signal<boolean>(false);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
+
+  // Autor: Juan Sebastián Montaño Pérez
+  // Fecha: 28/09/2026
+  // Módulo: Contendra la simulación de la Liquidación
   readonly simulacion = signal<SimulacionLiquidacion | null>(null);
   readonly simulacionCalculada = computed(() => this.simulacion());
   readonly simulacionRaw = computed(() => this.simulacion());
   readonly selectedVigenciaAnios = signal<number[]>([]);
 
-  // ── Computados del resumen tributario ────────────────────────────
-
-  /** Total acumulado de las vigencias seleccionadas */
   readonly totalPagarSeleccionado = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
@@ -36,7 +32,6 @@ export class LiquidacionSimulacionFacade {
       .reduce((sum, v) => sum + v.totalVigencia, 0);
   });
 
-  /** Subtotal Impuesto Vehicular seleccionado */
   readonly subtotalImpuestoSeleccionado = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
@@ -46,7 +41,6 @@ export class LiquidacionSimulacionFacade {
       .reduce((sum, v) => sum + v.valorImpuestoNominal, 0);
   });
 
-  /** Total Descuentos seleccionados */
   readonly descuentosSeleccionado = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
@@ -56,7 +50,6 @@ export class LiquidacionSimulacionFacade {
       .reduce((sum, v) => sum + v.descuentoProntoPago, 0);
   });
 
-  /** Total Sanciones seleccionadas */
   readonly sancionesSeleccionado = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
@@ -66,7 +59,6 @@ export class LiquidacionSimulacionFacade {
       .reduce((sum, v) => sum + v.sancionExtemporaneidad, 0);
   });
 
-  /** Total Intereses de Mora seleccionados */
   readonly interesesSeleccionado = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
@@ -76,7 +68,6 @@ export class LiquidacionSimulacionFacade {
       .reduce((sum, v) => sum + v.interesesMora, 0);
   });
 
-  /** Total Derechos de Sistematización y Estampillas seleccionados */
   readonly sistematizacionSeleccionado = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
@@ -86,7 +77,6 @@ export class LiquidacionSimulacionFacade {
       .reduce((sum, v) => sum + (v.derechossistematizacion || v.derechosSistematizacion || 0), 0);
   });
 
-  /** Base Gravable Total seleccionada */
   readonly baseGravableSeleccionada = computed(() => {
     const sim = this.simulacion();
     if (!sim) return 0;
@@ -96,55 +86,54 @@ export class LiquidacionSimulacionFacade {
       .reduce((sum, v) => sum + v.baseGravableAvaluo, 0);
   });
 
-  /** Distribución Legal del Recaudo: Municipio (20%) */
   readonly repartoMunicipioSeleccionado = computed(() =>
     Math.round(this.totalPagarSeleccionado() * 0.20)
   );
 
-  /** Distribución Legal del Recaudo: Departamento del Cauca (80%) */
   readonly repartoDepartamentoSeleccionado = computed(() =>
     this.totalPagarSeleccionado() - this.repartoMunicipioSeleccionado()
   );
 
-  // ── Métodos ───────────────────────────────────────────────────────
 
-  /**
-   * Solicita al Backend el cálculo y simulación tributaria para una placa.
-   * Todos los cálculos son 100% procesados por la API .NET.
-   */
-  private solicitarSimulacion(placa: string): void {
-    this.loading.set(true);
-    this.error.set(null);
-
-    const req: SimularLiquidacionRequest = { placa };
-
-    this.api.simular(req).pipe(
-      catchError(err => {
-        console.warn('Error al simular liquidación:', err);
-        this.error.set('No se pudo conectar con el motor de liquidaciones.');
-        this.loading.set(false);
-        return of(null);
-      })
-    ).subscribe(res => {
-      this.loading.set(false);
-      if (res && res.data) {
-        this.simulacion.set(res.data);
-        const validas = (res.data.vigencias || [])
-          .filter(v => !v.parametrosFaltantesEnDb)
-          .map(v => v.anio);
-        this.selectedVigenciaAnios.set(validas);
-      }
-    });
-  }
-
-  /** Abre el modal de simulación para una placa específica */
+  // Autor: Juan Sebastián Montaño Pérez
+  // Fecha: 28/09/2026
+  // Módulo: Simulación del calculo de la deuda
+  // Descripción: @parameter(Placa:string) va y busca en la API y hace una simulación de cual seria el cobro
   abrirSimulacion(placa: string): void {
     this.isModalOpen.set(true);
     this.selectedVigenciaAnios.set([]);
     this.solicitarSimulacion(placa);
   }
 
-  /** Selecciona o deselecciona una vigencia individual */
+  private solicitarSimulacion(placa: string): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    const req: SimularLiquidacionRequest = { placa };
+
+    this.api.simularLiquidacion(req).pipe(
+      catchError(() => {
+        this.error.set('No se pudo conectar con el motor de liquidaciones.');
+        return of(null);
+      }),
+      finalize(() => {
+        this.loading.set(false);
+      })
+    ).subscribe(res => {
+      if (!res?.data) {
+        return;
+      }
+
+      this.simulacion.set(res.data);
+
+      const validas = (res.data.vigencias ?? [])
+        .filter(v => !v.parametrosFaltantesEnDb)
+        .map(v => v.anio);
+
+      this.selectedVigenciaAnios.set(validas);
+    });
+  }
+
   toggleVigencia(anio: number): void {
     let nuevas = [...this.selectedVigenciaAnios()];
     if (nuevas.includes(anio)) {
@@ -155,7 +144,6 @@ export class LiquidacionSimulacionFacade {
     this.selectedVigenciaAnios.set(nuevas);
   }
 
-  /** Selecciona o deselecciona todas las vigencias liquidables válidas */
   toggleSeleccionarTodos(): void {
     const sim = this.simulacion();
     if (!sim) return;
@@ -169,17 +157,12 @@ export class LiquidacionSimulacionFacade {
     }
   }
 
-  /** Cierra el modal de simulación y limpia estado */
   cerrarModal(): void {
     this.isModalOpen.set(false);
     this.simulacion.set(null);
     this.selectedVigenciaAnios.set([]);
   }
 
-  /**
-   * Expide e ingresa oficialmente la liquidación a la base de datos.
-   * Devuelve un observable para que el facade orquestador pueda reaccionar.
-   */
   oficializarLiquidacion(
     onSuccess: () => void
   ): void {
@@ -196,7 +179,6 @@ export class LiquidacionSimulacionFacade {
 
     this.api.oficializar(req).pipe(
       catchError(err => {
-        console.warn('Error al oficializar liquidación:', err);
         this.error.set('No se pudo expedir la liquidación oficial en BD.');
         this.loading.set(false);
         return of(null);

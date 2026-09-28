@@ -8,18 +8,12 @@ import {
   GrupoLiquidacionEmitida
 } from './liquidaciones.models';
 
-/**
- * Sub-facade responsable de la lista principal: tabs, paginación,
- * filtros, búsqueda y KPIs del módulo de Liquidaciones.
- */
 @Injectable({ providedIn: 'root' })
 export class LiquidacionListaFacade {
   private api = inject(LiquidacionesApiService);
 
-  /** Pestaña activa: 'sin-liquidar' | 'liquidadas' */
   readonly activeTab = signal<'sin-liquidar' | 'liquidadas'>('sin-liquidar');
 
-  /** Lista reactiva de liquidaciones para la tabla */
   readonly liquidaciones = signal<LiquidacionItem[]>([]);
   readonly kpis = signal<LiquidacionKpis | null>(null);
   readonly loadingTabla = signal<boolean>(false);
@@ -29,18 +23,13 @@ export class LiquidacionListaFacade {
   readonly buscar = signal<string>('');
   readonly vigenciaFiltro = signal<number>(0);
 
-  /** Selección múltiple de placas para liquidación masiva */
   readonly selectedPlacas = signal<string[]>([]);
-
-  /** Agrupación de emitidas por placa para el acordeón */
   readonly placasExpandidasEmitidas = signal<string[]>([]);
 
-  // ── Computados de paginación ──────────────────────────────────────
   readonly totalPaginas = computed(() => Math.ceil(this.totalCount() / this.pageSize()) || 1);
   readonly rangoInicio = computed(() => this.totalCount() === 0 ? 0 : (this.page() - 1) * this.pageSize() + 1);
   readonly rangoFin = computed(() => Math.min(this.page() * this.pageSize(), this.totalCount()));
 
-  /** Agrupa las liquidaciones emitidas por placa vehicular para la vista de acordeón */
   readonly liquidacionesEmitidasAgrupadas = computed(() => {
     const items = this.liquidaciones();
     if (!items || items.length === 0) return [];
@@ -98,7 +87,6 @@ export class LiquidacionListaFacade {
       }
     }
 
-    // Ajustar motivo consolidado
     for (const g of gruposMap.values()) {
       if (g.diasMoraMaximo > 0 || g.estadoConsolidado === 'EN MORA') {
         const fechaLimiteTxt = g.fechaLimitePago ? new Date(g.fechaLimitePago).toLocaleDateString('es-CO') : '31/07';
@@ -111,7 +99,6 @@ export class LiquidacionListaFacade {
 
     return Array.from(gruposMap.values());
   });
-
 
   cargarLiquidaciones(): void {
     this.loadingTabla.set(true);
@@ -140,7 +127,6 @@ export class LiquidacionListaFacade {
     });
   }
 
-  /** Consulta los indicadores KPI del módulo */
   cargarKpis(): void {
     this.api.getKpis().pipe(
       catchError(err => {
@@ -166,14 +152,12 @@ export class LiquidacionListaFacade {
     this.cargarLiquidaciones();
   }
 
-  /** Actualiza el filtro por vigencia fiscal y recarga */
   setVigenciaFiltro(vigencia: number): void {
     this.vigenciaFiltro.set(vigencia);
     this.page.set(1);
     this.cargarLiquidaciones();
   }
 
-  /** Cambia la página actual */
   setPage(nuevaPagina: number): void {
     if (nuevaPagina < 1 || nuevaPagina > this.totalPaginas()) return;
     this.page.set(nuevaPagina);
@@ -188,7 +172,6 @@ export class LiquidacionListaFacade {
   }
 
 
-  /** Selecciona o deselecciona una placa en la tabla */
   toggleSelectPlaca(placa: string): void {
     let curr = [...this.selectedPlacas()];
     if (curr.includes(placa)) {
@@ -199,7 +182,6 @@ export class LiquidacionListaFacade {
     this.selectedPlacas.set(curr);
   }
 
-  /** Selecciona o deselecciona todas las placas de la tabla actual */
   toggleSelectAllPlacas(): void {
     const todasPlacas = this.liquidaciones().map(i => i.placa);
     if (this.selectedPlacas().length === todasPlacas.length) {
@@ -209,7 +191,6 @@ export class LiquidacionListaFacade {
     }
   }
 
-  /** Expande o colapsa el acordeón de un vehículo en la pestaña de emitidas */
   toggleExpandirPlacaEmitida(placa: string): void {
     let curr = [...this.placasExpandidasEmitidas()];
     if (curr.includes(placa)) {

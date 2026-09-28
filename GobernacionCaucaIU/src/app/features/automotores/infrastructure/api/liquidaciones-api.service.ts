@@ -2,14 +2,16 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { BaseApiService } from '../../../../core/services/base-api.service';
 import { ApiResponse, PagedResult } from '../../domain/interfaces/api-response.interface';
-import { 
-  SimulacionLiquidacion, 
-  SimularLiquidacionRequest, 
-  LiquidacionMasivaRequest, 
+import {
+  SimulacionLiquidacion,
+  SimularLiquidacionRequest,
+  LiquidacionMasivaRequest,
   LiquidacionMasivaResultado,
-  FacturaPreview 
+  FacturaPreview,
+  LiquidacionItem,
+  LiquidacionKpis
 } from '../../domain/models/liquidacion.model';
-import { LiquidacionItem, LiquidacionKpis } from '../../application/facades/liquidaciones.facade';
+
 
 export interface LiquidacionFiltros {
   page?: number;
@@ -54,10 +56,11 @@ export class LiquidacionesApiService {
     return this.api.get<ApiResponse<LiquidacionKpis>>('/liquidaciones/kpis', {}, 'AUTOMOTORES');
   }
 
-  /**
-   * Simula y proyecta el estado de cuenta y liquidación tributaria de un vehículo.
-   */
-  simular(request: SimularLiquidacionRequest): Observable<ApiResponse<SimulacionLiquidacion>> {
+  // Autor: Juan Sebastián Montaño Pérez
+  // Fecha: 28/09/2026
+  // Módulo: Repositorio - Simulación; devolvera la simulación de la vigencias de x vehiculo
+  // Descripción: SimularLiquidacionRequest; Será el objeto que devolvera despues de hacer la simulación de la deuda.
+  simularLiquidacion(request: SimularLiquidacionRequest): Observable<ApiResponse<SimulacionLiquidacion>> {
     return this.api.post<ApiResponse<SimulacionLiquidacion>>('/liquidaciones/simular', request, {}, 'AUTOMOTORES');
   }
 

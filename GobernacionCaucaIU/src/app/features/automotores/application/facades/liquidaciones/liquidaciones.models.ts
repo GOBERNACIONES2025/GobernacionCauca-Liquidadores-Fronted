@@ -1,47 +1,13 @@
-/**
- * Modelos e interfaces compartidas del módulo de Liquidaciones.
- * Importar desde aquí en todos los sub-facades y componentes relacionados.
- */
+// Re-exporta los DTOs del dominio para que los consumidores de la capa
+// de aplicación no necesiten importar directamente desde domain/.
+export type {
+  PropietarioItem,
+  LiquidacionItem,
+  LiquidacionKpis
+} from '../../../domain/models/liquidacion.model';
 
-export interface PropietarioItem {
-  completeName: string;
-  identification: string;
-  typeIdentification: string;
-}
 
-/**
- * Representa un ítem individual de la lista de liquidaciones o parque pendiente.
- */
-export interface LiquidacionItem {
-  id: number;
-  tipoRegistro?: string;
-  numeroLiquidacion: string;
-  placa: string;
-  marcaLinea: string;
-  modelo?: number;
-  propietario: PropietarioItem[];
-  vigenciaAnio: number;
-  baseGravableAvaluo: number;
-  impuestoBase: number;
-  descuentos: number;
-  sancionExtemporaneidad: number;
-  interesesMora: number;
-  sistematizacionEstampillas: number;
-  totalPagar: number;
-  fechaCalculo: string;
-  fechaVencimiento?: string;
-  estado: string;
-  vigenciasPendientes?: number[];
-
-  // ── Diagnóstico y Trazabilidad de Mora ──
-  diasMora?: number;
-  fechaLimitePago?: string;
-  fechaCalculoMora?: string;
-  esCalculoHoy?: boolean;
-  motivoMora?: string;
-  tasaMoraAplicada?: number;
-}
-
+import { PropietarioItem, LiquidacionItem } from '../../../domain/models/liquidacion.model';
 export interface GrupoLiquidacionEmitida {
   placa: string;
   marcaLinea: string;
@@ -55,7 +21,6 @@ export interface GrupoLiquidacionEmitida {
   descuentosTotal: number;
   sistematizacionTotal: number;
 
-  // Diagnóstico y fechas consolidadas
   estadoConsolidado: string;
   diasMoraMaximo: number;
   fechaLimitePago?: string;
@@ -84,29 +49,4 @@ export interface ReciboModel {
     sistematizacionEstampillas: number;
     totalPagar: number;
   }[];
-}
-
-/**
- * Resumen de indicadores métricos KPI del módulo tributario.
- */
-export interface LiquidacionKpis {
-  totalVehiculosActivos: number;
-  vehiculosPendientesLiquidar: number;
-  vehiculosConLiquidacionesEmitidas: number;
-  totalLiquidacionesEmitidas: number;
-  totalRecaudoEmitido: number;
-  totalImpuestoBaseEmitido: number;
-  totalSancionesExtemporaneidad: number;
-  interesesMoratoriosLiquidados: number;
-  interesesMoratoriosPendientes: number;
-}
-
-/**
- * Envoltorio de resultados paginados genéricos de la API.
- */
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
 }

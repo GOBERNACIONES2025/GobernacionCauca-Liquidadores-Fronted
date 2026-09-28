@@ -37,8 +37,8 @@
           </span>
         </div>
         <div class="text-2xl font-black text-slate-900 mt-2 tracking-tight">
-          {{ k.totalVehiculosActivos | number }} <span
-            class="text-xs font-normal text-slate-400 font-normal">Vehículos Activos</span>
+          {{ k.totalVehiculosActivos | number }} <span class="text-xs font-normal text-slate-400 font-normal">Vehículos
+            Activos</span>
         </div>
       </div>
 
@@ -198,7 +198,6 @@
             <th class="py-3 px-4 text-right">Sistematización</th>
             <th class="py-3 px-4 text-right">Total Liquidado</th>
             }
-
             <th class="py-3 px-4 text-center">Estado</th>
             <th class="py-3 px-4 text-center">Acciones</th>
           </tr>
@@ -213,7 +212,7 @@
           </tr>
           } @else if (facade.liquidaciones().length === 0) {
           <tr>
-            <td [attr.colspan]="facade.activeTab() === 'liquidadas' ? 10 : 6" class="py-12 text-center text-slate-400">
+            <td [attr.colspan]="facade.activeTab() === 'liquidadas' ? 11 : 6" class="py-12 text-center text-slate-400">
               No se encontraron registros con los filtros o placa ingresada.
             </td>
           </tr>
@@ -275,7 +274,7 @@
             <td class="py-3 px-4 text-center">
               <span
                 class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                SE DEBE DE MODICIAR
+                {{ item.estado || 'PENDIENTE POR LIQUIDAR' }}
               </span>
             </td>
 
@@ -325,18 +324,22 @@
               }
             </td>
 
-            <td class="py-3.5 px-4">
-              <div class="flex flex-wrap items-center gap-1">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10.5px] font-extrabold bg-blue-100 text-blue-900 border border-blue-300 shrink-0">
-                  <i class="fa-solid fa-receipt text-blue-700 text-[9px]"></i>
-                  {{ grupo.vigencias.length }} vig.
+            <td class="py-3.5 px-4 text-right">
+              @if (grupo.vigencias.length <= 2) { @for (v of grupo.vigencias; track v.id) { <span
+                class="text-center text-black">
+                {{ v.vigenciaAnio }}
                 </span>
-                @for (v of grupo.vigencias; track v.id) {
-                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-white text-slate-700 border border-slate-300 shadow-2xs">
-                    {{ v.vigenciaAnio }}
-                  </span>
                 }
-              </div>
+                } @else {
+                <span class="text-center text-black">
+                  <span class="text-[10px] text-slate-400 font-bold block">
+                    {{ grupo.vigencias.length }} Vig
+                  </span>
+
+                  {{ grupo.vigencias[0].vigenciaAnio }} a
+                  {{ grupo.vigencias[grupo.vigencias.length - 1].vigenciaAnio }}
+                </span>
+                }
             </td>
 
             <td class="py-3.5 px-4 text-right">
@@ -429,7 +432,7 @@
 
             <td class="py-3.5 px-4 text-center whitespace-nowrap">
               <div class="flex items-center justify-center gap-1.5">
-                
+
                 <button (click)="facade.abrirFacturaPreview(grupo.placa, undefined, true)" type="button"
                   title="Previsualizar Declaración y Factura Unificada del Vehículo"
                   class="inline-flex items-center justify-center gap-1.5 h-7 px-2.5 rounded-md text-[11px] font-bold bg-[#0f2d59] hover:bg-blue-900 text-white border-none cursor-pointer shadow-xs transition-colors">

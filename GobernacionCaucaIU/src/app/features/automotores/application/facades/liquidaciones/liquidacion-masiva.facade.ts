@@ -9,15 +9,11 @@ import { LiquidacionItem } from './liquidaciones.models';
 import { catchError, map } from 'rxjs/operators';
 import { of, forkJoin } from 'rxjs';
 
-/**
- * Sub-facade responsable del proceso de Liquidación Masiva:
- * modal, pre-simulación en lote, selección por vehículo/vigencia y ejecución.
- */
+
 @Injectable({ providedIn: 'root' })
 export class LiquidacionMasivaFacade {
   private api = inject(LiquidacionesApiService);
 
-  // ── Estado del modal masivo ───────────────────────────────────────
   readonly isModalMasivoOpen = signal<boolean>(false);
   readonly ejecutandoMasivo = signal<boolean>(false);
   readonly resultadoMasivo = signal<LiquidacionMasivaResultado | null>(null);
@@ -25,11 +21,9 @@ export class LiquidacionMasivaFacade {
   readonly loadingPreSimulacionMasiva = signal<boolean>(false);
   readonly vehiculoExpandidoMasivo = signal<string | null>(null);
 
-  /** Selección individual de vigencias por vehículo en el proceso masivo */
   readonly selectedVigenciasMasivasMap = signal<Record<string, number[]>>({});
   readonly vigenciaFiltroMasivo = signal<number>(0);
 
-  /** Total del lote masivo proyectado en tiempo real */
   readonly totalLoteMasivoProyectado = computed(() => {
     const sims = this.preSimulacionesMasivo();
     if (!sims || sims.length === 0) return 0;
@@ -43,9 +37,6 @@ export class LiquidacionMasivaFacade {
     }, 0);
   });
 
-  // ── Métodos ───────────────────────────────────────────────────────
-
-  /** Calcula el subtotal individual para un vehículo en el modal masivo */
   calcularSubtotalSimulacion(sim: SimulacionLiquidacion): number {
     if (!sim || !sim.vigencias) return 0;
     const aniosSeleccionados = this.selectedVigenciasMasivasMap()[sim.placa] || [];
@@ -54,7 +45,6 @@ export class LiquidacionMasivaFacade {
       .reduce((sum, v) => sum + v.totalVigencia, 0);
   }
 
-  /** Activa o desactiva una vigencia individual para un vehículo en la lista masiva */
   toggleVigenciaMasivaVehiculo(placa: string, anio: number): void {
     const currMap = { ...this.selectedVigenciasMasivasMap() };
     let anios = currMap[placa] ? [...currMap[placa]] : [];
@@ -67,7 +57,6 @@ export class LiquidacionMasivaFacade {
     this.selectedVigenciasMasivasMap.set(currMap);
   }
 
-  /** Aplica el filtro maestro por vigencia a todos los vehículos del lote masivo */
   setVigenciaFiltroMasivo(vigencia: number): void {
     this.vigenciaFiltroMasivo.set(vigencia);
     const sims = this.preSimulacionesMasivo();
@@ -87,7 +76,6 @@ export class LiquidacionMasivaFacade {
     this.selectedVigenciasMasivasMap.set(newMap);
   }
 
-  /** Expande o colapsa el detalle de un vehículo en la pre-revisión masiva */
   toggleExpandirVehiculoMasivo(placa: string): void {
     if (this.vehiculoExpandidoMasivo() === placa) {
       this.vehiculoExpandidoMasivo.set(null);
@@ -96,10 +84,7 @@ export class LiquidacionMasivaFacade {
     }
   }
 
-  /**
-   * Abre el modal masivo y carga la pre-simulación desglosada de cada placa.
-   * @param placasDestino placas a procesar (seleccionadas o toda la tabla)
-   */
+
   abrirModalMasivo(placasDestino: string[]): void {
     this.isModalMasivoOpen.set(true);
     this.resultadoMasivo.set(null);
@@ -115,7 +100,7 @@ export class LiquidacionMasivaFacade {
     }
 
     const requests = placasDestino.map(placa =>
-      this.api.simular({ placa }).pipe(
+      this.api.simularLiquidacion({ placa }).pipe(
         map(res => res?.data || null),
         catchError(() => of(null))
       )
@@ -136,7 +121,6 @@ export class LiquidacionMasivaFacade {
     });
   }
 
-  /** Cierra el modal de liquidación masiva y limpia estado */
   cerrarModalMasivo(): void {
     this.isModalMasivoOpen.set(false);
     this.resultadoMasivo.set(null);
@@ -146,10 +130,7 @@ export class LiquidacionMasivaFacade {
     this.selectedVigenciasMasivasMap.set({});
   }
 
-  /**
-   * Ejecuta la liquidación masiva contra el Backend (.NET API) con persistencia en BD.
-   * @param onSuccess callback que ejecuta la recarga de lista y KPIs
-   */
+
   ejecutarLiquidacionMasiva(onSuccess: () => void): void {
     this.ejecutandoMasivo.set(true);
     this.resultadoMasivo.set(null);
