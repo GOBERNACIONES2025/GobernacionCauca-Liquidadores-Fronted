@@ -47,7 +47,7 @@ export class EntidadesLoginComponent {
       next: (response) => {
         this.isLoading.set(false);
         const entidadNombre = response.usuario.entidadRegistro?.nombre || response.usuario.nombre;
-        this.toast.success(`Bienvenido al Portal Notarial, ${entidadNombre}!`);
+        this.toast.success(`Bienvenido al Portal de Registro, ${entidadNombre}!`);
         this.router.navigate(['/registros/entidades/solicitudes']);
       },
       error: (err) => {
