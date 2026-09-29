@@ -7,6 +7,8 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { EntidadesTipoActoPermitidoFacade } from '../../../../../application/facades/Registro/entidades-tipo-acto-permitido.facade';
 import { EntidadesRegistroFacade } from '../../../../../application/facades/Registro/entidades-registro.facade';
 import { TiposActoRegistroFacade } from '../../../../../application/facades/Registro/tipos-acto-registro.facade';
@@ -22,7 +24,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-entidades-tipo-acto-permitido',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
   templateUrl: './entidades-tipo-acto-permitido.html',
   styleUrl: './entidades-tipo-acto-permitido.css'
 })
@@ -48,6 +50,11 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<EntidadTipoActoPermitido | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -120,8 +127,6 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
     this.cargarItems();
   }
 
-  
-
   setEntidadFilter(filter: number | 'todas') {
     this.selectedEntidadFilter.set(filter);
   }
@@ -155,16 +160,30 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información de la asignación');
+        this.toast.error(formatUserErrorMessage(err, 'obtener los datos de la asignación'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: EntidadTipoActoPermitido) {
+  promptToggleActivo(item: EntidadTipoActoPermitido) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       entidadRegistroId: item.entidadRegistro?.id ?? 0,
@@ -172,11 +191,15 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Relación ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar la relación`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado de la relación'));
         console.error(err);
       }
     });
@@ -205,7 +228,7 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la relación`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar la relación'));
             console.error(err);
           }
         });
@@ -220,13 +243,14 @@ export class EntidadesTipoActoPermitidoComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la relación`);
+            this.toast.error(formatUserErrorMessage(err, 'crear la relación'));
             console.error(err);
           }
         });
       }
     } else {
       this.relacionForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

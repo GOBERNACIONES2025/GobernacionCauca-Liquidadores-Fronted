@@ -25,10 +25,13 @@ import { SearchableSelectComponent } from '../../../../../../../shared/component
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 import { map } from 'rxjs/operators';
 
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
+
 @Component({
   selector: 'app-tarifas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent, ConfirmModalComponent],
   templateUrl: './tarifas.html',
   styleUrl: './tarifas.css'
 })
@@ -202,9 +205,28 @@ export class Tarifas implements OnInit {
     });
   }
 
-  toggleActivo(item: Tarifa) {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<Tarifa | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: Tarifa) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
+    this.isTogglingStatus.set(true);
 
     this.facade.actualizar(item.id, {
       id: item.id,
@@ -222,11 +244,15 @@ export class Tarifas implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Tarifa ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar la tarifa`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `actualizar estado de la tarifa`));
         console.error(err);
       }
     });
@@ -268,7 +294,7 @@ export class Tarifas implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la tarifa`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar la tarifa'));
             console.error(err);
           }
         });
@@ -280,13 +306,14 @@ export class Tarifas implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la tarifa`);
+            this.toast.error(formatUserErrorMessage(err, 'crear la tarifa'));
             console.error(err);
           }
         });
       }
     } else {
       this.tarifaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario de tarifa.');
     }
   }
 }

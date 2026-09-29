@@ -5,16 +5,18 @@ import { FormFieldErrorComponent } from '../../../../../../shared/components/for
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { EstadosLiquidacionFacade } from '../../../../../application/facades/Liquidacion/estados-liquidacion.facade';
 import { EstadoLiquidacion } from '../../../../../domain/models/Liquidacion/estado-liquidacion.model';
 import { EstadosLiquidacionApiService } from '../../../../../infrastructure/api/Liquidacion/estados-liquidacion-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 @Component({
   selector: 'app-estados-liquidacion',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './estados-liquidacion.html',
   styleUrl: './estados-liquidacion.css'
 })
@@ -34,6 +36,9 @@ export class EstadosLiquidacion implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<EstadoLiquidacion | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -95,8 +100,6 @@ export class EstadosLiquidacion implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.estadoLiquidacionForm.reset({ codigo: '', nombre: '', activo: true });
@@ -119,13 +122,27 @@ export class EstadosLiquidacion implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del estado de liquidación');
+        this.toast.error(formatUserErrorMessage(err, 'Error al obtener la información del estado de liquidación'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: EstadoLiquidacion) {
+  promptToggleActivo(item: EstadoLiquidacion) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
+    this.isTogglingStatus.set(true);
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
 
@@ -136,11 +153,15 @@ export class EstadosLiquidacion implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Estado de liquidación ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el estado de liquidación`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'Error al actualizar el estado de liquidación'));
         console.error(err);
       }
     });
@@ -169,7 +190,7 @@ export class EstadosLiquidacion implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el estado de liquidación`);
+            this.toast.error(formatUserErrorMessage(err, `Error al actualizar el estado de liquidación`));
             console.error(err);
           }
         });
@@ -184,12 +205,13 @@ export class EstadosLiquidacion implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el estado de liquidación`);
+            this.toast.error(formatUserErrorMessage(err, `Error al crear el estado de liquidación`));
             console.error(err);
           }
         });
       }
     } else {
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
       this.estadoLiquidacionForm.markAllAsTouched();
     }
   }

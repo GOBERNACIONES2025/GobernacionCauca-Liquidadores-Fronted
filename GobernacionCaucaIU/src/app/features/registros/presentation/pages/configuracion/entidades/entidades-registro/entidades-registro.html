@@ -159,12 +159,11 @@
                     </svg>
                   }
                 </button>
-                
-                <button 
-                  (click)="toggleActivo(item)"
+                              <button 
+                  (click)="promptToggleActivo(item)"
                   [title]="item.activo ? 'Desactivar' : 'Activar'"
                   class="p-1 rounded border border-transparent transition-colors"
-                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -206,7 +205,7 @@
     <!-- Tipo Entidad Select -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Entidad</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Entidad <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <app-searchable-select
         formControlName="tipoEntidadRegistroId"
@@ -228,13 +227,13 @@
     <div class="grid grid-cols-2 gap-3">
       <div class="form-control w-full">
         <label class="label pt-0 pb-1">
-          <span class="label-text font-bold text-xs uppercase text-slate-600">Código</span>
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Código <span class="text-rose-500 font-bold">*</span></span>
         </label>
         <input 
           type="text" 
           formControlName="codigo" 
           placeholder="Ej. NOT-01" 
-          class="input input-sm input-bordered w-full text-slate-800" 
+          class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
           [class.input-error]="entidadForm.get('codigo')?.invalid && (entidadForm.get('codigo')?.touched || entidadForm.get('codigo')?.dirty)" 
         />
         <app-form-error [control]="entidadForm.get('codigo')" fieldName="Código"></app-form-error>
@@ -242,13 +241,13 @@
 
       <div class="form-control w-full">
         <label class="label pt-0 pb-1">
-          <span class="label-text font-bold text-xs uppercase text-slate-600">NIT</span>
+          <span class="label-text font-bold text-xs uppercase text-slate-600">NIT <span class="text-rose-500 font-bold">*</span></span>
         </label>
         <input 
           type="text" 
           formControlName="nit" 
           placeholder="Ej. 891500123-1" 
-          class="input input-sm input-bordered w-full text-slate-800" 
+          class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
           [class.input-error]="entidadForm.get('nit')?.invalid && (entidadForm.get('nit')?.touched || entidadForm.get('nit')?.dirty)" 
         />
         <app-form-error [control]="entidadForm.get('nit')" fieldName="NIT"></app-form-error>
@@ -258,13 +257,13 @@
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre de la Entidad</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre de la Entidad <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
         placeholder="Ej. Notaría Primera de Popayán" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="entidadForm.get('nombre')?.invalid && (entidadForm.get('nombre')?.touched || entidadForm.get('nombre')?.dirty)" 
       />
       <app-form-error [control]="entidadForm.get('nombre')" fieldName="Nombre de la Entidad"></app-form-error>
@@ -275,7 +274,7 @@
       <!-- Departamento Select -->
       <div class="form-control w-full">
         <label class="label pt-0 pb-1">
-          <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento</span>
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento <span class="text-rose-500 font-bold">*</span></span>
         </label>
         <app-searchable-select
           formControlName="departamentoId"
@@ -296,7 +295,7 @@
       <!-- Municipio Select -->
       <div class="form-control w-full">
         <label class="label pt-0 pb-1">
-          <span class="label-text font-bold text-xs uppercase text-slate-600">Municipio</span>
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Municipio <span class="text-rose-500 font-bold">*</span></span>
         </label>
         <app-searchable-select
           formControlName="municipioId"
@@ -325,7 +324,7 @@
         type="email" 
         formControlName="emailContacto" 
         placeholder="ejemplo@notaria1popayan.com.co" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="entidadForm.get('emailContacto')?.invalid && (entidadForm.get('emailContacto')?.touched || entidadForm.get('emailContacto')?.dirty)"
       />
       <app-form-error [control]="entidadForm.get('emailContacto')" fieldName="Correo Electrónico"></app-form-error>
@@ -343,3 +342,20 @@
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="itemToToggle()?.activo ? 'Desactivar Entidad de Registro' : 'Activar Entidad de Registro'"
+  [message]="itemToToggle()?.activo 
+    ? '¿Está seguro de desactivar la entidad \'' + (itemToToggle()?.nombre || '') + '\'?' 
+    : '¿Está seguro de activar la entidad \'' + (itemToToggle()?.nombre || '') + '\'?'"
+  [impactMessage]="itemToToggle()?.activo 
+    ? 'Al desactivar esta entidad (Notaría/ORIP), los funcionarios asociados perderán el acceso a emitir liquidaciones y los ciudadanos no podrán radicar trámites en ella.' 
+    : 'La entidad volverá a quedar habilitada para la radicación y liquidación de impuestos de registro en el departamento.'"
+  [confirmText]="itemToToggle()?.activo ? 'Sí, desactivar' : 'Sí, activar'"
+  [confirmColor]="itemToToggle()?.activo ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (confirm)="executeToggleActivo()"
+  (cancel)="cancelToggleActivo()">
+</app-confirm-modal>

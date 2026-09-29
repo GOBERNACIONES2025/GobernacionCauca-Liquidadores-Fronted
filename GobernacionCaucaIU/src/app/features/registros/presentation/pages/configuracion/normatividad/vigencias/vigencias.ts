@@ -13,11 +13,13 @@ import { VigenciasApiService } from '../../../../../infrastructure/api/Normativi
 import { ToastService } from '../../../../../../../core/services/toast.service';
 
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 @Component({
   selector: 'app-vigencias',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent, ConfirmModalComponent],
   templateUrl: './vigencias.html',
   styleUrl: './vigencias.css'
 })
@@ -148,9 +150,28 @@ export class Vigencias implements OnInit {
     });
   }
 
-  toggleActivo(item: Vigencia) {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<Vigencia | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: Vigencia) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
+    this.isTogglingStatus.set(true);
 
     this.facade.actualizar(item.id, {
       id: item.id,
@@ -160,11 +181,15 @@ export class Vigencias implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
-        this.toast.success(`Vigencia ${actionName} exitosamente`);
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
+        this.toast.success(`Vigencia ${item.anio} ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar la vigencia`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `actualizar estado de la vigencia ${item.anio}`));
         console.error(err);
       }
     });
@@ -189,12 +214,12 @@ export class Vigencias implements OnInit {
           activo: val.activo ?? true
         }).subscribe({
           next: () => {
-            this.toast.success(`Vigencia ${actionName} exitosamente`);
+            this.toast.success(`Vigencia ${val.anio} ${actionName} exitosamente`);
             this.closeSlideOver();
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la vigencia`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar la vigencia'));
             console.error(err);
           }
         });
@@ -205,18 +230,19 @@ export class Vigencias implements OnInit {
           fechaFin: val.fechaFin!
         }).subscribe({
           next: () => {
-            this.toast.success(`Vigencia ${actionName} exitosamente`);
+            this.toast.success(`Vigencia ${val.anio} ${actionName} exitosamente`);
             this.closeSlideOver();
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la vigencia`);
+            this.toast.error(formatUserErrorMessage(err, 'crear la vigencia'));
             console.error(err);
           }
         });
       }
     } else {
       this.vigenciaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

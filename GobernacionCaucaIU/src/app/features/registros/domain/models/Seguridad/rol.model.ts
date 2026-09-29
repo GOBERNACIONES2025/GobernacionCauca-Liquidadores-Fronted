@@ -6,6 +6,9 @@ export interface Rol {
   codigo: string;
   nombre: string;
   activo: boolean;
+  tipoRolId: number;
+  tipoRolNombre?: string;
+  tipoRolCodigo?: string;
 }
 
 /**
@@ -14,6 +17,7 @@ export interface Rol {
 export interface CrearRolRequest {
   codigo: string;
   nombre: string;
+  tipoRolId: number;
 }
 
 /**
@@ -24,4 +28,6 @@ export interface ActualizarRolRequest {
   codigo: string;
   nombre: string;
   activo: boolean;
+  tipoRolId: number;
 }
+

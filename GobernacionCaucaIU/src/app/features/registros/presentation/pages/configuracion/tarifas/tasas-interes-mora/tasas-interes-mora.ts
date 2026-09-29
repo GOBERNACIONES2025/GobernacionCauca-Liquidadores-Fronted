@@ -14,6 +14,8 @@ import { VigenciasFacade } from '../../../../../application/facades/Normatividad
 import { VigenciasApiService } from '../../../../../infrastructure/api/Normatividad/vigencias-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
 import { TasaInteresMora } from '../../../../../domain/models/Tarifas/tasa-interes-mora.model';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 @Component({
   selector: 'app-tasas-interes-mora',
@@ -27,7 +29,8 @@ import { TasaInteresMora } from '../../../../../domain/models/Tarifas/tasa-inter
     PaginationComponent,
     SearchableSelectComponent,
     TableSearchComponent,
-    FormFieldErrorComponent
+    FormFieldErrorComponent,
+    ConfirmModalComponent
   ],
   templateUrl: './tasas-interes-mora.html',
   styleUrl: './tasas-interes-mora.css'
@@ -219,9 +222,28 @@ export class TasasInteresMoraComponent implements OnInit {
     });
   }
 
-  toggleActivo(item: TasaInteresMora): void {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<TasaInteresMora | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: TasaInteresMora): void {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo(): void {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo(): void {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
+    this.isTogglingStatus.set(true);
 
     this.facade
       .actualizar(item.id, {
@@ -235,12 +257,15 @@ export class TasasInteresMoraComponent implements OnInit {
       })
       .subscribe({
         next: () => {
+          this.isTogglingStatus.set(false);
+          this.isConfirmModalOpen.set(false);
+          this.itemToToggle.set(null);
           this.toast.success(`Tasa de interés de mora ${actionName} exitosamente`);
           this.cargarItems();
         },
         error: (err: any) => {
-          const msg = err?.error?.detail || err?.error?.message || 'Error al cambiar el estado de la tasa';
-          this.toast.error(msg);
+          this.isTogglingStatus.set(false);
+          this.toast.error(formatUserErrorMessage(err, 'actualizar estado de la tasa de mora'));
           console.error(err);
         }
       });
@@ -283,8 +308,7 @@ export class TasasInteresMoraComponent implements OnInit {
               this.cargarItems();
             },
             error: (err: any) => {
-              const msg = err?.error?.detail || err?.error?.message || 'Error al actualizar la tasa de interés';
-              this.toast.error(msg);
+              this.toast.error(formatUserErrorMessage(err, 'actualizar la tasa de interés'));
               console.error(err);
             }
           });
@@ -296,14 +320,14 @@ export class TasasInteresMoraComponent implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            const msg = err?.error?.detail || err?.error?.message || 'Error al crear la tasa de interés';
-            this.toast.error(msg);
+            this.toast.error(formatUserErrorMessage(err, 'crear la tasa de interés'));
             console.error(err);
           }
         });
       }
     } else {
       this.tasaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

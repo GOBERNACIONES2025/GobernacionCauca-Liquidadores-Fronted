@@ -4,6 +4,8 @@ import { PaginationComponent } from '../../../../../../shared/components/paginat
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { ExencionesFacade } from '../../../../../application/facades/Exenciones/exenciones.facade';
 import { DepartamentosFacade } from '../../../../../application/facades/Territorios/departamentos.facade';
@@ -24,7 +26,7 @@ import { map } from 'rxjs/operators';
 @Component({
   selector: 'app-exenciones',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, SearchableSelectComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './exenciones.html',
   styleUrl: './exenciones.css'
 })
@@ -53,6 +55,11 @@ export class Exenciones implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<Exencion | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -130,8 +137,6 @@ export class Exenciones implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     const primerDep = this.departamentosFacade.departamentos()[0]?.id || null;
@@ -175,16 +180,30 @@ export class Exenciones implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información de la exención');
+        this.toast.error(formatUserErrorMessage(err, 'obtener los datos de la exención'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: Exencion) {
+  promptToggleActivo(item: Exencion) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       departamentoId: item.departamento?.id || 1,
@@ -199,11 +218,15 @@ export class Exenciones implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Exención ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar la exención`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado de la exención'));
         console.error(err);
       }
     });
@@ -243,7 +266,7 @@ export class Exenciones implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la exención`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar la exención'));
             console.error(err);
           }
         });
@@ -255,13 +278,14 @@ export class Exenciones implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la exención`);
+            this.toast.error(formatUserErrorMessage(err, 'crear la exención'));
             console.error(err);
           }
         });
       }
     } else {
       this.exencionForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

@@ -118,5 +118,36 @@
         </svg>
       </li>
     </ul>
+
+    <!-- Pagination Footer -->
+    <div 
+      *ngIf="enablePagination && totalPages() > 1"
+      class="px-3 py-1.5 border-t border-slate-200/80 bg-slate-50 flex items-center justify-between text-[11px] text-slate-500 font-medium select-none"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        (click)="prevPage($event)"
+        [disabled]="currentPage() === 1"
+        class="px-2 py-0.5 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer text-slate-700 font-bold inline-flex items-center gap-1 shadow-2xs"
+      >
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <span>Ant.</span>
+      </button>
+
+      <span class="font-mono text-[10px] text-slate-600">
+        Pág. <strong class="text-slate-900">{{ currentPage() }}</strong> de {{ totalPages() }} ({{ options().length }})
+      </span>
+
+      <button
+        type="button"
+        (click)="nextPage($event)"
+        [disabled]="currentPage() >= totalPages()"
+        class="px-2 py-0.5 rounded border border-slate-200 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer text-slate-700 font-bold inline-flex items-center gap-1 shadow-2xs"
+      >
+        <span>Sig.</span>
+        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+      </button>
+    </div>
   </div>
 </div>

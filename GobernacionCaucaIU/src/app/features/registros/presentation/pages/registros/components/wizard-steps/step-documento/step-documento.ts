@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, OnInit, DestroyRef, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -11,7 +11,7 @@ import { RegistrarDocumentoDto } from '../../../../../../domain/models/Radicacio
 import { TiposEntidadRegistroFacade } from '../../../../../../application/facades/Registro/tipos-entidad-registro.facade';
 import { CategoriasActoFacade } from '../../../../../../application/facades/Registro/categorias-acto.facade';
 import { combineLatest } from 'rxjs';
-import { startWith, distinctUntilChanged } from 'rxjs/operators';
+import { startWith, distinctUntilChanged, finalize } from 'rxjs/operators';
 
 import { FormFieldErrorComponent } from '../../../../../../../../shared/components/form-error/form-error.component';
 
@@ -32,9 +32,18 @@ export class StepDocumentoComponent implements OnInit {
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
   toastService = inject(ToastService);
 
+  isSaving = signal<boolean>(false);
+
   ngOnInit() {
     this.tiposEntidadFacade.cargarTiposEntidadRegistro(1, 100);
     this.categoriasActoFacade.cargarCategoriasActo(1, 100);
+
+    if (this.wizardService.modoReliquidacion() && this.wizardService.reliquidacionDoc()) {
+      this.wizardService.paso2Form.patchValue({
+        numeroDocumento: this.wizardService.reliquidacionDoc(),
+        fechaDocumento: this.wizardService.reliquidacionFechaDoc() || this.wizardService.paso2Form.value.fechaDocumento
+      });
+    }
 
     const tipoEntidadCtrl = this.wizardService.paso2Form.get('tipoEntidadRegistroId');
     const municipioCtrl = this.wizardService.paso2Form.get('municipioJurisdiccionId');
@@ -137,7 +146,11 @@ export class StepDocumentoComponent implements OnInit {
         return;
       }
 
-      this.solicitudesFacade.registrarDocumento(solicitudId, this.wizardService.documentoSoporteFile || null, dto).subscribe({
+      this.isSaving.set(true);
+
+      this.solicitudesFacade.registrarDocumento(solicitudId, this.wizardService.documentoSoporteFile || null, dto).pipe(
+        finalize(() => this.isSaving.set(false))
+      ).subscribe({
         next: (res) => {
           console.log('Respuesta exitosa de registrarDocumento:', res);
           if (res && res.success) {

@@ -23,10 +23,13 @@ import { map } from 'rxjs/operators';
 import { DocumentViewerComponent } from '../../../../../../../shared/components/document-viewer/document-viewer';
 import { DocumentItem } from '../../../../../../../shared/components/document-viewer/document-viewer.model';
 
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
+
 @Component({
   selector: 'app-normas',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, DocumentViewerComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent, ConfirmModalComponent],
   templateUrl: './normas.html',
   styleUrl: './normas.css'
 })
@@ -182,7 +185,25 @@ export class Normas implements OnInit {
     });
   }
 
-  toggleActivo(item: NormaListado) {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<NormaListado | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: NormaListado) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const estados = this.estadosNormaFacade.estadosNorma();
     const esActivo = item.estadoNorma?.activo || item.estadoNorma?.nombre?.toLowerCase().includes('activ');
     
@@ -190,18 +211,25 @@ export class Normas implements OnInit {
     const nuevoEstado = estados.find(e => esActivo ? (!e.activo || e.nombre.toLowerCase().includes('inactiv') || e.nombre.toLowerCase().includes('derog')) : (e.activo || e.nombre.toLowerCase().includes('activ')));
     
     if (nuevoEstado) {
+      this.isTogglingStatus.set(true);
       this.facade.eliminar(item.id, nuevoEstado.id).subscribe({
         next: () => {
-          this.toast.success(`Estado de la norma actualizado a ${nuevoEstado.nombre}`);
+          this.isTogglingStatus.set(false);
+          this.isConfirmModalOpen.set(false);
+          this.itemToToggle.set(null);
+          this.toast.success(`Estado de la norma N° ${item.numero} actualizado a "${nuevoEstado.nombre}"`);
           this.cargarItems();
         },
         error: (err: any) => {
-          this.toast.error(`Error al actualizar el estado de la norma`);
+          this.isTogglingStatus.set(false);
+          this.toast.error(formatUserErrorMessage(err, `actualizar el estado de la norma N° ${item.numero}`));
           console.error(err);
         }
       });
     } else {
-      this.toast.info('No se encontró un estado alternativo disponible.');
+      this.isConfirmModalOpen.set(false);
+      this.itemToToggle.set(null);
+      this.toast.info('No se encontró un estado alternativo disponible en el catálogo de estados.');
     }
   }
 
@@ -259,13 +287,13 @@ export class Normas implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la norma`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar la norma'));
             console.error(err);
           }
         });
       } else {
         if (!this.selectedFile) {
-          this.toast.error('Debe adjuntar un documento normativo');
+          this.toast.error('Debe adjuntar el archivo oficial del documento normativo en formato PDF.');
           return;
         }
 
@@ -279,18 +307,19 @@ export class Normas implements OnInit {
           descripcion: val.descripcion || ''
         }).subscribe({
           next: () => {
-            this.toast.success(`Norma ${actionName} exitosamente`);
+            this.toast.success(`Norma N° ${val.numero} ${actionName} exitosamente`);
             this.closeSlideOver();
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la norma`);
+            this.toast.error(formatUserErrorMessage(err, 'crear la norma'));
             console.error(err);
           }
         });
       }
     } else {
       this.normaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario de norma.');
     }
   }
 }

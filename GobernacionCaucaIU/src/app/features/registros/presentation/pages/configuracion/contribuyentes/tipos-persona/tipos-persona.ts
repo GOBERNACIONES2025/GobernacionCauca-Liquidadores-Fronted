@@ -5,6 +5,8 @@ import { FormFieldErrorComponent } from '../../../../../../shared/components/for
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { TiposPersonaFacade } from '../../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TipoPersona } from '../../../../../domain/models/Contribuyentes/tipo-persona.model';
@@ -14,7 +16,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-tipos-persona',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './tipos-persona.html',
   styleUrl: './tipos-persona.css'
 })
@@ -34,6 +36,11 @@ export class TiposPersona implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<TipoPersona | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -95,8 +102,6 @@ export class TiposPersona implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.tipoPersonaForm.reset({ codigo: '', nombre: '', activo: true });
@@ -119,16 +124,30 @@ export class TiposPersona implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del tipo de persona');
+        this.toast.error(formatUserErrorMessage(err, 'obtener el tipo de persona'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: TipoPersona) {
+  promptToggleActivo(item: TipoPersona) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       codigo: item.codigo,
@@ -136,11 +155,15 @@ export class TiposPersona implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Tipo de persona ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el tipo de persona`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado del tipo de persona'));
         console.error(err);
       }
     });
@@ -169,7 +192,7 @@ export class TiposPersona implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el tipo de persona`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar el tipo de persona'));
             console.error(err);
           }
         });
@@ -184,13 +207,14 @@ export class TiposPersona implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el tipo de persona`);
+            this.toast.error(formatUserErrorMessage(err, 'crear el tipo de persona'));
             console.error(err);
           }
         });
       }
     } else {
       this.tipoPersonaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

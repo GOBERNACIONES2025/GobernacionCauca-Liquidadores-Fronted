@@ -45,6 +45,8 @@ export class RolesApiService {
       const term = paramsOrPage.searchTerm ?? paramsOrPage.search;
       if (term && term.trim() !== '') params.SearchTerm = term.trim();
       if (paramsOrPage.activo !== undefined && paramsOrPage.activo !== null) params.Activo = paramsOrPage.activo;
+      if (paramsOrPage.tipoRolId !== undefined && paramsOrPage.tipoRolId !== null) params.TipoRolId = paramsOrPage.tipoRolId;
+      if (paramsOrPage.tipoRolCodigo !== undefined && paramsOrPage.tipoRolCodigo !== null) params.TipoRolCodigo = paramsOrPage.tipoRolCodigo;
     } else {
       params.PageNumber = paramsOrPage ?? 1;
       params.PageSize = pageSize ?? 10;

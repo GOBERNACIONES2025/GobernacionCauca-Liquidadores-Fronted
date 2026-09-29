@@ -1,0 +1,1235 @@
+<div class="p-4 sm:p-6 max-w-[1680px] mx-auto space-y-6">
+
+  <!-- CABECERA INSTITUCIONAL Y ACCIONES DE EXPORTACIÓN -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs">
+    <div class="flex items-center gap-3.5">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-700 via-indigo-700 to-indigo-900 text-white flex items-center justify-center shadow-md shadow-blue-700/20 shrink-0">
+        <i class="fa-solid fa-chart-pie text-xl"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="text-xl font-black text-slate-900 tracking-tight">Centro de Reportes e Informes Fiscales</h1>
+        </div>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Gobernación del Cauca • Secretaría de Hacienda Departamental • <strong class="text-blue-700 font-bold">{{ facade.vigenciaLabel() }}</strong>
+        </p>
+      </div>
+    </div>
+
+    <!-- Selector de Vigencia Fiscal Destacado y Botones de Acción -->
+    <div class="flex items-center gap-2 flex-wrap">
+      
+      <!-- Control de Vigencia Fiscal Oficial -->
+      <div class="flex items-center gap-2 bg-slate-50 border border-slate-200/90 rounded-2xl p-1 shadow-2xs mr-1">
+        <div class="flex items-center gap-1.5 px-2 text-slate-700">
+          <i class="fa-solid fa-calendar-check text-blue-700 text-sm"></i>
+          <span class="text-[11px] font-black uppercase tracking-wider text-slate-600">Vigencia:</span>
+        </div>
+        <div class="relative">
+          <select
+            [ngModel]="facade.filtroVigenciaId()"
+            (ngModelChange)="facade.setFiltroVigencia($event)"
+            class="pl-2.5 pr-7 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-800 shadow-2xs focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-hidden cursor-pointer"
+          >
+            @for (vig of facade.vigencias(); track vig.id) {
+              <option [ngValue]="vig.id">
+                {{ vig.anio }}
+              </option>
+            }
+            <option [ngValue]="null">Todas las Vigencias</option>
+          </select>
+        </div>
+      </div>
+      <button
+        (click)="facade.consultarReporte()"
+        [disabled]="facade.isLoading()"
+        type="button"
+        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+        title="Actualizar datos desde la base de datos"
+      >
+        <i class="fa-solid fa-rotate text-slate-500" [class.fa-spin]="facade.isLoading()"></i>
+        <span class="hidden sm:inline">Actualizar</span>
+      </button>
+
+      <button
+        (click)="imprimir()"
+        type="button"
+        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.98] cursor-pointer"
+        title="Imprimir informe en formato oficial"
+      >
+        <i class="fa-solid fa-print text-slate-500"></i>
+        <span>Imprimir</span>
+      </button>
+
+      <button
+        (click)="descargarCSV()"
+        [disabled]="facade.totalRegistros() === 0"
+        type="button"
+        class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-2xs transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        title="Descargar en formato plano CSV (Excel Delimitado)"
+      >
+        <i class="fa-solid fa-file-csv text-blue-600"></i>
+        <span>CSV</span>
+      </button>
+
+      <button
+        (click)="descargarExcel()"
+        [disabled]="facade.totalRegistros() === 0 || facade.isExporting()"
+        type="button"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs shadow-md shadow-emerald-700/20 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        title="Descargar libro Excel con todas las hojas consolidadas"
+      >
+        <i class="fa-solid" [class.fa-file-excel]="!facade.isExporting()" [class.fa-spinner]="facade.isExporting()" [class.fa-spin]="facade.isExporting()"></i>
+        <span>{{ facade.isExporting() ? 'Compilando Libro...' : 'Exportar Excel (.xlsx)' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TARJETAS DE INDICADORES FINANCIEROS Y OPERATIVOS (KPIS) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+    
+    <!-- KPI 1: Total Liquidado / Cartera Emitida -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Total Liquidado (Cartera Emitida)</span>
+        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200/60">
+          <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-lg sm:text-xl font-black font-mono text-slate-900 tracking-tight">
+          {{ facade.kpiTotalLiquidado() | currency:'COP':'symbol-narrow':'1.0-0' }}
+        </h3>
+        <span class="text-[10px] text-blue-600 font-bold mt-1 inline-flex items-center gap-1">
+          <i class="fa-solid fa-filter"></i>
+          {{ facade.totalRegistros() }} acto(s) determinados
+        </span>
+      </div>
+    </div>
+
+    <!-- KPI 2: Recaudo Real Efectivo -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Recaudo Real Efectivo (Pagado)</span>
+        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200/60">
+          <i class="fa-solid fa-circle-check text-sm"></i>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-lg sm:text-xl font-black font-mono text-emerald-950 tracking-tight">
+          {{ facade.kpiMontoPagado() | currency:'COP':'symbol-narrow':'1.0-0' }}
+        </h3>
+        <span class="text-[10px] text-emerald-700 font-bold mt-1 inline-flex items-center gap-1">
+          <i class="fa-solid fa-arrow-trend-up"></i>
+          {{ facade.kpiTotalPagadas() }} pagada(s) ({{ facade.kpiTasaCumplimiento() | number:'1.1-1' }}% recaudado)
+        </span>
+      </div>
+    </div>
+
+    <!-- KPI 3: Base Gravable Consolidada -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Base Gravable Total</span>
+        <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-200/60">
+          <i class="fa-solid fa-building-columns text-sm"></i>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-lg sm:text-xl font-black font-mono text-slate-900 tracking-tight">
+          {{ facade.kpiTotalBaseGravable() | currency:'COP':'symbol-narrow':'1.0-0' }}
+        </h3>
+        <span class="text-[10px] text-slate-400 font-medium mt-1 block">Valor comercial de actos</span>
+      </div>
+    </div>
+
+    <!-- KPI 4: Beneficios y Exenciones Otorgadas -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">Beneficios / Exenciones</span>
+        <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200/60">
+          <i class="fa-solid fa-tags text-sm"></i>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-lg sm:text-xl font-black font-mono text-amber-800 tracking-tight">
+          {{ facade.kpiTotalDescuentos() | currency:'COP':'symbol-narrow':'1.0-0' }}
+        </h3>
+        <span class="text-[10px] text-amber-700 font-medium mt-1 block">Beneficios de ley y VIS</span>
+      </div>
+    </div>
+
+    <!-- KPI 5: Promedio por Expediente -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">Promedio por Trámite</span>
+        <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-200/60">
+          <i class="fa-solid fa-calculator text-sm"></i>
+        </div>
+      </div>
+      <div>
+        <h3 class="text-lg sm:text-xl font-black font-mono text-slate-900 tracking-tight">
+          {{ facade.kpiPromedioLiquidacion() | currency:'COP':'symbol-narrow':'1.0-0' }}
+        </h3>
+        <span class="text-[10px] text-purple-700 font-semibold mt-1 block">Ticket fiscal promedio</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PANEL DE FILTROS AVANZADOS MULTI-CRITERIO -->
+  <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
+    
+    <!-- Barra superior de filtros con presets rápidos -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      <div class="flex items-center gap-2 flex-wrap">
+        <i class="fa-solid fa-filter text-blue-700"></i>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Criterios de Filtrado y Búsqueda Fiscal</h3>
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg bg-blue-50 text-blue-800 font-extrabold text-[11px] border border-blue-200/80">
+          <i class="fa-solid fa-calendar-check text-[10px] text-blue-600"></i>
+          {{ facade.vigenciaLabel() }}
+        </span>
+      </div>
+
+      <!-- Presets de fecha rápidos -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-[10px] font-bold text-slate-400 uppercase mr-1">Rango rápido:</span>
+        <button
+          type="button"
+          (click)="setRangoFechaRapido('hoy')"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border"
+          [class.bg-blue-700]="facade.filtroRangoFechaRapido() === 'hoy'"
+          [class.text-white]="facade.filtroRangoFechaRapido() === 'hoy'"
+          [class.border-blue-700]="facade.filtroRangoFechaRapido() === 'hoy'"
+          [class.bg-slate-50]="facade.filtroRangoFechaRapido() !== 'hoy'"
+          [class.text-slate-600]="facade.filtroRangoFechaRapido() !== 'hoy'"
+          [class.border-slate-200]="facade.filtroRangoFechaRapido() !== 'hoy'"
+        >
+          Hoy
+        </button>
+        <button
+          type="button"
+          (click)="setRangoFechaRapido('7dias')"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border"
+          [class.bg-blue-700]="facade.filtroRangoFechaRapido() === '7dias'"
+          [class.text-white]="facade.filtroRangoFechaRapido() === '7dias'"
+          [class.border-blue-700]="facade.filtroRangoFechaRapido() === '7dias'"
+          [class.bg-slate-50]="facade.filtroRangoFechaRapido() !== '7dias'"
+          [class.text-slate-600]="facade.filtroRangoFechaRapido() !== '7dias'"
+          [class.border-slate-200]="facade.filtroRangoFechaRapido() !== '7dias'"
+        >
+          Últimos 7 días
+        </button>
+        <button
+          type="button"
+          (click)="setRangoFechaRapido('mes')"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border"
+          [class.bg-blue-700]="facade.filtroRangoFechaRapido() === 'mes'"
+          [class.text-white]="facade.filtroRangoFechaRapido() === 'mes'"
+          [class.border-blue-700]="facade.filtroRangoFechaRapido() === 'mes'"
+          [class.bg-slate-50]="facade.filtroRangoFechaRapido() !== 'mes'"
+          [class.text-slate-600]="facade.filtroRangoFechaRapido() !== 'mes'"
+          [class.border-slate-200]="facade.filtroRangoFechaRapido() !== 'mes'"
+        >
+          Este Mes
+        </button>
+        <button
+          type="button"
+          (click)="setRangoFechaRapido('ano')"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border"
+          [class.bg-blue-700]="facade.filtroRangoFechaRapido() === 'ano'"
+          [class.text-white]="facade.filtroRangoFechaRapido() === 'ano'"
+          [class.border-blue-700]="facade.filtroRangoFechaRapido() === 'ano'"
+          [class.bg-slate-50]="facade.filtroRangoFechaRapido() !== 'ano'"
+          [class.text-slate-600]="facade.filtroRangoFechaRapido() !== 'ano'"
+          [class.border-slate-200]="facade.filtroRangoFechaRapido() !== 'ano'"
+        >
+          Año Actual
+        </button>
+        <button
+          type="button"
+          (click)="setRangoFechaRapido('todo')"
+          class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer border"
+          [class.bg-blue-700]="facade.filtroRangoFechaRapido() === 'todo'"
+          [class.text-white]="facade.filtroRangoFechaRapido() === 'todo'"
+          [class.border-blue-700]="facade.filtroRangoFechaRapido() === 'todo'"
+          [class.bg-slate-50]="facade.filtroRangoFechaRapido() !== 'todo'"
+          [class.text-slate-600]="facade.filtroRangoFechaRapido() !== 'todo'"
+          [class.border-slate-200]="facade.filtroRangoFechaRapido() !== 'todo'"
+        >
+          Histórico
+        </button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <button
+          (click)="limpiarFiltros()"
+          type="button"
+          class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs text-slate-600 font-bold transition cursor-pointer"
+          title="Restablecer todos los filtros"
+        >
+          <i class="fa-solid fa-eraser mr-1"></i>Limpiar
+        </button>
+        <button
+          (click)="aplicarFiltros()"
+          [disabled]="facade.isLoading()"
+          type="button"
+          class="px-3.5 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-lg font-bold text-xs transition cursor-pointer shadow-xs disabled:opacity-50"
+        >
+          <i class="fa-solid fa-magnifying-glass mr-1" [class.fa-spin]="facade.isLoading()"></i>Consultar
+        </button>
+      </div>
+    </div>
+
+    <!-- Rejilla de Filtros Jerárquicos en Cascada -->
+    <div class="space-y-3 text-xs">
+      
+      <!-- Fila 1: Filtros en Cascada (Municipio -> Tipo Entidad -> Entidad Registral -> Tipo de Acto) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        
+        <!-- 1. Municipio Jurisdicción (Paso 1) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-blue-100 text-blue-700 inline-flex items-center justify-center text-[10px] font-black">1</span>
+              <span>Municipio:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">{{ facade.municipios().length }} disp.</span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroMunicipioId()"
+            (ngModelChange)="onMunicipioChange($event)"
+            [searchFn]="searchMunicipiosFn"
+            [resolveIdFn]="resolveMunicipioFn"
+            labelKey="nombre"
+            valueKey="id"
+            placeholder="Todos los Municipios (Cauca)"
+            icon="fa-solid fa-location-dot"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
+        <!-- 2. Tipo de Entidad (Paso 2 - Condicionado por Municipio) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-indigo-100 text-indigo-700 inline-flex items-center justify-center text-[10px] font-black">2</span>
+              <span>Tipo de Entidad:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">
+              {{ facade.tiposEntidadDisponibles().length }} {{ facade.filtroMunicipioId() ? 'en mun.' : 'disp.' }}
+            </span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroTipoEntidadId()"
+            (ngModelChange)="onTipoEntidadChange($event)"
+            [dependency]="facade.filtroMunicipioId()"
+            [searchFn]="searchTiposEntidadFn"
+            [resolveIdFn]="resolveTipoEntidadFn"
+            labelKey="nombre"
+            valueKey="id"
+            placeholder="Todos los Tipos de Entidad"
+            icon="fa-solid fa-building"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
+        <!-- 3. Entidad de Registro (Paso 3 - Condicionado por Municipio y Tipo) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-emerald-100 text-emerald-700 inline-flex items-center justify-center text-[10px] font-black">3</span>
+              <span>Entidad Registral:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">
+              {{ facade.entidadesFiltradas().length }} disp.
+            </span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroEntidadId()"
+            (ngModelChange)="onEntidadChange($event)"
+            [dependency]="(facade.filtroMunicipioId() || 0) + '-' + (facade.filtroTipoEntidadId() || 0)"
+            [searchFn]="searchEntidadesFn"
+            [resolveIdFn]="resolveEntidadFn"
+            labelKey="nombre"
+            valueKey="id"
+            [placeholder]="'Todas las Entidades (' + facade.entidadesFiltradas().length + ')'"
+            icon="fa-solid fa-landmark"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
+        <!-- 4. Tipo de Acto Registral (Paso 4 - Condicionado por Entidad) -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-amber-100 text-amber-800 inline-flex items-center justify-center text-[10px] font-black">4</span>
+              <span>Tipo de Acto:</span>
+            </span>
+            <span class="text-[10px] text-slate-400 font-mono">
+              {{ facade.isLoadingActosPermitidos() ? 'Cargando...' : (facade.tiposActoDisponibles().length + ' disp.') }}
+            </span>
+          </label>
+          <app-searchable-select
+            [ngModel]="facade.filtroTipoActoId()"
+            (ngModelChange)="onTipoActoChange($event)"
+            [dependency]="(facade.filtroEntidadId() || 0) + '-' + facade.isLoadingActosPermitidos()"
+            [searchFn]="searchTiposActoFn"
+            [resolveIdFn]="resolveTipoActoFn"
+            labelKey="nombreCompleto"
+            valueKey="id"
+            [placeholder]="facade.filtroEntidadId() ? ('Actos Autorizados (' + facade.tiposActoDisponibles().length + ')') : ('Todos los Actos (' + facade.tiposActoDisponibles().length + ')')"
+            icon="fa-solid fa-file-signature"
+            [pageSize]="8"
+          ></app-searchable-select>
+        </div>
+
+      </div>
+
+      <!-- Fila 2: Criterios Temporales y de Estado Fiscal -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        
+        <!-- 5. Estado de Liquidación -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-purple-100 text-purple-700 inline-flex items-center justify-center text-[10px] font-black">5</span>
+              <span>Estado Fiscal:</span>
+            </span>
+          </label>
+          <div class="relative">
+            <select
+              [ngModel]="facade.filtroEstado()"
+              (ngModelChange)="facade.setFiltroEstado($event)"
+              class="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition cursor-pointer font-medium"
+            >
+              @for (est of facade.estadosDisponibles; track est.valor) {
+                <option [value]="est.valor">{{ est.nombre }}</option>
+              }
+            </select>
+            <i class="fa-solid fa-chart-pie absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none"></i>
+          </div>
+        </div>
+
+        <!-- 6. Fecha Desde -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[10px] font-black">6</span>
+              <span>Expedición Desde:</span>
+            </span>
+          </label>
+          <input
+            type="date"
+            [ngModel]="facade.filtroFechaDesde()"
+            (ngModelChange)="facade.setFiltroFechaDesde($event)"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition font-medium"
+          />
+        </div>
+
+        <!-- 7. Fecha Hasta -->
+        <div>
+          <label class="flex items-center justify-between text-[11px] font-bold text-slate-700 mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-4 h-4 rounded-full bg-slate-100 text-slate-700 inline-flex items-center justify-center text-[10px] font-black">7</span>
+              <span>Expedición Hasta:</span>
+            </span>
+          </label>
+          <input
+            type="date"
+            [ngModel]="facade.filtroFechaHasta()"
+            (ngModelChange)="facade.setFiltroFechaHasta($event)"
+            class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 focus:bg-white focus:border-blue-600 outline-hidden transition font-medium"
+          />
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Búsqueda rápida por texto libre -->
+    <div class="pt-2 border-t border-slate-100 flex items-center gap-3">
+      <div class="relative flex-1">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input
+          type="text"
+          [ngModel]="facade.filtroBusqueda()"
+          (ngModelChange)="facade.setFiltroBusqueda($event)"
+          (keyup.enter)="aplicarFiltros()"
+          placeholder="Buscar por radicado, liquidación oficial, cédula/NIT, o nombre del contribuyente..."
+          class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 placeholder-slate-400 text-xs focus:bg-white focus:border-blue-600 outline-hidden transition"
+        />
+      </div>
+      <button
+        (click)="aplicarFiltros()"
+        type="button"
+        class="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-xs"
+      >
+        <span>Buscar</span>
+      </button>
+    </div>
+
+    <!-- CHIPS DE FILTROS ACTIVOS (UX FEEDBACK & RECOVERY) -->
+    @if (facade.filtrosActivos().length > 0) {
+      <div class="pt-2 border-t border-slate-100 flex items-center gap-2 flex-wrap">
+        <span class="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">Filtros Activos:</span>
+        @for (f of facade.filtrosActivos(); track f.id) {
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-800 border border-blue-200 animate-fadeIn">
+            <span class="text-blue-500 font-bold">{{ f.etiqueta }}:</span>
+            <strong class="font-medium truncate max-w-[180px]">{{ f.valor }}</strong>
+            <button
+              (click)="f.remover()"
+              type="button"
+              class="ml-0.5 text-blue-400 hover:text-blue-900 transition cursor-pointer"
+              title="Remover filtro"
+            >
+              <i class="fa-solid fa-xmark text-[10px]"></i>
+            </button>
+          </span>
+        }
+        <button
+          (click)="limpiarFiltros()"
+          type="button"
+          class="text-[11px] font-bold text-rose-600 hover:text-rose-800 ml-2 transition cursor-pointer"
+        >
+          Borrar todos
+        </button>
+      </div>
+    }
+
+  </div>
+
+  <!-- NAVEGACIÓN POR PESTAÑAS DE INFORMES FISCALES -->
+  <div class="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden">
+    
+    <!-- Barra de Pestañas -->
+    <div class="flex border-b border-slate-200 px-4 pt-2 gap-2 text-xs font-bold overflow-x-auto bg-slate-50/50">
+      
+      <!-- Pestaña 1: Detalle -->
+      <button
+        (click)="cambiarTab(1)"
+        type="button"
+        class="px-4 py-3 border-b-2 transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+        [class.border-blue-600]="activeTab() === 1"
+        [class.text-blue-700]="activeTab() === 1"
+        [class.bg-white]="activeTab() === 1"
+        [class.border-transparent]="activeTab() !== 1"
+        [class.text-slate-500]="activeTab() !== 1"
+      >
+        <i class="fa-solid fa-list-check"></i>
+        <span>Detalle de Liquidaciones</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-700 font-mono">{{ facade.totalRegistros() }}</span>
+      </button>
+
+      <!-- Pestaña 2: Notaría / Entidad -->
+      <button
+        (click)="cambiarTab(2)"
+        type="button"
+        class="px-4 py-3 border-b-2 transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+        [class.border-blue-600]="activeTab() === 2"
+        [class.text-blue-700]="activeTab() === 2"
+        [class.bg-white]="activeTab() === 2"
+        [class.border-transparent]="activeTab() !== 2"
+        [class.text-slate-500]="activeTab() !== 2"
+      >
+        <i class="fa-solid fa-landmark"></i>
+        <span>Consolidado por Entidad / Notaría</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-700 font-mono">{{ facade.resumenPorEntidad().length }}</span>
+      </button>
+
+      <!-- Pestaña 3: Municipios -->
+      <button
+        (click)="cambiarTab(3)"
+        type="button"
+        class="px-4 py-3 border-b-2 transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+        [class.border-blue-600]="activeTab() === 3"
+        [class.text-blue-700]="activeTab() === 3"
+        [class.bg-white]="activeTab() === 3"
+        [class.border-transparent]="activeTab() !== 3"
+        [class.text-slate-500]="activeTab() !== 3"
+      >
+        <i class="fa-solid fa-map-location-dot"></i>
+        <span>Consolidado por Municipio</span>
+        <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-700 font-mono">{{ facade.resumenPorMunicipio().length }}</span>
+      </button>
+
+      <!-- Pestaña 4: Distribución por Estados -->
+      <button
+        (click)="cambiarTab(4)"
+        type="button"
+        class="px-4 py-3 border-b-2 transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+        [class.border-blue-600]="activeTab() === 4"
+        [class.text-blue-700]="activeTab() === 4"
+        [class.bg-white]="activeTab() === 4"
+        [class.border-transparent]="activeTab() !== 4"
+        [class.text-slate-500]="activeTab() !== 4"
+      >
+        <i class="fa-solid fa-chart-simple"></i>
+        <span>Distribución por Estados y Cartera</span>
+      </button>
+    </div>
+
+    <!-- CUERPO DE LAS PESTAÑAS -->
+    <div class="p-4 sm:p-5">
+
+      <!-- ── PESTAÑA 1: DETALLE DE LIQUIDACIONES ──────────────────────── -->
+      @if (activeTab() === 1) {
+        <div class="space-y-4">
+          
+          <!-- Estado de Carga -->
+          @if (facade.isLoading()) {
+            <div class="py-20 text-center text-slate-400">
+              <i class="fa-solid fa-spinner fa-spin text-4xl mb-3 text-blue-600"></i>
+              <p class="text-sm font-bold text-slate-700">Consultando registros...</p>
+              <p class="text-xs text-slate-400 mt-1">Calculando auditoría y rentas departamentales en tiempo real</p>
+            </div>
+          } @else if (facade.liquidacionesPaginadas().length > 0) {
+            
+            <!-- Tabla de Datos Principal -->
+            <div class="overflow-x-auto rounded-xl border border-slate-200/80">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold text-slate-600 uppercase tracking-wider select-none">
+                    
+                    <!-- Columna: Liquidación -->
+                    <th (click)="ordenar('numeroLiquidacion')" class="p-3.5 cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center gap-1.5">
+                        <span>Liquidación</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'numeroLiquidacion' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'numeroLiquidacion' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'numeroLiquidacion'"
+                          [class.text-blue-600]="facade.sortColumn() === 'numeroLiquidacion'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'numeroLiquidacion'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Radicado / Fecha -->
+                    <th (click)="ordenar('fechaLiquidacion')" class="p-3.5 cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center gap-1.5">
+                        <span>Radicado / Expedición</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'fechaLiquidacion' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'fechaLiquidacion' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'fechaLiquidacion'"
+                          [class.text-blue-600]="facade.sortColumn() === 'fechaLiquidacion'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'fechaLiquidacion'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Entidad / Municipio -->
+                    <th (click)="ordenar('entidad')" class="p-3.5 cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center gap-1.5">
+                        <span>Entidad / Municipio</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'entidad' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'entidad' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'entidad'"
+                          [class.text-blue-600]="facade.sortColumn() === 'entidad'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'entidad'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Sujeto Pasivo -->
+                    <th (click)="ordenar('contribuyente')" class="p-3.5 cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center gap-1.5">
+                        <span>Sujeto Pasivo (Contribuyente)</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'contribuyente' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'contribuyente' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'contribuyente'"
+                          [class.text-blue-600]="facade.sortColumn() === 'contribuyente'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'contribuyente'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Base Gravable -->
+                    <th (click)="ordenar('subtotal')" class="p-3.5 text-right cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <span>Base Gravable</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'subtotal' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'subtotal' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'subtotal'"
+                          [class.text-blue-600]="facade.sortColumn() === 'subtotal'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'subtotal'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Beneficios -->
+                    <th (click)="ordenar('totalDescuentos')" class="p-3.5 text-right cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <span>Beneficio Exención</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'totalDescuentos' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'totalDescuentos' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'totalDescuentos'"
+                          [class.text-blue-600]="facade.sortColumn() === 'totalDescuentos'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'totalDescuentos'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Total Liquidado -->
+                    <th (click)="ordenar('totalPagar')" class="p-3.5 text-right cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center justify-end gap-1.5">
+                        <span>Total Liquidado</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'totalPagar' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'totalPagar' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'totalPagar'"
+                          [class.text-blue-600]="facade.sortColumn() === 'totalPagar'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'totalPagar'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Estado -->
+                    <th (click)="ordenar('estado')" class="p-3.5 text-center cursor-pointer hover:bg-slate-100 transition group">
+                      <div class="flex items-center justify-center gap-1.5">
+                        <span>Estado Fiscal</span>
+                        <i class="fa-solid text-[10px]" 
+                          [class.fa-arrow-up]="facade.sortColumn() === 'estado' && facade.sortAsc()"
+                          [class.fa-arrow-down]="facade.sortColumn() === 'estado' && !facade.sortAsc()"
+                          [class.fa-sort]="facade.sortColumn() !== 'estado'"
+                          [class.text-blue-600]="facade.sortColumn() === 'estado'"
+                          [class.text-slate-300]="facade.sortColumn() !== 'estado'">
+                        </i>
+                      </div>
+                    </th>
+
+                    <!-- Columna: Acciones -->
+                    <th class="p-3.5 text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  @for (liq of facade.liquidacionesPaginadas(); track liq.id) {
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                      
+                      <!-- Celda: Liquidación -->
+                      <td class="p-3.5">
+                        <div class="flex items-center gap-1.5">
+                          <strong class="font-mono text-slate-900 font-bold text-xs">{{ liq.numeroLiquidacion }}</strong>
+                          <button
+                            (click)="copiarAlPortapapeles(liq.numeroLiquidacion, 'Número de liquidación')"
+                            type="button"
+                            class="text-slate-300 hover:text-blue-600 transition cursor-pointer"
+                            title="Copiar número de liquidación"
+                          >
+                            <i class="fa-regular fa-copy text-[11px]"></i>
+                          </button>
+                        </div>
+                      </td>
+
+                      <!-- Celda: Radicado / Fecha -->
+                      <td class="p-3.5">
+                        <div class="flex items-center gap-1.5">
+                          <span class="font-mono text-slate-700 font-semibold text-xs">{{ liq.radicacion.numeroRadicado || 'S/R' }}</span>
+                          @if (liq.radicacion.numeroRadicado) {
+                            <button
+                              (click)="copiarAlPortapapeles(liq.radicacion.numeroRadicado, 'Número de radicado')"
+                              type="button"
+                              class="text-slate-300 hover:text-blue-600 transition cursor-pointer"
+                              title="Copiar radicado"
+                            >
+                              <i class="fa-regular fa-copy text-[11px]"></i>
+                            </button>
+                          }
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                          <span>Exp: {{ liq.fechaLiquidacion | date:'dd/MM/yyyy' }}</span>
+                          @if (liq.fechaVencimiento) {
+                            <span class="text-slate-400">• Vence: {{ liq.fechaVencimiento | date:'dd/MM/yyyy' }}</span>
+                          }
+                        </div>
+                      </td>
+
+                      <!-- Celda: Entidad / Municipio -->
+                      <td class="p-3.5">
+                        <strong class="text-slate-800 block truncate max-w-[220px]" [title]="liq.documentoRegistro.entidadRegistro">
+                          {{ liq.documentoRegistro.entidadRegistro || 'Despacho No Identificado' }}
+                        </strong>
+                        <span class="text-[10px] text-slate-500 inline-flex items-center gap-1">
+                          <i class="fa-solid fa-location-dot text-slate-400 text-[9px]"></i>
+                          {{ liq.documentoRegistro.municipioJurisdiccion || 'Cauca' }}
+                        </span>
+                      </td>
+
+                      <!-- Celda: Sujeto Pasivo -->
+                      <td class="p-3.5">
+                        <strong class="text-slate-800 block truncate max-w-[200px]" [title]="liq.contribuyente.nombreCompleto">
+                          {{ liq.contribuyente.nombreCompleto || 'No Asignado' }}
+                        </strong>
+                        <span class="font-mono text-[10px] text-slate-500">
+                          {{ liq.contribuyente.tipoIdentificacion || 'C.C.' }} {{ liq.contribuyente.numeroIdentificacion || '-' }}
+                        </span>
+                      </td>
+
+                      <!-- Celda: Base Gravable -->
+                      <td class="p-3.5 text-right font-mono font-medium text-slate-700">
+                        {{ (liq.totales.subtotal || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
+                      </td>
+
+                      <!-- Celda: Descuento -->
+                      <td class="p-3.5 text-right font-mono text-amber-700">
+                        {{ (liq.totales.totalDescuentos || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
+                      </td>
+
+                      <!-- Celda: Total a Pagar -->
+                      <td class="p-3.5 text-right font-mono font-bold text-slate-900 text-xs">
+                        {{ (liq.totales.totalPagar || 0) | currency:'COP':'symbol-narrow':'1.0-0' }}
+                      </td>
+
+                      <!-- Celda: Estado -->
+                      <td class="p-3.5 text-center">
+                        <span class="inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold border"
+                          [ngClass]="facade.getEstadoBadgeClass(liq)">
+                          {{ facade.getEstadoLabel(liq) }}
+                        </span>
+                      </td>
+
+                      <!-- Celda: Acciones -->
+                      <td class="p-3.5 text-center whitespace-nowrap">
+                        <div class="flex items-center justify-center gap-1.5">
+                          
+                          <!-- Botón Descargar PDF Oficial -->
+                          <button
+                            (click)="descargarPdf(liq.id)"
+                            [disabled]="facade.downloadingPdfId() === liq.id"
+                            type="button"
+                            class="p-1.5 text-blue-700 hover:bg-blue-50 border border-blue-200 rounded-lg transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                            title="Descargar liquidación fiscal oficial (PDF)"
+                          >
+                            <i class="fa-solid" [class.fa-file-pdf]="facade.downloadingPdfId() !== liq.id" [class.fa-spinner]="facade.downloadingPdfId() === liq.id" [class.fa-spin]="facade.downloadingPdfId() === liq.id"></i>
+                          </button>
+
+                          <!-- Botón Ver Comprobante de Pago (solo si está pagada) -->
+                          @if (facade.esPagada(liq)) {
+                            <button
+                              (click)="verComprobante(liq)"
+                              type="button"
+                              class="inline-flex items-center gap-1 px-2 py-1 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[10px] font-bold transition active:scale-95 cursor-pointer"
+                              title="Ver constancia de pago oficial y voucher bancario"
+                            >
+                              <i class="fa-solid fa-receipt text-emerald-600"></i>
+                              <span>Ver Pago</span>
+                            </button>
+                          }
+
+                        </div>
+                      </td>
+
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Barra de Paginación y Selector de Tamaño -->
+            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span class="text-xs text-slate-500">
+                Mostrando <strong>{{ facade.registroDesde() }}</strong> - 
+                <strong>{{ facade.registroHasta() }}</strong> de 
+                <strong>{{ facade.totalRegistros() }}</strong> expedientes filtrados
+              </span>
+
+              <div class="flex items-center gap-3">
+                <app-pagination
+                  [pageNumber]="facade.pageNumber()"
+                  [totalCount]="facade.totalRegistros()"
+                  [pageSize]="facade.pageSize()"
+                  [pageSizeOptions]="facade.pageSizeOptions"
+                  (pageChange)="onPageChange($event)"
+                  (pageSizeChange)="onPageSizeChange($event)"
+                ></app-pagination>
+              </div>
+            </div>
+
+          } @else {
+            
+            <!-- Estado Vacío -->
+            <div class="py-16 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+              <div class="w-14 h-14 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                <i class="fa-solid fa-magnifying-glass text-2xl"></i>
+              </div>
+              <h4 class="text-sm font-bold text-slate-700">No se encontraron expedientes con los filtros aplicados</h4>
+              <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                No existen liquidaciones que coincidan con la entidad, municipio, fecha o estado seleccionado.
+              </p>
+              <button
+                (click)="limpiarFiltros()"
+                type="button"
+                class="mt-4 px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-xs font-bold transition cursor-pointer shadow-xs"
+              >
+                <i class="fa-solid fa-rotate-left mr-1.5"></i>Restablecer Todos los Filtros
+              </button>
+            </div>
+
+          }
+
+        </div>
+      }
+
+      <!-- ── PESTAÑA 2: CONSOLIDADO POR NOTARÍA / ENTIDAD ─────────────── -->
+      @if (activeTab() === 2) {
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Consolidado de Liquidaciones y Recaudo por Entidad Registral (Notarías y Cámaras)
+            </h3>
+            <span class="text-xs text-slate-500">
+              {{ facade.resumenPorEntidad().length }} entidades con trámites registrados
+            </span>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200/80">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                  <th class="p-3.5 text-center w-12">#</th>
+                  <th class="p-3.5">Entidad Notarial / Despacho</th>
+                  <th class="p-3.5 text-center">Trámites Liquidados</th>
+                  <th class="p-3.5 text-right">Total Liquidado ($ COP)</th>
+                  <th class="p-3.5 text-right">Recaudo Efectivo ($ COP)</th>
+                  <th class="p-3.5 text-right">Promedio / Trámite</th>
+                  <th class="p-3.5 w-56">% de Participación</th>
+                  <th class="p-3.5 text-center w-24">Acción</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (ent of facade.resumenPorEntidad(); track ent.nombre; let idx = $index) {
+                  <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-3.5 text-center font-mono font-bold text-slate-400">
+                      {{ idx + 1 }}
+                    </td>
+                    <td class="p-3.5 font-bold text-slate-800">
+                      <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-landmark text-slate-400 text-xs shrink-0"></i>
+                        <span>{{ ent.nombre }}</span>
+                      </div>
+                    </td>
+                    <td class="p-3.5 text-center font-mono font-bold text-slate-700">
+                      {{ ent.cantidad }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono font-bold text-slate-900">
+                      {{ ent.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono font-bold" [class.text-emerald-700]="ent.recaudado > 0" [class.text-slate-400]="ent.recaudado === 0">
+                      {{ ent.recaudado | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono text-slate-600">
+                      {{ ent.promedio | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5">
+                      <div class="flex items-center gap-2">
+                        <div class="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                          <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" [style.width.%]="ent.porcentaje || 0"></div>
+                        </div>
+                        <span class="text-[11px] font-mono font-bold text-slate-700 w-12 text-right">
+                          {{ (ent.porcentaje || 0).toFixed(1) }}%
+                        </span>
+                      </div>
+                    </td>
+                    <td class="p-3.5 text-center">
+                      <button
+                        (click)="filtrarPorEntidadDesdeResumen(ent.nombre)"
+                        type="button"
+                        class="px-2.5 py-1 text-blue-700 hover:bg-blue-50 border border-blue-200 rounded-lg text-[10px] font-bold transition active:scale-95 cursor-pointer"
+                        title="Ver las liquidaciones específicas de esta entidad"
+                      >
+                        Filtrar
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="8" class="p-10 text-center text-slate-400">
+                      Sin datos consolidados disponibles para el filtro actual
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ── PESTAÑA 3: CONSOLIDADO POR MUNICIPIO ─────────────────────── -->
+      @if (activeTab() === 3) {
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Distribución Geográfica de Liquidaciones y Recaudo por Municipio
+            </h3>
+            <span class="text-xs text-slate-500">
+              {{ facade.resumenPorMunicipio().length }} municipios con expedientes
+            </span>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-200/80">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50/80 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                  <th class="p-3.5 text-center w-12">#</th>
+                  <th class="p-3.5">Municipio Jurisdicción</th>
+                  <th class="p-3.5 text-center">Cantidad de Actos</th>
+                  <th class="p-3.5 text-right">Total Liquidado ($ COP)</th>
+                  <th class="p-3.5 text-right">Recaudo Efectivo ($ COP)</th>
+                  <th class="p-3.5 text-right">Promedio / Trámite</th>
+                  <th class="p-3.5 w-56">% Participación Departamental</th>
+                  <th class="p-3.5 text-center w-24">Acción</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @for (mun of facade.resumenPorMunicipio(); track mun.nombre; let idx = $index) {
+                  <tr class="hover:bg-slate-50/80 transition-colors">
+                    <td class="p-3.5 text-center font-mono font-bold text-slate-400">
+                      {{ idx + 1 }}
+                    </td>
+                    <td class="p-3.5 font-bold text-slate-800">
+                      <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-location-dot text-emerald-600 text-xs shrink-0"></i>
+                        <span>{{ mun.nombre }}</span>
+                      </div>
+                    </td>
+                    <td class="p-3.5 text-center font-mono font-bold text-slate-700">
+                      {{ mun.cantidad }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono font-bold text-slate-900">
+                      {{ mun.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono font-bold" [class.text-emerald-700]="mun.recaudado > 0" [class.text-slate-400]="mun.recaudado === 0">
+                      {{ mun.recaudado | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5 text-right font-mono text-slate-600">
+                      {{ mun.promedio | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="p-3.5">
+                      <div class="flex items-center gap-2">
+                        <div class="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                          <div class="bg-emerald-600 h-2.5 rounded-full transition-all duration-500" [style.width.%]="mun.porcentaje || 0"></div>
+                        </div>
+                        <span class="text-[11px] font-mono font-bold text-slate-700 w-12 text-right">
+                          {{ (mun.porcentaje || 0).toFixed(1) }}%
+                        </span>
+                      </div>
+                    </td>
+                    <td class="p-3.5 text-center">
+                      <button
+                        (click)="filtrarPorMunicipioDesdeResumen(mun.nombre)"
+                        type="button"
+                        class="px-2.5 py-1 text-emerald-800 hover:bg-emerald-50 border border-emerald-300 rounded-lg text-[10px] font-bold transition active:scale-95 cursor-pointer"
+                        title="Ver trámites correspondientes a este municipio"
+                      >
+                        Filtrar
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="8" class="p-10 text-center text-slate-400">
+                      Sin datos consolidados disponibles para el filtro actual
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ── PESTAÑA 4: DISTRIBUCIÓN POR ESTADOS Y CARTERA ─────────────── -->
+      @if (activeTab() === 4) {
+        <div class="space-y-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Auditoría y Conciliación de Cartera por Estado Fiscal
+            </h3>
+            <span class="text-xs text-slate-500">
+              Auditoría sobre el 100% de la muestra filtrada
+            </span>
+          </div>
+
+          <!-- Rejilla de Tarjetas por Estado -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @for (est of facade.resumenPorEstado(); track est.codigo) {
+              <div class="p-5 rounded-2xl border border-slate-200/80 bg-white shadow-2xs hover:shadow-xs transition space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold border" [ngClass]="est.badgeClase">
+                    {{ est.nombre }}
+                  </span>
+                  <span class="font-mono text-xs font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                    {{ est.cantidad }} trámite(s)
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Liquidado</span>
+                    <div class="text-base font-black font-mono text-slate-900 mt-0.5">
+                      {{ est.total | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </div>
+                  </div>
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Recaudo Efectivo</span>
+                    <div class="text-base font-black font-mono mt-0.5" [class.text-emerald-700]="est.recaudado > 0" [class.text-slate-400]="est.recaudado === 0">
+                      {{ est.recaudado | currency:'COP':'symbol-narrow':'1.0-0' }}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5 pt-2 border-t border-slate-100">
+                  <div class="flex justify-between text-[11px] text-slate-500">
+                    <span>% de la Cartera Total:</span>
+                    <strong class="font-mono text-slate-700">{{ (est.porcentaje || 0).toFixed(1) }}%</strong>
+                  </div>
+                  <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <div class="bg-slate-800 h-2 rounded-full" [style.width.%]="est.porcentaje || 0"></div>
+                  </div>
+                </div>
+
+                <div class="pt-2 flex justify-end">
+                  <button
+                    (click)="filtrarPorEstadoDesdeResumen(est.codigo || '')"
+                    type="button"
+                    class="text-xs text-blue-700 hover:text-blue-900 font-bold inline-flex items-center gap-1 transition cursor-pointer"
+                  >
+                    <span>Ver expedientes</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <!-- MODAL: VER CONSTANCIA DE PAGO OFICIAL (COMPROBANTE) -->
+  @if (showComprobanteModal() && selectedLiquidacion()) {
+    <div class="fixed inset-0 z-60 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in">
+      <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+          <div class="flex items-center gap-3">
+            <div class="p-2.5 bg-emerald-100 text-emerald-800 rounded-2xl">
+              <i class="fa-solid fa-receipt text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-slate-900">Constancia de Pago Oficial</h3>
+              <p class="text-xs text-slate-500">Impuesto de Registro - Rentas Departamentales</p>
+            </div>
+          </div>
+          <button 
+            (click)="showComprobanteModal.set(false)" 
+            class="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        @if (isLoadingComprobante()) {
+          <div class="py-12 text-center text-slate-400 text-xs">
+            <i class="fa-solid fa-circle-notch fa-spin text-2xl text-emerald-600 mb-2"></i>
+            <p>Consultando constancia fiscal de recaudo...</p>
+          </div>
+        } @else {
+          <!-- Detalles del Pago -->
+          <div class="space-y-4 text-xs">
+            
+            <!-- Badge de Confirmación -->
+            <div class="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
+              <span class="inline-flex items-center gap-1.5 text-emerald-800 font-bold text-sm">
+                <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                Pago Confirmado y Conciliado
+              </span>
+              <div class="mt-1 font-mono font-black text-xl text-emerald-950">
+                {{ (selectedComprobante()?.valor || selectedLiquidacion()?.totales?.totalPagar || selectedLiquidacion()?.totalPagar) | currency:'COP':'symbol-narrow':'1.0-0' }}
+              </div>
+            </div>
+
+            <!-- Fila de Detalles -->
+            <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-200/80 space-y-2.5">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Liquidación No.:</span>
+                <span class="font-mono font-bold text-slate-800">{{ selectedLiquidacion()?.numeroLiquidacion || 'N/A' }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Contribuyente:</span>
+                <span class="font-semibold text-slate-800 truncate max-w-[200px]" [title]="selectedLiquidacion()?.contribuyente?.nombreCompleto">
+                  {{ selectedLiquidacion()?.contribuyente?.nombreCompleto || selectedLiquidacion()?.nombreContribuyente || 'Contribuyente' }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Medio de Pago:</span>
+                <span class="font-semibold text-slate-800">{{ selectedComprobante()?.medioPagoNombre || selectedLiquidacion()?.pago?.medioPagoNombre || 'Recaudo Bancario' }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Referencia / Aprobación:</span>
+                <span class="font-mono font-bold text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                  {{ selectedComprobante()?.numeroAprobacion || selectedLiquidacion()?.pago?.referenciaPago || selectedLiquidacion()?.pago?.numeroAprobacion || 'REF-CONFIRMADA' }}
+                </span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-500 font-medium">Fecha de Recaudo:</span>
+                <span class="font-mono text-slate-700">
+                  {{ (selectedComprobante()?.fechaPago || selectedLiquidacion()?.pago?.fechaPago) | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+              @if (selectedComprobante()?.registradoPor) {
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-500 font-medium">Funcionario Recaudador:</span>
+                  <span class="text-slate-700">{{ selectedComprobante()?.registradoPor }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Soporte Bancario Adjunto -->
+            @if (selectedComprobante()?.tieneSoporteDigital || selectedLiquidacion()?.pago?.tieneSoporteDigital || selectedLiquidacion()?.pago?.tieneSoporteAdjunto) {
+              <div class="p-3 bg-blue-50 border border-blue-200 rounded-2xl flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 truncate">
+                  <i class="fa-solid fa-file-invoice text-blue-600 text-lg shrink-0"></i>
+                  <div class="truncate">
+                    <span class="font-bold text-blue-900 block truncate">Voucher Bancario Adjunto</span>
+                    <span class="text-[10px] text-blue-700 block truncate">
+                      {{ selectedComprobante()?.nombreArchivoSoporte || selectedLiquidacion()?.pago?.nombreArchivoSoporte || 'Soporte_Pago.pdf' }}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  (click)="descargarSoporte(selectedLiquidacion()!.id)"
+                  class="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-[11px] shadow-xs transition active:scale-[0.98] cursor-pointer"
+                  title="Descargar comprobante bancario original"
+                >
+                  <i class="fa-solid fa-download mr-1"></i>Ver Soporte
+                </button>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Footer -->
+        <div class="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+          <button 
+            type="button" 
+            (click)="showComprobanteModal.set(false)" 
+            class="px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

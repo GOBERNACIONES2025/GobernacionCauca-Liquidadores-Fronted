@@ -9,6 +9,12 @@ export interface Usuario {
   email: string;
   activo?: boolean | null;
   roles: Rol[];
+  departamentoId?: number | null;
+  departamentoNombre?: string | null;
+  municipioId?: number | null;
+  municipioNombre?: string | null;
+  entidadRegistroId?: number | null;
+  entidadRegistroNombre?: string | null;
 }
 
 /**
@@ -19,6 +25,9 @@ export interface CrearUsuarioRequest {
   email: string;
   password: string;
   rolesIds: number[];
+  departamentoId?: number | null;
+  municipioId?: number | null;
+  entidadRegistroId?: number | null;
 }
 
 /**
@@ -31,6 +40,9 @@ export interface ActualizarUsuarioRequest {
   activo: boolean;
   rolesIds: number[];
   password?: string | null;
+  departamentoId?: number | null;
+  municipioId?: number | null;
+  entidadRegistroId?: number | null;
 }
 
 /**

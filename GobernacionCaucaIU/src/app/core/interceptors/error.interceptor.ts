@@ -35,7 +35,10 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       } 
       // 2. Errores de Autenticación / Autorización (401, 403)
       else if (error.status === 401) {
-        // Token expirado o invalido: Limpiar estado y redirigir al login
+        const isRegistros = req.url.includes(':5001') || req.url.includes('/api/v1/') || router.url.includes('/registros');
+        if (isRegistros) {
+          return throwError(() => error);
+        }
         tokenStorage.clearTokens();
         authState.clearSession();
         toastService.warning('Su sesión ha expirado.');

@@ -1,6 +1,6 @@
 import { Component, inject, Output, EventEmitter, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LiquidacionWizardService } from '../../services/liquidacion-wizard.service';
 import { StepRadicacionComponent } from '../wizard-steps/step-radicacion/step-radicacion';
 import { StepDocumentoComponent } from '../wizard-steps/step-documento/step-documento';
@@ -38,6 +38,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 export class LiquidacionWizardComponent implements OnInit {
   wizardService = inject(LiquidacionWizardService);
   route = inject(ActivatedRoute);
+  router = inject(Router);
   solicitudesFacade = inject(SolicitudesLiquidacionFacade);
   toast = inject(ToastService);
   
@@ -61,6 +62,42 @@ export class LiquidacionWizardComponent implements OnInit {
   ngOnInit() {
     this.precargarCatalogos();
     
+    // Capturar query params (modo reliquidación y metadatos)
+    this.route.queryParamMap.subscribe(qParams => {
+      const modo = qParams.get('modo');
+      if (modo === 'reliquidacion') {
+        this.wizardService.modoReliquidacion.set(true);
+        this.wizardService.tipoTramite.set('Reliquidacion');
+        this.wizardService.liquidacionGeneradaExitosa.set(false);
+
+        const liqId = qParams.get('liquidacionId');
+        if (liqId) this.wizardService.reliquidacionLiquidacionId.set(Number(liqId));
+
+        const causalId = qParams.get('causalId');
+        if (causalId) this.wizardService.reliquidacionCausalId.set(Number(causalId));
+
+        const motivo = qParams.get('motivo');
+        if (motivo) this.wizardService.reliquidacionMotivo.set(motivo);
+
+        const doc = qParams.get('doc');
+        if (doc) {
+          this.wizardService.reliquidacionDoc.set(doc);
+          this.wizardService.paso2Form.patchValue({ numeroDocumento: doc });
+        }
+
+        const fechaDoc = qParams.get('fechaDoc');
+        if (fechaDoc) {
+          this.wizardService.reliquidacionFechaDoc.set(fechaDoc);
+          this.wizardService.paso2Form.patchValue({ fechaDocumento: fechaDoc });
+        }
+
+        const archivoNombre = qParams.get('archivoNombre');
+        if (archivoNombre) {
+          this.wizardService.documentoSoporteNombre.set(archivoNombre);
+        }
+      }
+    });
+
     // Verificar si hay un ID en la ruta
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -104,6 +141,8 @@ export class LiquidacionWizardComponent implements OnInit {
     });
   }
 
+  showCancelModal = signal<boolean>(false);
+
   steps = [
     { id: 1, name: 'Radicación' },
     { id: 2, name: 'Documento' },
@@ -117,6 +156,11 @@ export class LiquidacionWizardComponent implements OnInit {
   }
 
   setStep(stepId: number) {
+    if (this.wizardService.modoReliquidacion()) {
+      this.wizardService.currentStep.set(stepId);
+      return;
+    }
+
     const isLectura = this.wizardService.esSoloLectura();
     const isTramiteNormal = this.wizardService.tipoTramite() === 'Liquidacion';
     if (isLectura && isTramiteNormal && stepId !== 5) {
@@ -129,7 +173,43 @@ export class LiquidacionWizardComponent implements OnInit {
     }
   }
 
+  onHeaderBack() {
+    if (this.wizardService.currentStep() > 1) {
+      this.wizardService.currentStep.update(s => s - 1);
+    } else {
+      this.abrirModalCancelacion();
+    }
+  }
+
+  onHeaderClose() {
+    this.abrirModalCancelacion();
+  }
+
+  abrirModalCancelacion() {
+    // Si no se ha modificado nada crítico o ya está guardado, salir directo
+    const isDirty = this.wizardService.paso1Form.dirty || this.wizardService.paso2Form.dirty;
+    if (isDirty) {
+      this.showCancelModal.set(true);
+    } else {
+      this.goBack();
+    }
+  }
+
+  cerrarModalCancelacion() {
+    this.showCancelModal.set(false);
+  }
+
+  confirmarCancelacion() {
+    this.showCancelModal.set(false);
+    this.wizardService.resetWizard();
+    this.goBack();
+  }
+
   goBack() {
-    this.cancel.emit();
+    if (this.cancel.observed) {
+      this.cancel.emit();
+    } else {
+      this.router.navigate(['/registros/entidades/solicitudes']);
+    }
   }
 }

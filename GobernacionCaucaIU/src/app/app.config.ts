@@ -6,6 +6,7 @@ import localeEsCo from '@angular/common/locales/es-CO';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { registrosAuthInterceptor } from './features/registros/core/interceptors/registros-auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 
 registerLocaleData(localeEsCo);
@@ -15,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor, errorInterceptor])
+      withInterceptors([authInterceptor, registrosAuthInterceptor, errorInterceptor])
     ),
     { provide: LOCALE_ID, useValue: 'es-CO' },
   ]

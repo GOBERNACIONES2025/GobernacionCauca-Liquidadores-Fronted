@@ -26,6 +26,10 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
   @Input() placeholder: string = 'Seleccione...';
   @Input() disabled: boolean = false;
   @Input() isInvalid: boolean | undefined | null = false;
+  @Input() pageSize: number = 8;
+  @Input() enablePagination: boolean = true;
+  @Input() dependency?: any;
+  @Input() icon?: string;
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
   @ViewChild('optionsList') optionsListRef!: ElementRef<HTMLUListElement>;
@@ -42,6 +46,21 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
 
   onChange: any = () => {};
   onTouch: any = () => {};
+
+  paginatedOptions = computed(() => {
+    if (!this.enablePagination || this.pageSize <= 0) {
+      return this.options();
+    }
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.options().slice(start, start + this.pageSize);
+  });
+
+  totalPages = computed(() => {
+    if (!this.enablePagination || this.pageSize <= 0 || this.options().length === 0) {
+      return 1;
+    }
+    return Math.ceil(this.options().length / this.pageSize);
+  });
 
   constructor(private eRef: ElementRef) {}
 
@@ -202,6 +221,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
   }
 
   onSearchInput(event: any) {
+    // Solo captura el término escrito sin ejecutar búsqueda por coincidencia automática
     this.searchTerm = event?.target ? event.target.value : (event || '');
     if (this.items) {
       this.filterLocal(this.searchTerm);
@@ -215,6 +235,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
       event.preventDefault();
       event.stopPropagation();
     }
+    // Solo aquí se ejecuta la búsqueda al pulsar el botón Buscar o presionar Enter
     this.loadOptions(this.searchTerm.trim());
   }
 
@@ -239,6 +260,8 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
     this.value = option[this.valueKey];
     this.displayValue = option[this.labelKey];
     this.isOpen.set(false);
+    this.searchTerm = '';
+    this.loadOptions('');
     this.onChange(this.value);
     this.onTouch();
   }
