@@ -5,6 +5,7 @@ import { BehaviorSubject, catchError, filter, switchMap, take, throwError } from
 import { RegistrosTokenStorageService } from '../tokens/registros-token-storage.service';
 import { RegistrosAuthService } from '../auth/registros-auth.service';
 import { RegistrosAuthStateService } from '../auth/registros-auth-state.service';
+import { ToastService } from '../../../../core/services/toast.service';
 
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
@@ -22,7 +23,13 @@ export const registrosAuthInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   // Excluir endpoints públicos de autenticación para evitar bucles
-  if (req.url.includes('/auth/login') || req.url.includes('/auth/refresh-token')) {
+  const urlLower = req.url.toLowerCase();
+  const isAuthEndpoint =
+    urlLower.includes('/auth/login') ||
+    urlLower.includes('/auth/refresh-token') ||
+    urlLower.includes('/auth/logout');
+
+  if (isAuthEndpoint) {
     return next(req);
   }
 
@@ -30,6 +37,7 @@ export const registrosAuthInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(RegistrosAuthService);
   const authState = inject(RegistrosAuthStateService);
   const router = inject(Router);
+  const toast = inject(ToastService);
 
   const token = tokenStorage.getAccessToken();
   let authReq = req;
@@ -45,7 +53,7 @@ export const registrosAuthInterceptor: HttpInterceptorFn = (req, next) => {
   return next(authReq).pipe(
     catchError((error) => {
       if (error instanceof HttpErrorResponse && error.status === 401) {
-        return handleRegistros401(authReq, next, tokenStorage, authService, authState, router);
+        return handleRegistros401(authReq, next, tokenStorage, authService, authState, router, toast);
       }
       return throwError(() => error);
     })
@@ -58,8 +66,13 @@ function handleRegistros401(
   tokenStorage: RegistrosTokenStorageService,
   authService: RegistrosAuthService,
   authState: RegistrosAuthStateService,
-  router: Router
+  router: Router,
+  toast: ToastService
 ) {
+  // Determinar portal de destino antes de limpiar el estado
+  const isEntidad = authState.isEntidad() || router.url.includes('/entidades');
+  const targetLoginRoute = isEntidad ? '/registros/entidades/login' : '/registros/gobernacion/login';
+
   if (!isRefreshing) {
     isRefreshing = true;
     refreshTokenSubject.next(null);
@@ -67,7 +80,10 @@ function handleRegistros401(
     const refreshToken = tokenStorage.getRefreshToken();
     if (!refreshToken) {
       isRefreshing = false;
-      redirectToAppropriateLogin(authState, router);
+      tokenStorage.clearTokens();
+      authState.clearSession();
+      toast.warning('Su sesión ha expirado. Por favor ingrese sus credenciales nuevamente.');
+      router.navigate([targetLoginRoute]);
       return throwError(() => new Error('Sesión de Impuesto de Registro expirada'));
     }
 
@@ -87,8 +103,10 @@ function handleRegistros401(
       }),
       catchError((err) => {
         isRefreshing = false;
-        authService.logout();
-        redirectToAppropriateLogin(authState, router);
+        tokenStorage.clearTokens();
+        authState.clearSession();
+        toast.warning('Su sesión ha expirado. Por favor ingrese sus credenciales nuevamente.');
+        router.navigate([targetLoginRoute]);
         return throwError(() => err);
       })
     );
@@ -108,10 +126,4 @@ function handleRegistros401(
       );
     })
   );
-}
-
-function redirectToAppropriateLogin(authState: RegistrosAuthStateService, router: Router): void {
-  const isEntidad = authState.isEntidad();
-  const targetRoute = isEntidad ? '/registros/entidades/login' : '/registros/gobernacion/login';
-  router.navigate([targetRoute]);
 }
