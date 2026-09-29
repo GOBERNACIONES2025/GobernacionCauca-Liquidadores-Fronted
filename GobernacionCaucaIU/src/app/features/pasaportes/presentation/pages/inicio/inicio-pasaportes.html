@@ -1,84 +1,34 @@
 <section class="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-  <div class="mb-6 text-center">
-    <p class="text-xs font-bold uppercase tracking-widest text-[#1b53ad]">Módulo de Pasaportes</p>
-    <h1 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-      Solicitud y agendamiento
-    </h1>
-    <p class="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
-      Registre la información solicitada para iniciar el proceso.
-    </p>
-  </div>
-
-  <ol class="mx-auto mb-6 flex max-w-4xl items-center" aria-label="Progreso del formulario">
-    <li class="flex flex-1 items-center gap-2 text-xs font-semibold text-[#1b53ad]">
-      <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#1b53ad] text-white">1</span>
-      <span class="hidden sm:inline">Datos del ciudadano</span>
-    </li>
-    <li class="h-px flex-1 bg-slate-300" aria-hidden="true"></li>
-    <li class="flex flex-1 items-center justify-center gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() >= 2" [class.text-slate-400]="pasoActual() === 1">
-      <span class="hidden sm:inline">Datos de contacto</span>
-      <span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() >= 2" [class.text-white]="pasoActual() >= 2" [class.bg-slate-200]="pasoActual() === 1">2</span>
-    </li>
-    <li class="h-px flex-1 bg-slate-300" aria-hidden="true"></li>
-    <li class="flex flex-1 items-center justify-center gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() >= 3" [class.text-slate-400]="pasoActual() < 3"><span class="hidden sm:inline">Agendamiento</span><span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() >= 3" [class.text-white]="pasoActual() >= 3" [class.bg-slate-200]="pasoActual() < 3">3</span></li>
-    <li class="h-px flex-1 bg-slate-300" aria-hidden="true"></li>
-    <li class="flex flex-1 items-center justify-end gap-2 text-xs font-semibold" [class.text-[#1b53ad]]="pasoActual() === 4" [class.text-slate-400]="pasoActual() < 4"><span class="hidden sm:inline">Confirmación</span><span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() === 4" [class.text-white]="pasoActual() === 4" [class.bg-slate-200]="pasoActual() < 4">4</span></li>
+  <div class="mb-6 text-center"><p class="text-xs font-bold uppercase tracking-widest text-[#1b53ad]">Módulo de Pasaportes</p><h1 class="mt-2 text-2xl font-extrabold text-slate-900 sm:text-3xl">Solicitud y agendamiento</h1></div>
+  <ol class="mx-auto mb-6 grid max-w-5xl grid-cols-5 gap-1 text-center text-xs font-semibold sm:gap-3" aria-label="Progreso del formulario">
+    @for (nombre of ['Datos personales', 'Datos de contacto', 'Trámite y pago', 'Agendamiento', 'Confirmación']; track nombre; let i = $index) {
+      <li class="flex flex-col items-center gap-1" [class.text-[#1b53ad]]="pasoActual() >= i + 1" [class.text-slate-400]="pasoActual() < i + 1"><span class="flex h-8 w-8 items-center justify-center rounded-full" [class.bg-[#1b53ad]]="pasoActual() >= i + 1" [class.text-white]="pasoActual() >= i + 1" [class.bg-slate-200]="pasoActual() < i + 1">{{ i + 1 }}</span><span class="hidden sm:block">{{ nombre }}</span></li>
+    }
   </ol>
-
-  <div class="mx-auto max-w-5xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-    <div class="h-1.5 bg-[#1b53ad]"></div>
-    <div class="p-5 sm:p-8">
-      @if (pasoActual() === 1) {
-        <app-informacion-personal-form
-          [formulario]="formularioPersonal"
-          (continuar)="irAContacto()"
-        />
-      } @else if (pasoActual() === 2) {
-        <app-informacion-contacto-form
-          [formulario]="formularioContacto"
-          [completado]="datosCompletos()"
-          (anterior)="volverAPersonal()"
-          (continuar)="continuar()"
-        />
-      } @else if (pasoActual() === 3) {
-        <app-agendamiento-form
-          [tipoPasaporteSeleccionado]="tipoPasaporteSeleccionado()"
-          [fechaSeleccionada]="fechaSeleccionada()"
-          [intervaloSeleccionado]="intervaloSeleccionado()"
-          [completado]="datosCompletos()"
-          (tipoPasaporteChange)="actualizarTipoPasaporte($event)"
-          (fechaChange)="actualizarFecha($event)"
-          (intervaloChange)="actualizarIntervalo($event)"
-          (anterior)="volverAContacto()"
-          (continuar)="avanzarAConfirmacion()"
-        />
-        @if (errorCreacionCita()) {
-          <div class="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-            {{ errorCreacionCita() }}
-          </div>
-        }
-      } @else if (pasoActual() === 4) {
-        <app-confirmacion-liquidacion
-          [formularioPersonal]="formularioPersonal"
-          [formularioContacto]="formularioContacto"
-          [tipoPasaporte]="tipoPasaporteSeleccionado()!"
-          [fecha]="fechaSeleccionada()!"
-          [intervalo]="intervaloSeleccionado()!"
-          [liquidacion]="liquidacion()"
-          [procesando]="creandoCita()"
-          [error]="errorCreacionCita()"
-          [errorPdf]="errorPdf()"
-          [generandoPdf]="generandoPdf()"
-          [pdfBlob]="pdfBlob()"
-          (anterior)="cambiarAgendamiento()"
-          (editarPersonal)="editarPersonal()"
-          (editarContacto)="editarContacto()"
-          (cambiarAgendamiento)="cambiarAgendamiento()"
-          (confirmar)="confirmarYGenerar()"
-          (reintentarPdf)="reintentarPdf()"
-          (descargar)="descargarLiquidacion()"
-        />
-      }
-    </div>
-  </div>
+  <div class="mx-auto max-w-5xl overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"><div class="h-1.5 bg-[#1b53ad]"></div><div class="p-5 sm:p-8">
+    @if (pasoActual() === 1) { <app-informacion-personal-form [formulario]="formularioPersonal" (continuar)="irAContacto()" /> }
+    @else if (pasoActual() === 2) { <app-informacion-contacto-form [formulario]="formularioContacto" (anterior)="pasoActual.set(1)" (continuar)="continuarATramite()" /> }
+    @else if (pasoActual() === 3) {
+      <div class="mb-7 text-center"><h2 class="text-xl font-bold text-[#1b53ad] sm:text-2xl">3. Trámite y pago</h2><p class="mt-2 text-sm text-slate-500">Seleccione el tipo de pasaporte.</p></div>
+      <div class="grid gap-5" [class.lg:grid-cols-2]="configuracion.pagoWebHabilitado">
+        <section class="rounded-xl border border-slate-200 bg-slate-50 p-5"><h3 class="mb-4 font-bold text-slate-800">Ciudadano y trámite</h3><p class="text-sm text-slate-600">{{ formularioPersonal.controls.primerNombre.value }} {{ formularioPersonal.controls.primerApellido.value }} · {{ formularioPersonal.controls.numeroDocumento.value }}</p><p class="mb-4 text-sm text-slate-600">{{ formularioContacto.controls.correo.value }}</p>
+          <label for="tipoPasaporte" class="mb-2 block text-sm font-semibold">Tipo de pasaporte *</label><select id="tipoPasaporte" (change)="seleccionarTipo($event)" class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm"><option value="">Seleccione un tipo</option>@for (item of tipos; track item.id) { <option [value]="item.id" [selected]="tipo()?.id === item.id">{{ item.nombre }}</option> }</select>
+          @if (tipo()) { <p class="mt-2 text-xs text-slate-500">{{ tipo()!.descripcion }}</p> }
+        </section>
+        @if (configuracion.pagoWebHabilitado) { <section class="rounded-xl border border-blue-100 bg-blue-50 p-5"><h3 class="mb-4 font-bold text-[#1b53ad]">Resumen de liquidación</h3>
+          @if (calculo(); as c) { @for (concepto of c.conceptos; track concepto.nombre) { <div class="flex justify-between gap-2 py-2 text-sm"><span>{{ concepto.nombre }}</span><span>{{ moneda(concepto.valor) }}</span></div> }<div class="mt-3 flex justify-between border-t pt-3 font-bold"><span>Total</span><span>{{ moneda(c.total) }}</span></div><div class="mt-3 flex justify-between text-sm font-semibold text-[#1b53ad]"><span>Primer pago requerido</span><span>{{ moneda(c.primerPago) }}</span></div><div class="flex justify-between text-sm text-slate-600"><span>Saldo posterior</span><span>{{ moneda(c.saldo) }}</span></div> }
+          @else { <p class="text-sm text-slate-600">Seleccione un tipo para ver los conceptos.</p> }
+        </section> }
+      </div>
+      @if (!configuracion.pagoWebHabilitado) { <p class="mt-5 rounded-lg bg-slate-50 p-3 text-sm text-slate-600">El pago web no está habilitado. Continuará directamente al agendamiento.</p> }
+      <div class="mt-7 flex flex-col-reverse justify-end gap-3 sm:flex-row"><button type="button" (click)="pasoActual.set(2)" class="rounded-lg border px-6 py-2.5 text-sm font-semibold">Anterior</button><button type="button" (click)="continuarAPago()" [disabled]="!calculo()" class="rounded-lg bg-[#1b53ad] px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{{ configuracion.pagoWebHabilitado ? 'Continuar al pago' : 'Ir al agendamiento' }}</button></div>
+      @if (pasarelaAbierta()) { <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4" role="dialog" aria-modal="true" aria-label="Pago demo Fintech"><div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><div class="flex items-center justify-between"><h3 class="text-xl font-bold text-[#1b53ad]">Fintech · Pago seguro</h3><span class="rounded-full bg-amber-100 px-2 py-1 text-xs font-bold text-amber-800">SIMULACIÓN</span></div><p class="mt-4 text-sm text-slate-600">Primer pago del pasaporte {{ tipo()?.nombre }}</p><p class="mt-2 text-3xl font-extrabold text-slate-900">{{ moneda(calculo()!.primerPago) }}</p><p class="mt-4 rounded-lg bg-blue-50 p-3 text-xs text-blue-800">Esta demostración no solicita datos bancarios ni realiza cobros.</p><div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" (click)="pasarelaAbierta.set(false)" class="rounded-lg border px-4 py-2 text-sm">Cancelar</button><button type="button" (click)="aprobarPago()" [disabled]="procesando()" class="rounded-lg bg-[#1b53ad] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{{ procesando() ? 'Procesando...' : 'Simular pago aprobado' }}</button></div></div></div> }
+    }
+    @else if (pasoActual() === 4) {
+      <div class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"><strong>{{ cita()?.pagoAprobado ? 'Pago inicial aprobado' : 'Trámite listo para agendar' }}</strong><p>Cita {{ cita()?.consecutivo }} · Pendiente de agendamiento. Seleccione fecha y hora para programarla.</p></div>
+      <app-agendamiento-form [fechaSeleccionada]="fecha()" [horaSeleccionada]="hora()" (fechaChange)="seleccionarFecha($event)" (horaChange)="hora.set($event)" (anterior)="pasoActual.set(citaRecuperada() ? 2 : 3)" (continuar)="programar()" />
+      @if (error()) { <p class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700" role="alert">{{ error() }}</p> }
+    }
+    @else { <app-confirmacion-liquidacion [cita]="cita()!" [soporte]="soporte()!" [generandoPdf]="generandoPdf()" [error]="error()" [mensajeCorreo]="mensajeCorreo()" (descargar)="descargar()" (enviarCorreo)="mensajeCorreo.set(true)" (finalizar)="finalizar()" /> }
+  </div></div>
 </section>

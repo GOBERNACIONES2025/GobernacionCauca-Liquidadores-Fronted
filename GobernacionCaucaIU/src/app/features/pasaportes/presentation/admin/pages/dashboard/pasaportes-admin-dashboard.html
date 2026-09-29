@@ -1,50 +1,175 @@
-<section class="mx-auto w-full max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
-  <div class="mb-7">
+<section class="mx-auto w-full max-w-[1600px] p-4 sm:p-6">
+  <!-- Encabezado -->
+  <div class="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
     <div>
-      <div class="flex items-center gap-2">
-        <span class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-[#1b53ad]">Modo administrativo</span>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="rounded-full bg-blue-100 px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-[#1b53ad]">
+          Modo administrativo
+        </span>
+        <span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600">
+          Septiembre 2026
+        </span>
       </div>
       <h1 class="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">Gestión de Pasaportes</h1>
-      <p class="mt-1 text-sm text-slate-600">Resumen operativo y solicitudes recientes del módulo.</p>
+      <p class="mt-1 text-sm text-slate-600">Visión general de citas, agenda, recaudo y operación del módulo.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <a routerLink="/pasaportes/admin/citas" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+        <i class="fa-solid fa-calendar-check text-[#1b53ad]" aria-hidden="true"></i>
+        Gestionar citas
+      </a>
+      <a routerLink="/pasaportes/admin/calendario" class="inline-flex items-center gap-2 rounded-lg bg-[#1b53ad] px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#164792]">
+        <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+        Abrir cupos
+      </a>
     </div>
   </div>
 
-  <div class="grid gap-4 sm:grid-cols-3">
-    @for (metric of metrics; track metric.label) {
+  <!-- KPIs principales -->
+  <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    @for (metric of metrics; track metric.label; let i = $index) {
       <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="flex items-center justify-between gap-4">
-          <div>
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
             <p class="text-sm font-semibold text-slate-500">{{ metric.label }}</p>
-            <p class="mt-1 text-3xl font-extrabold text-slate-900">{{ metric.value }}</p>
+            <p class="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">{{ metric.value }}</p>
           </div>
-          <span class="flex h-11 w-11 items-center justify-center rounded-xl" [class]="metric.accentClass">
+          <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" [class]="metric.accentClass">
             <i class="fa-solid" [class]="metric.icon" aria-hidden="true"></i>
           </span>
+        </div>
+        <div class="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px]">
+          @switch (i) {
+            @case (0) { <span class="text-slate-500">Solicitudes del mes</span><span class="font-bold text-emerald-600">+12% vs. agosto</span> }
+            @case (1) { <span class="text-slate-500">Requieren programación</span><span class="font-bold text-amber-600">26.6%</span> }
+            @case (2) { <span class="text-slate-500">Con fecha y hora</span><span class="font-bold text-violet-600">73.4%</span> }
+            @default { <span class="text-slate-500">Próxima semana</span><span class="font-bold text-emerald-600">Disponibles</span> }
+          }
         </div>
       </article>
     }
   </div>
 
-  <div class="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+  <!-- Operación + recaudo + alertas -->
+  <div class="mt-5 grid gap-5 xl:grid-cols-[1.05fr_1.05fr_.9fr]">
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Operación de hoy</p>
+          <h2 class="mt-1 text-lg font-extrabold text-slate-900">Jornada de atención</h2>
+        </div>
+        <span class="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-bold text-[#1b53ad]">17 Sep</span>
+      </div>
+
+      <div class="mt-5 grid grid-cols-4 gap-2 text-center">
+        <div class="rounded-lg bg-slate-50 px-2 py-3"><p class="text-xl font-extrabold text-slate-900">{{ todaySummary.total }}</p><p class="mt-1 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Programadas</p></div>
+        <div class="rounded-lg bg-emerald-50 px-2 py-3"><p class="text-xl font-extrabold text-emerald-700">{{ todaySummary.attended }}</p><p class="mt-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Atendidas</p></div>
+        <div class="rounded-lg bg-blue-50 px-2 py-3"><p class="text-xl font-extrabold text-blue-700">{{ todaySummary.inService }}</p><p class="mt-1 text-[10px] font-semibold uppercase tracking-wide text-blue-700">En atención</p></div>
+        <div class="rounded-lg bg-amber-50 px-2 py-3"><p class="text-xl font-extrabold text-amber-700">{{ todaySummary.pending }}</p><p class="mt-1 text-[10px] font-semibold uppercase tracking-wide text-amber-700">Pendientes</p></div>
+      </div>
+
+      <div class="mt-5">
+        <div class="mb-2 flex items-center justify-between text-xs"><span class="font-semibold text-slate-600">Avance de jornada</span><span class="font-extrabold text-slate-900">{{ todaySummary.progress }}%</span></div>
+        <div class="h-2.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full bg-emerald-500" [style.width.%]="todaySummary.progress"></div></div>
+      </div>
+    </article>
+
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Liquidación y pagos</p>
+          <h2 class="mt-1 text-lg font-extrabold text-slate-900">Resumen financiero</h2>
+        </div>
+        <a routerLink="/pasaportes/admin/pagos" class="text-xs font-bold text-[#1b53ad] hover:underline">Ver detalle</a>
+      </div>
+
+      <div class="mt-5 grid grid-cols-3 gap-3">
+        <div><p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Liquidado</p><p class="mt-1 text-base font-extrabold text-slate-900">{{ moneda(financialSummary.liquidated) }}</p></div>
+        <div><p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Recaudado</p><p class="mt-1 text-base font-extrabold text-emerald-700">{{ moneda(financialSummary.collected) }}</p></div>
+        <div><p class="text-[11px] font-semibold uppercase tracking-wide text-slate-400">Saldo</p><p class="mt-1 text-base font-extrabold text-amber-700">{{ moneda(financialSummary.pending) }}</p></div>
+      </div>
+
+      <div class="mt-5 rounded-lg bg-slate-50 p-3.5">
+        <div class="mb-2 flex items-center justify-between text-xs"><span class="font-semibold text-slate-600">Nivel de recaudo</span><span class="font-extrabold text-emerald-700">{{ financialSummary.collectionPercent }}%</span></div>
+        <div class="h-2.5 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-emerald-500" [style.width.%]="financialSummary.collectionPercent"></div></div>
+        <p class="mt-2 text-[11px] text-slate-500">Incluye primer y segundo pago de liquidaciones registradas.</p>
+      </div>
+    </article>
+
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div>
+        <p class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Atención requerida</p>
+        <h2 class="mt-1 text-lg font-extrabold text-slate-900">Alertas operativas</h2>
+      </div>
+      <div class="mt-4 space-y-3">
+        @for (alert of alerts; track alert.title) {
+          <div class="flex gap-3 rounded-lg border p-3" [class]="alert.className">
+            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/80"><i class="fa-solid" [class]="alert.icon" aria-hidden="true"></i></span>
+            <div class="min-w-0"><p class="text-xs font-extrabold">{{ alert.title }}</p><p class="mt-1 text-[11px] leading-4 opacity-80">{{ alert.detail }}</p></div>
+          </div>
+        }
+      </div>
+    </article>
+  </div>
+
+  <!-- Distribuciones -->
+  <div class="mt-5 grid gap-5 lg:grid-cols-2">
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-3">
+        <div><h2 class="font-extrabold text-slate-900">Estado de las solicitudes</h2><p class="mt-0.5 text-xs text-slate-500">Distribución operativa del mes.</p></div>
+        <span class="text-xs font-bold text-slate-500">128 registros</span>
+      </div>
+      <div class="mt-5 space-y-4">
+        @for (item of appointmentStatus; track item.label) {
+          <div>
+            <div class="mb-1.5 flex items-center justify-between text-xs">
+              <span class="flex items-center gap-2 font-semibold text-slate-700"><span class="h-2 w-2 rounded-full" [class]="item.dotClass"></span>{{ item.label }}</span>
+              <span class="font-extrabold text-slate-900">{{ item.value }} <span class="font-medium text-slate-400">({{ porcentaje(item.value, item.total) }}%)</span></span>
+            </div>
+            <div class="h-2 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full" [class]="item.className" [style.width.%]="porcentaje(item.value, item.total)"></div></div>
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex items-center justify-between gap-3">
+        <div><h2 class="font-extrabold text-slate-900">Solicitudes por tipo de cita</h2><p class="mt-0.5 text-xs text-slate-500">Participación sobre el total del mes.</p></div>
+        <a routerLink="/pasaportes/admin/calendario" class="text-xs font-bold text-[#1b53ad] hover:underline">Administrar cupos</a>
+      </div>
+      <div class="mt-5 space-y-5">
+        @for (item of appointmentTypes; track item.label) {
+          <div>
+            <div class="mb-2 flex items-end justify-between gap-3"><div><p class="text-sm font-bold text-slate-800">{{ item.label }}</p><p class="text-[11px] text-slate-500">{{ item.value }} solicitudes</p></div><span class="text-sm font-extrabold text-slate-900">{{ item.percent }}%</span></div>
+            <div class="h-2.5 overflow-hidden rounded-full bg-slate-100"><div class="h-full rounded-full" [class]="item.className" [style.width.%]="item.percent"></div></div>
+          </div>
+        }
+      </div>
+    </article>
+  </div>
+
+  <!-- Últimas citas + formalizadores -->
+  <div class="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,2fr)_minmax(300px,.85fr)]">
     <article class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div class="border-b border-slate-200 px-5 py-4">
-        <h2 class="font-extrabold text-slate-900">Últimas solicitudes de cita</h2>
-        <p class="mt-0.5 text-xs text-slate-500">Vista preliminar de las solicitudes registradas.</p>
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+        <div><h2 class="font-extrabold text-slate-900">Actividad reciente de citas</h2><p class="mt-0.5 text-xs text-slate-500">Últimos movimientos registrados en septiembre.</p></div>
+        <a routerLink="/pasaportes/admin/citas" class="inline-flex items-center gap-1.5 text-xs font-bold text-[#1b53ad] hover:underline">Ver todas <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i></a>
       </div>
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[760px] text-left text-sm">
-          <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
-            <tr><th class="px-5 py-3 font-bold">Ciudadano</th><th class="px-4 py-3 font-bold">Documento</th><th class="px-4 py-3 font-bold">Tipo de pasaporte</th><th class="px-4 py-3 font-bold">Fecha</th><th class="px-4 py-3 font-bold">Horario</th><th class="px-4 py-3 font-bold">Estado</th></tr>
+        <table class="w-full min-w-[860px] text-left text-sm">
+          <thead class="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500">
+            <tr><th class="px-5 py-3 font-bold">Ticket / Ciudadano</th><th class="px-4 py-3 font-bold">Tipo cita</th><th class="px-4 py-3 font-bold">Pasaporte</th><th class="px-4 py-3 font-bold">Fecha</th><th class="px-4 py-3 font-bold">Hora</th><th class="px-4 py-3 font-bold">Estado</th></tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            @for (appointment of appointments; track appointment.document) {
-              <tr class="hover:bg-slate-50/70">
-                <td class="whitespace-nowrap px-5 py-3.5 font-semibold text-slate-800">{{ appointment.citizen }}</td>
-                <td class="whitespace-nowrap px-4 py-3.5 text-slate-600">{{ appointment.document }}</td>
-                <td class="whitespace-nowrap px-4 py-3.5 text-slate-600">{{ appointment.passportType }}</td>
-                <td class="whitespace-nowrap px-4 py-3.5 text-slate-600">{{ appointment.date }}</td>
-                <td class="whitespace-nowrap px-4 py-3.5 text-slate-600">{{ appointment.time }}</td>
-                <td class="px-4 py-3.5"><span class="rounded-full px-2.5 py-1 text-xs font-bold" [class.bg-amber-100]="appointment.status === 'Pendiente'" [class.text-amber-700]="appointment.status === 'Pendiente'" [class.bg-emerald-100]="appointment.status === 'Confirmada'" [class.text-emerald-700]="appointment.status === 'Confirmada'">{{ appointment.status }}</span></td>
+            @for (appointment of recentAppointments; track appointment.id) {
+              <tr class="transition hover:bg-slate-50/70">
+                <td class="px-5 py-3.5"><p class="text-[11px] font-bold text-[#1b53ad]">{{ appointment.ticket }}</p><p class="mt-0.5 whitespace-nowrap font-semibold text-slate-800">{{ appointment.citizen }}</p></td>
+                <td class="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600">{{ appointment.appointmentType }}</td>
+                <td class="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600">{{ appointment.passportType }}</td>
+                <td class="whitespace-nowrap px-4 py-3.5 text-xs text-slate-600">{{ appointment.date }}</td>
+                <td class="whitespace-nowrap px-4 py-3.5 text-xs font-semibold text-slate-700">{{ appointment.time }}</td>
+                <td class="px-4 py-3.5"><span class="whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold" [class]="appointmentStatusClass(appointment.status)">{{ appointment.status }}</span></td>
               </tr>
             }
           </tbody>
@@ -52,22 +177,30 @@
       </div>
     </article>
 
-    <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div class="border-b border-slate-200 px-5 py-4">
-        <h2 class="font-extrabold text-slate-900">Formalizadores disponibles</h2>
-        <p class="mt-0.5 text-xs text-slate-500">Estado actual del equipo de atención.</p>
-      </div>
-      <ul class="divide-y divide-slate-100">
-        @for (formalizer of formalizers; track formalizer.name) {
-          <li class="flex items-center justify-between gap-3 px-5 py-4">
-            <div class="flex min-w-0 items-center gap-3">
-              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500"><i class="fa-solid fa-user-tie" aria-hidden="true"></i></span>
-              <span class="truncate text-sm font-semibold text-slate-800">{{ formalizer.name }}</span>
-            </div>
-            <span class="whitespace-nowrap rounded-full px-2 py-1 text-[11px] font-bold" [class.bg-emerald-100]="formalizer.status === 'Disponible'" [class.text-emerald-700]="formalizer.status === 'Disponible'" [class.bg-slate-100]="formalizer.status === 'No disponible'" [class.text-slate-600]="formalizer.status === 'No disponible'">{{ formalizer.status }}</span>
-          </li>
-        }
-      </ul>
-    </article>
+    <div class="space-y-5">
+      <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+          <div><h2 class="font-extrabold text-slate-900">Formalizadores</h2><p class="mt-0.5 text-xs text-slate-500">Disponibilidad del equipo.</p></div>
+          <a routerLink="/pasaportes/admin/formalizadores" class="text-xs font-bold text-[#1b53ad] hover:underline">Ver operación</a>
+        </div>
+        <ul class="divide-y divide-slate-100">
+          @for (formalizer of formalizers; track formalizer.name; let i = $index) {
+            <li class="flex items-center justify-between gap-3 px-5 py-4">
+              <div class="flex min-w-0 items-center gap-3">
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500"><i class="fa-solid fa-user-tie" aria-hidden="true"></i></span>
+                <div class="min-w-0"><p class="truncate text-sm font-semibold text-slate-800">{{ formalizer.name }}</p><p class="text-[11px] text-slate-500">{{ i === 0 ? '6 atenciones hoy' : i === 1 ? '5 atenciones hoy' : 'Sin asignación activa' }}</p></div>
+              </div>
+              <span class="whitespace-nowrap rounded-full px-2 py-1 text-[10px] font-bold" [class.bg-emerald-100]="formalizer.status === 'Disponible'" [class.text-emerald-700]="formalizer.status === 'Disponible'" [class.bg-slate-100]="formalizer.status === 'No disponible'" [class.text-slate-600]="formalizer.status === 'No disponible'">{{ formalizer.status }}</span>
+            </li>
+          }
+        </ul>
+      </article>
+
+      <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between"><div><p class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Agenda próxima semana</p><h2 class="mt-1 font-extrabold text-slate-900">Apertura de cupos</h2></div><span class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></span></div>
+        <div class="mt-4 flex items-end justify-between gap-3"><div><p class="text-3xl font-extrabold text-slate-900">52</p><p class="text-xs text-slate-500">cupos disponibles</p></div><span class="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-700">Pendiente completar</span></div>
+        <a routerLink="/pasaportes/admin/calendario" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#1b53ad] px-3 py-2 text-xs font-bold text-[#1b53ad] transition hover:bg-blue-50"><i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>Gestionar apertura semanal</a>
+      </article>
+    </div>
   </div>
 </section>
