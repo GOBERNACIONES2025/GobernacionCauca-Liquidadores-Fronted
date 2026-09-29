@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnInit, OnChanges, SimpleChanges, signal, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, forwardRef, Input, OnInit, OnChanges, SimpleChanges, signal, computed, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, NG_VALUE_ACCESSOR, ControlValueAccessor } from '@angular/forms';
 import { Observable, of } from 'rxjs';
@@ -38,6 +38,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
   isLoading = signal<boolean>(false);
   isOpen = signal<boolean>(false);
   highlightedIndex = signal<number>(-1);
+  currentPage = signal<number>(1);
   
   searchTerm = '';
 
@@ -75,9 +76,28 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['items']) {
-      const current = this.items || [];
       this.filterLocal(this.searchTerm);
       this.resolveDisplayValueFromOptions();
+    }
+    if (changes['dependency'] && !changes['dependency'].firstChange) {
+      this.loadOptions('');
+      this.currentPage.set(1);
+    }
+  }
+
+  prevPage(event?: Event) {
+    if (event) event.stopPropagation();
+    if (this.currentPage() > 1) {
+      this.currentPage.set(this.currentPage() - 1);
+      this.highlightedIndex.set(0);
+    }
+  }
+
+  nextPage(event?: Event) {
+    if (event) event.stopPropagation();
+    if (this.currentPage() < this.totalPages()) {
+      this.currentPage.set(this.currentPage() + 1);
+      this.highlightedIndex.set(0);
     }
   }
 
@@ -103,6 +123,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
       });
       this.options.set(filtered);
     }
+    this.currentPage.set(1);
     this.highlightedIndex.set(this.options().length > 0 ? 0 : -1);
   }
 
@@ -120,6 +141,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
     ).subscribe(results => {
       this.options.set(results || []);
       this.isLoading.set(false);
+      this.currentPage.set(1);
       this.highlightedIndex.set(this.options().length > 0 ? 0 : -1);
       this.resolveDisplayValueFromOptions();
     });
@@ -179,7 +201,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
   }
 
   onSearchKeyDown(event: KeyboardEvent) {
-    const opts = this.options();
+    const opts = this.paginatedOptions();
     const len = opts.length;
 
     if (event.key === 'ArrowDown') {

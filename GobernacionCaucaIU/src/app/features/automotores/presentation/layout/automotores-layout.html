@@ -179,18 +179,71 @@
               }
             </a>
 
-            <!-- Omisos por Emplazamiento -->
-            <a
-              routerLink="/automotores/omisos"
-              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
-              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
-              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Omisos / Emplazamiento'"
-            >
-              <i class="fa-solid fa-triangle-exclamation text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
-              @if (isSidebarOpen() || isSidebarHovered()) {
-                <span class="truncate">Omisos / Emplazamiento</span>
+            <!-- Cobro Coactivo (Acordeón de Submódulos) -->
+            <div class="space-y-0.5">
+              <button
+                type="button"
+                (click)="toggleCobroCoactivo()"
+                class="w-full flex items-center justify-between px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group cursor-pointer border-l-4 border-transparent text-left"
+                [class.bg-slate-50]="isCobroCoactivoOpen()"
+                [class.text-blue-950]="isCobroCoactivoOpen()"
+                [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Cobro Coactivo'"
+              >
+                <div class="flex items-center space-x-3 min-w-0">
+                  <i class="fa-solid fa-gavel text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
+                  @if (isSidebarOpen() || isSidebarHovered()) {
+                    <span class="font-bold truncate text-slate-800">Cobro Coactivo</span>
+                  }
+                </div>
+                @if (isSidebarOpen() || isSidebarHovered()) {
+                  <i
+                    class="fa-solid fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200"
+                    [class.rotate-180]="isCobroCoactivoOpen()"
+                  ></i>
+                }
+              </button>
+
+              @if ((isSidebarOpen() || isSidebarHovered()) && isCobroCoactivoOpen()) {
+                <div class="pl-9 pr-3 py-1 space-y-1 bg-slate-50/70 border-l-2 border-slate-200 ml-4 my-1">
+                  <!-- 1. Emplazamiento Previo (ACTIVO) -->
+                  <a
+                    routerLink="/automotores/cobro-coactivo"
+                    routerLinkActive="bg-blue-100 text-blue-900 font-bold"
+                    class="flex items-center justify-between px-2.5 py-1.5 text-[11px] rounded-md text-slate-700 hover:bg-blue-50 hover:text-blue-900 transition"
+                  >
+                    <span class="truncate">1. Emplazamiento</span>
+                    <span class="text-[8.5px] px-1.5 py-0.2 rounded font-extrabold bg-emerald-100 text-emerald-800">Activo</span>
+                  </a>
+
+                  <!-- 2. Liq. de Aforo (Fase 2) -->
+                  <div
+                    class="flex items-center justify-between px-2.5 py-1.5 text-[11px] rounded-md text-slate-400 select-none cursor-not-allowed"
+                    title="Etapa siguiente del proceso de cobro"
+                  >
+                    <span class="truncate">2. Liquidación Aforo</span>
+                    <span class="text-[8px] px-1 py-0.2 rounded bg-slate-200 text-slate-500 font-semibold">Fase 2</span>
+                  </div>
+
+                  <!-- 3. Mandamiento de Pago (Fase 3) -->
+                  <div
+                    class="flex items-center justify-between px-2.5 py-1.5 text-[11px] rounded-md text-slate-400 select-none cursor-not-allowed"
+                    title="Etapa siguiente del proceso de cobro"
+                  >
+                    <span class="truncate">3. Mandamiento Pago</span>
+                    <span class="text-[8px] px-1 py-0.2 rounded bg-slate-200 text-slate-500 font-semibold">Fase 3</span>
+                  </div>
+
+                  <!-- 4. Medidas Cautelares (Fase 4) -->
+                  <div
+                    class="flex items-center justify-between px-2.5 py-1.5 text-[11px] rounded-md text-slate-400 select-none cursor-not-allowed"
+                    title="Etapa siguiente del proceso de cobro"
+                  >
+                    <span class="truncate">4. Medidas Cautelares</span>
+                    <span class="text-[8px] px-1 py-0.2 rounded bg-slate-200 text-slate-500 font-semibold">Fase 4</span>
+                  </div>
+                </div>
               }
-            </a>
+            </div>
 
             <!-- Certificados -->
             <a

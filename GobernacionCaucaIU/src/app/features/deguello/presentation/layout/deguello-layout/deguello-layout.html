@@ -1,0 +1,29 @@
+<div class="flex flex-col h-screen w-full bg-slate-100 overflow-hidden font-sans text-slate-800">
+  
+  <!-- Topbar Corporativo (Azul Institucional) -->
+  <app-deguello-topbar (toggleSidebar)="toggleSidebar()"></app-deguello-topbar>
+
+  <!-- Body Content Area -->
+  <div class="flex flex-1 overflow-hidden relative">
+    
+    <!-- Sidebar de Módulos (Liquidación, Facturación, Parametrización) -->
+    <div 
+      (mouseenter)="isSidebarHovered.set(true)"
+      (mouseleave)="isSidebarHovered.set(false)"
+      class="shrink-0 h-full transition-all duration-300 overflow-hidden"
+      [class.w-64]="!isSidebarCollapsed() || isSidebarHovered()"
+      [class.w-16]="isSidebarCollapsed() && !isSidebarHovered()">
+      <app-deguello-sidebar 
+        [isCollapsed]="isSidebarCollapsed() && !isSidebarHovered()" 
+        (toggleCollapse)="toggleSidebar()">
+      </app-deguello-sidebar>
+    </div>
+
+    <!-- Page Content Router Outlet -->
+    <main class="flex-1 overflow-y-auto relative bg-slate-50 flex flex-col h-full">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+</div>

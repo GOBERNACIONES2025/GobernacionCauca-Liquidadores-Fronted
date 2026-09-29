@@ -1,0 +1,513 @@
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+  <!-- Header Card: Generación y Liquidación -->
+  <div class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#1b53ad] border border-blue-200 flex items-center justify-center text-2xl shadow-xs">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-[11px] uppercase tracking-wider font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+            Módulo de Generación & Liquidación
+          </span>
+          <span class="text-xs text-slate-400">·</span>
+          <span class="text-xs text-slate-500 font-medium">Vigencia Fiscal 2026</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
+          Creación de Declaración de Degüello (Ganado Mayor)
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+          Diligencie los datos manualmente o impórtelos automáticamente desde el servicio de sanidad animal <strong>ICA SIGMA</strong>.
+        </p>
+      </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="flex items-center space-x-2">
+      <button 
+        (click)="irAFacturacion()"
+        class="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition cursor-pointer flex items-center space-x-1.5 shadow-xs">
+        <i class="fa-solid fa-list-check text-slate-500"></i>
+        <span>Ver Facturas & Reliquidaciones</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Banner de Modo Reliquidación / Corrección (Si viene desde Facturación) -->
+  <div *ngIf="formGeneracion.esCorreccion" class="p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-amber-100/60 border-2 border-amber-300 text-amber-950 space-y-3 shadow-xs">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-arrows-rotate"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h3 class="text-sm font-black uppercase tracking-wide text-amber-900">Modo de Reliquidación / Corrección Activo</h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900">Art. 644 Estatuto Tributario</span>
+          </div>
+          <p class="text-xs text-amber-800 mt-0.5">
+            Corrigiendo la Declaración Inicial N° <strong class="font-mono">{{ formGeneracion.declaracionCorregida }}</strong>. Ingrese el nuevo valor de cabezas y liquide la sanción e intereses de ley.
+          </p>
+        </div>
+      </div>
+
+      <button 
+        (click)="cancelarModoCorreccion()"
+        class="px-3 py-1.5 bg-white hover:bg-amber-100 text-amber-900 font-semibold text-xs rounded-lg border border-amber-300 transition cursor-pointer self-start sm:self-auto">
+        Cancelar Corrección
+      </button>
+    </div>
+
+    <!-- Comparativa Fiscal: Anterior vs Nueva -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-amber-200/70 text-xs">
+      <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Cabezas Iniciales</span>
+        <span class="text-sm font-mono font-bold text-slate-800">{{ cabezasAnteriores() }} semovientes</span>
+      </div>
+      <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Impuesto Inicial</span>
+        <span class="text-sm font-mono font-bold text-slate-800">$ {{ subtotalAnterior() | number:'1.0-0' }}</span>
+      </div>
+      <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Diferencia Cabezas</span>
+        <span class="text-sm font-mono font-bold" [ngClass]="diferenciaCabezas() > 0 ? 'text-amber-700' : 'text-slate-700'">
+          {{ diferenciaCabezas() > 0 ? '+' : '' }}{{ diferenciaCabezas() }}
+        </span>
+      </div>
+      <div class="bg-white/90 p-2.5 rounded-xl border border-amber-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Mayor Valor Determinado</span>
+        <span class="text-sm font-mono font-black text-amber-900">
+          $ {{ mayorValorImpuesto() | number:'1.0-0' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- BARRA DE IMPORTACIÓN DESDE ICA SIGMA                                -->
+  <!-- =================================================================== -->
+  <div class="bg-white rounded-2xl shadow-xs border border-blue-100 p-5 space-y-3 bg-gradient-to-r from-blue-50/40 via-white to-blue-50/20">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="w-7 h-7 rounded-lg bg-[#1b53ad] text-white flex items-center justify-center text-xs shadow-xs">
+          <i class="fa-solid fa-cloud-arrow-down"></i>
+        </span>
+        <h2 class="text-sm font-bold text-slate-900">
+          Traer Información Directamente desde el ICA (SIGMA)
+        </h2>
+      </div>
+
+      <span class="text-[11px] text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-full font-bold">
+        Interoperabilidad Sanitaria
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+      <div class="sm:col-span-8 md:col-span-9">
+        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Número de Guía Sanitaria ICA (GSMI)</label>
+        <div class="relative">
+          <i class="fa-solid fa-barcode absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input 
+            type="text"
+            [ngModel]="guiaIcaBusqueda()"
+            (ngModelChange)="guiaIcaBusqueda.set($event)"
+            placeholder="Ej: GSMI-2026-004521"
+            class="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800 focus:ring-2 focus:ring-blue-600 uppercase" />
+        </div>
+      </div>
+
+      <div class="sm:col-span-4 md:col-span-3">
+        <button 
+          (click)="traerDesdeIca()"
+          [disabled]="buscandoIca()"
+          class="w-full py-2 px-4 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50">
+          <i class="fa-solid" [ngClass]="buscandoIca() ? 'fa-spinner fa-spin' : 'fa-magnifying-glass'"></i>
+          <span>{{ buscandoIca() ? 'Consultando ICA...' : 'Traer Info de ICA' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Píldoras Rápidas -->
+    <div class="pt-2 flex flex-wrap items-center gap-2 text-xs">
+      <span class="text-slate-500 font-bold">Cargar ejemplos para pruebas:</span>
+      <button 
+        type="button"
+        (click)="seleccionarEjemploIca('GSMI-2026-004521')"
+        class="px-2.5 py-1 rounded-lg bg-blue-100 hover:bg-blue-200 text-[#1b53ad] border border-blue-300 transition cursor-pointer font-bold flex items-center space-x-1">
+        <i class="fa-solid fa-file-import"></i>
+        <span>Popayán (24 Cabezas)</span>
+      </button>
+      <button 
+        type="button"
+        (click)="seleccionarEjemploIca('GSMI-2026-008912')"
+        class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition cursor-pointer font-bold flex items-center space-x-1">
+        <i class="fa-solid fa-file-import"></i>
+        <span>Patía (12 Cabezas)</span>
+      </button>
+      <button 
+        type="button"
+        (click)="limpiarTodo()"
+        class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer font-semibold flex items-center space-x-1">
+        <i class="fa-solid fa-eraser"></i>
+        <span>Limpiar Formulario</span>
+      </button>
+    </div>
+
+    <!-- Mensaje de estado ICA -->
+    <div *ngIf="mensajeIca() as msg" 
+         class="p-2.5 rounded-xl text-xs flex items-center space-x-2"
+         [ngClass]="msg.tipo === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-900' : 'bg-rose-50 border border-rose-200 text-rose-900'">
+      <i class="fa-solid" [ngClass]="msg.tipo === 'success' ? 'fa-circle-check text-emerald-600' : 'fa-circle-exclamation text-rose-600'"></i>
+      <span>{{ msg.texto }}</span>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- FORMULARIO OFICIAL DE DECLARACIÓN / GENERACIÓN                      -->
+  <!-- =================================================================== -->
+  <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-6 sm:p-8 space-y-6">
+    
+    <!-- Bloque 1: PERIODO Y TIPO DE DECLARACIÓN -->
+    <div>
+      <h3 class="text-xs font-bold uppercase tracking-wider text-[#1b53ad] mb-3 flex items-center space-x-2">
+        <span class="w-5 h-5 rounded-full bg-blue-100 text-[#1b53ad] inline-flex items-center justify-center text-xs font-bold">1</span>
+        <span>Periodo y Tipo de Declaración</span>
+      </h3>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-4 items-end">
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Año Gravable</label>
+          <input 
+            type="number"
+            [(ngModel)]="formGeneracion.anioGravable"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-900" />
+        </div>
+
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Periodo Gravable (Mes)</label>
+          <select 
+            [(ngModel)]="formGeneracion.periodoGravable"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-medium text-slate-800">
+            <option value="01">01 - Enero</option>
+            <option value="02">02 - Febrero</option>
+            <option value="03">03 - Marzo</option>
+            <option value="04">04 - Abril</option>
+            <option value="05">05 - Mayo</option>
+            <option value="06">06 - Junio</option>
+            <option value="07">07 - Julio</option>
+            <option value="08">08 - Agosto</option>
+            <option value="09">09 - Septiembre</option>
+            <option value="10">10 - Octubre</option>
+            <option value="11">11 - Noviembre</option>
+            <option value="12">12 - Diciembre</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-3 flex items-center space-x-4 pb-2">
+          <label class="inline-flex items-center cursor-pointer">
+            <input 
+              type="radio" 
+              name="tipoDecl"
+              [checked]="formGeneracion.esInicial" 
+              (change)="formGeneracion.esInicial = true; formGeneracion.esCorreccion = false" 
+              class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+            <span class="ml-2 text-xs sm:text-sm font-semibold text-slate-700">Inicial</span>
+          </label>
+
+          <label class="inline-flex items-center cursor-pointer">
+            <input 
+              type="radio" 
+              name="tipoDecl"
+              [checked]="formGeneracion.esCorreccion" 
+              (change)="formGeneracion.esInicial = false; formGeneracion.esCorreccion = true" 
+              class="w-4 h-4 text-blue-600 focus:ring-blue-500">
+            <span class="ml-2 text-xs sm:text-sm font-semibold text-slate-700">Corrección</span>
+          </label>
+        </div>
+
+        <div *ngIf="formGeneracion.esCorreccion" class="md:col-span-3">
+          <label class="block text-xs font-bold text-amber-800 uppercase mb-1">N° Declaración Anterior</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.declaracionCorregida"
+            placeholder="Ej: 2026-0004521"
+            class="w-full px-3 py-2 bg-amber-50/60 border border-amber-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-amber-900" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloque 2: INFORMACIÓN DEL RESPONSABLE Y DECLARANTE -->
+    <div class="pt-4 border-t border-slate-100">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-[#1b53ad] mb-3 flex items-center space-x-2">
+        <span class="w-5 h-5 rounded-full bg-blue-100 text-[#1b53ad] inline-flex items-center justify-center text-xs font-bold">2</span>
+        <span>Información del Responsable y Declarante</span>
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-6">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Razón Social / Matarife</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.razonSocial"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-900 uppercase" />
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">NIT / Cédula</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.nit"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800" />
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">DV</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.dv"
+            maxlength="1"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-center text-slate-900" />
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Municipio de Declaración</label>
+          <select 
+            [(ngModel)]="formGeneracion.municipio"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-800">
+            <option *ngFor="let m of municipiosCauca" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Teléfono Fijo / Celular</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.telefonoFijo"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800" />
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Dirección de Notificación</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.direccionNotificacion"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 uppercase" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloque 3: DATOS DEL GANADO Y CÁLCULO DE TARIFA -->
+    <div class="pt-4 border-t border-slate-100">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-[#1b53ad] mb-3 flex items-center space-x-2">
+        <span class="w-5 h-5 rounded-full bg-blue-100 text-[#1b53ad] inline-flex items-center justify-center text-xs font-bold">3</span>
+        <span>Datos del Ganado y Cálculo de Tarifa</span>
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Número de Guía ICA (GSMI)</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.numeroGuiaIca"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800 uppercase" />
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Planta de Beneficio (Frigorífico)</label>
+          <select 
+            [(ngModel)]="formGeneracion.plantaBeneficio"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-800">
+            <option *ngFor="let p of plantas()" [value]="p.nombre">{{ p.nombre }} ({{ p.municipio }})</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Predio de Procedencia</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.predioOrigen"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800" />
+        </div>
+
+        <!-- Input de Cabezas Destacado -->
+        <div [class]="formGeneracion.esCorreccion ? 'md:col-span-3' : 'md:col-span-6'">
+          <label class="block text-xs font-bold text-blue-900 uppercase mb-1">
+            Cantidad de Cabezas (Base Gravable) *
+          </label>
+          <input 
+            type="number"
+            min="1"
+            placeholder="0"
+            [ngModel]="baseGravable()"
+            (ngModelChange)="onBaseGravableChange($event)"
+            class="w-full px-3.5 py-2.5 bg-blue-50/70 border-2 border-blue-400 rounded-xl text-lg font-black text-[#1b53ad] focus:ring-2 focus:ring-blue-600" />
+        </div>
+
+        <!-- Tarifa por Cabeza (Bloqueada / Solo Lectura) -->
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1 flex items-center justify-between">
+            <span>Tarifa por Cabeza ($)</span>
+            <i class="fa-solid fa-lock text-slate-400 text-[10px]" title="Campo institucional protegido"></i>
+          </label>
+          <input 
+            type="number"
+            readonly
+            [ngModel]="tarifa()"
+            class="w-full px-3.5 py-2.5 bg-slate-100/90 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-600 cursor-not-allowed select-none" />
+          <span class="text-[10px] text-slate-400 mt-0.5 block">Tarifa fija fijada por UVT</span>
+        </div>
+
+        <!-- Sanciones de Ley (Bloqueada / Solo Lectura) -->
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1 flex items-center justify-between">
+            <span>Sanciones de Ley ($)</span>
+            <i class="fa-solid fa-lock text-slate-400 text-[10px]" title="Campo calculado automáticamente"></i>
+          </label>
+          <input 
+            type="number"
+            readonly
+            [ngModel]="sanciones()"
+            class="w-full px-3.5 py-2.5 bg-slate-100/90 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-600 cursor-not-allowed select-none" />
+          <span class="text-[10px] text-slate-400 mt-0.5 block">Calculado por el sistema</span>
+        </div>
+
+        <!-- Interés de Mora (Bloqueada / Solo Lectura) -->
+        <div class="md:col-span-3">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1 flex items-center justify-between">
+            <span>Interés de Mora ($)</span>
+            <i class="fa-solid fa-lock text-slate-400 text-[10px]" title="Campo calculado automáticamente"></i>
+          </label>
+          <input 
+            type="number"
+            readonly
+            [ngModel]="interesMora()"
+            class="w-full px-3.5 py-2.5 bg-slate-100/90 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-600 cursor-not-allowed select-none" />
+          <span class="text-[10px] text-slate-400 mt-0.5 block">Liquidado según días de mora</span>
+        </div>
+      </div>
+
+      <!-- PANEL DE LIQUIDACIÓN DE SANCIONES E INTERESES (Solo visible en modo Reliquidación de mora) -->
+      <div *ngIf="formGeneracion.esCorreccion" class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-200">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-scale-balanced text-[#1b53ad]"></i>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-800">
+              Herramienta de Sanciones e Intereses de Mora (Art. 644 y 634 E.T.)
+            </span>
+          </div>
+          <span class="text-[11px] text-slate-500">
+            Sanción mínima legal vigencia 2026: <strong class="text-slate-700">10 UVT ($498.000 COP)</strong>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          
+          <!-- Botones Rápidos de Sanción -->
+          <div class="md:col-span-5 space-y-1">
+            <span class="text-[11px] font-bold text-slate-600 uppercase block">Cálculo de Sanción por Corrección</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button 
+                type="button"
+                (click)="aplicarSancion10Porciento()"
+                class="px-2.5 py-1 text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg border border-amber-300 transition cursor-pointer"
+                title="Aplica el 10% del mayor valor a pagar conforme al Art. 644 del Estatuto Tributario">
+                10% Mayor Valor ($ {{ mayorValorImpuesto() * 0.1 | number:'1.0-0' }})
+              </button>
+              <button 
+                type="button"
+                (click)="aplicarSancionMinima()"
+                class="px-2.5 py-1 text-xs font-bold bg-blue-100 hover:bg-blue-200 text-[#1b53ad] rounded-lg border border-blue-200 transition cursor-pointer"
+                title="Aplica la sanción mínima legal colombiana de 10 UVT ($498.000)">
+                Sanción Mínima (10 UVT)
+              </button>
+            </div>
+          </div>
+
+          <!-- Días de Mora -->
+          <div class="md:col-span-2 space-y-1">
+            <label class="block text-[11px] font-bold text-slate-600 uppercase">Días de Retardo</label>
+            <input 
+              type="number"
+              min="0"
+              [ngModel]="diasMora()"
+              (ngModelChange)="diasMora.set($event)"
+              class="w-full px-2.5 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900" />
+          </div>
+
+          <!-- Botón de Intereses -->
+          <div class="md:col-span-3 space-y-1">
+            <span class="text-[11px] font-bold text-slate-600 uppercase block">Cálculo de Intereses</span>
+            <button 
+              type="button"
+              (click)="calcularInteresesMoraAutomaticos()"
+              class="w-full px-2.5 py-1 text-xs font-bold bg-indigo-100 hover:bg-indigo-200 text-indigo-900 rounded-lg border border-indigo-200 transition cursor-pointer flex items-center justify-center space-x-1"
+              title="Calcula los intereses moratorios a la tasa legal vigente">
+              <i class="fa-solid fa-calculator"></i>
+              <span>Calcular Mora ({{ diasMora() }} días)</span>
+            </button>
+          </div>
+
+          <!-- Limpiar / Exonerar -->
+          <div class="md:col-span-2">
+            <button 
+              type="button"
+              (click)="limpiarSancionesYMora()"
+              class="w-full px-2.5 py-1 text-xs font-semibold text-slate-600 hover:text-rose-700 bg-white hover:bg-rose-50 border border-slate-300 hover:border-rose-200 rounded-lg transition cursor-pointer flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-eraser"></i>
+              <span>Exonerar / $0</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Bloque 4: CÁLCULO EN TIEMPO REAL (Colores Corporativos Azul Institucional) -->
+    <div class="p-5 rounded-2xl bg-gradient-to-r from-blue-50/90 via-blue-50/50 to-white border-2 border-blue-200">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider flex items-center">
+            <i class="fa-solid fa-calculator mr-1.5"></i>
+            Cálculo en Tiempo Real:
+          </span>
+          <div class="text-xs sm:text-sm text-slate-600 mt-1">
+            {{ calculoEnVivo().baseGravable }} Cabezas × ${{ calculoEnVivo().tarifa | number:'1.0-0' }} = 
+            <strong class="text-slate-900">${{ calculoEnVivo().valorBruto | number:'1.0-0' }}</strong> 
+            | Menos 10% Municipios: 
+            <strong class="text-emerald-700">-${{ calculoEnVivo().participacionMunicipios | number:'1.0-0' }}</strong>
+            <span *ngIf="calculoEnVivo().sanciones > 0 || calculoEnVivo().interesMora > 0">
+              | Sanciones/Mora: <strong class="text-rose-600">+${{ (calculoEnVivo().sanciones + calculoEnVivo().interesMora) | number:'1.0-0' }}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div class="text-right">
+          <span class="text-[11px] text-slate-500 uppercase font-bold tracking-wider">Total a Pagar Liquidado</span>
+          <div class="text-2xl sm:text-3xl font-black text-[#1b53ad] font-mono">
+            $ {{ calculoEnVivo().totalAPagar | number:'1.0-0' }} COP
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón Principal -->
+    <div class="flex justify-end pt-2">
+      <button 
+        (click)="liquidarYGenerarFactura()"
+        class="px-6 py-3 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-sm rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer">
+        <i class="fa-solid fa-file-invoice"></i>
+        <span>Liquidar y Generar Formulario Oficial PDF</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Modal Visor Factura Oficial -->
+  <app-factura-modal 
+    *ngIf="declaracionParaModal() as dec"
+    [declaracion]="dec"
+    (cerrar)="cerrarFacturaModal()">
+  </app-factura-modal>
+
+</div>

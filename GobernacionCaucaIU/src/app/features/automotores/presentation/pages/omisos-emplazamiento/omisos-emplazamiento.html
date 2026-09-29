@@ -1,22 +1,22 @@
 <div class="flex flex-col h-full bg-slate-50 overflow-y-auto">
 
   <!-- ══════════════════════════════════════════════════════════════════════
-       HEADER DE PÁGINA
+       HEADER DE PÁGINA: COBRO COACTIVO - PASO 1 (EMPLAZAMIENTO)
   ══════════════════════════════════════════════════════════════════════ -->
-  <div class="bg-white border-b border-slate-200 px-6 py-4 shrink-0">
+  <div class="bg-white border-b border-slate-200 px-6 py-4 shrink-0 shadow-2xs">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
         <div class="flex items-center gap-2 mb-0.5">
-          <i class="fa-solid fa-triangle-exclamation text-orange-500 text-base"></i>
-          <h1 class="text-base font-bold text-slate-800">Vehículos Omisos por Emplazamiento</h1>
+          <i class="fa-solid fa-scale-balanced text-amber-600 text-base"></i>
+          <h1 class="text-base font-bold text-slate-800">Fiscalización, Emplazamiento y Trazabilidad de Omisos</h1>
         </div>
         <p class="text-xs text-slate-500">
-          Contribuyentes con mora activa · Ley 488/1998 Art.147 &nbsp;·&nbsp; ETN Arts.&nbsp;715, 642, 643, 817
+          Cobro Coactivo (Paso 1: Emplazamiento Previo) · Ley 488/1998 Art. 147 · ETN Arts. 565, 568, 642, 643, 715 y 817
         </p>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
         <select
-          class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium"
           (change)="onFiltroVigencia($event)"
         >
           <option value="0">Todas las vigencias</option>
@@ -26,7 +26,7 @@
         </select>
         <button
           (click)="onLimpiarFiltros()"
-          class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+          class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition cursor-pointer font-medium"
         >
           <i class="fa-solid fa-filter-circle-xmark mr-1"></i>Limpiar filtros
         </button>
@@ -34,104 +34,121 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PESTAÑAS OPERATIVAS (WORKFLOW DE FISCALIZACIÓN)
+  ══════════════════════════════════════════════════════════════════════ -->
+  <div class="bg-white border-b border-slate-200 px-6 pt-2.5 pb-0 flex items-center gap-4 shrink-0 overflow-x-auto">
+    <button
+      type="button"
+      (click)="onSelectTab('pendientes')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-amber-600]="facade.tabActivo() === 'pendientes'"
+      [class.text-amber-800]="facade.tabActivo() === 'pendientes'"
+      [class.border-transparent]="facade.tabActivo() !== 'pendientes'"
+      [class.text-slate-500]="facade.tabActivo() !== 'pendientes'"
+    >
+      <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+      <span>1. Por Emplazar</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-100 text-amber-800">
+        {{ facade.totalPendientesTab() }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="onSelectTab('pendientes_envio')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-indigo-600]="facade.tabActivo() === 'pendientes_envio'"
+      [class.text-indigo-900]="facade.tabActivo() === 'pendientes_envio'"
+      [class.border-transparent]="facade.tabActivo() !== 'pendientes_envio'"
+      [class.text-slate-500]="facade.tabActivo() !== 'pendientes_envio'"
+    >
+      <i class="fa-solid fa-envelope-circle-check text-indigo-600"></i>
+      <span>2. Pendientes de Envío</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-indigo-100 text-indigo-800">
+        {{ facade.totalPendientesEnvioTab() }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="onSelectTab('notificados')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-blue-600]="facade.tabActivo() === 'notificados'"
+      [class.text-blue-900]="facade.tabActivo() === 'notificados'"
+      [class.border-transparent]="facade.tabActivo() !== 'notificados'"
+      [class.text-slate-500]="facade.tabActivo() !== 'notificados'"
+    >
+      <i class="fa-solid fa-truck-fast text-blue-600"></i>
+      <span>3. En Tránsito / Notificados</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-100 text-blue-800">
+        {{ facade.totalNotificadosTab() }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      (click)="onSelectTab('devueltos')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-rose-600]="facade.tabActivo() === 'devueltos'"
+      [class.text-rose-900]="facade.tabActivo() === 'devueltos'"
+      [class.border-transparent]="facade.tabActivo() !== 'devueltos'"
+      [class.text-slate-500]="facade.tabActivo() !== 'devueltos'"
+    >
+      <i class="fa-solid fa-bullhorn text-rose-600"></i>
+      <span>4. Devoluciones (Aviso Web ETN 568)</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-100 text-rose-800">
+        {{ facade.totalDevueltosTab() }}
+      </span>
+    </button>
+  </div>
+
   <div class="flex-1 px-6 py-4 space-y-4">
 
     <!-- ══════════════════════════════════════════════════════════════════
-         KPI CARDS (Comentadas temporalmente por retroalimentación)
+         BANNER INFORMATIVO SEGÚN PESTAÑA
     ══════════════════════════════════════════════════════════════════ -->
-    <!--
-    @if (facade.loadingKpis()) {
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        @for (i of [1,2,3,4]; track i) {
-          <div class="bg-white rounded-xl border border-slate-200 p-4 animate-pulse h-20"></div>
-        }
+    @if (facade.tabActivo() === 'pendientes') {
+      <div class="bg-amber-50/80 border border-amber-200 rounded-xl px-4 py-2.5 flex items-start gap-3">
+        <i class="fa-solid fa-info-circle text-amber-600 text-sm mt-0.5 shrink-0"></i>
+        <p class="text-[11px] text-amber-800 leading-relaxed">
+          <strong>1. Omisos en Mora Tributaria:</strong> Vehículos omisos sin acto administrativo expedido.
+          Revise la simulación oficial y expida el Auto de Emplazamiento (ETN Art. 715). Al expedir, el expediente pasará automáticamente a
+          <strong>"2. Pendientes de Envío"</strong> para entrega a mensajería y planilla.
+        </p>
       </div>
-    } @else if (facade.kpis()) {
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <div class="flex items-start justify-between">
-            <div>
-              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Total Omisos</p>
-              <p class="text-2xl font-bold text-slate-800 mt-0.5">{{ facade.kpis()!.totalVehiculosOmisos | number }}</p>
-            </div>
-            <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-car-burst text-orange-500 text-sm"></i>
-            </div>
-          </div>
-          <p class="text-[10px] text-slate-400 mt-1.5">Vehículos con mora activa</p>
-        </div>
-
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <div class="flex items-start justify-between">
-            <div>
-              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Deuda en Mora</p>
-              <p class="text-xl font-bold text-red-700 mt-0.5">
-                {{ facade.kpis()!.totalDeudaEnMora | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-              </p>
-            </div>
-            <div class="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-file-invoice-dollar text-red-500 text-sm"></i>
-            </div>
-          </div>
-          <p class="text-[10px] text-slate-400 mt-1.5">Impuesto + sanciones + intereses</p>
-        </div>
-
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <div class="flex items-start justify-between">
-            <div>
-              <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wide">Días Mora Prom.</p>
-              <p class="text-2xl font-bold text-orange-700 mt-0.5">{{ facade.kpis()!.promedioDiasMora }}</p>
-            </div>
-            <div class="w-9 h-9 rounded-lg bg-yellow-50 flex items-center justify-center shrink-0">
-              <i class="fa-solid fa-clock text-yellow-500 text-sm"></i>
-            </div>
-          </div>
-          <p class="text-[10px] text-slate-400 mt-1.5">Promedio del parque omiso</p>
-        </div>
-
-        <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
-          <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wide mb-2">Semáforo</p>
-          <div class="space-y-1">
-            <div class="flex items-center justify-between text-[11px]">
-              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-yellow-400 shrink-0"></span>Recientes (1-90d)</span>
-              <span class="font-semibold text-slate-700">{{ facade.kpis()!.totalRecientes }}</span>
-            </div>
-            <div class="flex items-center justify-between text-[11px]">
-              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-orange-500 shrink-0"></span>Emplazables (91-365d)</span>
-              <span class="font-semibold text-slate-700">{{ facade.kpis()!.totalEmplazables }}</span>
-            </div>
-            <div class="flex items-center justify-between text-[11px]">
-              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-600 shrink-0"></span>Críticos (&gt;365d)</span>
-              <span class="font-semibold text-slate-700">{{ facade.kpis()!.totalCriticos }}</span>
-            </div>
-          </div>
-        </div>
-
+    } @else if (facade.tabActivo() === 'pendientes_envio') {
+      <div class="bg-indigo-50/80 border border-indigo-200 rounded-xl px-4 py-2.5 flex items-start gap-3">
+        <i class="fa-solid fa-paper-plane text-indigo-600 text-sm mt-0.5 shrink-0"></i>
+        <p class="text-[11px] text-indigo-900 leading-relaxed">
+          <strong>2. Actos Expedidos Listos para Despacho Postal (ETN Art. 565):</strong> Actos de Emplazamiento formales radicados en BD pendientes de ser remitidos por correo físico.
+          Seleccione los expedientes a remitir con las casillas de verificación, haga clic en <strong>"Planilla de Envíos"</strong> para descargar la relación para el operador postal,
+          y asigne la empresa y número de guía para iniciar el tránsito.
+        </p>
+      </div>
+    } @else if (facade.tabActivo() === 'notificados') {
+      <div class="bg-blue-50/80 border border-blue-200 rounded-xl px-4 py-2.5 flex items-start gap-3">
+        <i class="fa-solid fa-truck-fast text-blue-600 text-sm mt-0.5 shrink-0"></i>
+        <p class="text-[11px] text-blue-800 leading-relaxed">
+          <strong>3. Trazabilidad Postal y Términos Legales (ETN Arts. 565 y 715):</strong> Expedientes despachados con guía de seguimiento.
+          Registre la <strong>Fecha de Entrega Efectiva</strong> para dar inicio al término perentorio de <strong>un (1) mes calendario</strong> para declarar,
+          o registre la causal de devolución en caso de sobre devuelto para trasladarlo a Devoluciones.
+        </p>
+      </div>
+    } @else {
+      <div class="bg-rose-50/80 border border-rose-200 rounded-xl px-4 py-2.5 flex items-start gap-3">
+        <i class="fa-solid fa-bullhorn text-rose-600 text-sm mt-0.5 shrink-0"></i>
+        <p class="text-[11px] text-rose-800 leading-relaxed">
+          <strong>4. Notificación Subsidiaria por Aviso en Web (ETN Art. 568):</strong> Citaciones devueltas por la empresa de mensajería
+          (dirección errada o cerrado). La ley exige publicar el edicto/aviso en el portal web oficial durante <strong>cinco (5) días hábiles</strong> para surtir efectos legales de notificación.
+        </p>
       </div>
     }
-    -->
-
-
-    <!-- ══════════════════════════════════════════════════════════════════
-         NOTA LEGAL
-    ══════════════════════════════════════════════════════════════════ -->
-    <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 flex items-start gap-3">
-      <i class="fa-solid fa-scale-balanced text-blue-500 text-sm mt-0.5 shrink-0"></i>
-      <p class="text-[11px] text-blue-700 leading-relaxed">
-        <strong>Base legal:</strong> El emplazamiento puede iniciarse desde el
-        <strong>día 1 de mora</strong> (ETN Art.&nbsp;715). No existe umbral mínimo legal.
-        El semáforo es clasificación operativa interna para priorización de gestión.
-        Prescripción de la acción de cobro: <strong>5 años</strong> (ETN Art.&nbsp;817).
-        Intereses de mora: desde el día siguiente al vencimiento (ETN Arts.&nbsp;634-635).
-      </p>
-    </div>
 
     <!-- ══════════════════════════════════════════════════════════════════
          FILTROS Y BÚSQUEDA
     ══════════════════════════════════════════════════════════════════ -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
-
       <!-- Búsqueda de texto -->
       <div class="flex gap-2">
         <div class="relative flex-1">
@@ -142,7 +159,7 @@
             type="text"
             [(ngModel)]="textoBuscar"
             (keydown)="onBuscarKeydown($event)"
-            placeholder="Buscar por placa, CC, NIT o nombre..."
+            placeholder="Buscar por placa, CC, NIT, nombre o número de guía..."
             class="w-full pl-8 pr-4 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-slate-700"
           />
         </div>
@@ -195,98 +212,224 @@
           Crítico (&gt;365d)
         </button>
 
-        <!-- Separador -->
-        <span class="h-4 w-px bg-slate-200 mx-1 shrink-0"></span>
-
-        <span class="text-[11px] text-slate-500 font-medium shrink-0">Emplazamiento:</span>
-
-        <button
-          (click)="onFiltroEstado('')"
-          [class.ring-2]="facade.estadoEmplFiltro() === ''"
-          [class.ring-slate-400]="facade.estadoEmplFiltro() === ''"
-          class="px-3 py-1 text-[11px] font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer ring-offset-1"
-        >Todos</button>
-
-        <button
-          (click)="onFiltroEstado('SIN_NOTIFICAR')"
-          [class.ring-2]="facade.estadoEmplFiltro() === 'SIN_NOTIFICAR'"
-          [class.ring-slate-400]="facade.estadoEmplFiltro() === 'SIN_NOTIFICAR'"
-          class="px-3 py-1 text-[11px] font-medium rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer ring-offset-1"
-        >Sin Notificar</button>
-
-        <button
-          (click)="onFiltroEstado('NOTIFICADO')"
-          [class.ring-2]="facade.estadoEmplFiltro() === 'NOTIFICADO'"
-          [class.ring-blue-400]="facade.estadoEmplFiltro() === 'NOTIFICADO'"
-          class="px-3 py-1 text-[11px] font-medium rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition cursor-pointer ring-offset-1"
-        >Notificado</button>
-
-        <button
-          (click)="onFiltroEstado('COBRO_COACTIVO')"
-          [class.ring-2]="facade.estadoEmplFiltro() === 'COBRO_COACTIVO'"
-          [class.ring-purple-400]="facade.estadoEmplFiltro() === 'COBRO_COACTIVO'"
-          class="px-3 py-1 text-[11px] font-medium rounded-full bg-purple-100 text-purple-800 hover:bg-purple-200 transition cursor-pointer ring-offset-1"
-        >Cobro Coactivo</button>
+        @if (facade.tabActivo() === 'pendientes') {
+          <span class="h-4 w-px bg-slate-200 mx-1 shrink-0"></span>
+          <span class="text-[11px] text-slate-500 font-medium shrink-0">Estado:</span>
+          <button
+            (click)="onFiltroEstado('')"
+            [class.ring-2]="facade.estadoEmplFiltro() === ''"
+            [class.ring-slate-400]="facade.estadoEmplFiltro() === ''"
+            class="px-3 py-1 text-[11px] font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition cursor-pointer ring-offset-1"
+          >Todos</button>
+          <button
+            (click)="onFiltroEstado('SIN_NOTIFICAR')"
+            [class.ring-2]="facade.estadoEmplFiltro() === 'SIN_NOTIFICAR'"
+            [class.ring-slate-400]="facade.estadoEmplFiltro() === 'SIN_NOTIFICAR'"
+            class="px-3 py-1 text-[11px] font-medium rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer ring-offset-1"
+          >Sin Notificar</button>
+        }
       </div>
     </div>
 
-    <!-- Barra flotante de acción masiva -->
+    <!-- Barra flotante contextual de acción masiva / remesa -->
     @if (facade.selectedPlacas().length > 0) {
-      <div class="bg-amber-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between animate-fadeIn transition">
-        <div class="flex items-center gap-3">
-          <span class="w-8 h-8 rounded-lg bg-amber-700 flex items-center justify-center font-bold text-sm shadow-inner">
-            {{ facade.selectedPlacas().length }}
-          </span>
+      @if (facade.tabActivo() === 'pendientes') {
+        <!-- Modo 1: Emplazamiento Masivo (Pestaña 1) -->
+        <div class="bg-amber-600 text-white px-4 py-3 rounded-xl shadow-lg flex items-center justify-between animate-fadeIn transition">
+          <div class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-amber-700 flex items-center justify-center font-bold text-sm shadow-inner">
+              {{ facade.selectedPlacas().length }}
+            </span>
+            <div>
+              <p class="text-xs font-bold leading-tight">
+                {{ facade.selectedPlacas().length }} vehículo(s) seleccionado(s) para emplazamiento masivo
+              </p>
+              <p class="text-[11px] text-amber-100 mt-0.5">
+                Placas: <span class="font-mono font-semibold">{{ facade.selectedPlacas().join(', ') }}</span>
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              (click)="facade.limpiarSeleccion()"
+              class="px-3 py-1.5 text-xs bg-amber-700/60 hover:bg-amber-700 rounded-lg transition font-medium cursor-pointer"
+            >
+              Desmarcar
+            </button>
+            <button
+              (click)="onAbrirEmplazamientoMasivo()"
+              class="px-4 py-1.5 text-xs bg-white text-amber-900 hover:bg-amber-50 rounded-lg font-bold shadow transition cursor-pointer flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-layer-group text-amber-700"></i>
+              Emplazar Masivamente ({{ facade.selectedPlacas().length }})
+            </button>
+          </div>
+        </div>
+      } @else if (facade.tabActivo() === 'pendientes_envio') {
+        <!-- Modo 2: Remesa Postal Oficial (Pestaña 2) -->
+        <div class="bg-indigo-950 text-white px-4 py-3 rounded-xl shadow-xl flex items-center justify-between animate-fadeIn transition border border-indigo-700/80">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-lg bg-indigo-800 flex items-center justify-center font-bold text-sm text-amber-300 shadow-inner">
+              <i class="fa-solid fa-envelopes-bulk"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold leading-tight flex items-center gap-2">
+                <span>Remesa Postal Seleccionada:</span>
+                <span class="text-amber-300 font-mono font-extrabold text-sm">{{ facade.selectedPlacas().length }} expedientes</span>
+                <span class="text-[10.5px] bg-indigo-900 text-indigo-200 px-2.5 py-0.5 rounded-full border border-indigo-700">
+                  Lote Controlado para Despacho
+                </span>
+              </p>
+              <p class="text-[11px] text-indigo-200 mt-0.5">
+                Placas en la remesa: <span class="font-mono font-semibold text-white">{{ facade.selectedPlacas().slice(0, 8).join(', ') }}{{ facade.selectedPlacas().length > 8 ? ' ... (+' + (facade.selectedPlacas().length - 8) + ' más)' : '' }}</span>
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              (click)="facade.limpiarSeleccion()"
+              class="px-3 py-1.5 text-xs bg-indigo-900 hover:bg-indigo-800 rounded-lg transition font-medium cursor-pointer text-indigo-200 hover:text-white"
+            >
+              Desmarcar
+            </button>
+            <button
+              (click)="abrirModalPlanillaPostal()"
+              class="px-4 py-2 text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-lg shadow-md transition cursor-pointer flex items-center gap-2"
+              title="Previsualizar la planilla postal para los expedientes seleccionados"
+            >
+              <i class="fa-solid fa-file-invoice text-slate-950"></i>
+              Previsualizar Planilla Postal ({{ facade.selectedPlacas().length }})
+            </button>
+          </div>
+        </div>
+      }
+    }
+
+    <!-- BARRA DE SELECCIÓN POR BLOQUES (Exclusivo Pestaña 2: Pendientes de Envío) -->
+    @if (facade.tabActivo() === 'pendientes_envio') {
+      <div class="bg-gradient-to-r from-indigo-50/95 via-slate-50 to-blue-50/80 border border-indigo-200 rounded-xl p-3.5 flex items-center justify-between flex-wrap gap-3 shadow-xs">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
+            <i class="fa-solid fa-layer-group"></i>
+          </div>
           <div>
-            <p class="text-xs font-bold leading-tight">
-              {{ facade.selectedPlacas().length }} vehículo(s) seleccionado(s) para emplazamiento masivo
-            </p>
-            <p class="text-[11px] text-amber-100 mt-0.5">
-              Placas: <span class="font-mono font-semibold">{{ facade.selectedPlacas().join(', ') }}</span>
+            <h4 class="text-xs font-bold text-indigo-950 m-0 flex items-center gap-2">
+              Selección de Remesas por Bloques Diarios
+              <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                Logística de Mensajería
+              </span>
+            </h4>
+            <p class="text-[11px] text-slate-600 m-0 mt-0.5">
+              Evite imprimir planillas de cientos de folios en un solo día. Seleccione un bloque manejable para entregar al operador postal:
             </p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="text-[11px] font-bold text-slate-500 mr-1">Bloques rápidos:</span>
           <button
-            (click)="facade.limpiarSeleccion()"
-            class="px-3 py-1.5 text-xs bg-amber-700/60 hover:bg-amber-700 rounded-lg transition font-medium cursor-pointer"
+            type="button"
+            (click)="seleccionarBloque(25)"
+            [class.ring-2]="facade.bloqueSeleccionado() === 25"
+            [class.ring-indigo-600]="facade.bloqueSeleccionado() === 25"
+            [class.bg-indigo-700]="facade.bloqueSeleccionado() === 25"
+            [class.text-white]="facade.bloqueSeleccionado() === 25"
+            class="px-3 py-1.5 text-xs font-bold rounded-lg border border-indigo-300 bg-white text-indigo-900 hover:bg-indigo-50 transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+            title="Seleccionar los primeros 25 expedientes para remesa diaria normal"
           >
-            Desmarcar
+            <span>Primeros 25</span>
           </button>
+
           <button
-            (click)="onAbrirEmplazamientoMasivo()"
-            class="px-4 py-1.5 text-xs bg-white text-amber-900 hover:bg-amber-50 rounded-lg font-bold shadow transition cursor-pointer flex items-center gap-1.5"
+            type="button"
+            (click)="seleccionarBloque(50)"
+            [class.ring-2]="facade.bloqueSeleccionado() === 50"
+            [class.ring-indigo-600]="facade.bloqueSeleccionado() === 50"
+            [class.bg-indigo-700]="facade.bloqueSeleccionado() === 50"
+            [class.text-white]="facade.bloqueSeleccionado() === 50"
+            class="px-3 py-1.5 text-xs font-bold rounded-lg border border-indigo-300 bg-white text-indigo-900 hover:bg-indigo-50 transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+            title="Seleccionar los primeros 50 expedientes para remesa ampliada"
           >
-            <i class="fa-solid fa-layer-group text-amber-700"></i>
-            Emplazar Masivamente ({{ facade.selectedPlacas().length }})
+            <span>Primeros 50</span>
           </button>
+
+          <button
+            type="button"
+            (click)="seleccionarBloque(100)"
+            [class.ring-2]="facade.bloqueSeleccionado() === 100"
+            [class.ring-indigo-600]="facade.bloqueSeleccionado() === 100"
+            [class.bg-indigo-700]="facade.bloqueSeleccionado() === 100"
+            [class.text-white]="facade.bloqueSeleccionado() === 100"
+            class="px-3 py-1.5 text-xs font-bold rounded-lg border border-indigo-300 bg-white text-indigo-900 hover:bg-indigo-50 transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+            title="Seleccionar los primeros 100 expedientes para remesa extraordinaria"
+          >
+            <span>Primeros 100</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="facade.toggleSeleccionarTodos()"
+            class="px-3 py-1.5 text-xs font-bold rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 transition cursor-pointer shadow-2xs"
+            title="Seleccionar o desmarcar todos los expedientes de la página actual"
+          >
+            Página Actual
+          </button>
+
+          @if (facade.selectedPlacas().length > 0) {
+            <button
+              type="button"
+              (click)="facade.limpiarSeleccion()"
+              class="px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+              title="Limpiar la selección actual"
+            >
+              <i class="fa-solid fa-xmark mr-1"></i> Desmarcar ({{ facade.selectedPlacas().length }})
+            </button>
+          }
         </div>
       </div>
     }
 
     <!-- ══════════════════════════════════════════════════════════════════
-         TABLA DE OMISOS
+         TABLA DE GESTIÓN Y EXPEDIENTES
     ══════════════════════════════════════════════════════════════════ -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
 
       <!-- Barra de la tabla -->
       <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between flex-wrap gap-2">
         <p class="text-xs text-slate-600">
-          <span class="font-semibold text-slate-800">{{ facade.totalCount() | number }}</span>
-          vehículo(s) omiso(s) encontrado(s)
+          <span class="font-semibold text-slate-800">{{ facade.omisosFiltrados().length | number }}</span>
+          expediente(s) en pestaña activa
           @if (facade.buscar()) {
             <span class="ml-1 text-blue-600">· búsqueda: "{{ facade.buscar() }}"</span>
           }
         </p>
         <div class="flex items-center gap-3">
           <button
-            (click)="facade.placasExpandidas().length === facade.omisos().length ? facade.colapsarTodas() : facade.expandirTodas()"
+            (click)="facade.placasExpandidas().length === facade.omisosFiltrados().length ? facade.colapsarTodas() : facade.expandirTodas()"
             class="text-xs font-semibold text-blue-700 hover:text-blue-900 transition cursor-pointer flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-200"
-            title="Expandir o colapsar el desglose de vigencias de todos los vehículos"
+            title="Expandir o colapsar el desglose de vigencias"
           >
-            <i class="fa-solid" [class.fa-chevron-down]="facade.placasExpandidas().length !== facade.omisos().length" [class.fa-chevron-up]="facade.placasExpandidas().length === facade.omisos().length"></i>
-            {{ facade.placasExpandidas().length === facade.omisos().length ? 'Colapsar Todo' : 'Expandir Todo' }}
+            <i class="fa-solid" [class.fa-chevron-down]="facade.placasExpandidas().length !== facade.omisosFiltrados().length" [class.fa-chevron-up]="facade.placasExpandidas().length === facade.omisosFiltrados().length"></i>
+            {{ facade.placasExpandidas().length === facade.omisosFiltrados().length ? 'Colapsar Todo' : 'Expandir Todo' }}
           </button>
+
+          <!-- Botón de Planilla de Envíos: Exclusivo de la Pestaña 2 (Pendientes de Envío) -->
+          @if (facade.tabActivo() === 'pendientes_envio') {
+            <button
+              type="button"
+              (click)="abrirModalPlanillaPostal()"
+              class="text-xs font-bold text-white transition cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-800 shadow-sm"
+              title="Previsualizar y Generar la Planilla Oficial de Correspondencia Postal para entregar a la empresa de mensajería"
+            >
+              <i class="fa-solid fa-file-invoice text-amber-300"></i>
+              <span>Planilla de Envíos Postal</span>
+              @if (facade.selectedPlacas().length > 0) {
+                <span class="px-1.5 py-0.2 rounded text-[10px] bg-indigo-950 text-amber-300 font-mono">
+                  ({{ facade.selectedPlacas().length }} selecc.)
+                </span>
+              }
+            </button>
+          }
 
           <div class="flex items-center gap-1.5">
             <span class="text-xs text-slate-500">Ordenar por:</span>
@@ -306,7 +449,7 @@
       @if (facade.loading()) {
         <div class="flex flex-col items-center justify-center py-16 gap-3">
           <div class="w-8 h-8 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-xs text-slate-500">Cargando vehículos omisos…</p>
+          <p class="text-xs text-slate-500">Cargando expedientes tributarios…</p>
         </div>
       }
 
@@ -324,15 +467,15 @@
       }
 
       <!-- Vacío -->
-      @else if (!facade.omisos().length) {
+      @else if (!facade.omisosFiltrados().length) {
         <div class="flex flex-col items-center justify-center py-16 gap-2 text-center px-4">
           <i class="fa-solid fa-circle-check text-emerald-400 text-4xl"></i>
-          <p class="text-sm font-medium text-slate-700">Sin vehículos omisos</p>
-          <p class="text-xs text-slate-500">No se encontraron vehículos con mora activa para los filtros seleccionados.</p>
+          <p class="text-sm font-medium text-slate-700">Sin expedientes en esta pestaña</p>
+          <p class="text-xs text-slate-500">No se encontraron registros para los filtros seleccionados.</p>
         </div>
       }
 
-      <!-- Datos -->
+      <!-- Tabla con datos -->
       @else {
         <div class="overflow-x-auto min-h-[360px] pb-12">
           <table class="w-full text-xs">
@@ -342,25 +485,49 @@
                   <input
                     type="checkbox"
                     class="rounded border-slate-300 text-blue-600 cursor-pointer"
-                    [checked]="facade.selectedPlacas().length === facade.omisos().length && facade.omisos().length > 0"
+                    [checked]="facade.selectedPlacas().length === facade.omisosFiltrados().length && facade.omisosFiltrados().length > 0"
                     (change)="facade.toggleSeleccionarTodos()"
                   />
                 </th>
                 <th class="px-4 py-3 text-left">Placa / Vehículo</th>
                 <th class="px-4 py-3 text-left">Contribuyente</th>
-                <th class="px-4 py-3 text-left">Vigencias en Mora</th>
-                <th class="px-3 py-3 text-center">Días mora</th>
-                <th class="px-4 py-3 text-right">Impuesto Base</th>
-                <th class="px-4 py-3 text-right">Sanciones</th>
-                <th class="px-4 py-3 text-right">Intereses</th>
-                <th class="px-4 py-3 text-right">Total Deuda</th>
-                <th class="px-3 py-3 text-center">Estado</th>
-                <th class="px-4 py-3 text-center">Acciones</th>
+
+                <!-- Columnas condicionales por pestaña -->
+                @if (facade.tabActivo() === 'pendientes') {
+                  <th class="px-4 py-3 text-left">Vigencias en Mora</th>
+                  <th class="px-3 py-3 text-center">Días mora</th>
+                  <th class="px-4 py-3 text-right">Impuesto Base</th>
+                  <th class="px-4 py-3 text-right">Sanciones</th>
+                  <th class="px-4 py-3 text-right">Intereses</th>
+                  <th class="px-4 py-3 text-right">Total Deuda</th>
+                  <th class="px-3 py-3 text-center">Estado</th>
+                } @else if (facade.tabActivo() === 'pendientes_envio') {
+                  <th class="px-3 py-3 text-center">Acto & Radicado RN</th>
+                  <th class="px-4 py-3 text-left">Destino de Notificación</th>
+                  <th class="px-3 py-3 text-center">Emisión</th>
+                  <th class="px-4 py-3 text-right">Total Deuda</th>
+                  <th class="px-3 py-3 text-center">Estado Postal</th>
+                } @else if (facade.tabActivo() === 'notificados') {
+                  <th class="px-3 py-3 text-center">Acto & Radicado</th>
+                  <th class="px-4 py-3 text-left">Guía Postal / Operador</th>
+                  <th class="px-3 py-3 text-center">Fecha Entrega</th>
+                  <th class="px-3 py-3 text-center">Término Legal (1 mes)</th>
+                  <th class="px-4 py-3 text-right">Total Deuda</th>
+                  <th class="px-3 py-3 text-center">Estado Postal</th>
+                } @else {
+                  <th class="px-3 py-3 text-center">Acto & Radicado</th>
+                  <th class="px-4 py-3 text-left">Guía Postal Devuelta</th>
+                  <th class="px-3 py-3 text-center">Causal Devolución</th>
+                  <th class="px-4 py-3 text-right">Total Deuda</th>
+                  <th class="px-3 py-3 text-center">Publicación Aviso Web</th>
+                }
+
+                <th class="px-4 py-3 text-center sticky right-0 bg-slate-50 shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.1)] z-10">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100">
-              @for (omiso of facade.omisos(); track omiso.placa; let idx = $index) {
-                <!-- FILA PADRE PRINCIPAL DEL VEHÍCULO (ACORDEÓN) -->
+              @for (omiso of facade.omisosFiltrados(); track omiso.placa; let idx = $index) {
+                <!-- FILA PADRE (VEHÍCULO) -->
                 <tr
                   class="transition-colors border-b border-slate-200/80"
                   [class.bg-red-50/25]="omiso.nivelMora === 'CRITICO'"
@@ -378,240 +545,303 @@
                     />
                   </td>
 
-                  <!-- Placa y Vehículo con chevron del acordeón -->
+                  <!-- Placa y Vehículo -->
                   <td class="py-3.5 px-4 font-bold">
                     <div class="flex items-center gap-2">
                       <span class="co-plate">{{ omiso.placa }}</span>
                       <button
                         (click)="onToggleExpandir(omiso.placa)"
                         type="button"
-                        title="Desplegar / Ocultar vigencias adeudadas"
+                        title="Desplegar / Ocultar vigencias"
                         class="p-1 rounded text-slate-500 hover:text-blue-900 hover:bg-blue-100 transition-colors border-none bg-transparent cursor-pointer"
                       >
                         <i class="fa-solid text-xs transition-transform" [class.fa-chevron-down]="!facade.placasExpandidas().includes(omiso.placa)" [class.fa-chevron-up]="facade.placasExpandidas().includes(omiso.placa)"></i>
                       </button>
                     </div>
-                    <div class="text-[11.5px] font-bold text-slate-800 mt-1 truncate max-w-[200px]">
+                    <div class="text-[11.5px] font-bold text-slate-800 mt-1 truncate max-w-[190px]">
                       {{ omiso.marca }} {{ omiso.linea }}
                     </div>
-                    @if (omiso.modelo) {
-                      <div class="text-[10.5px] font-semibold text-slate-500">
-                        Mod. {{ omiso.modelo }} · {{ omiso.clase }}
-                      </div>
-                    }
+                    <div class="text-[10.5px] font-semibold text-slate-500">
+                      Mod. {{ omiso.modelo }} · {{ omiso.clase || 'Automóvil' }}
+                    </div>
                   </td>
 
                   <!-- Contribuyente -->
                   <td class="py-3.5 px-4">
-                    <div class="font-medium text-slate-800 truncate max-w-[180px]">{{ omiso.propietarioNombre }}</div>
-                    <div class="text-[10.5px] text-slate-400 mt-0.5">{{ omiso.propietarioDocumento }}</div>
+                    <div class="font-bold text-slate-800 truncate max-w-[180px]">{{ omiso.propietarioNombre }}</div>
+                    <div class="text-[10.5px] text-slate-500 font-mono mt-0.5">{{ omiso.propietarioDocumento }}</div>
+                    <div class="text-[10px] text-slate-400 truncate max-w-[180px]">{{ omiso.municipioDestino }}</div>
                   </td>
 
-                  <!-- Vigencias Adeudadas (Botón compacto con Hover Tooltip) -->
-                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
-                    @if (omiso.totalVigencias > 0) {
-                      <div class="tooltip-wrap inline-flex items-center">
-                        <button
-                          type="button"
-                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 hover:border-amber-300 transition shadow-2xs cursor-pointer whitespace-nowrap"
-                        >
+                  <!-- CONTENIDO ESPECÍFICO DE PESTAÑA: PENDIENTES -->
+                  @if (facade.tabActivo() === 'pendientes') {
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                      @if (omiso.totalVigencias > 0) {
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-50 text-amber-900 border border-amber-200">
                           <i class="fa-solid fa-calendar-days text-[10px] text-amber-600"></i>
-                          <span>{{ omiso.totalVigencias }} {{ omiso.totalVigencias === 1 ? 'vigencia' : 'vigencias' }}</span>
-                          <i class="fa-solid fa-chevron-down text-[8px] text-amber-500 opacity-60"></i>
-                        </button>
-
-                        <!-- Tooltip flotante al hacer hover -->
-                        <div
-                          class="tooltip-box !whitespace-normal !p-2.5 !rounded-lg !shadow-2xl !bg-slate-900 border border-slate-700 text-left min-w-[185px] z-50"
-                          [class.tooltip-down]="idx < 5"
-                          [class.tooltip-up]="idx >= 5"
-                        >
-                          <p class="text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                            <i class="fa-solid fa-clock-rotate-left text-[9px]"></i> Vigencias Adeudadas:
-                          </p>
-                          <div class="flex flex-wrap gap-1 mb-1.5">
-                            @for (v of omiso.vigenciasPendientes; track v) {
-                              <span class="px-1.5 py-0.5 bg-slate-800 text-amber-200 rounded text-[10px] font-mono border border-slate-700 font-bold">
-                                {{ v }}
-                              </span>
-                            }
-                          </div>
-                          <p class="text-[9px] text-slate-400 border-t border-slate-800 pt-1">
-                            Desde <strong>{{ omiso.vigenciaMasAntigua }}</strong> ({{ omiso.totalVigencias }} en mora)
-                          </p>
-                        </div>
-                      </div>
-                    } @else {
-                      <span class="text-emerald-600 text-[10px] font-semibold flex items-center justify-center gap-0.5">
-                        <i class="fa-solid fa-circle-check text-[9px]"></i> Al día
+                          {{ omiso.totalVigencias }} vigencia(s)
+                        </span>
+                      }
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="font-bold text-sm" [class.text-red-700]="omiso.diasMoraMaximo > 365" [class.text-orange-600]="omiso.diasMoraMaximo > 90 && omiso.diasMoraMaximo <= 365" [class.text-yellow-600]="omiso.diasMoraMaximo <= 90">
+                        {{ omiso.diasMoraMaximo | number }}
                       </span>
-                    }
-                  </td>
-
-                  <!-- Días mora del vehículo (vigencia más antigua) -->
-                  <td class="py-3.5 px-3 text-center">
-                    <span
-                      class="font-bold text-sm"
-                      [class.text-yellow-600]="omiso.nivelMora === 'RECIENTE'"
-                      [class.text-orange-600]="omiso.nivelMora === 'EMPLAZABLE'"
-                      [class.text-red-700]="omiso.nivelMora === 'CRITICO'"
-                    >
-                      {{ omiso.diasMoraMaximo | number }}
-                    </span>
-                    <p class="text-slate-400 text-[10px]">días máx.</p>
-                  </td>
-
-                  <!-- Impuesto Base Acumulado -->
-                  <td class="py-3.5 px-4 text-right">
-                    <span class="text-slate-700 font-medium">
+                      <p class="text-slate-400 text-[10px]">días máx.</p>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-medium text-slate-700">
                       {{ omiso.impuestoBaseAcumulado | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                    </span>
-                  </td>
-
-                  <!-- Sanciones Acumuladas -->
-                  <td class="py-3.5 px-4 text-right">
-                    <span class="text-orange-600 font-medium">
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-medium text-orange-600">
                       {{ omiso.sancionesAcumuladas | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                    </span>
-                  </td>
-
-                  <!-- Intereses Acumulados -->
-                  <td class="py-3.5 px-4 text-right">
-                    <span class="text-red-600 font-medium">
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-medium text-red-600">
                       {{ omiso.interesesMoraAcumulados | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                    </span>
-                  </td>
-
-                  <!-- Total Deuda Estimada -->
-                  <td class="py-3.5 px-4 text-right">
-                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Total Vehículo</span>
-                    <span class="text-sm font-black text-slate-900">
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-black text-slate-900">
                       {{ omiso.totalDeudaEstimada | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                    </span>
-                  </td>
-
-                  <!-- Semáforo / Estado Emplazamiento -->
-                  <td class="py-3.5 px-3 text-center">
-                    <div class="flex flex-col items-center gap-1">
-                      <span
-                        class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1"
-                        [ngClass]="nivelBadgeClasses(omiso.nivelMora)"
-                      >
-                        <span class="w-1.5 h-1.5 rounded-full shrink-0" [ngClass]="nivelDotClasses(omiso.nivelMora)"></span>
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold ring-1" [ngClass]="nivelBadgeClasses(omiso.nivelMora)">
+                        <span class="w-1.5 h-1.5 rounded-full" [ngClass]="nivelDotClasses(omiso.nivelMora)"></span>
                         {{ nivelLabel(omiso.nivelMora) }}
                       </span>
-                      <span
-                        class="inline-flex items-center rounded-full px-2 py-0.5 text-[9.5px] font-medium ring-1"
-                        [ngClass]="estadoEmplBadge(omiso.estadoEmplazamiento)"
-                      >
-                        {{ estadoEmplLabel(omiso.estadoEmplazamiento) }}
+                    </td>
+                  }
+
+                  <!-- CONTENIDO ESPECÍFICO DE PESTAÑA: PENDIENTES DE ENVÍO POSTAL -->
+                  @if (facade.tabActivo() === 'pendientes_envio') {
+                    <td class="py-3.5 px-3 text-center">
+                      <div class="font-mono font-bold text-indigo-950 text-[11px]">{{ omiso.numeroActoEmplazamiento || 'EMP-2026-PEND' }}</div>
+                      <div class="text-[10px] text-slate-500 font-semibold">RN: <span class="text-slate-800 font-bold">{{ omiso.radicadoOficial || '91200' }}</span></div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                      <div class="text-[11px] font-semibold text-slate-800 truncate max-w-[210px]">{{ omiso.direccionNotificacion }}</div>
+                      <div class="text-[10px] text-slate-500 mt-0.5">{{ omiso.municipioDestino }}</div>
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="text-slate-700 font-mono text-[11px] font-medium">
+                        {{ (omiso.fechaUltimaGestion ? (omiso.fechaUltimaGestion | date:'dd/MM/yyyy') : 'Hoy') }}
                       </span>
-                    </div>
-                  </td>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-black text-slate-900">
+                      {{ omiso.totalDeudaEstimada | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                        <i class="fa-solid fa-box text-amber-600 text-[9px]"></i>
+                        Por Despachar
+                      </span>
+                    </td>
+                  }
 
-                  <!-- Acciones Grupales (Nivel Vehículo) -->
-                  <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                  <!-- CONTENIDO ESPECÍFICO DE PESTAÑA: NOTIFICADOS -->
+                  @if (facade.tabActivo() === 'notificados') {
+                    <td class="py-3.5 px-3 text-center">
+                      <div class="font-mono font-bold text-blue-950 text-[11px]">{{ omiso.numeroActoEmplazamiento || 'EMP-2026-PEND' }}</div>
+                      <div class="text-[10px] text-slate-500 font-semibold">RN: <span class="text-slate-800 font-bold">{{ omiso.radicadoOficial || '92437' }}</span></div>
+                    </td>
+                    <td class="py-3.5 px-4">
+                      @if (omiso.numeroGuiaPostal) {
+                        <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-900 text-amber-300 font-mono font-bold text-[10.5px]">
+                          <i class="fa-solid fa-barcode text-[9px]"></i>
+                          {{ omiso.numeroGuiaPostal }}
+                        </div>
+                        <div class="text-[9.5px] text-slate-400 mt-0.5">{{ omiso.empresaEnvio }}</div>
+                      } @else {
+                        <span class="text-slate-400 text-[10.5px] italic">Pendiente Asignación</span>
+                      }
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="text-slate-800 font-bold text-[11px]">
+                        {{ omiso.fechaEntregaNotificacion || omiso.fechaEnvioPostal || 'En Tránsito' }}
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      @if (omiso.fechaEntregaNotificacion && omiso.diasRestantesTermino !== undefined) {
+                        <div class="flex flex-col items-center">
+                          <span class="font-bold text-[11px]" [class.text-emerald-700]="omiso.diasRestantesTermino > 10" [class.text-amber-700]="omiso.diasRestantesTermino <= 10 && omiso.diasRestantesTermino > 0" [class.text-rose-700]="omiso.diasRestantesTermino <= 0">
+                            {{ omiso.diasRestantesTermino > 0 ? (omiso.diasRestantesTermino + ' días rest.') : 'Término Vencido' }}
+                          </span>
+                          <span class="text-[9.5px] text-slate-400">Vence: {{ omiso.fechaLimiteRespuesta }}</span>
+                        </div>
+                      } @else {
+                        <span class="text-slate-400 text-[10px]">Por notificar acuse</span>
+                      }
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-black text-slate-900">
+                      {{ omiso.totalDeudaEstimada | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border" [ngClass]="estadoPostalBadge(omiso.estadoPostal)">
+                        {{ estadoPostalLabel(omiso.estadoPostal) }}
+                      </span>
+                    </td>
+                  }
+
+                  <!-- CONTENIDO ESPECÍFICO DE PESTAÑA: DEVOLUCIONES -->
+                  @if (facade.tabActivo() === 'devueltos') {
+                    <td class="py-3.5 px-3 text-center">
+                      <div class="font-mono font-bold text-rose-950 text-[11px]">{{ omiso.numeroActoEmplazamiento }}</div>
+                      <div class="text-[10px] text-slate-500 font-semibold">RN: {{ omiso.radicadoOficial }}</div>
+                    </td>
+                    <td class="py-3.5 px-4 font-mono font-bold text-rose-800 text-[11px]">
+                      <i class="fa-solid fa-arrow-turn-down text-rose-500 mr-1"></i>
+                      {{ omiso.numeroGuiaPostal || 'RA391200000CO' }}
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-200">
+                        NO ENTREGADO (Cerrado/Errada)
+                      </span>
+                    </td>
+                    <td class="py-3.5 px-4 text-right font-black text-slate-900">
+                      {{ omiso.totalDeudaEstimada | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                    </td>
+                    <td class="py-3.5 px-3 text-center">
+                      @if (omiso.publicadoAvisoWeb) {
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          <i class="fa-solid fa-globe"></i> Publicado en Portal
+                        </span>
+                      } @else {
+                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                          <i class="fa-solid fa-clock"></i> Pendiente Fijar Aviso
+                        </span>
+                      }
+                    </td>
+                  }
+
+                  <!-- Acciones de Fila -->
+                  <td class="py-3.5 px-4 text-center whitespace-nowrap sticky right-0 bg-white/95 backdrop-blur-xs shadow-[-6px_0_10px_-4px_rgba(0,0,0,0.08)] z-10">
                     <div class="flex items-center justify-center gap-1.5">
-                      <!-- Botón Emplazar Vehículo (Grupal) -->
-                      <button
-                        (click)="onEmplazarVehiculo(omiso)"
-                        type="button"
-                        class="inline-flex items-center justify-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-bold text-white bg-amber-600 hover:bg-amber-700 border-none shadow-xs cursor-pointer transition"
-                        title="Emitir Acto de Emplazamiento para todas las vigencias de esta placa"
-                      >
-                        <i class="fa-solid fa-gavel text-[10px]"></i>
-                        Emplazar Vehículo
-                      </button>
+                      @if (facade.tabActivo() === 'pendientes') {
+                        <button
+                          (click)="onEmplazarVehiculo(omiso)"
+                          type="button"
+                          class="inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-bold text-white bg-amber-600 hover:bg-amber-700 border-none shadow-xs cursor-pointer transition"
+                          title="Emitir Acto de Emplazamiento formal"
+                        >
+                          <i class="fa-solid fa-gavel text-[10px]"></i>
+                          Emplazar
+                        </button>
+                      } @else if (facade.tabActivo() === 'pendientes_envio') {
+                        <button
+                          (click)="previsualizarDossier(omiso.placa)"
+                          type="button"
+                          class="inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-bold text-white bg-blue-700 hover:bg-blue-800 border-none shadow-xs cursor-pointer transition"
+                          title="Visualizar y auditar Dossier Oficial de 2 páginas antes de descargar"
+                        >
+                          <i class="fa-solid fa-file-pdf text-amber-300"></i>
+                          Ver / Descargar PDF
+                        </button>
+                        <button
+                          (click)="abrirModalPostal(omiso)"
+                          type="button"
+                          class="inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-bold text-white bg-indigo-700 hover:bg-indigo-800 border-none shadow-xs cursor-pointer transition"
+                          title="Asignar guía postal y operador de mensajería"
+                        >
+                          <i class="fa-solid fa-paper-plane text-amber-300 text-[10px]"></i>
+                          Asignar Guía
+                        </button>
+                      } @else if (facade.tabActivo() === 'notificados') {
+                        <button
+                          (click)="previsualizarDossier(omiso.placa)"
+                          type="button"
+                          class="inline-flex items-center gap-1.5 h-7 px-3 rounded-md text-[11px] font-bold text-white bg-blue-700 hover:bg-blue-800 border-none shadow-xs cursor-pointer transition"
+                          title="Visualizar y auditar Dossier Oficial de 2 páginas antes de descargar"
+                        >
+                          <i class="fa-solid fa-file-pdf text-amber-300"></i>
+                          Ver / Descargar PDF
+                        </button>
+                        <button
+                          (click)="abrirModalPostal(omiso)"
+                          type="button"
+                          class="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer transition"
+                          title="Actualizar Guía postal y fecha de notificación"
+                        >
+                          <i class="fa-solid fa-truck-ramp-box text-blue-600"></i>
+                          Guía Postal
+                        </button>
+                        <button
+                          (click)="descargarAutoCierre(omiso)"
+                          type="button"
+                          class="inline-flex items-center gap-1 h-7 px-2 rounded-md text-[11px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 shadow-2xs cursor-pointer transition"
+                          title="Generar Auto de Cierre y Archivo por pago total"
+                        >
+                          <i class="fa-solid fa-box-archive text-emerald-600"></i>
+                          Cierre
+                        </button>
+                      } @else {
+                        <button
+                          (click)="previsualizarDossier(omiso.placa)"
+                          type="button"
+                          class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11px] font-bold text-white bg-slate-800 hover:bg-slate-900 border-none shadow-xs cursor-pointer transition"
+                          title="Visualizar Dossier Oficial de 2 páginas antes de descargar"
+                        >
+                          <i class="fa-solid fa-file-pdf text-amber-300"></i>
+                          Ver Auto
+                        </button>
+                        <button
+                          (click)="abrirModalAviso(omiso)"
+                          type="button"
+                          class="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-bold text-white bg-rose-700 hover:bg-rose-800 border-none shadow-xs cursor-pointer transition"
+                          title="Notificar por Aviso Web / Cartelera oficial"
+                        >
+                          <i class="fa-solid fa-bullhorn text-[10px]"></i>
+                          Aviso Web
+                        </button>
+                      }
 
-                      <!-- Botón Ver Vigencias (Toggle Acordeón) -->
+                      <!-- Toggle acordeón vigencias -->
                       <button
                         (click)="onToggleExpandir(omiso.placa)"
                         type="button"
-                        class="inline-flex items-center justify-center h-7 px-2.5 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer transition"
+                        class="inline-flex items-center justify-center h-7 px-2 rounded-md text-[11px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer transition"
+                        title="Ver desglose por vigencias"
                       >
-                        {{ facade.placasExpandidas().includes(omiso.placa) ? 'Ocultar' : 'Ver Vigencias' }}
+                        {{ facade.placasExpandidas().includes(omiso.placa) ? 'Ocultar' : 'Vigencias' }}
                       </button>
                     </div>
                   </td>
                 </tr>
 
-                <!-- FILAS HIJAS DESPLEGADAS POR VIGENCIA INDIVIDUAL (ACORDEÓN) -->
+                <!-- FILAS HIJAS: DESGLOSE POR VIGENCIA INDIVIDUAL -->
                 @if (facade.placasExpandidas().includes(omiso.placa)) {
                   @for (v of omiso.detalleVigencias; track v.anio) {
                     <tr class="bg-amber-50/20 hover:bg-amber-50/40 border-b border-slate-100 transition-colors">
-                      <!-- Celda checkbox vacía para alineación -->
                       <td class="py-2.5 px-3 text-center"></td>
-
-                      <!-- Indentación y año de vigencia con icono de bifurcación -->
                       <td class="py-2.5 px-4 pl-8 text-[11.5px] font-bold text-slate-700">
                         <div class="flex items-center gap-2">
                           <i class="fa-solid fa-turn-up text-amber-500 rotate-90 text-[10px]"></i>
-                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-slate-900 text-amber-300 border border-slate-700 font-mono shadow-2xs">
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-slate-900 text-amber-300 border border-slate-700 font-mono">
                             Año {{ v.anio }}
                           </span>
                         </div>
                       </td>
-
-                      <!-- Contribuyente / Concepto de la fila hija -->
-                      <td class="py-2.5 px-4 text-slate-500 text-xs">
-                        Vigencia Fiscal Anual
-                      </td>
-
-                      <!-- Desglose descripción -->
-                      <td class="py-2.5 px-4">
-                        <span class="text-[11px] text-slate-600 font-medium">Deuda tributaria liquidada periodo {{ v.anio }}</span>
-                      </td>
-
-                      <!-- Días de mora individuales de esta vigencia -->
-                      <td class="py-2.5 px-3 text-center font-bold"
-                        [class.text-yellow-600]="v.diasMora <= 90"
-                        [class.text-orange-600]="v.diasMora > 90 && v.diasMora <= 365"
-                        [class.text-red-700]="v.diasMora > 365"
-                      >
-                        {{ v.diasMora | number }} <span class="text-[10px] text-slate-400 font-normal">días</span>
-                      </td>
-
-                      <!-- Impuesto Base individual -->
-                      <td class="py-2.5 px-4 text-right font-medium text-slate-700">
-                        {{ v.impuestoBase | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                      </td>
-
-                      <!-- Sanción individual -->
-                      <td class="py-2.5 px-4 text-right font-medium text-orange-600">
-                        {{ v.sancion | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                      </td>
-
-                      <!-- Intereses individuales -->
-                      <td class="py-2.5 px-4 text-right font-medium text-red-600">
-                        {{ v.intereses | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                      </td>
-
-                      <!-- Total de la Vigencia -->
-                      <td class="py-2.5 px-4 text-right font-extrabold text-slate-900">
-                        {{ v.totalDeuda | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                      </td>
-
-                      <!-- Estado individual de la vigencia -->
-                      <td class="py-2.5 px-3 text-center">
-                        <span
-                          class="inline-block px-2 py-0.5 rounded-full text-[9.5px] font-semibold ring-1"
-                          [ngClass]="estadoEmplBadge(v.estadoEmplazamiento)"
-                        >
-                          {{ estadoEmplLabel(v.estadoEmplazamiento) }}
-                        </span>
-                      </td>
-
-                      <!-- Acción Individual (Emplazar solo esta vigencia) -->
+                      <td class="py-2.5 px-4 text-slate-500 text-xs">Vigencia Fiscal Anual</td>
+                      <td class="py-2.5 px-4 text-[11px] text-slate-600 font-medium" colspan="2">Deuda tributaria liquidada {{ v.anio }}</td>
+                      <td class="py-2.5 px-4 text-right font-medium text-slate-700">{{ v.impuestoBase | currency:'COP':'symbol':'1.0-0':'es-CO' }}</td>
+                      <td class="py-2.5 px-4 text-right font-medium text-orange-600">{{ v.sancion | currency:'COP':'symbol':'1.0-0':'es-CO' }}</td>
+                      <td class="py-2.5 px-4 text-right font-medium text-red-600">{{ v.intereses | currency:'COP':'symbol':'1.0-0':'es-CO' }}</td>
+                      <td class="py-2.5 px-4 text-right font-extrabold text-slate-900">{{ v.totalDeuda | currency:'COP':'symbol':'1.0-0':'es-CO' }}</td>
                       <td class="py-2.5 px-4 text-center whitespace-nowrap">
-                        <button
-                          (click)="onEmplazarVigencia(omiso, v)"
-                          type="button"
-                          class="inline-flex items-center gap-1 h-6 px-2.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-950 text-white border-none cursor-pointer shadow-2xs transition"
-                          title="Emitir Auto de Emplazamiento individual para la Vigencia {{ v.anio }}"
-                        >
-                          <i class="fa-solid fa-gavel text-[10px] text-amber-400"></i>
-                          Emplazar Vigencia
-                        </button>
+                        @if (omiso.numeroActoEmplazamiento) {
+                          <span
+                            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10.5px] font-semibold bg-slate-100 text-slate-600 border border-slate-200"
+                            title="Esta vigencia forma parte del acto formal consolidado {{ omiso.numeroActoEmplazamiento }}"
+                          >
+                            <i class="fa-solid fa-folder-tree text-indigo-600 text-[10px]"></i>
+                            Incluida en Acto {{ omiso.numeroActoEmplazamiento }}
+                          </span>
+                        } @else if (facade.tabActivo() === 'pendientes') {
+                          <button
+                            (click)="onEmplazarVigencia(omiso, v)"
+                            type="button"
+                            class="inline-flex items-center gap-1 h-6 px-2.5 rounded text-[10.5px] font-bold bg-slate-800 hover:bg-slate-950 text-white border-none cursor-pointer shadow-2xs transition"
+                          >
+                            <i class="fa-solid fa-gavel text-[10px] text-amber-400"></i>
+                            Emplazar Vigencia
+                          </button>
+                        }
                       </td>
                     </tr>
                   }
@@ -656,7 +886,7 @@
 </div>
 
 <!-- ══════════════════════════════════════════════════════════════════════
-     MODAL DE ACTO DE EMPLAZAMIENTO INDIVIDUAL
+     MODAL 1: ACTO DE EMPLAZAMIENTO INDIVIDUAL (CON VISOR Y DESCARGA PDF)
 ══════════════════════════════════════════════════════════════════════ -->
 @if (facade.isModalSimulOpen()) {
   <div
@@ -664,152 +894,217 @@
     (click)="facade.cerrarSimulacion()"
   >
     <div
-      class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden"
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 animate-fadeIn"
       (click)="$event.stopPropagation()"
     >
       <!-- Header modal -->
-      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-slate-50">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-            <i class="fa-solid fa-gavel text-base"></i>
+      <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex-shrink-0">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 shrink-0 shadow-2xs">
+              <i class="fa-solid fa-gavel text-lg"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-slate-800 m-0">
+                @if (facade.vigenciaEmplazar()) {
+                  Proyecto de Acto de Emplazamiento Previo — Vigencia {{ facade.vigenciaEmplazar() }}
+                } @else {
+                  Proyecto de Acto de Emplazamiento Previo para Declarar (ETN Art. 715)
+                }
+              </h2>
+              <p class="text-xs text-slate-500 m-0 mt-0.5">
+                Placa: <strong class="co-plate !text-[11px] !py-0 !px-1.5">{{ facade.placaSimulActiva() }}</strong> · Revisión y Validación Jurídica previa a la Expedición
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 class="text-sm font-bold text-slate-800">
-              @if (facade.vigenciaEmplazar()) {
-                Acto de Emplazamiento para Declarar — Vigencia Fiscal {{ facade.vigenciaEmplazar() }}
-              } @else {
-                Acto de Emplazamiento para Declarar — Consolidado (Todas las Vigencias)
-              }
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Placa: <strong class="co-plate !text-[11px] !py-0 !px-1.5">{{ facade.placaSimulActiva() }}</strong> · Notificación Oficial (ETN Art. 715)
-              @if (facade.vigenciaEmplazar()) {
-                · <span class="text-amber-800 font-bold bg-amber-100 px-1.5 py-0.5 rounded">Emplazamiento Individual Año {{ facade.vigenciaEmplazar() }}</span>
-              } @else {
-                · <span class="text-blue-800 font-bold bg-blue-100 px-1.5 py-0.5 rounded">Emplazamiento Grupal de Vehículo</span>
-              }
-            </p>
-          </div>
+          <button
+            (click)="facade.cerrarSimulacion()"
+            class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
         </div>
-        <button
-          (click)="facade.cerrarSimulacion()"
-          class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-        >
-          <i class="fa-solid fa-xmark text-base"></i>
-        </button>
+
+        <!-- Selector de Modo de Revisión (Pestañas internas) -->
+        <div class="flex items-center gap-2 mt-3 pt-3 border-t border-slate-200/80">
+          <button
+            type="button"
+            (click)="facade.setTabModalEmplazamiento('documento')"
+            class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-2 shadow-2xs"
+            [class.bg-blue-900]="facade.tabModalEmplazamiento() === 'documento'"
+            [class.text-white]="facade.tabModalEmplazamiento() === 'documento'"
+            [class.bg-white]="facade.tabModalEmplazamiento() !== 'documento'"
+            [class.text-slate-700]="facade.tabModalEmplazamiento() !== 'documento'"
+            [class.border]="facade.tabModalEmplazamiento() !== 'documento'"
+          >
+            <i class="fa-solid fa-file-contract text-amber-400"></i>
+            <span>1. Vista Previa del Documento Oficial (Borrador)</span>
+            <span class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-amber-400/20 text-amber-300">Págs 1 y 2</span>
+          </button>
+
+          <button
+            type="button"
+            (click)="facade.setTabModalEmplazamiento('financiero')"
+            class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition cursor-pointer flex items-center gap-2 shadow-2xs"
+            [class.bg-blue-900]="facade.tabModalEmplazamiento() === 'financiero'"
+            [class.text-white]="facade.tabModalEmplazamiento() === 'financiero'"
+            [class.bg-white]="facade.tabModalEmplazamiento() !== 'financiero'"
+            [class.text-slate-700]="facade.tabModalEmplazamiento() !== 'financiero'"
+            [class.border]="facade.tabModalEmplazamiento() !== 'financiero'"
+          >
+            <i class="fa-solid fa-chart-pie text-emerald-400"></i>
+            <span>2. Desglose Financiero y Tarifas</span>
+          </button>
+        </div>
       </div>
 
       <!-- Cuerpo modal -->
-      <div class="overflow-y-auto flex-1 p-5 space-y-4">
-
-        <!-- Advertencia legal -->
-        <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-900">
-          <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5 shrink-0 text-sm"></i>
-          <div>
-            <p class="font-bold">Término de respuesta: Un (1) mes (E.T.N. Art. 715)</p>
-            <p class="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
-              Notificado el presente emplazamiento, el contribuyente cuenta con un mes calendario para liquidar y declarar las vigencias pendientes en mora. La sanción por extemporaneidad se liquidará reducida al 50%.
-            </p>
-          </div>
-        </div>
-
-        @if (facade.loadingSimul()) {
-          <div class="flex flex-col items-center justify-center py-12 gap-3">
-            <div class="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-            <p class="text-xs text-slate-500">Generando liquidación y expediente de emplazamiento…</p>
-          </div>
-        }
-
-        @else if (facade.errorSimul()) {
-          <div class="text-center py-12">
-            <i class="fa-solid fa-circle-exclamation text-red-400 text-3xl mb-2"></i>
-            <p class="text-sm text-slate-700">{{ facade.errorSimul() }}</p>
-          </div>
-        }
-
-        @else if (facade.simulacion()) {
-          <div class="space-y-4">
-            <!-- Datos del vehículo -->
-            <div class="grid grid-cols-2 gap-3 p-3 bg-slate-50 rounded-xl text-xs border border-slate-200">
-              <div><span class="text-slate-500">Propietario:</span> <span class="font-medium text-slate-800">{{ facade.simulacion()!.propietarioNombre }}</span></div>
-              <div><span class="text-slate-500">Documento:</span> <span class="font-medium text-slate-800">{{ facade.simulacion()!.propietarioDocumento }}</span></div>
-              <div><span class="text-slate-500">Vehículo:</span> <span class="font-medium text-slate-800">{{ facade.simulacion()!.marca }} {{ facade.simulacion()!.linea }}</span></div>
-              <div><span class="text-slate-500">Modelo:</span> <span class="font-medium text-slate-800">{{ facade.simulacion()!.modelo }}</span></div>
-            </div>
-
-            <!-- Vigencias -->
-            <div>
-              <h3 class="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
-                <i class="fa-solid fa-list-check text-amber-600"></i>
-                Vigencias Adeudadas en el Emplazamiento
-              </h3>
-              <div class="space-y-2">
-                @for (vig of facade.simulacion()!.vigencias; track vig.anio) {
-                  <div class="border border-slate-200 rounded-xl p-3 text-xs">
-                    <div class="flex items-center justify-between mb-2">
-                      <span class="font-bold text-slate-800">Vigencia {{ vig.anio }}</span>
-                      <span
-                        class="px-2 py-0.5 rounded-full text-[10px] font-semibold"
-                        [class.bg-red-100]="vig.estado.includes('MORA')"
-                        [class.text-red-800]="vig.estado.includes('MORA')"
-                        [class.bg-yellow-100]="vig.estado.includes('EXTEM')"
-                        [class.text-yellow-800]="vig.estado.includes('EXTEM')"
-                        [class.bg-green-100]="vig.estado.includes('AL DIA')"
-                        [class.text-green-800]="vig.estado.includes('AL DIA')"
-                        [class.bg-blue-100]="vig.estado.includes('PRONTO')"
-                        [class.text-blue-800]="vig.estado.includes('PRONTO')"
-                      >{{ vig.estado }}</span>
-                    </div>
-                    <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-                      <div class="flex justify-between"><span class="text-slate-500">Impuesto base:</span><span class="font-medium">{{ vig.valorImpuestoNominal | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span></div>
-                      <div class="flex justify-between"><span class="text-slate-500">Días mora:</span><span class="font-medium text-red-600">{{ vig.diasMora }}</span></div>
-                      <div class="flex justify-between"><span class="text-slate-500">Sanción:</span><span class="font-medium text-orange-600">{{ vig.sancionExtemporaneidad | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span></div>
-                      <div class="flex justify-between"><span class="text-slate-500">Intereses:</span><span class="font-medium text-red-600">{{ vig.interesesMora | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span></div>
-                    </div>
-                    <div class="border-t border-slate-100 mt-2 pt-2 flex justify-between font-bold text-slate-800 text-[11px]">
-                      <span>Total vigencia</span>
-                      <span>{{ vig.totalVigencia | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span>
-                    </div>
+      <div class="overflow-y-auto flex-1 p-6 space-y-4 bg-slate-100">
+        
+        <!-- PESTAÑA A: VISTA PREVIA DEL PROYECTO DE ACTO OFICIAL -->
+        @if (facade.tabModalEmplazamiento() === 'documento') {
+          <div class="flex justify-center">
+            @if (facade.loadingSimul() || !facade.draftDossierHtml()) {
+              <div class="flex flex-col items-center justify-center py-20 gap-3">
+                <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-600"></i>
+                <p class="text-xs text-slate-600 font-semibold">Generando proyecto de acto membretado para revisión del funcionario...</p>
+              </div>
+            } @else {
+              <div class="w-full flex flex-col items-center">
+                <div class="bg-amber-50 border border-amber-200 text-amber-900 rounded-xl p-3 mb-4 w-full text-xs flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info text-amber-600"></i>
+                    <span>Analice la información fiscal, sujetos pasivos y liquidación antes de expedir y radicar el acto en base de datos.</span>
                   </div>
-                }
-              </div>
-            </div>
+                  <span class="font-bold text-[11px] bg-amber-200/80 px-2 py-0.5 rounded text-amber-950">Borrador Pre-expedición</span>
+                </div>
 
-            <!-- Total general -->
-            <div class="bg-slate-800 text-white rounded-xl p-4 flex items-center justify-between shadow">
-              <div>
-                <p class="text-xs text-slate-400">Total Liquidado en Emplazamiento</p>
-                <p class="text-2xl font-bold">{{ facade.simulacion()!.totalPagar | currency:'COP':'symbol':'1.0-0':'es-CO' }}</p>
+                <div
+                  class="bg-white shadow-xl border border-slate-300 rounded max-w-[800px] w-full p-8 text-slate-800"
+                  [innerHTML]="getSafeHtml(facade.draftDossierHtml())"
+                ></div>
               </div>
-              <i class="fa-solid fa-file-invoice-dollar text-amber-400 text-2xl"></i>
-            </div>
+            }
           </div>
         }
 
+        <!-- PESTAÑA B: DESGLOSE FINANCIERO -->
+        @if (facade.tabModalEmplazamiento() === 'financiero') {
+          <div class="space-y-4">
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-900">
+              <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5 shrink-0 text-sm"></i>
+              <div>
+                <p class="font-bold">Término de respuesta legal: Un (1) mes (E.T.N. Art. 715)</p>
+                <p class="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                  Al formalizar el emplazamiento, se otorga un mes calendario para declarar con sanción reducida al 50%.
+                </p>
+              </div>
+            </div>
+
+            @if (facade.loadingSimul()) {
+              <div class="flex flex-col items-center justify-center py-12 gap-3">
+                <div class="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-xs text-slate-500">Cargando desglose financiero...</p>
+              </div>
+            } @else if (facade.simulacion()) {
+              <!-- Datos del vehículo (Diseño limpio sin sombras) -->
+              <div class="grid grid-cols-2 gap-3 p-3.5 bg-white rounded-lg text-xs border border-slate-200">
+                <div><span class="text-slate-500 font-medium">Sujeto Pasivo:</span> <strong class="text-slate-900 ml-1">{{ facade.simulacion()!.propietarioNombre }}</strong></div>
+                <div><span class="text-slate-500 font-medium">Identificación:</span> <strong class="text-slate-900 font-mono ml-1">{{ facade.simulacion()!.propietarioDocumento }}</strong></div>
+                <div><span class="text-slate-500 font-medium">Vehículo:</span> <span class="font-bold text-slate-800 ml-1">{{ facade.simulacion()!.marca }} {{ facade.simulacion()!.linea }}</span></div>
+                <div><span class="text-slate-500 font-medium">Modelo / Clase:</span> <span class="font-semibold text-slate-800 ml-1">{{ facade.simulacion()!.modelo }} · {{ facade.simulacion()!.clase }}</span></div>
+              </div>
+
+              <!-- Vigencias -->
+              <div>
+                <h3 class="text-xs font-bold text-slate-800 mb-2 flex items-center gap-1.5">
+                  <i class="fa-solid fa-list-check text-amber-600"></i>
+                  <span>Vigencias Adeudadas en el Emplazamiento Previo</span>
+                </h3>
+                <div class="space-y-2.5">
+                  @for (vig of facade.simulacion()!.vigencias; track vig.anio) {
+                    <div class="border border-slate-200 rounded-lg p-3 text-xs bg-white">
+                      <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100">
+                        <span class="font-bold text-slate-900 text-[12.5px] flex items-center gap-1.5">
+                          <i class="fa-regular fa-calendar-check text-indigo-600"></i>
+                          Vigencia Fiscal {{ vig.anio }}
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[10.5px] font-bold" [class.bg-rose-100]="vig.diasMora > 0" [class.text-rose-800]="vig.diasMora > 0" [class.bg-emerald-100]="vig.diasMora <= 0" [class.text-emerald-800]="vig.diasMora <= 0">
+                          {{ vig.diasMora > 0 ? ('EN MORA (' + vig.diasMora + ' días)') : 'AL DÍA' }}
+                        </span>
+                      </div>
+                      <div class="grid grid-cols-2 gap-x-6 gap-y-1.5 text-[11px]">
+                        <div class="flex justify-between">
+                          <span class="text-slate-600 font-medium">Impuesto base:</span>
+                          <span class="font-bold text-slate-900">{{ vig.valorImpuestoNominal | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-slate-600 font-medium">Días mora:</span>
+                          <span class="font-bold text-rose-700">{{ vig.diasMora | number }} días</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-slate-600 font-medium">Sanción red. 50% (Art. 715):</span>
+                          <span class="font-bold text-amber-700">{{ (vig.sancionExtemporaneidad * 0.5) | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                          <span class="text-slate-600 font-medium">Intereses de mora:</span>
+                          <span class="font-bold text-rose-700">{{ vig.interesesMora | currency:'COP':'symbol':'1.0-0':'es-CO' }}</span>
+                        </div>
+                        <div class="col-span-2 pt-2 mt-1 border-t border-slate-100 flex justify-between items-center text-xs">
+                          <span class="font-bold text-slate-700">Subtotal Vigencia {{ vig.anio }}:</span>
+                          <span class="font-black text-slate-900 text-sm">
+                            {{ (vig.valorImpuestoNominal + (vig.sancionExtemporaneidad * 0.5) + vig.interesesMora) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Total general consolidado -->
+              <div class="bg-slate-900 text-white rounded-xl p-4 flex items-center justify-between border border-slate-800">
+                <div>
+                  <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Liquidado en Emplazamiento Previo</p>
+                  <p class="text-2xl font-black text-amber-300 mt-0.5">{{ facade.simulacion()!.totalPagar | currency:'COP':'symbol':'1.0-0':'es-CO' }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-amber-400 text-2xl border border-slate-700">
+                  <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <!-- Footer modal -->
-      <div class="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
-        <span class="text-[11px] text-slate-500">
-          Gobernación del Cauca · Secretaría de Hacienda
+      <div class="px-6 py-3.5 border-t border-slate-200 bg-white flex items-center justify-between flex-shrink-0">
+        <span class="text-[11px] text-slate-500 flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+          Gobernación del Cauca · Proceso de Fiscalización Tributaria
         </span>
         <div class="flex items-center gap-2">
           <button
             (click)="facade.cerrarSimulacion()"
             class="px-4 py-2 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer font-medium"
           >
-            Cerrar
+            Cancelar
+          </button>
+          <button
+            (click)="descargarActoPdf(facade.placaSimulActiva(), facade.vigenciaEmplazar() || undefined)"
+            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition cursor-pointer"
+            title="Descargar archivo PDF del borrador analizado"
+          >
+            <i class="fa-solid fa-file-pdf text-rose-600"></i>
+            Descargar PDF Borrador
           </button>
           <button
             (click)="onEmitirEmplazamiento(facade.placaSimulActiva())"
-            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow transition cursor-pointer"
+            class="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow transition cursor-pointer"
+            title="Una vez analizado y revisado, aprueba e inserta formalmente el acto en la base de datos"
           >
-            <i class="fa-solid fa-file-contract text-xs"></i>
-            @if (facade.vigenciaEmplazar()) {
-              Emitir Auto Vigencia {{ facade.vigenciaEmplazar() }}
-            } @else {
-              Emitir Auto Consolidado Vehículo
-            }
+            <i class="fa-solid fa-stamp text-white text-xs"></i>
+            Aprobar y Expedir Acto de Emplazamiento
           </button>
         </div>
       </div>
@@ -818,7 +1113,7 @@
 }
 
 <!-- ══════════════════════════════════════════════════════════════════════
-     MODAL DE EMPLAZAMIENTO MASIVO (CON REVISIÓN 1 A 1)
+     MODAL 2: EMPLAZAMIENTO MASIVO (CON REVISIÓN 1 A 1)
 ══════════════════════════════════════════════════════════════════════ -->
 @if (facade.isModalEmplMasivoOpen()) {
   <div
@@ -826,10 +1121,9 @@
     (click)="onCerrarEmplazamientoMasivo()"
   >
     <div
-      class="bg-white rounded-2xl shadow-2xl max-w-4xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200"
+      class="bg-white rounded-2xl shadow-2xl max-w-4xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden border border-slate-200"
       (click)="$event.stopPropagation()"
     >
-      <!-- HEADER DEL MODAL -->
       <div class="bg-[#1e3a7b] text-white p-5 flex items-center justify-between flex-shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-amber-400 font-bold text-xl">
@@ -837,13 +1131,7 @@
           </div>
           <div>
             <h3 class="text-base font-extrabold m-0">Proceso de Emplazamiento Masivo</h3>
-            <p class="text-xs text-blue-200 m-0 mt-0.5">
-              @if (facade.modoRevisionMasivo() === 'resumen') {
-                Expedición masiva de autos de emplazamiento para declarar
-              } @else {
-                Inspección detallada vehículo por vehículo de valores y vigencias
-              }
-            </p>
+            <p class="text-xs text-blue-200 m-0 mt-0.5">Expedición y radicación masiva de autos de emplazamiento</p>
           </div>
         </div>
         <button
@@ -855,303 +1143,600 @@
         </button>
       </div>
 
-      <!-- Body -->
       <div class="overflow-y-auto flex-1 p-6 space-y-4">
-        
-        <!-- MODO 1: RESUMEN DEL LOTE -->
         @if (facade.modoRevisionMasivo() === 'resumen') {
-          <!-- BANNER DE ALCANCE Y RESUMEN DEL LOTE (Idéntico a Liquidación Masiva) -->
           <div class="bg-blue-50/80 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
             <i class="fa-solid fa-clipboard-check text-blue-700 text-xl mt-0.5"></i>
             <div class="text-xs text-blue-950 flex-1">
-              <div class="flex items-center justify-between mb-1">
-                <p class="font-extrabold text-blue-900 m-0 text-xs">📋 Resumen de Pre-Revisión del Lote Masivo:</p>
-                <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 uppercase">
-                  Lote En Revisión
-                </span>
+              <p class="font-extrabold text-blue-900 m-0 text-xs">📋 Resumen del Lote Masivo a Emplazar:</p>
+              <p class="m-0 text-slate-700 mt-1">Se expedirán actos de emplazamiento formal para <strong>{{ facade.selectedPlacas().length }} vehículo(s)</strong>:</p>
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                @for (p of facade.selectedPlacas(); track p) {
+                  <span class="co-plate !text-[11px] !py-0.5 !px-2">{{ p }}</span>
+                }
               </div>
-              @if (facade.selectedPlacas().length > 0) {
-                <p class="m-0 text-slate-700">Se expedirá el emplazamiento formal para los <strong>{{ facade.selectedPlacas().length }} vehículos seleccionados</strong>:</p>
-                <div class="flex flex-wrap gap-1.5 mt-2">
-                  @for (p of facade.selectedPlacas(); track p) {
-                    <span class="co-plate !text-[11px] !py-0.5 !px-2">{{ p }}</span>
-                  }
-                </div>
-              } @else {
-                <p class="m-0 text-slate-700">Se procesará el emplazamiento masivo oficial de <strong>toda la cartera de vehículos omisos</strong>.</p>
-              }
             </div>
           </div>
 
-          <!-- CONTROLES MAESTROS Y ACCIÓN DE REVISIÓN 1 A 1 -->
           <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
             <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 gap-3">
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-sliders text-amber-800 text-sm"></i>
-                <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide m-0">
-                  Parámetros Generales del Lote
-                </h4>
+                <h4 class="text-xs font-extrabold text-slate-900 uppercase m-0">Parámetros del Lote</h4>
               </div>
-
-              <div class="flex items-center gap-4">
-                <div class="flex items-center gap-1.5">
-                  <span class="text-[11px] font-bold text-slate-600 uppercase">Vigencia a Emplazar:</span>
-                  <select 
-                    [ngModel]="facade.vigenciaFiltroMasivo()" 
-                    (ngModelChange)="facade.setVigenciaFiltroMasivo($event)"
-                    class="h-8 px-3 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-md shadow-xs focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer">
-                    <option [value]="0">Todas las Vigencias Habilitadas</option>
-                    <option [value]="2026">Solo Vigencia 2026</option>
-                    <option [value]="2025">Solo Vigencia 2025</option>
-                    <option [value]="2024">Solo Vigencia 2024</option>
-                    <option [value]="2023">Solo Vigencia 2023</option>
-                    <option [value]="2022">Solo Vigencia 2022</option>
-                    <option [value]="2021">Solo Vigencia 2021</option>
-                  </select>
-                </div>
-
-                <div class="text-right pl-4 border-l border-slate-300">
-                  <span class="text-[10px] font-extrabold text-slate-500 block uppercase">TOTAL LOTE PROYECTADO</span>
-                  <span class="text-lg font-black text-amber-700">
-                    {{ facade.totalLoteMasivoProyectado() | currency:'COP':'symbol':'1.0-0':'es-CO' }}
-                  </span>
-                </div>
+              <div class="text-right">
+                <span class="text-[10px] font-extrabold text-slate-500 block uppercase">TOTAL LOTE PROYECTADO</span>
+                <span class="text-lg font-black text-amber-700">
+                  {{ facade.totalLoteMasivoProyectado() | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                </span>
               </div>
             </div>
 
-            <!-- BOTÓN DE INGRESO A REVISIÓN INDIVIDUAL 1 A 1 -->
             @if (facade.loadingPreSimulacionMasiva()) {
               <div class="py-8 text-center text-slate-500">
                 <i class="fa-solid fa-spinner fa-spin text-2xl text-amber-600 mb-2"></i>
-                <p class="text-xs font-bold m-0">Consultando motor tributario y calculando valores del lote...</p>
+                <p class="text-xs font-bold m-0">Calculando valores del lote tributario...</p>
               </div>
             } @else if (facade.preSimulacionesMasivo().length > 0) {
-              <div class="bg-white border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-900 flex items-center justify-center font-bold text-lg">
-                    🔎
-                  </div>
-                  <div>
-                    <h5 class="text-xs font-extrabold text-slate-900 m-0">Revisión Detallada Vehículo por Vehículo</h5>
-                    <p class="text-[11px] text-slate-500 m-0">Inspeccione uno a uno los {{ facade.preSimulacionesMasivo().length }} vehículos del lote antes de emplazar.</p>
-                  </div>
+              <div class="bg-white border border-blue-200 rounded-xl p-4 flex items-center justify-between gap-4">
+                <div>
+                  <h5 class="text-xs font-extrabold text-slate-900 m-0">Revisión Detallada Vehículo por Vehículo</h5>
+                  <p class="text-[11px] text-slate-500 m-0">Audite uno a uno los {{ facade.preSimulacionesMasivo().length }} vehículos antes de radicar.</p>
                 </div>
-
-                <button 
+                <button
                   (click)="facade.irAModoRevisionMasivo(0)"
-                  type="button" 
-                  class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-extrabold bg-[#1e3a7b] hover:bg-[#152a5a] text-white border-none shadow-md cursor-pointer whitespace-nowrap transition-all">
+                  type="button"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold bg-[#1e3a7b] hover:bg-[#152a5a] text-white border-none shadow cursor-pointer"
+                >
                   <i class="fa-solid fa-list-check"></i>
-                  Revisar Vehículos (1 a 1)
+                  Auditar Lote (1 a 1)
                 </button>
               </div>
             }
           </div>
-
-          <!-- MODO DE PROCESO Y GARANTÍA LEGAL -->
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between text-xs">
-            <span class="text-slate-600 font-medium">Modo de Proceso: <strong class="text-amber-700 uppercase font-extrabold">Emplazamiento Tributario Oficial</strong></span>
-            <span class="text-slate-600 font-medium">Garantía: <strong class="text-slate-800 font-bold">Validación Estricta de Reglas de Negocio en BD</strong></span>
-          </div>
         }
 
-        <!-- MODO 2: VISOR DE INSPECCIÓN INDIVIDUALIZADA (1 A 1) -->
         @if (facade.modoRevisionMasivo() === 'revision-individual') {
           @if (facade.vehiculoActualMasivo(); as sim) {
-            <!-- BARRA DE NAVEGACIÓN ENTRE VEHÍCULOS (STEPPER 1 A 1) -->
-            <div class="bg-slate-900 text-white rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
-              <button 
+            <!-- Barra superior de navegación entre vehículos -->
+            <div class="bg-slate-900 text-white rounded-xl p-3.5 flex items-center justify-between gap-3 shadow-md">
+              <button
                 (click)="facade.irAModoResumenMasivo()"
-                type="button" 
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border-none cursor-pointer">
+                type="button"
+                class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 cursor-pointer flex items-center gap-1.5 transition"
+              >
                 <i class="fa-solid fa-arrow-left"></i>
-                Volver al Resumen
+                Volver al Resumen del Lote
               </button>
 
-              <div class="flex items-center gap-2 text-xs font-bold">
-                <span class="text-slate-400">Inspeccionando:</span>
-                <span class="co-plate !text-[11px] !py-0.5 !px-2.5">{{ sim.placa }}</span>
-                <span class="text-emerald-400 bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+              <div class="flex items-center gap-3 text-xs font-bold">
+                <span class="co-plate !text-xs !py-0.5 !px-2.5">{{ sim.placa }}</span>
+                <span class="text-amber-400 font-mono">
                   Vehículo {{ facade.indexVehiculoMasivo() + 1 }} de {{ facade.preSimulacionesMasivo().length }}
                 </span>
               </div>
 
               <div class="flex items-center gap-2">
-                <button 
-                  (click)="facade.anteriorVehiculoMasivo()" 
+                <button
+                  (click)="facade.anteriorVehiculoMasivo()"
                   [disabled]="facade.indexVehiculoMasivo() === 0"
-                  type="button" 
-                  class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
-                  <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+                  class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-1"
+                >
+                  <i class="fa-solid fa-chevron-left text-[10px]"></i>
+                  Anterior
                 </button>
-                <button 
-                  (click)="facade.siguienteVehiculoMasivo()" 
+                <button
+                  (click)="facade.siguienteVehiculoMasivo()"
                   [disabled]="facade.indexVehiculoMasivo() === facade.preSimulacionesMasivo().length - 1"
-                  type="button" 
-                  class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
-                  Siguiente <i class="fa-solid fa-chevron-right ml-1"></i>
+                  class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold border border-slate-700 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed transition flex items-center gap-1"
+                >
+                  Siguiente
+                  <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+                <button
+                  type="button"
+                  (click)="descartarVehiculoDeLote(sim.placa)"
+                  class="px-3 py-1.5 rounded-lg bg-rose-900/80 hover:bg-rose-800 text-rose-200 text-xs font-bold border border-rose-700 cursor-pointer flex items-center gap-1.5 ml-2 transition"
+                  title="Excluir este vehículo del lote si presenta inconsistencias o pagos verificados"
+                >
+                  <i class="fa-solid fa-trash-can text-rose-300"></i>
+                  Excluir del Lote
                 </button>
               </div>
             </div>
 
-            <!-- FICHA TÉCNICA DEL VEHÍCULO ACTUAL -->
-            <div class="bg-white border border-slate-200 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 shadow-xs">
-              <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase">Vehículo</span>
-                <div class="text-sm font-bold text-slate-900 mt-1">{{ sim.marca }} {{ sim.linea }}</div>
-                <div class="text-[11.5px] text-slate-500 mt-0.5">Modelo {{ sim.modelo }} · {{ sim.cilindraje | number }} cc</div>
-              </div>
-
-              <div>
-                <span class="text-[10px] font-bold text-slate-400 uppercase">Contribuyente</span>
-                <div class="text-sm font-bold text-slate-900 mt-1 truncate">{{ sim.propietarioNombre }}</div>
-                <div class="text-[11.5px] text-slate-500 mt-0.5">{{ sim.propietarioDocumento }}</div>
-              </div>
-
-              <div class="text-right">
-                <span class="text-[10px] font-bold text-slate-400 uppercase">Subtotal Vehículo</span>
-                <div class="text-xl font-black text-slate-900 mt-1">
-                  ${{ facade.calcularSubtotalSimulacion(sim) | number:'1.0-0' }}
+            <!-- Ficha Técnica del Contribuyente y Automotor -->
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="border-b md:border-b-0 md:border-r border-slate-100 pb-3 md:pb-0 md:pr-4">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">DATOS DEL AUTOMOTOR</span>
+                <div class="text-sm font-black text-slate-900 mt-1">{{ sim.marca }} {{ sim.linea }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  Modelo {{ sim.modelo || 'S.M.' }} · {{ sim.clase || sim.tipoVehiculo || 'AUTOMÓVIL' }}
                 </div>
               </div>
-            </div>
 
-            <!-- TABLA COMPLETA DE DESGLOSE POR VIGENCIAS PARA ESTE VEHÍCULO -->
-            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
-              <div class="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 font-bold text-xs text-slate-800">
-                Vigencias Tributarias Pendientes de la Placa {{ sim.placa }}
+              <div class="border-b md:border-b-0 md:border-r border-slate-100 pb-3 md:pb-0 md:pr-4">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">SUJETO PASIVO / PROPIETARIO</span>
+                <div class="text-sm font-black text-slate-900 mt-1">{{ sim.propietarioNombre }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  NIT/CC: <span class="font-mono font-bold text-slate-700">{{ sim.propietarioDocumento }}</span>
+                </div>
               </div>
 
-              <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr class="bg-slate-50 text-slate-500 font-bold border-b border-slate-200 uppercase text-[10.5px]">
-                    <th class="py-2.5 px-3 text-center w-10">
-                      <i class="fa-solid fa-check text-slate-500"></i>
-                    </th>
-                    <th class="py-2.5 px-3">Vigencia</th>
-                    <th class="py-2.5 px-3 text-right">Base Gravable</th>
-                    <th class="py-2.5 px-3 text-right">Impuesto</th>
-                    <th class="py-2.5 px-3 text-right">Descuento</th>
-                    <th class="py-2.5 px-3 text-right">Sanción Mora</th>
-                    <th class="py-2.5 px-3 text-right">Intereses</th>
-                    <th class="py-2.5 px-3 text-right">Total Vigencia</th>
-                    <th class="py-2.5 px-3 text-center">Estado</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  @for (v of sim.vigencias; track v.anio) {
-                    <tr [class]="'transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40' : (((facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio)) ? 'bg-emerald-50/30 hover:bg-emerald-50/60' : 'hover:bg-slate-50 opacity-60'))">
-                      <td class="py-3 px-3 text-center">
-                        <input 
-                          type="checkbox" 
-                          [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
-                          [checked]="(facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio) && !v.parametrosFaltantesEnDb"
-                          (change)="facade.toggleVigenciaMasivaVehiculo(sim.placa, v.anio)"
-                          class="rounded border-slate-300 text-amber-600 focus:ring-amber-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
-                        />
-                      </td>
-                      <td class="py-3 px-3 font-bold text-slate-900">
-                        <div>{{ v.anio }}</div>
-                        @if (v.parametrosFaltantesEnDb) {
-                          <div [class]="'text-[9.5px] font-bold px-1.5 py-0.5 rounded mt-1 inline-flex items-center gap-1 border ' + (v.estado.includes('PARAMETRIZACIÓN') || v.estado === 'SIN VALORES ESTATALES' ? 'text-amber-800 bg-amber-50 border-amber-300' : 'text-slate-700 bg-slate-100 border-slate-300')" [title]="v.advertencia || 'No liquidable'">
-                            <i [class]="'fa-solid text-[9px] ' + (v.estado.includes('ACTIVACIÓN') ? 'fa-lock text-slate-500' : 'fa-triangle-exclamation text-amber-600')"></i>
-                            {{ v.estado.includes('ACTIVACIÓN Y PARAMETRIZACIÓN') ? 'Pendiente Activación y Parametrización' : (v.estado.includes('ACTIVACIÓN') ? 'Pendiente de Activación' : (v.estado.includes('PARAMETRIZACIÓN') ? 'Pendiente de Parametrización' : v.estado)) }}
-                          </div>
-                        }
-                      </td>
-                      <td class="py-3 px-3 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right text-emerald-700 font-medium">${{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}</td>
-                      <td class="py-3 px-3 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-right font-extrabold text-slate-900 text-sm">${{ v.totalVigencia | number:'1.0-0' }}</td>
-                      <td class="py-3 px-3 text-center">
-                        @if (v.parametrosFaltantesEnDb) {
-                          <span [class]="'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ' + (v.estado.includes('PARAMETRIZACIÓN') ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-slate-100 text-slate-800 border-slate-300')" [title]="v.advertencia">
-                            <i [class]="'fa-solid text-[9px] ' + (v.estado.includes('ACTIVACIÓN') ? 'fa-lock text-slate-600' : 'fa-triangle-exclamation text-amber-700')"></i>
-                            {{ v.estado }}
-                          </span>
-                        } @else if (v.estado.includes('PRESCRITA')) {
-                          <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
-                            <i class="fa-solid fa-clock-rotate-left"></i>
-                            PRESCRITA (>5 AÑOS)
-                          </span>
-                        } @else if (v.estado.includes('PRONTO') || v.estado.includes('AL DIA')) {
-                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                            {{ v.estado }}
-                          </span>
-                        } @else {
-                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-red-100 text-red-800">
-                            {{ v.estado }}
-                          </span>
-                        }
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+              <div class="flex flex-col justify-center items-start md:items-end">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">TOTAL PROYECTADO A EMPLAZAR</span>
+                <div class="text-2xl font-black text-amber-600 mt-0.5">
+                  {{ facade.calcularSubtotalSimulacion(sim) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                </div>
+                <span class="text-[11px] font-semibold text-slate-500">
+                  {{ sim.vigencias.length }} vigencia(s) en mora
+                </span>
+              </div>
             </div>
 
-            <!-- CONTROLES INFERIORES DE INSPECCIÓN -->
-            <div class="flex items-center justify-between pt-3 border-t border-slate-200">
-              <button 
-                (click)="facade.irAModoResumenMasivo()" 
-                type="button" 
-                class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer">
-                ↩ Volver al Resumen del Lote
-              </button>
+            <!-- TABLA COMPLETA DE AUDITORÍA FISCAL POR VIGENCIA -->
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+              <div class="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-scale-balanced text-amber-600"></i>
+                  <h5 class="text-xs font-black text-slate-900 uppercase m-0 tracking-wide">
+                    Desglose de Liquidación Fiscal a Emplazar (ETN Art. 715)
+                  </h5>
+                </div>
+                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Beneficio 50% Sanción Reducida Incluido
+                </span>
+              </div>
 
-              <div class="flex gap-2">
-                <button 
-                  (click)="facade.anteriorVehiculoMasivo()" 
-                  [disabled]="facade.indexVehiculoMasivo() === 0"
-                  type="button" 
-                  class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed">
-                  <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
-                </button>
-                <button 
-                  (click)="facade.siguienteVehiculoMasivo()" 
-                  [disabled]="facade.indexVehiculoMasivo() === facade.preSimulacionesMasivo().length - 1"
-                  type="button" 
-                  class="px-4 py-2 rounded-lg text-xs font-bold bg-[#1e3a7b] hover:bg-[#152a5a] text-white border-none cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shadow-xs">
-                  Siguiente Vehículo <i class="fa-solid fa-chevron-right ml-1"></i>
-                </button>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                  <thead class="bg-slate-100/80 text-slate-600 text-[10px] font-bold uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th class="px-3.5 py-2.5 text-center">Vigencia</th>
+                      <th class="px-3.5 py-2.5 text-center">Días Mora</th>
+                      <th class="px-3.5 py-2.5 text-right">Impuesto Base</th>
+                      <th class="px-3.5 py-2.5 text-right text-amber-700">Sanción Red. 50% (Art. 715)</th>
+                      <th class="px-3.5 py-2.5 text-right text-rose-700">Intereses Mora (Arts. 634-635)</th>
+                      <th class="px-3.5 py-2.5 text-right font-black text-slate-900">Total Vigencia</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    @for (vig of sim.vigencias; track vig.anio) {
+                      <tr class="hover:bg-amber-50/40 transition">
+                        <td class="px-3.5 py-2.5 text-center">
+                          <span class="px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-black font-mono text-[11px]">
+                            {{ vig.anio }}
+                          </span>
+                        </td>
+                        <td class="px-3.5 py-2.5 text-center">
+                          <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 font-bold border border-rose-200 text-[10px]">
+                            {{ vig.diasMora | number }} días
+                          </span>
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right font-bold text-slate-800">
+                          {{ vig.valorImpuestoNominal | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right font-bold text-amber-700">
+                          {{ (vig.sancionExtemporaneidad * 0.5) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right font-bold text-rose-700">
+                          {{ vig.interesesMora | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                        </td>
+                        <td class="px-3.5 py-2.5 text-right font-black text-slate-900 bg-slate-50/50">
+                          {{ (vig.valorImpuestoNominal + (vig.sancionExtemporaneidad * 0.5) + vig.interesesMora) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot class="bg-slate-900 text-white font-bold">
+                    <tr>
+                      <td colspan="2" class="px-3.5 py-3 text-right text-[11px] uppercase tracking-wider text-slate-300">
+                        Totales Liquidados:
+                      </td>
+                      <td class="px-3.5 py-3 text-right font-black text-slate-200">
+                        {{ sim.subtotalImpuesto | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                      </td>
+                      <td class="px-3.5 py-3 text-right font-black text-amber-300">
+                        {{ (sim.totalSanciones * 0.5) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                      </td>
+                      <td class="px-3.5 py-3 text-right font-black text-rose-300">
+                        {{ sim.totalIntereses | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                      </td>
+                      <td class="px-3.5 py-3 text-right font-black text-amber-400 text-sm">
+                        {{ facade.calcularSubtotalSimulacion(sim) | currency:'COP':'symbol':'1.0-0':'es-CO' }}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+
+            <!-- Advertencia e Instrucción Jurídica -->
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2.5 text-xs text-amber-900">
+              <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
+              <div>
+                <strong>Aviso de Auditoría Previa:</strong> Este desglose refleja los valores exactos que quedarán formalmente determinados en el <strong>Auto de Emplazamiento Previo para Declarar (ETN Art. 715)</strong> y en el Dossier Oficial. Al emitir el acto, el contribuyente dispondrá de <strong>un (1) mes calendario</strong> para subsanar la omisión con el beneficio de sanción reducida al 50%.
               </div>
             </div>
           }
         }
       </div>
 
-      <!-- Footer (visible en modo resumen) -->
-      @if (facade.modoRevisionMasivo() === 'resumen') {
-        <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between flex-wrap gap-2">
-          <button
-            (click)="facade.limpiarSeleccion()"
-            class="text-xs text-slate-500 hover:text-red-600 transition font-medium cursor-pointer flex items-center gap-1"
-          >
-            <i class="fa-solid fa-trash-can text-[11px]"></i>
-            Desmarcar todos los vehículos
+      <div class="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <button (click)="facade.limpiarSeleccion()" class="text-xs text-slate-500 hover:text-red-600 transition font-medium cursor-pointer">Desmarcar selección</button>
+        <div class="flex items-center gap-2">
+          <button (click)="onCerrarEmplazamientoMasivo()" class="px-4 py-2 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer">Cancelar</button>
+          <button (click)="onConfirmarEmplazamientoMasivo()" class="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-lg shadow transition cursor-pointer">
+            Confirmar y Radicar Emplazamiento Masivo ({{ facade.selectedPlacas().length }})
           </button>
-
-          <div class="flex items-center gap-2">
-            <button
-              (click)="onCerrarEmplazamientoMasivo()"
-              class="px-4 py-2 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 transition cursor-pointer font-medium"
-            >
-              Cancelar
-            </button>
-            <button
-              (click)="onConfirmarEmplazamientoMasivo()"
-              [disabled]="facade.selectedPlacas().length === 0 || facade.loadingPreSimulacionMasiva()"
-              class="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg shadow transition cursor-pointer"
-            >
-              <i class="fa-solid fa-check text-xs"></i>
-              Confirmar Emplazamiento Masivo ({{ facade.selectedPlacas().length }})
-            </button>
-          </div>
         </div>
-      }
+      </div>
     </div>
   </div>
 }
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MODAL 3: GESTIÓN DE TRAZABILIDAD POSTAL (GUÍA 4-72 Y NOTIFICACIÓN)
+══════════════════════════════════════════════════════════════════════ -->
+@if (facade.isModalPostalOpen()) {
+  @if (facade.vehiculoPostalActivo(); as veh) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+      (click)="cerrarModalPostal()"
+    >
+      <div
+        class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="px-5 py-4 bg-slate-900 text-white flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-truck-fast text-amber-400 text-base"></i>
+            <div>
+              <h3 class="text-sm font-bold m-0">Trazabilidad de Notificación Postal</h3>
+              <p class="text-[11px] text-slate-400 m-0">Placa: {{ veh.placa }} · Acto: {{ veh.numeroActoEmplazamiento }} · RN: {{ veh.radicadoOficial }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalPostal()" class="text-slate-400 hover:text-white bg-transparent border-none text-base cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-4 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Número de Guía Postal / Remesa:</label>
+            <input
+              type="text"
+              [(ngModel)]="formNumeroGuia"
+              placeholder="Ej: Guía asignada por la empresa de mensajería"
+              class="w-full px-3 py-2 border border-slate-300 rounded-lg font-mono font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Empresa / Operador Postal:</label>
+              <input
+                type="text"
+                [(ngModel)]="formEmpresaEnvio"
+                placeholder="Ej: Servientrega, Inter Rapidísimo, Envía, 4-72..."
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Fecha Envío a Correo:</label>
+              <input
+                type="date"
+                [(ngModel)]="formFechaEnvio"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Estado de la Entrega:</label>
+              <select
+                [(ngModel)]="formEstadoPostal"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700 font-semibold"
+              >
+                <option value="PENDIENTE_ENVIO">Pendiente de Envío</option>
+                <option value="EN_TRANSITO">En Tránsito Postal</option>
+                <option value="ENTREGADO">Entregado / Notificado Efectivo</option>
+                <option value="NO_ENTREGADO">Devuelto / No Entregado</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Fecha Entrega / Notificación:</label>
+              <input
+                type="date"
+                [(ngModel)]="formFechaEntrega"
+                class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-slate-700"
+              />
+            </div>
+          </div>
+
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-[11px] text-blue-900">
+            <i class="fa-solid fa-clock-rotate-left mr-1"></i>
+            Al marcar como <strong>Entregado</strong> con fecha, el sistema activará automáticamente el conteo de <strong>un (1) mes</strong> del ETN Art. 715 para la respuesta del contribuyente.
+          </div>
+        </div>
+
+        <div class="px-5 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-2">
+          <button (click)="cerrarModalPostal()" class="px-4 py-2 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer">Cancelar</button>
+          <button (click)="guardarPostal()" class="px-4 py-2 text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 rounded-lg shadow cursor-pointer">
+            Guardar Trazabilidad Postal
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MODAL 4: NOTIFICACIÓN POR AVISO WEB / CARTELERA (ETN ART. 568)
+══════════════════════════════════════════════════════════════════════ -->
+@if (facade.isModalAvisoOpen()) {
+  @if (facade.vehiculoAvisoActivo(); as veh) {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4"
+      (click)="cerrarModalAviso()"
+    >
+      <div
+        class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-slate-200"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="px-5 py-4 bg-rose-900 text-white flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-bullhorn text-amber-300 text-base"></i>
+            <div>
+              <h3 class="text-sm font-bold m-0">Notificación por Aviso Web y Cartelera</h3>
+              <p class="text-[11px] text-rose-200 m-0">Artículo 568 del Estatuto Tributario Nacional · Previsualización de Edicto</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalAviso()" class="text-rose-300 hover:text-white bg-transparent border-none text-base cursor-pointer">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-3 text-xs overflow-y-auto flex-1 bg-slate-100">
+          <div class="bg-rose-50 border border-rose-200 rounded-xl p-3 text-rose-900 leading-relaxed">
+            <p class="font-bold text-xs mb-1">Causal Jurídica de Notificación por Aviso:</p>
+            La correspondencia postal del Auto <strong>{{ veh.numeroActoEmplazamiento }}</strong> enviada con guía <strong>{{ veh.numeroGuiaPostal }}</strong> fue devuelta por la empresa de mensajería con causal <em>NO ENTREGADO</em>.
+            Para garantizar el debido proceso, revise a continuación el edicto oficial antes de ordenar su fijación en el portal web institucional por el término de <strong>cinco (5) días hábiles</strong>.
+          </div>
+
+          <!-- Documento Previsualizado -->
+          <div
+            class="bg-white shadow border border-slate-300 rounded p-6 text-slate-800"
+            [innerHTML]="getSafeHtml(facade.htmlAvisoWebActivo())"
+          ></div>
+        </div>
+
+        <div class="px-5 py-3.5 border-t border-slate-200 bg-white flex items-center justify-between shrink-0">
+          <button
+            (click)="descargarAvisoWebPdf(veh)"
+            class="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 border border-slate-300 rounded-lg hover:bg-slate-200 cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-file-pdf text-rose-600"></i> Descargar Edicto PDF
+          </button>
+          <div class="flex items-center gap-2">
+            <button (click)="cerrarModalAviso()" class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer">Cerrar</button>
+            <button
+              (click)="publicarAvisoWeb(veh.placa)"
+              class="px-4 py-1.5 text-xs font-bold text-white bg-rose-700 hover:bg-rose-800 rounded-lg shadow cursor-pointer flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-globe text-amber-300"></i> Publicar Aviso en Portal Web
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MODAL 5: PREVISUALIZACIÓN DEL DOSSIER OFICIAL DE EMPLAZAMIENTO (PÁGS 1 Y 2)
+══════════════════════════════════════════════════════════════════════ -->
+@if (facade.isModalPreviewDossierOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+    (click)="cerrarPreviewDossier()"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-fadeIn"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-file-contract text-amber-400 text-lg"></i>
+          <div>
+            <h3 class="text-sm font-bold m-0 flex items-center gap-2">
+              Dossier Oficial de Fiscalización y Emplazamiento Previo
+              <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                Placa {{ facade.placaPreviewDossier() }}
+              </span>
+            </h3>
+            <p class="text-[11px] text-slate-300 m-0">
+              Página 1: Auto de Apertura · Página 2: Emplazamiento Previo para Declarar (ETN Art. 715)
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="descargarActoPdf(facade.placaPreviewDossier())"
+            class="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition cursor-pointer flex items-center gap-1.5 shadow"
+          >
+            <i class="fa-solid fa-file-arrow-down text-white"></i>
+            Descargar PDF Oficial
+          </button>
+          <button
+            type="button"
+            (click)="cerrarPreviewDossier()"
+            class="text-slate-400 hover:text-white bg-transparent border-none text-base cursor-pointer p-1"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body (Mesa de trabajo de documentos en gris contrastante) -->
+      <div class="flex-1 overflow-y-auto bg-slate-300 p-8 flex justify-center">
+        @if (facade.loadingPreviewDossier()) {
+          <div class="flex flex-col items-center justify-center py-20 gap-3">
+            <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-600"></i>
+            <span class="text-xs text-slate-800 font-bold">Renderizando Dossier Oficial con heráldica de la Gobernación del Cauca...</span>
+          </div>
+        } @else {
+          <div
+            class="w-full max-w-[840px] flex flex-col items-center"
+            [innerHTML]="getSafeHtml(facade.previewDossierHtml())"
+          ></div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3 bg-slate-100 border-t border-slate-200 flex items-center justify-between shrink-0 text-xs text-slate-600">
+        <span class="flex items-center gap-1.5">
+          <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+          Documento administrativo oficial · Gobernación del Cauca · Secretaría de Hacienda
+        </span>
+        <button
+          type="button"
+          (click)="cerrarPreviewDossier()"
+          class="px-4 py-1.5 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 font-medium cursor-pointer"
+        >
+          Cerrar Vista Previa
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════════════
+     MODAL 6: PREVISUALIZACIÓN DE PLANILLA DE CORRESPONDENCIA POSTAL
+     Muestra la planilla antes de descargar (ETN Art. 565)
+══════════════════════════════════════════════════════════════════════ -->
+@if (facade.isModalPreviewPlanillaOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+    (click)="cerrarModalPlanillaPostal()"
+  >
+    <div
+      class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden border border-slate-300 animate-in fade-in zoom-in-95 duration-200"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between shrink-0 shadow-md">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-indigo-900/60 border border-indigo-700/50 flex items-center justify-center text-amber-300">
+            <i class="fa-solid fa-file-invoice text-base"></i>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold m-0 flex items-center gap-2">
+              Planilla Oficial de Entrega de Correspondencia Postal
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-mono bg-indigo-950 text-amber-300 border border-indigo-700/60">
+                {{ facade.cantidadEnviosPlanilla() }} Expediente(s)
+              </span>
+            </h3>
+            <p class="text-[11px] text-slate-400 m-0">
+              Previsualización legal previa a la entrega al operador de mensajería postal · Estatuto Tributario Nacional Art. 565
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="descargarPlanillaPostal472()"
+            class="px-4 py-2 rounded-lg text-xs font-bold text-white bg-indigo-700 hover:bg-indigo-800 transition cursor-pointer flex items-center gap-1.5 shadow"
+            title="Descargar formalmente la planilla en PDF"
+          >
+            <i class="fa-solid fa-download text-amber-300"></i>
+            Descargar Planilla PDF ({{ facade.cantidadEnviosPlanilla() }})
+          </button>
+          <button
+            type="button"
+            (click)="cerrarModalPlanillaPostal()"
+            class="text-slate-400 hover:text-white bg-transparent border-none text-base cursor-pointer p-1.5 rounded-lg hover:bg-slate-800 transition"
+          >
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de Configuración de la Remesa Postal (Operador Texto Editable & Fecha) -->
+      <div class="px-6 py-2.5 bg-indigo-950/95 text-white border-b border-indigo-800 flex items-center justify-between flex-wrap gap-3 shrink-0 shadow-inner">
+        <div class="flex items-center gap-4 flex-wrap">
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-indigo-200 flex items-center gap-1">
+              <i class="fa-solid fa-truck text-amber-300 text-[11px]"></i>
+              Operador / Empresa Postal:
+            </label>
+            <input
+              type="text"
+              [value]="facade.operadorPostalPlanilla()"
+              (input)="onOperadorPlanillaChange(($any($event.target)).value)"
+              placeholder="Ej. Servientrega, 4-72, Inter Rapidísimo, Envía..."
+              class="px-3 py-1 text-xs bg-slate-900 border border-indigo-700 rounded-lg text-white font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 w-64 shadow-xs"
+              title="Ingrese o modifique libremente el nombre del operador postal"
+            />
+          </div>
+
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-bold text-indigo-200 flex items-center gap-1">
+              <i class="fa-solid fa-calendar-day text-indigo-400 text-[11px]"></i>
+              Fecha de Remesa:
+            </label>
+            <input
+              type="date"
+              [value]="facade.fechaRemesaPlanilla()"
+              (input)="onFechaRemesaChange(($any($event.target)).value)"
+              class="px-2.5 py-1 text-xs bg-slate-900 border border-indigo-700 rounded-lg text-white font-semibold focus:outline-none focus:ring-2 focus:ring-amber-400 shadow-xs"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 text-xs text-amber-300 font-semibold bg-indigo-900/60 px-3 py-1 rounded-full border border-indigo-700">
+          <i class="fa-solid fa-check-double text-emerald-400"></i>
+          <span>Remesa controlada: {{ facade.cantidadEnviosPlanilla() }} expediente(s) listados</span>
+        </div>
+      </div>
+
+      <!-- Modal Body (Visor apaisado con mesa de trabajo gris) -->
+      <div class="flex-1 overflow-y-auto bg-slate-300 p-8 flex justify-center">
+        <div
+          class="bg-white shadow-2xl border border-slate-300 rounded-sm max-w-[1020px] w-full p-8 text-slate-800"
+          [innerHTML]="getSafeHtml(facade.previewPlanillaHtml())"
+        ></div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex items-center justify-between shrink-0 text-xs text-slate-600">
+        <span class="flex items-center gap-1.5 font-medium">
+          <i class="fa-solid fa-shield-halved text-indigo-700"></i>
+          Verifique que los radicados oficiales y nombres coincidan antes de radicar la entrega física al courier.
+        </span>
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            (click)="cerrarModalPlanillaPostal()"
+            class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 font-medium cursor-pointer"
+          >
+            Cerrar Vista Previa
+          </button>
+          <button
+            type="button"
+            (click)="descargarPlanillaPostal472()"
+            class="px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg font-bold shadow cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-file-pdf text-amber-300"></i>
+            Confirmar y Descargar Planilla PDF ({{ facade.cantidadEnviosPlanilla() }})
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
 

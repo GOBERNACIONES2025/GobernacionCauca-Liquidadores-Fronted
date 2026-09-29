@@ -1,0 +1,470 @@
+@if (!isConsulted()) {
+  <!-- VISTA INICIAL: FORMULARIO COMPARTIDO DE CONSULTA CIUDADANA -->
+  <app-consulta-ciudadana-shared 
+    liquidadorKey="deguello" 
+    (onConsultar)="alConsultar($event)"
+  ></app-consulta-ciudadana-shared>
+} @else {
+  <!-- VISTA DE RESULTADOS DEL PORTAL DEL CONTRIBUYENTE -->
+  <div class="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+    
+    <!-- TOPBAR PÚBLICA INSTITUCIONAL -->
+    <header class="w-full bg-white border-b border-slate-200 py-3.5 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <!-- Left: Logo & Title -->
+      <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
+        <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-10 md:h-12 w-auto object-contain select-none" />
+        <div class="flex flex-col border-l border-slate-200 pl-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-[#1b53ad] tracking-tight leading-none uppercase">Portal del Contribuyente</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#1b53ad] border border-blue-200">Público</span>
+          </div>
+          <span class="text-[11px] text-slate-500 font-semibold leading-none mt-1">Impuesto de Degüello de Ganado Mayor &middot; Cauca</span>
+        </div>
+      </a>
+
+      <!-- Right: Acciones -->
+      <div class="flex items-center gap-2.5">
+        <button 
+          (click)="nuevaConsulta()" 
+          class="inline-flex items-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border-none"
+          title="Realizar una nueva búsqueda"
+        >
+          <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          <span>Nueva Consulta</span>
+        </button>
+
+        <a 
+          routerLink="/" 
+          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer no-underline"
+          title="Regresar al Portal Principal"
+        >
+          <i class="fa-solid fa-house text-xs text-slate-500"></i>
+          <span class="hidden sm:inline">Inicio</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-6 animate-fadeIn">
+      
+      <!-- ENCABEZADO DE BÚSQUEDA Y CRITERIOS -->
+      <div class="bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50 text-[#1b53ad]">
+              <i class="fa-solid fa-cow text-sm"></i>
+            </span>
+            <h1 class="text-lg md:text-xl font-extrabold text-slate-900 tracking-tight m-0">
+              Estado de Cuenta y Liquidaciones de Degüello
+            </h1>
+          </div>
+          <p class="text-xs text-slate-500 m-0 pl-10">
+            Consulta oficial de guías sanitarias ICA de movilización y sacrificio de semovientes bovinos en el Departamento del Cauca.
+          </p>
+        </div>
+
+        @if (criterioBusqueda()) {
+          <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+            <span class="text-slate-500 font-semibold">Criterio:</span>
+            @if (criterioBusqueda()?.doc) {
+              <span class="inline-flex items-center gap-1 font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-700">
+                <i class="fa-regular fa-id-card text-[11px] text-slate-400"></i> {{ criterioBusqueda()?.doc }}
+              </span>
+            }
+            @if (criterioBusqueda()?.guia) {
+              <span class="inline-flex items-center gap-1 font-mono font-bold bg-white px-2 py-0.5 rounded border border-slate-200 text-[#1b53ad]">
+                <i class="fa-solid fa-barcode text-[11px] text-blue-400"></i> {{ criterioBusqueda()?.guia }}
+              </span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- SI NO HAY DECLARACIONES ENCONTRADAS -->
+      @if (declaraciones().length === 0) {
+        <div class="bg-white rounded-2xl border border-slate-200 p-12 text-center max-w-2xl mx-auto shadow-xs space-y-4">
+          <div class="w-16 h-16 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-400 text-2xl">
+            <i class="fa-solid fa-file-circle-xmark"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-800 m-0">No se encontraron declaraciones registradas</h2>
+            <p class="text-xs text-slate-500 max-w-md mx-auto mt-2 leading-relaxed">
+              No existen guías de sacrificio ni formularios de degüello mayor asociados a la identificación o guía ingresada.
+            </p>
+          </div>
+          <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11.5px] text-amber-800 text-left space-y-1">
+            <p class="font-bold flex items-center gap-1.5 m-0">
+              <i class="fa-solid fa-lightbulb text-amber-500"></i> Recomendaciones:
+            </p>
+            <ul class="list-disc pl-5 m-0 space-y-0.5 text-amber-900">
+              <li>Verifique que el número de NIT o Cédula coincida con el titular de la Guía ICA.</li>
+              <li>Si acaba de expedir la Guía Sanitaria en el ICA (SIGMA), recuerde que la sincronización puede tardar unos minutos.</li>
+              <li>Asegúrese de haber seleccionado el tipo de documento adecuado.</li>
+            </ul>
+          </div>
+          <button 
+            (click)="nuevaConsulta()" 
+            class="inline-flex items-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border-none"
+          >
+            <i class="fa-solid fa-arrow-left"></i>
+            <span>Intentar otra búsqueda</span>
+          </button>
+        </div>
+      } @else {
+        
+        <!-- CARD RESUMEN DEL CONTRIBUYENTE -->
+        @if (contribuyenteInfo(); as cont) {
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 shadow-xs">
+            <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 mb-4 gap-3">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1b53ad] text-xl font-bold">
+                  <i class="fa-solid fa-building"></i>
+                </div>
+                <div>
+                  <span class="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Razón Social / Sujeto Pasivo</span>
+                  <h2 class="text-base md:text-lg font-black text-slate-900 m-0">{{ cont.razonSocial }}</h2>
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 text-xs font-mono font-bold">
+                  NIT: {{ cont.nit }}-{{ cont.dv }}
+                </span>
+                <span class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[#1b53ad] text-xs font-bold">
+                  <i class="fa-solid fa-location-dot mr-1"></i> {{ cont.municipio }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Fila de Detalles Secundarios -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Representante Legal</span>
+                <span class="font-bold text-slate-800 block mt-0.5">{{ cont.representante || 'No Registrado' }}</span>
+                <span class="text-[11px] text-slate-500 font-mono">CC: {{ cont.docRepresentante }}</span>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Dirección de Notificación</span>
+                <span class="font-bold text-slate-800 block mt-0.5">{{ cont.direccion }}</span>
+                <span class="text-[11px] text-slate-500 font-mono">Tel: {{ cont.telefono }}</span>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Predio de Origen / RUV</span>
+                <span class="font-bold text-slate-800 block mt-0.5 line-clamp-1" [title]="cont.predioOrigen">{{ cont.predioOrigen }}</span>
+                <span class="text-[11px] text-emerald-700 font-semibold">Registro ICA Oficial</span>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Planta de Beneficio (PBA)</span>
+                <span class="font-bold text-slate-800 block mt-0.5 line-clamp-1" [title]="cont.plantaBeneficio">{{ cont.plantaBeneficio }}</span>
+                <span class="text-[11px] text-blue-700 font-semibold">Autorizada Invima</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (!esBusquedaPuntual()) {
+          <!-- TARJETAS DE MÉTRICAS RÁPIDAS (Solo para búsqueda general de contribuyente) -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#1b53ad] flex items-center justify-center text-lg">
+                <i class="fa-solid fa-file-lines"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Total Guías</span>
+                <span class="text-base font-extrabold text-slate-900 font-mono">{{ totalDeclaraciones() }}</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-cow"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Cabezas Bovinas</span>
+                <span class="text-base font-extrabold text-slate-900 font-mono">{{ totalCabezas() }}</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Pendientes</span>
+                <span class="text-base font-extrabold text-amber-700 font-mono">{{ countPendientes() }}</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Vencidas</span>
+                <span class="text-base font-extrabold text-rose-700 font-mono">{{ countVencidas() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FILTRO DE ESTADOS (Solo para búsqueda general de contribuyente) -->
+          <div class="flex items-center justify-between flex-wrap gap-3 border-b border-slate-200 pb-3">
+            <div class="flex items-center gap-2">
+              <button 
+                (click)="setFiltro('TODAS')"
+                [class.bg-[#1b53ad]]="filtroEstado() === 'TODAS'"
+                [class.text-white]="filtroEstado() === 'TODAS'"
+                [class.bg-white]="filtroEstado() !== 'TODAS'"
+                [class.text-slate-700]="filtroEstado() !== 'TODAS'"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold transition cursor-pointer shadow-xs"
+              >
+                Todas ({{ totalDeclaraciones() }})
+              </button>
+              <button 
+                (click)="setFiltro('PENDIENTE')"
+                [class.bg-amber-600]="filtroEstado() === 'PENDIENTE'"
+                [class.text-white]="filtroEstado() === 'PENDIENTE'"
+                [class.bg-white]="filtroEstado() !== 'PENDIENTE'"
+                [class.text-amber-800]="filtroEstado() !== 'PENDIENTE'"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold transition cursor-pointer shadow-xs"
+              >
+                Pendientes ({{ countPendientes() }})
+              </button>
+              <button 
+                (click)="setFiltro('PAGADO')"
+                [class.bg-emerald-600]="filtroEstado() === 'PAGADO'"
+                [class.text-white]="filtroEstado() === 'PAGADO'"
+                [class.bg-white]="filtroEstado() !== 'PAGADO'"
+                [class.text-emerald-800]="filtroEstado() !== 'PAGADO'"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold transition cursor-pointer shadow-xs"
+              >
+                Pagadas ({{ countPagadas() }})
+              </button>
+              <button 
+                (click)="setFiltro('VENCIDO')"
+                [class.bg-rose-600]="filtroEstado() === 'VENCIDO'"
+                [class.text-white]="filtroEstado() === 'VENCIDO'"
+                [class.bg-white]="filtroEstado() !== 'VENCIDO'"
+                [class.text-rose-800]="filtroEstado() !== 'VENCIDO'"
+                class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold transition cursor-pointer shadow-xs"
+              >
+                Vencidas ({{ countVencidas() }})
+              </button>
+            </div>
+
+            <span class="text-xs text-slate-500 font-semibold">
+              Mostrando {{ declaracionesFiltradas().length }} de {{ totalDeclaraciones() }} declaración(es)
+            </span>
+          </div>
+        } @else {
+          <!-- BÚSQUEDA PUNTUAL: ENCABEZADO DIRECTO SIN RUIDO -->
+          <div class="flex items-center justify-between flex-wrap gap-2 border-b border-slate-200 pb-3">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs font-bold text-[#1b53ad]">
+                <i class="fa-solid fa-barcode"></i> Consulta puntual de Guía ICA: {{ declaraciones()[0].numeroGuiaIca || declaraciones()[0].consecutivo }}
+              </span>
+            </div>
+            <span class="text-xs text-slate-500 font-semibold">
+              Liquidación directa de semovientes
+            </span>
+          </div>
+        }
+
+        <!-- LISTADO DE CARDS DE DECLARACIONES -->
+        <div class="space-y-4">
+          @for (d of declaracionesFiltradas(); track d.consecutivo) {
+            <div 
+              class="bg-white rounded-2xl border transition-all shadow-xs overflow-hidden"
+              [class.border-slate-200]="d.estadoPago === 'PAGADO'"
+              [class.border-amber-300]="d.estadoPago === 'PENDIENTE'"
+              [class.border-rose-300]="d.estadoPago === 'VENCIDO'"
+            >
+              <!-- Card Header -->
+              <div 
+                class="px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b"
+                [class.bg-slate-50]="d.estadoPago === 'PAGADO'"
+                [class.border-slate-100]="d.estadoPago === 'PAGADO'"
+                [class.bg-amber-50/60]="d.estadoPago === 'PENDIENTE'"
+                [class.border-amber-100]="d.estadoPago === 'PENDIENTE'"
+                [class.bg-rose-50/60]="d.estadoPago === 'VENCIDO'"
+                [class.border-rose-100]="d.estadoPago === 'VENCIDO'"
+              >
+                <div class="flex items-center gap-3">
+                  <span class="font-mono font-extrabold text-sm text-slate-900">
+                    Formulario N° {{ d.consecutivo }}
+                  </span>
+                  @if (d.numeroGuiaIca) {
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-white border border-slate-200 text-[11px] font-mono font-bold text-[#1b53ad]">
+                      <i class="fa-solid fa-barcode text-xs"></i> Guía ICA: {{ d.numeroGuiaIca }}
+                    </span>
+                  }
+                  @if (d.esCorreccion) {
+                    <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-[10px] font-bold">
+                      Corrección
+                    </span>
+                  }
+                </div>
+
+                <!-- Estado Badge -->
+                <div>
+                  @if (d.estadoPago === 'PAGADO') {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <i class="fa-solid fa-circle-check text-emerald-600"></i> Pagado & Acreditado
+                    </span>
+                  } @else if (d.estadoPago === 'PENDIENTE') {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-100 text-amber-800 border border-amber-200">
+                      <i class="fa-solid fa-clock text-amber-600"></i> Pendiente de Pago
+                    </span>
+                  } @else if (d.estadoPago === 'VENCIDO') {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-rose-100 text-rose-800 border border-rose-200">
+                      <i class="fa-solid fa-circle-xmark text-rose-600"></i> Vencida / En Mora
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <!-- Card Body: Grid con detalles -->
+              <div class="p-5">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Especie & Cantidad</span>
+                    <span class="font-extrabold text-slate-800 text-sm block mt-0.5">
+                      {{ d.baseGravable }} Bovinos
+                    </span>
+                    <span class="text-[11px] text-slate-500">{{ d.especie || 'Bovino Macho Ceba' }}</span>
+                  </div>
+
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Tarifa Oficial 2026</span>
+                    <span class="font-mono font-bold text-slate-800 text-sm block mt-0.5">
+                      ${{ d.tarifa | number:'1.0-0' }} COP / Cabeza
+                    </span>
+                    <span class="text-[11px] text-slate-500">Período: {{ d.periodoGravable }}/{{ d.anioGravable }}</span>
+                  </div>
+
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Fecha Límite de Pago</span>
+                    <span class="font-bold text-slate-800 text-sm block mt-0.5">
+                      {{ d.fechaLimitePago }}
+                    </span>
+                    @if (d.fechaVencimientoGuia) {
+                      <span class="text-[11px] text-slate-500 block">Vigencia ICA: {{ d.fechaVencimientoGuia }}</span>
+                    }
+                  </div>
+
+                  <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase block">Total a Pagar</span>
+                    <span class="font-mono font-black text-base md:text-lg text-[#1b53ad] block mt-0.5">
+                      ${{ d.totalAPagar | number:'1.0-0' }} COP
+                    </span>
+                    <span class="text-[10px] text-slate-400 font-semibold block">Incluye 90% Departamental</span>
+                  </div>
+                </div>
+
+                <!-- Desglose Tributario Ley 8/1909 -->
+                <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 flex flex-wrap items-center justify-between text-xs gap-3">
+                  <div class="flex flex-wrap items-center gap-4">
+                    <div>
+                      <span class="text-slate-400 text-[10px] font-bold uppercase block">Valor Bruto</span>
+                      <span class="font-mono font-bold text-slate-700">${{ d.valorBruto | number:'1.0-0' }}</span>
+                    </div>
+                    <div class="border-l border-slate-200 pl-4">
+                      <span class="text-slate-400 text-[10px] font-bold uppercase block">10% Cuota Municipal</span>
+                      <span class="font-mono font-bold text-slate-700">${{ d.participacionMunicipios | number:'1.0-0' }}</span>
+                    </div>
+                    <div class="border-l border-slate-200 pl-4">
+                      <span class="text-slate-400 text-[10px] font-bold uppercase block">90% Departamental</span>
+                      <span class="font-mono font-bold text-[#1b53ad]">${{ d.subtotal | number:'1.0-0' }}</span>
+                    </div>
+                    @if (d.sanciones > 0 || d.interesMora > 0) {
+                      <div class="border-l border-slate-200 pl-4">
+                        <span class="text-rose-500 text-[10px] font-bold uppercase block">Sanciones / Mora</span>
+                        <span class="font-mono font-bold text-rose-600">+${{ (d.sanciones + d.interesMora) | number:'1.0-0' }}</span>
+                      </div>
+                    }
+                  </div>
+                  <div class="text-[11px] text-slate-500 font-medium italic">
+                    Ley 8 de 1909 &middot; Estatuto Tributario del Cauca
+                  </div>
+                </div>
+
+                <!-- Banner condicional de Estado -->
+                @if (d.estadoPago === 'VENCIDO') {
+                  <div class="mt-4 p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-900 flex items-start gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-600 text-base mt-0.5"></i>
+                    <div>
+                      <p class="font-bold m-0">Declaración Vencida - Requiere Reliquidación</p>
+                      <p class="text-[11.5px] text-rose-800 m-0 mt-0.5 leading-relaxed">
+                        Esta liquidación venció el <strong>{{ d.fechaLimitePago }}</strong>. Conforme al Estatuto Tributario Departamental, no es válida para pago en bancos. Debe solicitar la reliquidación con intereses de mora y sanciones ante la Secretaría de Hacienda del Cauca o planta de beneficio autorizada.
+                      </p>
+                    </div>
+                  </div>
+                } @else if (d.estadoPago === 'PAGADO') {
+                  <div class="mt-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 flex items-center justify-between flex-wrap gap-2">
+                    <div class="flex items-center gap-2">
+                      <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                      <div>
+                        <span class="font-bold block">Paz y Salvo Acreditado para Faenado</span>
+                        <span class="text-[11px] text-emerald-700 font-mono">
+                          Recibo Bancario: {{ d.reciboBancario || 'BAN-984210-OCCIDENTE' }}
+                        </span>
+                      </div>
+                    </div>
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-200/60 rounded text-emerald-900 uppercase">
+                      Habilitado PBA
+                    </span>
+                  </div>
+                }
+              </div>
+
+              <!-- Card Footer: Acción principal = VER FACTURA -->
+              <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div class="text-xs text-slate-500 text-center sm:text-left">
+                  @if (d.estadoPago === 'PENDIENTE') {
+                    <span>Formulario único con código de barras para pago en ventanillas autorizadas.</span>
+                  } @else if (d.estadoPago === 'PAGADO') {
+                    <span>Constancia oficial de declaración tributaria y comprobante de recaudo.</span>
+                  } @else {
+                    <span>Copia histórica de la liquidación oficial no cancelada.</span>
+                  }
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                  <button 
+                    (click)="verFactura(d)"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border-none"
+                    [title]="'Visualizar formulario oficial ' + d.consecutivo"
+                  >
+                    <i class="fa-solid fa-print text-xs"></i>
+                    <span>Ver Factura / Formulario Oficial</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+    </main>
+
+    <!-- FOOTER INSTITUCIONAL PÚBLICO -->
+    <footer class="w-full bg-white border-t border-slate-200 py-6 px-4 md:px-8 mt-12 text-center text-xs text-slate-500">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-2">
+          <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-6 w-auto object-contain opacity-70" />
+          <span class="font-semibold text-slate-600">Gobernación del Cauca &middot; Secretaría de Hacienda Departamental</span>
+        </div>
+        <div>
+          <span>Línea de atención: (602) 8242000 &middot; Popayán, Cauca</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+}
+
+<!-- MODAL VISOR DE FACTURA OFICIAL CON CÓDIGO DE BARRAS -->
+@if (declaracionSeleccionadaParaFactura(); as dec) {
+  <app-factura-modal 
+    [declaracion]="dec" 
+    (cerrar)="cerrarModalFactura()"
+  ></app-factura-modal>
+}

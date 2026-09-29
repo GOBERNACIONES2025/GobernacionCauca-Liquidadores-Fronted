@@ -1,0 +1,375 @@
+<div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+  <!-- Header Card: Informes & Fiscalización -->
+  <div class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#1b53ad] border border-blue-200 flex items-center justify-center text-2xl shadow-xs">
+        <i class="fa-solid fa-chart-pie"></i>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="text-[11px] uppercase tracking-wider font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+            Módulo de Fiscalización & Estadísticas
+          </span>
+          <span class="text-xs text-slate-400">·</span>
+          <span class="text-xs text-slate-500 font-medium">Degüello Ganado Mayor</span>
+        </div>
+        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
+          Informes de Recaudo y Participación Municipal
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+          Consolidado oficial del 10% de participación constitucional para municipios caucanos y control de faenamiento en frigoríficos (PBA).
+        </p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex items-center space-x-2.5">
+      <button 
+        (click)="imprimir()"
+        class="px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center space-x-2 cursor-pointer">
+        <i class="fa-solid fa-print"></i>
+        <span>Imprimir Informe</span>
+      </button>
+
+      <button 
+        *ngIf="tabActivo() === 'municipios'"
+        (click)="exportarCsvMunicipios()"
+        class="px-4 py-2 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center space-x-2 cursor-pointer">
+        <i class="fa-solid fa-file-csv"></i>
+        <span>Exportar CSV Municipios</span>
+      </button>
+
+      <button 
+        *ngIf="tabActivo() === 'plantas'"
+        (click)="exportarCsvPlantas()"
+        class="px-4 py-2 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center space-x-2 cursor-pointer">
+        <i class="fa-solid fa-file-csv"></i>
+        <span>Exportar CSV Frigoríficos</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tarjetas KPI de Resumen Fiscal -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total Recaudo Bruto -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#1b53ad] border border-blue-200 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-sack-dollar"></i>
+      </div>
+      <div>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Recaudo Bruto Total</span>
+        <div class="text-lg sm:text-xl font-black text-slate-900 font-mono">
+          $ {{ granTotalBruto() | number:'1.0-0' }} COP
+        </div>
+        <span class="text-[10px] text-slate-400">{{ totalFormularios() }} formularios registrados</span>
+      </div>
+    </div>
+
+    <!-- Participación 10% Municipios -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-landmark"></i>
+      </div>
+      <div>
+        <span class="text-xs text-emerald-700 font-bold uppercase">10% Participación Mpal.</span>
+        <div class="text-lg sm:text-xl font-black text-emerald-800 font-mono">
+          $ {{ granTotalParticipacion10() | number:'1.0-0' }} COP
+        </div>
+        <span class="text-[10px] text-slate-400">Transferencia a 42 municipios</span>
+      </div>
+    </div>
+
+    <!-- Renta Departamental Neta (90%) -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-building-columns"></i>
+      </div>
+      <div>
+        <span class="text-xs text-indigo-700 font-bold uppercase">90% Renta Departamental</span>
+        <div class="text-lg sm:text-xl font-black text-indigo-900 font-mono">
+          $ {{ granTotalDepartamental() | number:'1.0-0' }} COP
+        </div>
+        <span class="text-[10px] text-slate-400">Fondo Común Dpto. Cauca</span>
+      </div>
+    </div>
+
+    <!-- Total Cabezas Faenadas -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-cow"></i>
+      </div>
+      <div>
+        <span class="text-xs text-slate-500 font-semibold uppercase">Cabezas de Ganado</span>
+        <div class="text-lg sm:text-xl font-black text-slate-900 font-mono">
+          {{ granTotalCabezas() | number }} Cabezas
+        </div>
+        <span class="text-[10px] text-slate-400">Vigencia {{ vigenciaSeleccionada() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navegación de Pestañas (Tabs) -->
+  <div class="flex items-center space-x-2 border-b border-slate-200 pb-2">
+    <button 
+      (click)="cambiarTab('municipios')"
+      [class]="tabActivo() === 'municipios' 
+        ? 'px-4 py-2.5 bg-[#1b53ad] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs cursor-pointer' 
+        : 'px-4 py-2.5 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs sm:text-sm rounded-xl border border-slate-200 transition cursor-pointer'">
+      <i class="fa-solid fa-landmark mr-1.5"></i>
+      1. Participación 10% Municipios
+    </button>
+
+    <button 
+      (click)="cambiarTab('plantas')"
+      [class]="tabActivo() === 'plantas' 
+        ? 'px-4 py-2.5 bg-[#1b53ad] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs cursor-pointer' 
+        : 'px-4 py-2.5 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs sm:text-sm rounded-xl border border-slate-200 transition cursor-pointer'">
+      <i class="fa-solid fa-industry mr-1.5"></i>
+      2. Frigoríficos & Plantas PBA
+    </button>
+
+    <button 
+      (click)="cambiarTab('cartera')"
+      [class]="tabActivo() === 'cartera' 
+        ? 'px-4 py-2.5 bg-[#1b53ad] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs cursor-pointer' 
+        : 'px-4 py-2.5 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs sm:text-sm rounded-xl border border-slate-200 transition cursor-pointer'">
+      <i class="fa-solid fa-wallet mr-1.5"></i>
+      3. Estados de Cartera & Recaudo
+    </button>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 1: PARTICIPACIÓN DEL 10% POR MUNICIPIO -->
+  <!-- ========================================== -->
+  <div *ngIf="tabActivo() === 'municipios'" class="space-y-4">
+    
+    <!-- Filtro y Resumen Normativo -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="flex items-center space-x-2 text-xs text-slate-600">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+        <span>
+          <strong>Ley 8 de 1909 & Decreto 1222/1986:</strong> El 10% del producto del impuesto sobre degüello de ganado mayor corresponde por mandato legal al municipio donde se consume o sacrifica el ganado.
+        </span>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <div class="relative w-64">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+          <input 
+            type="text" 
+            [(ngModel)]="busquedaMuni"
+            placeholder="Filtrar por municipio..."
+            class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1b53ad]" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla Municipios -->
+    <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
+            <tr>
+              <th class="px-5 py-3.5">Municipio Beneficiario</th>
+              <th class="px-4 py-3.5 text-center">N° Formularios</th>
+              <th class="px-4 py-3.5 text-center">Cabezas Faenadas</th>
+              <th class="px-4 py-3.5 text-right">Recaudo Bruto ($)</th>
+              <th class="px-4 py-3.5 text-right text-emerald-800 bg-emerald-50/50">Participación 10% Mpal. ($)</th>
+              <th class="px-4 py-3.5 text-right text-indigo-900 bg-indigo-50/30">Renta Deptal. 90% ($)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let m of municipiosFiltrados()" class="hover:bg-slate-50/80 transition">
+              <td class="px-5 py-3 font-bold text-slate-900 flex items-center space-x-2">
+                <i class="fa-solid fa-location-dot text-slate-400 text-xs"></i>
+                <span>{{ m.municipio }}</span>
+              </td>
+              <td class="px-4 py-3 text-center font-mono">
+                {{ m.formularios }}
+              </td>
+              <td class="px-4 py-3 text-center font-mono font-bold text-slate-800">
+                {{ m.cabezas }}
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-semibold text-slate-800">
+                $ {{ m.valorBruto | number:'1.0-0' }}
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-black text-emerald-700 bg-emerald-50/30">
+                $ {{ m.participacion10 | number:'1.0-0' }}
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-bold text-indigo-900 bg-indigo-50/20">
+                $ {{ m.totalDepartamental | number:'1.0-0' }}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300">
+            <tr>
+              <td class="px-5 py-3.5 uppercase">Totales Consolidados</td>
+              <td class="px-4 py-3.5 text-center font-mono">{{ totalFormularios() }}</td>
+              <td class="px-4 py-3.5 text-center font-mono">{{ granTotalCabezas() }}</td>
+              <td class="px-4 py-3.5 text-right font-mono">$ {{ granTotalBruto() | number:'1.0-0' }}</td>
+              <td class="px-4 py-3.5 text-right font-mono text-emerald-800">$ {{ granTotalParticipacion10() | number:'1.0-0' }}</td>
+              <td class="px-4 py-3.5 text-right font-mono text-indigo-900">$ {{ granTotalDepartamental() | number:'1.0-0' }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ============================================== -->
+  <!-- TAB 2: CONSOLIDADO POR PLANTAS DE BENEFICIO    -->
+  <!-- ============================================== -->
+  <div *ngIf="tabActivo() === 'plantas'" class="space-y-4">
+    
+    <!-- Header de Filtro -->
+    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="flex items-center space-x-2 text-xs text-slate-600">
+        <i class="fa-solid fa-circle-info text-blue-600"></i>
+        <span>
+          <strong>Control de Faenamiento Oficial:</strong> Frigoríficos autorizados con registro sanitario INVIMA en el Departamento del Cauca.
+        </span>
+      </div>
+
+      <div class="relative w-64">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+        <input 
+          type="text" 
+          [(ngModel)]="busquedaPlanta"
+          placeholder="Filtrar por planta o municipio..."
+          class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1b53ad]" />
+      </div>
+    </div>
+
+    <!-- Tabla Frigoríficos -->
+    <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-600">
+          <thead class="bg-slate-50 text-slate-700 font-bold border-b border-slate-200 uppercase tracking-wider text-[11px]">
+            <tr>
+              <th class="px-5 py-3.5">Planta de Beneficio Animal (PBA)</th>
+              <th class="px-4 py-3.5">Municipio Sede</th>
+              <th class="px-4 py-3.5 text-center">Capacidad Diaria</th>
+              <th class="px-4 py-3.5 text-center">Cabezas Faenadas Mes</th>
+              <th class="px-4 py-3.5 text-center">% Utilización</th>
+              <th class="px-4 py-3.5 text-right">Recaudo Estimado ($)</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let p of plantasFiltradas()" class="hover:bg-slate-50/80 transition">
+              <td class="px-5 py-3 font-bold text-slate-900">
+                <div class="flex items-center space-x-2.5">
+                  <div class="w-8 h-8 rounded-lg bg-blue-50 text-[#1b53ad] border border-blue-200 flex items-center justify-center text-xs shrink-0">
+                    <i class="fa-solid fa-industry"></i>
+                  </div>
+                  <div>
+                    <span class="block text-slate-900 font-bold">{{ p.planta }}</span>
+                    <span class="text-[10px] text-slate-400 font-normal">Registro Sanitario INVIMA Vigente</span>
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-3 font-medium text-slate-700">
+                {{ p.municipio }}
+              </td>
+              <td class="px-4 py-3 text-center font-mono">
+                {{ p.capacidadDiaria }} cabezas/día
+              </td>
+              <td class="px-4 py-3 text-center font-mono font-bold text-slate-900">
+                {{ p.cabezasFaenadas | number }}
+              </td>
+              <td class="px-4 py-3 text-center">
+                <div class="flex items-center justify-center space-x-2">
+                  <div class="w-20 bg-slate-200 rounded-full h-2 overflow-hidden">
+                    <div class="bg-[#1b53ad] h-2 rounded-full" [style.width.%]="p.porcentajeOcupacion"></div>
+                  </div>
+                  <span class="font-mono font-bold text-[11px] text-slate-700">{{ p.porcentajeOcupacion }}%</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-right font-mono font-black text-slate-900">
+                $ {{ p.recaudoTotal | number:'1.0-0' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 3: ESTADOS DE CARTERA & FISCALIZACIÓN  -->
+  <!-- ========================================== -->
+  <div *ngIf="tabActivo() === 'cartera'" class="space-y-4">
+    
+    <!-- Tarjetas de desglose por Estado -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div *ngFor="let item of estadisticasCartera()" class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">
+            {{ item.estado }}
+          </span>
+          <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+                [ngClass]="{
+                  'bg-emerald-100 text-emerald-800': item.estado === 'PAGADO',
+                  'bg-amber-100 text-amber-800': item.estado === 'PENDIENTE',
+                  'bg-rose-100 text-rose-800': item.estado === 'VENCIDO',
+                  'bg-purple-100 text-purple-800': item.estado.includes('CORREGIDA')
+                }">
+            {{ item.porcentaje }}%
+          </span>
+        </div>
+
+        <div class="text-2xl font-black text-slate-900 font-mono mb-1">
+          {{ item.cantidad }}
+        </div>
+        <p class="text-xs text-slate-500 font-medium">
+          Monto: <strong class="font-mono text-slate-800">$ {{ item.monto | number:'1.0-0' }} COP</strong>
+        </p>
+      </div>
+    </div>
+
+    <!-- Barra de Distribución Porcentual -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+      <div class="flex items-center justify-between text-xs font-bold text-slate-700">
+        <span>Distribución Porcentual de Recaudo</span>
+        <span class="text-slate-400">Total Formularios: {{ listaDeclaraciones().length }}</span>
+      </div>
+
+      <div class="h-4 w-full bg-slate-100 rounded-full overflow-hidden flex">
+        <div 
+          *ngFor="let item of estadisticasCartera()" 
+          [style.width.%]="item.porcentaje"
+          [title]="item.estado + ': ' + item.porcentaje + '%'"
+          [ngClass]="{
+            'bg-emerald-500': item.estado === 'PAGADO',
+            'bg-amber-400': item.estado === 'PENDIENTE',
+            'bg-rose-500': item.estado === 'VENCIDO',
+            'bg-purple-500': item.estado.includes('CORREGIDA')
+          }">
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+        <div class="flex items-center space-x-1.5">
+          <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+          <span>Pagado</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+          <span>Pendiente de Pago</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+          <span>Vencido</span>
+        </div>
+        <div class="flex items-center space-x-1.5">
+          <span class="w-3 h-3 rounded-full bg-purple-500"></span>
+          <span>Corregida / Reliquidada</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

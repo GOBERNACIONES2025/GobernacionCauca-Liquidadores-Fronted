@@ -116,9 +116,17 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
     const sec = this.secondaryValue().trim();
     const cfg = this.config();
 
-    if (!doc || !sec) {
-      this.errorMessage.set(`Por favor ingrese su número de identificación y ${cfg.secondaryFieldLabel.toLowerCase().replace(':', '')}.`);
-      return;
+    // En Degüello se puede buscar por Cédula/NIT, por N° de Guía ICA o por ambos
+    if (this.activeKey() === 'deguello') {
+      if (!doc && !sec) {
+        this.errorMessage.set('Por favor ingrese su número de identificación o el número de guía ICA / formulario.');
+        return;
+      }
+    } else {
+      if (!doc || !sec) {
+        this.errorMessage.set(`Por favor ingrese su número de identificación y ${cfg.secondaryFieldLabel.toLowerCase().replace(':', '')}.`);
+        return;
+      }
     }
 
     this.errorMessage.set(null);

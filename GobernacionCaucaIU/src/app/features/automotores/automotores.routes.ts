@@ -64,8 +64,13 @@ export const automotoresRoutes: Routes = [
         component: LiquidacionesPage
       },
       {
-        path: 'omisos',
+        path: 'cobro-coactivo',
         loadComponent: () => import('./presentation/pages/omisos-emplazamiento/omisos-emplazamiento').then(m => m.OmisosEmplazamientoPage),
+      },
+      {
+        path: 'omisos',
+        redirectTo: 'cobro-coactivo',
+        pathMatch: 'full'
       },
       {
         path: 'facturacion',

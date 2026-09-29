@@ -91,6 +91,9 @@ export interface LiquidacionMasivaResultado {
  */
 export type NivelMoraOmiso = 'RECIENTE' | 'EMPLAZABLE' | 'CRITICO';
 
+/** Estado de entrega de la correspondencia y citación física oficial */
+export type EstadoPostal = 'PENDIENTE_ENVIO' | 'EN_TRANSITO' | 'ENTREGADO' | 'NO_ENTREGADO' | 'DEVUELTO';
+
 /** Calcula el nivel del semáforo dado los días de mora acumulados. */
 export function calcularNivelMora(diasMora: number): NivelMoraOmiso {
   if (diasMora <= 90)  return 'RECIENTE';
@@ -110,6 +113,8 @@ export interface VehiculoOmiso {
   propietarioNombre: string;
   propietarioDocumento: string;
   propietarioTipoDocumento?: string;
+  direccionNotificacion?: string;
+  municipioDestino?: string;
   /** Primer año fiscal sin declarar/pagar */
   vigenciaMasAntigua: number;
   /** Lista de todos los años fiscales con deuda activa */
@@ -132,8 +137,30 @@ export interface VehiculoOmiso {
   totalDeudaEstimada: number;
   /** Estado del proceso de emplazamiento */
   estadoEmplazamiento: 'SIN_NOTIFICAR' | 'NOTIFICADO' | 'COBRO_COACTIVO';
+  actoEmplazamientoId?: number;
   fechaUltimaGestion?: string;
   numeroActoEmplazamiento?: string;
+  /** Radicado Oficial en sistema de gestión documental (RN) */
+  radicadoOficial?: number;
+  /** Número de Guía Postal de correspondencia (ej. 4-72 RA373415188CO) */
+  numeroGuiaPostal?: string;
+  /** Empresa o medio de despacho postal */
+  empresaEnvio?: string;
+  /** Fecha en que se entregó el oficio a mensajería */
+  fechaEnvioPostal?: string;
+  /** Fecha de recepción o entrega efectiva al ciudadano (inicio del término de 1 mes) */
+  fechaEntregaNotificacion?: string;
+  /** Estado de entrega postal */
+  estadoPostal?: EstadoPostal;
+  /** Gestor tributario o lote masivo responsable (EnvP) */
+  responsableEnvio?: string;
+  /** Fecha límite legal de respuesta (1 mes calendario tras notificación ETN Art. 715) */
+  fechaLimiteRespuesta?: string;
+  /** Días restantes del término legal de 1 mes */
+  diasRestantesTermino?: number;
+  /** Indica si fue publicado por Aviso Web / Cartelera tras devolución */
+  publicadoAvisoWeb?: boolean;
+  fechaPublicacionAviso?: string;
   /** Nivel de semáforo derivado de diasMoraMaximo */
   nivelMora: NivelMoraOmiso;
   /** Desglose detallado por cada vigencia adeudada para acordeón */
@@ -150,6 +177,20 @@ export interface VigenciaOmisoDetalle {
   totalDeuda: number;
   estadoEmplazamiento: 'SIN_NOTIFICAR' | 'NOTIFICADO' | 'COBRO_COACTIVO' | string;
   numeroActoEmplazamiento?: string;
+  radicadoOficial?: number;
+  numeroGuiaPostal?: string;
+  estadoPostal?: EstadoPostal;
+}
+
+/** Payload para actualización de trazabilidad postal de un expediente */
+export interface TrazabilidadPostalRequest {
+  placa: string;
+  numeroGuiaPostal?: string;
+  empresaEnvio?: string;
+  fechaEnvioPostal?: string;
+  fechaEntregaNotificacion?: string;
+  estadoPostal: EstadoPostal;
+  observaciones?: string;
 }
 
 /** KPIs del panel de omisos para las tarjetas de indicadores. */

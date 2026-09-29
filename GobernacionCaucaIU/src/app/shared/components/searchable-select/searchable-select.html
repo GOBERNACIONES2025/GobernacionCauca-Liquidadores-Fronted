@@ -100,7 +100,7 @@
       </li>
 
       <li 
-        *ngFor="let option of options(); let i = index" 
+        *ngFor="let option of paginatedOptions(); let i = index" 
         (click)="selectOption(option, $event)"
         (mouseenter)="highlightedIndex.set(i)"
         class="px-3.5 py-2 text-xs cursor-pointer hover:bg-slate-100 transition-colors flex items-center justify-between gap-2"
