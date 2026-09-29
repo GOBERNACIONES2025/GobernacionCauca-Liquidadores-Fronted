@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -11,17 +11,15 @@ import { SolicitudListadoDto } from '../../../../domain/models/Radicacion/solici
 import { LiquidacionSimuladaResponse } from '../../../../domain/models/Liquidacion/liquidacion-simulada.model';
 import { PaginationComponent } from '../../../../../shared/components/pagination/pagination';
 import { TableSearchComponent } from '../../../shared/components/table-search/table-search';
-import { DocumentViewerComponent } from '../../../../../../shared/components/document-viewer/document-viewer';
-import { DocumentItem } from '../../../../../../shared/components/document-viewer/document-viewer.model';
 
 @Component({
   selector: 'app-gobernacion-solicitudes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, TableSearchComponent, DocumentViewerComponent],
+  imports: [CommonModule, FormsModule, RouterModule, PaginationComponent, TableSearchComponent],
   templateUrl: './gobernacion-solicitudes.html',
   styleUrl: './gobernacion-solicitudes.css'
 })
-export class GobernacionSolicitudesComponent implements OnInit {
+export class GobernacionSolicitudesComponent implements OnInit, OnDestroy {
   private facade = inject(SolicitudesLiquidacionFacade);
   private generacionFacade = inject(GeneracionLiquidacionFacade);
   public permissions = inject(RegistrosPermissionsPolicy);
@@ -57,11 +55,11 @@ export class GobernacionSolicitudesComponent implements OnInit {
   activeFiscalizarTab = signal<'EXPEDIENTE' | 'DOCUMENTO' | 'HISTORIAL'>('EXPEDIENTE');
 
   // Visor de Documentos PDF
-  showDocumentViewerModal = signal<boolean>(false);
-  documentosVisor = signal<DocumentItem[]>([]);
   documentoIframeUrl = signal<SafeResourceUrl | null>(null);
   documentoDescargaUrl = signal<string>('');
   documentoNombreArchivo = signal<string>('');
+  isCargandoDocumento = signal<boolean>(false);
+  private currentBlobUrl: string | null = null;
 
   // Modal Devolver con Requerimiento
   showDevolverModal = signal<boolean>(false);
@@ -159,22 +157,13 @@ export class GobernacionSolicitudesComponent implements OnInit {
 
           // Configurar datos para el Visor de PDF (Documento notarial / minuta)
           const doc = data.documentos?.[0] || data.documentoRegistro;
-          const downloadUrl = this.facade.obtenerUrlDescargaDocumento(data.id, true);
           const rawName = doc?.nombreArchivo || `Expediente_${data.numeroRadicado}.pdf`;
 
-          this.documentoDescargaUrl.set(downloadUrl);
           this.documentoNombreArchivo.set(rawName);
-          this.documentoIframeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(downloadUrl));
-
-          this.documentosVisor.set([
-            {
-              id: doc?.id || data.id,
-              nombreArchivo: rawName,
-              rutaArchivo: downloadUrl
-            }
-          ]);
-
           this.showFiscalizarModal.set(true);
+
+          // Carga autenticada por Token a través de HttpClient
+          this.cargarDocumentoConToken(data.id, rawName, doc?.id || data.id);
           // Simula preliquidación automática
           this.simularPreliquidacion(data.id);
         }
@@ -188,21 +177,91 @@ export class GobernacionSolicitudesComponent implements OnInit {
 
   cambiarFiscalizarTab(tab: 'EXPEDIENTE' | 'DOCUMENTO' | 'HISTORIAL'): void {
     this.activeFiscalizarTab.set(tab);
+    if (tab === 'DOCUMENTO' && !this.documentoIframeUrl() && !this.isCargandoDocumento()) {
+      const sol = this.selectedSolicitud();
+      if (sol) {
+        const doc = sol.documentos?.[0] || sol.documentoRegistro;
+        const rawName = doc?.nombreArchivo || `Expediente_${sol.numeroRadicado}.pdf`;
+        this.cargarDocumentoConToken(sol.id, rawName, doc?.id || sol.id);
+      }
+    }
   }
 
-  abrirVisorCompleto(): void {
-    this.showDocumentViewerModal.set(true);
+
+  cerrarFiscalizarModal(): void {
+    this.showFiscalizarModal.set(false);
+    this.limpiarDocumentoBlob();
   }
 
-  cerrarVisorCompleto(): void {
-    this.showDocumentViewerModal.set(false);
+  ngOnDestroy(): void {
+    this.limpiarDocumentoBlob();
+  }
+
+  private limpiarDocumentoBlob(): void {
+    if (this.currentBlobUrl) {
+      window.URL.revokeObjectURL(this.currentBlobUrl);
+      this.currentBlobUrl = null;
+    }
+    this.documentoIframeUrl.set(null);
+  }
+
+  cargarDocumentoConToken(solicitudId: number, rawName: string, docId: number): void {
+    this.isCargandoDocumento.set(true);
+    this.facade.descargarDocumentoArchivo(solicitudId, true).subscribe({
+      next: (blob: Blob) => {
+        this.isCargandoDocumento.set(false);
+        this.limpiarDocumentoBlob();
+        this.currentBlobUrl = window.URL.createObjectURL(blob);
+        this.documentoIframeUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl));
+      },
+      error: () => {
+        this.isCargandoDocumento.set(false);
+        this.toast.error('No se pudo cargar el documento notarial para previsualización.');
+      }
+    });
+  }
+
+  abrirEnNuevaPestana(): void {
+    if (this.currentBlobUrl) {
+      window.open(this.currentBlobUrl, '_blank');
+      return;
+    }
+
+    const sol = this.selectedSolicitud();
+    if (!sol) return;
+
+    this.toast.info('Abriendo documento notarial...');
+    this.facade.descargarDocumentoArchivo(sol.id, true).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+      error: () => {
+        this.toast.error('No se pudo abrir el documento notarial');
+      }
+    });
   }
 
   descargarDocumentoDirecto(): void {
     const sol = this.selectedSolicitud();
     if (!sol) return;
-    const url = this.facade.obtenerUrlDescargaDocumento(sol.id, false);
-    window.open(url, '_blank');
+
+    this.toast.info('Descargando documento notarial con token...');
+    this.facade.descargarDocumentoArchivo(sol.id, false).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = this.documentoNombreArchivo() || `Expediente_${sol.numeroRadicado}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.toast.error('Error al descargar el documento adjunto');
+      }
+    });
   }
 
   esBaseInferiorAvaluo(acto: any): boolean {
@@ -246,7 +305,7 @@ export class GobernacionSolicitudesComponent implements OnInit {
       next: (res) => {
         this.isAprobando.set(false);
         this.showConfirmarEmisionModal.set(false);
-        this.showFiscalizarModal.set(false);
+        this.cerrarFiscalizarModal();
         this.toast.success(`¡Liquidación oficial expedida exitosamente! ID: #${res.data}`);
         this.cargarSolicitudes();
         this.cargarMetricasKpi();
@@ -286,7 +345,7 @@ export class GobernacionSolicitudesComponent implements OnInit {
         this.isDevolviendo.set(false);
         this.toast.success('Expediente devuelto a la entidad externa con requerimiento formal');
         this.showDevolverModal.set(false);
-        this.showFiscalizarModal.set(false);
+        this.cerrarFiscalizarModal();
         this.cargarSolicitudes();
         this.cargarMetricasKpi();
       },
