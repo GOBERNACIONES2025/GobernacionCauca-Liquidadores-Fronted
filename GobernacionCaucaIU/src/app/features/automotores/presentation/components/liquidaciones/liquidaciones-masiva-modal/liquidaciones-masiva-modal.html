@@ -1,0 +1,245 @@
+<!-- MODAL DE LIQUIDACIÓN MASIVA -->
+@if (facade.isModalMasivoOpen()) {
+  <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+
+      <!-- HEADER DEL MODAL -->
+      <div class="bg-[#1e3a7b] text-white p-5 flex items-center justify-between flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400 font-bold text-xl">
+            <i class="fa-solid fa-bolt"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold m-0">Proceso de Liquidación Masiva</h3>
+            <p class="text-xs text-blue-200 m-0 mt-0.5">Expedición masiva de recibos tributarios oficiales</p>
+          </div>
+        </div>
+        <button (click)="facade.cerrarModalMasivo()" type="button" class="text-slate-300 hover:text-white bg-transparent border-none text-xl cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- CONTENIDO DEL MODAL CON SCROLL -->
+      <div class="p-6 overflow-y-auto flex-1 space-y-4">
+        @if (facade.resultadoMasivo()) {
+          <!-- RESULTADO EXITOSO DE LA LIQUIDACIÓN MASIVA -->
+          <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-5 mb-5 text-center">
+            <i class="fa-solid fa-circle-check text-4xl text-emerald-600 mb-2"></i>
+            <h4 class="text-lg font-bold text-emerald-950 m-0">Liquidación Masiva Completada</h4>
+            <p class="text-xs text-emerald-800 mt-1 mb-0">{{ facade.resultadoMasivo()?.mensaje }}</p>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-center">
+              <div class="text-[10.5px] font-bold text-slate-500 uppercase">Vehículos</div>
+              <div class="text-2xl font-black text-slate-900 mt-1">{{ facade.resultadoMasivo()?.totalVehiculosProcesados }}</div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-center">
+              <div class="text-[10.5px] font-bold text-slate-500 uppercase">Vigencias</div>
+              <div class="text-2xl font-black text-blue-900 mt-1">{{ facade.resultadoMasivo()?.totalVigenciasLiquidadas }}</div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-center">
+              <div class="text-[10.5px] font-bold text-slate-500 uppercase">Recaudo Oficial</div>
+              <div class="text-2xl font-black text-emerald-700 mt-1">${{ facade.resultadoMasivo()?.totalRecaudoGenerado | number:'1.0-0' }}</div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4 border-t border-slate-200">
+            <button
+              (click)="facade.cerrarModalMasivo()"
+              type="button"
+              class="px-5 py-2.5 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 border-none cursor-pointer">
+              Finalizar y Cerrar
+            </button>
+          </div>
+        } @else {
+          <!-- PRE-REVISIÓN Y ALCANCE DEL LOTE MASIVO -->
+          <div class="bg-blue-50/80 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+            <i class="fa-solid fa-clipboard-check text-blue-700 text-xl mt-0.5"></i>
+            <div class="text-xs text-blue-950 flex-1">
+              <div class="flex items-center justify-between mb-1">
+                <p class="font-extrabold text-blue-900 m-0 text-xs flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Resumen de Pre-Revisión del Lote Masivo:</p>
+                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 uppercase">
+                  En Revisión
+                </span>
+              </div>
+              @if (facade.selectedPlacas().length > 0) {
+                <p class="m-0 text-slate-700">Se expedirá la liquidación oficial únicamente para los <strong>{{ facade.selectedPlacas().length }} vehículos seleccionados</strong>:</p>
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                  @for (p of facade.selectedPlacas(); track p) {
+                    <span class="co-plate !text-[11px] !py-0.5 !px-2">{{ p }}</span>
+                  }
+                </div>
+              } @else {
+                <p class="m-0 text-slate-700">Se procesará la determinación masiva oficial de <strong>toda la cartera de vehículos pendientes</strong> en el parque automotor.</p>
+              }
+            </div>
+          </div>
+
+          <!-- DESGLOSE INTERACTIVO DE VALORES LIQUIDABLES DEL LOTE -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div class="flex flex-wrap items-center justify-between border-b border-slate-200 pb-3 mb-3 gap-3">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-blue-900 text-sm"></i>
+                <h4 class="text-xs font-extrabold text-slate-900 uppercase tracking-wide m-0">
+                  Pre-Revisión Desglosada de Cartera
+                </h4>
+              </div>
+
+              <!-- CONTROLES MAESTROS -->
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] font-bold text-slate-600 uppercase">Vigencia a Liquidar:</span>
+                  <select
+                    [ngModel]="facade.vigenciaFiltroMasivo()"
+                    (ngModelChange)="facade.setVigenciaFiltroMasivo($event)"
+                    class="h-7 px-2.5 text-xs font-bold text-slate-700 bg-white border border-slate-300 rounded-md shadow-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer">
+                    <option [value]="0">Todas las Vigencias Habilitadas</option>
+                    <option [value]="2026">Solo Vigencia 2026</option>
+                    <option [value]="2025">Solo Vigencia 2025</option>
+                    <option [value]="2024">Solo Vigencia 2024</option>
+                  </select>
+                </div>
+
+                <div class="text-right">
+                  <span class="text-[10px] font-extrabold text-slate-500 block uppercase">TOTAL LOTE PROYECTADO</span>
+                  <span class="text-base font-black text-emerald-700">
+                    ${{ facade.totalLoteMasivoProyectado() | number:'1.0-0' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            @if (facade.loadingPreSimulacionMasiva()) {
+              <div class="py-8 text-center text-slate-500">
+                <i class="fa-solid fa-spinner fa-spin text-2xl text-blue-900 mb-2"></i>
+                <p class="text-xs font-bold m-0">Consultando motor tributario y calculando valores desglosados del lote...</p>
+              </div>
+            } @else if (facade.preSimulacionesMasivo().length > 0) {
+              <div class="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                @for (sim of facade.preSimulacionesMasivo(); track sim.placa) {
+                  <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-xs">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2.5">
+                        <span class="co-plate !text-[11px] !py-0.5 !px-2">{{ sim.placa }}</span>
+                        <div>
+                          <span class="text-xs font-bold text-slate-900 block">{{ sim.marca }} {{ sim.linea }}</span>
+                          <span class="text-[10.5px] text-slate-500">Mod. {{ sim.modelo }} · {{ sim.propietarioNombre }}</span>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-3">
+                        <div class="text-right">
+                          <span class="text-[9.5px] text-slate-400 font-bold block uppercase">Subtotal Vehículo</span>
+                          <span class="text-xs font-black text-slate-900">
+                            ${{ facade.calcularSubtotalSimulacion(sim) | number:'1.0-0' }}
+                          </span>
+                        </div>
+                        <button
+                          (click)="facade.toggleExpandirVehiculoMasivo(sim.placa)"
+                          type="button"
+                          class="px-2.5 py-1 rounded text-[10.5px] font-bold bg-blue-50 text-blue-900 hover:bg-blue-100 border border-blue-200 cursor-pointer flex items-center gap-1">
+                          <i class="fa-solid" [class.fa-chevron-down]="facade.vehiculoExpandidoMasivo() !== sim.placa" [class.fa-chevron-up]="facade.vehiculoExpandidoMasivo() === sim.placa"></i>
+                          {{ facade.vehiculoExpandidoMasivo() === sim.placa ? 'Ocultar' : 'Inspeccionar' }}
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- DETALLE DESGLOSADO POR VIGENCIAS -->
+                    @if (facade.vehiculoExpandidoMasivo() === sim.placa) {
+                      <div class="mt-2.5 pt-2.5 border-t border-slate-100 overflow-x-auto">
+                        <table class="w-full text-left text-[11px] border-collapse">
+                          <thead>
+                            <tr class="bg-slate-100 text-slate-700 font-extrabold border-b border-slate-200 uppercase text-[10px]">
+                              <th class="py-2 px-2.5 text-center w-8">
+                                <i class="fa-solid fa-check text-slate-500"></i>
+                              </th>
+                              <th class="py-2 px-2.5">Vigencia</th>
+                              <th class="py-2 px-2.5 text-right">Base Gravable</th>
+                              <th class="py-2 px-2 text-center">Tarifa</th>
+                              <th class="py-2 px-2.5 text-right">Impuesto</th>
+                              <th class="py-2 px-2.5 text-right">Descuento</th>
+                              <th class="py-2 px-2.5 text-right">Sanción Mora</th>
+                              <th class="py-2 px-2.5 text-right">Intereses</th>
+                              <th class="py-2 px-2.5 text-right text-blue-900">Sistematización</th>
+                              <th class="py-2 px-2.5 text-right">Total Vigencia</th>
+                              <th class="py-2 px-2.5 text-center">Estado</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @for (v of sim.vigencias; track v.anio) {
+                              <tr [class]="'border-b border-slate-100 transition-colors ' + (v.parametrosFaltantesEnDb ? 'bg-amber-50/40 text-amber-900 opacity-75' : (((facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio)) ? 'bg-emerald-50/30 hover:bg-emerald-50/60' : 'hover:bg-slate-50 opacity-60'))">
+                                <td class="py-2 px-2.5 text-center">
+                                  <input
+                                    type="checkbox"
+                                    [disabled]="v.parametrosFaltantesEnDb || v.totalVigencia === 0"
+                                    [checked]="(facade.selectedVigenciasMasivasMap()[sim.placa] || []).includes(v.anio) && !v.parametrosFaltantesEnDb"
+                                    (change)="facade.toggleVigenciaMasivaVehiculo(sim.placa, v.anio)"
+                                    class="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+                                  />
+                                </td>
+                                <td class="py-2 px-2.5 font-bold text-slate-900">{{ v.anio }}</td>
+                                @if (!v.parametrosFaltantesEnDb && v.totalVigencia > 0) {
+                                  <td class="py-2 px-2.5 text-right text-slate-700">${{ v.baseGravableAvaluo | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2 text-center font-semibold text-slate-600">{{ v.tarifaPorcentaje | number:'1.1-1' }}%</td>
+                                  <td class="py-2 px-2.5 text-right font-bold text-slate-900">${{ v.valorImpuestoNominal | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2.5 text-right text-emerald-700 font-medium">{{ v.descuentoProntoPago > 0 ? '-$' + (v.descuentoProntoPago | number:'1.0-0') : '$0' }}</td>
+                                  <td class="py-2 px-2.5 text-right text-amber-700 font-semibold">${{ v.sancionExtemporaneidad | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2.5 text-right text-red-700 font-semibold">${{ v.interesesMora | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2.5 text-right font-bold text-blue-900">${{ (v.derechossistematizacion || v.derechosSistematizacion || 0) | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2.5 text-right font-extrabold text-slate-900 text-xs">${{ v.totalVigencia | number:'1.0-0' }}</td>
+                                  <td class="py-2 px-2.5 text-center">
+                                    <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-red-100 text-red-800">EN MORA</span>
+                                  </td>
+                                } @else {
+                                  <td colspan="8" class="py-2 px-2.5 text-center text-amber-800 font-bold italic text-[10.5px]">
+                                    <i class="fa-solid fa-ban text-amber-700 mr-1"></i> NO LIQUIDABLE (Faltan Parámetros/Avalúos en BD)
+                                  </td>
+                                  <td class="py-2 px-2.5 text-center">
+                                    <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-amber-100 text-amber-900 border border-amber-300">SIN DATOS BD</span>
+                                  </td>
+                                }
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex items-center justify-between text-xs">
+            <span class="text-slate-600 font-medium">Modo de Proceso: <strong class="text-emerald-700 uppercase font-extrabold">Determinación Tributaria Oficial</strong></span>
+            <span class="text-slate-600 font-medium">Garantía: <strong class="text-slate-800 font-bold">Cero Datos Ficticios · Validación Estricta de BD</strong></span>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+            <button
+              (click)="facade.cerrarModalMasivo()"
+              [disabled]="facade.ejecutandoMasivo()"
+              type="button"
+              class="px-4 py-2.5 rounded-lg text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 cursor-pointer">
+              Cancelar
+            </button>
+            <button
+              (click)="facade.ejecutarLiquidacionMasiva()"
+              [disabled]="facade.ejecutandoMasivo()"
+              type="button"
+              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-xs font-bold bg-[#70b238] hover:bg-[#5f972f] text-white border-none cursor-pointer shadow-sm disabled:opacity-50">
+              @if (facade.ejecutandoMasivo()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Procesando Determinación Masiva...
+              } @else {
+                <i class="fa-solid fa-bolt mr-1"></i>
+                Confirmar y Liquidar Masivamente
+              }
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}

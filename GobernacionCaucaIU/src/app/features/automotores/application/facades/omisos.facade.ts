@@ -202,10 +202,10 @@ export class OmisosFacade {
         '/liquidaciones/omisos', { params: omisosParams }, 'AUTOMOTORES'
       )
       .pipe(
-        // ── Fallback: si falla /omisos recae sobre /pendientes ──────────
+        // ── Fallback: si falla /omisos recae sobre /liquidaciones ──────────
         catchError(() =>
           this.api.get<ApiResponse<PagedResultOmisos<any>>>(
-            '/liquidaciones/pendientes', { params: fallbackParams }, 'AUTOMOTORES'
+            '/liquidaciones', { params: { ...fallbackParams, tab: 'pendientes' } }, 'AUTOMOTORES'
           ).pipe(
             map(res => {
               if (res?.data?.items) {
