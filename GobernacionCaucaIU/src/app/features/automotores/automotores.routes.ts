@@ -56,6 +56,10 @@ export const automotoresRoutes: Routes = [
         component: ContribuyentesIndex
       },
       {
+        path: 'novedades',
+        loadComponent: () => import('./presentation/pages/novedades/novedades').then(m => m.NovedadesPage)
+      },
+      {
         path: 'liquidaciones',
         component: LiquidacionesPage
       },

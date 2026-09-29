@@ -1,6 +1,6 @@
 export interface ConsultaVehicularRequest {
-  tipoDocumento: number;
-  numeroDocumento: string;
+  tipoDocumento?: number;
+  numeroDocumento?: string;
   placa: string;
 }
 

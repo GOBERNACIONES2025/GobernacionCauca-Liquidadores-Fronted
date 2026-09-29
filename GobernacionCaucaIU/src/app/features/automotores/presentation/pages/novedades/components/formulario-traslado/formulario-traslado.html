@@ -1,0 +1,165 @@
+<div class="space-y-4">
+  
+  <!-- 1. DATOS DE ORIGEN (AUTO-COMPLETADOS) -->
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+    <div class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+      <i class="fa-solid fa-map-pin text-blue-900"></i>
+      1. Datos de Origen (Auto-completados desde /api/vehiculos)
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Organismo de Tránsito Origen</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().organismoOrigen || 'Secretaría de Tránsito de Popayán' }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Municipio / Jurisdicción Origen</span>
+        <span class="font-bold text-slate-800 mt-0.5 block">{{ form().municipioOrigen || 'Popayán' }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Estado de Paz y Salvo</span>
+        <span class="inline-flex items-center gap-1 font-bold text-emerald-700 mt-0.5">
+          <i class="fa-solid fa-circle-check text-emerald-500"></i> Verificado y Al Día
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DATOS DEL ORGANISMO DESTINO -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3.5 flex items-center gap-1.5">
+      <i class="fa-solid fa-paper-plane text-blue-900"></i>
+      2. Datos del Organismo Destino y Radicación
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+      <!-- Organismo Destino -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Organismo de Tránsito Destino <span class="text-red-500">*</span>
+        </label>
+        <app-searchable-select
+          [items]="organismosTransito()"
+          [(ngModel)]="form().organismoDestinoId"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Seleccione o busque organismo..."
+        />
+      </div>
+
+      <!-- Motivo de Traslado -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Motivo del Traslado <span class="text-red-500">*</span>
+        </label>
+        <app-searchable-select
+          [items]="motivosTraslado"
+          [(ngModel)]="form().motivo"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Seleccione motivo..."
+        />
+      </div>
+
+      <!-- Número de Resolución / Oficio -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          N° de Resolución / Oficio de Traslado <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="form().numeroResolucion"
+          placeholder="Ej: RES-TRANS-2026-051"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+        />
+      </div>
+
+      <!-- Fecha de Solicitud -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Fecha de Radicación / Oficio <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="form().fechaSolicitud"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition cursor-pointer"
+        />
+      </div>
+
+      <!-- Paz y Salvo Departamental -->
+      <div class="flex items-center sm:pt-6">
+        <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            [(ngModel)]="form().pazYSalvoVerificado"
+            class="w-4 h-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+          />
+          <span class="text-xs font-bold text-slate-700">Paz y Salvo Departamental Confirmado</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="mt-4">
+      <label class="block text-xs font-bold text-slate-700 mb-1.5">Observaciones de Traslado</label>
+      <textarea
+        [(ngModel)]="form().observaciones"
+        rows="2"
+        placeholder="Detalles sobre el traslado de expediente..."
+        class="w-full p-3 text-xs font-medium text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition resize-y min-h-[70px]"
+      ></textarea>
+    </div>
+  </div>
+
+  <!-- 3. CARGA DE ANEXO / SOPORTE DOCUMENTAL (TRASLADO) -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center justify-between">
+      <span class="flex items-center gap-1.5">
+        <i class="fa-solid fa-paperclip text-blue-600"></i>
+        3. Cargar Soporte / Anexo del Traslado
+      </span>
+      @if (anexo(); as a) {
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i> Anexado
+        </span>
+      }
+    </div>
+
+    <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl bg-slate-50 hover:bg-blue-50/40 p-4 transition-all">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="flex-1">
+          <label class="block text-[11.5px] text-slate-600 mb-1.5 font-medium">
+            Adjunte la resolución de traslado, oficio admisorio o paz y salvo departamental (PDF, PNG, JPG - Máx. 10MB)
+          </label>
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.docx"
+            (change)="onFileChange($event)"
+            class="block w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#0F3067] file:text-white hover:file:bg-[#162c60] file:cursor-pointer cursor-pointer"
+          />
+        </div>
+
+        @if (anexo(); as a) {
+          <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg shrink-0 shadow-xs">
+            <i class="fa-solid fa-file-pdf text-red-500 text-base"></i>
+            <div class="text-left">
+              <span class="text-xs font-bold text-slate-800 block truncate max-w-[200px]" [title]="a.nombre">{{ a.nombre }}</span>
+              <span class="text-[10.5px] text-slate-500 font-medium">{{ a.tamano }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="removerAnexo()"
+              class="text-slate-400 hover:text-red-600 p-1 transition cursor-pointer"
+              title="Quitar anexo"
+            >
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+</div>
