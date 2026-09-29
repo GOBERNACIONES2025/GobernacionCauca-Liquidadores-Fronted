@@ -63,7 +63,7 @@
       <p class="text-[11px] text-slate-400 mt-1">Monto: {{ montoPagado() | currency:'COP':'symbol-narrow':'1.0-0' }}</p>
     </div>
 
-    <!-- KPI 3: Por Vencer / Vencidas (Alerta de Plazos) -->
+        <!-- KPI 3: Por Vencer (Alerta Preventiva) -->
     <div 
       (click)="cambiarPestana('por-vencer')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
@@ -72,20 +72,20 @@
         : 'border-slate-200 hover:border-amber-300 hover:shadow-xs'"
     >
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Atención Plazos</span>
+        <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Por Vencer</span>
         <span class="p-2 rounded-xl bg-amber-50 text-amber-600 group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-calendar-xmark text-sm"></i>
+          <i class="fa-solid fa-hourglass-half text-sm"></i>
         </span>
       </div>
       <div class="mt-2 flex items-baseline gap-2">
         <span class="text-2xl font-black text-amber-600">{{ kpiPorVencer() }}</span>
         @if (kpiPorVencer() > 0) {
-          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 animate-pulse">
-            Alerta
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
+            Próximas (1-5d)
           </span>
         }
       </div>
-      <p class="text-[11px] text-slate-400 mt-1">Evite intereses moratorios</p>
+      <p class="text-[11px] text-slate-400 mt-1">Plazo preventivo para pago</p>
     </div>
 
     <!-- KPI 4: En Trámite de Reliquidación -->
@@ -108,24 +108,29 @@
       <p class="text-[11px] text-slate-400 mt-1">Aclaraciones fiscales</p>
     </div>
 
-    <!-- KPI 5: Anuladas / Canceladas -->
+        <!-- KPI 5: Vencidas (Mora Diaria) -->
     <div 
-      (click)="cambiarPestana('anuladas')"
+      (click)="cambiarPestana('vencidas')"
       class="bg-white p-4 rounded-2xl border transition-all cursor-pointer select-none group relative overflow-hidden"
-      [class]="activeTab() === 'anuladas' 
-        ? 'border-slate-600 ring-2 ring-slate-600/20 shadow-md shadow-slate-600/5' 
-        : 'border-slate-200 hover:border-slate-400 hover:shadow-xs'"
+      [class]="activeTab() === 'vencidas' 
+        ? 'border-rose-500 ring-2 ring-rose-500/20 shadow-md shadow-rose-500/5' 
+        : 'border-slate-200 hover:border-rose-300 hover:shadow-xs'"
     >
       <div class="flex items-center justify-between">
-        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Anuladas</span>
-        <span class="p-2 rounded-xl bg-slate-100 text-slate-600 group-hover:scale-110 transition-transform">
-          <i class="fa-solid fa-ban text-sm"></i>
+        <span class="text-xs font-bold uppercase tracking-wider text-rose-700">Vencidas</span>
+        <span class="p-2 rounded-xl bg-rose-50 text-rose-600 group-hover:scale-110 transition-transform">
+          <i class="fa-solid fa-calendar-xmark text-sm"></i>
         </span>
       </div>
       <div class="mt-2 flex items-baseline gap-2">
-        <span class="text-2xl font-black text-slate-700">{{ kpiAnuladas() }}</span>
+        <span class="text-2xl font-black text-rose-600">{{ kpiVencidas() }}</span>
+        @if (kpiVencidas() > 0) {
+          <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-800 animate-pulse">
+            Mora Diaria
+          </span>
+        }
       </div>
-      <p class="text-[11px] text-slate-400 mt-1">Sin efecto legal</p>
+      <p class="text-[11px] text-slate-400 mt-1">Requiere reliquidación o anulación</p>
     </div>
   </div>
 
@@ -163,15 +168,26 @@
       <span>Pagadas ({{ kpiPagadas() }})</span>
     </button>
 
-    <!-- Por Vencer o Vencidas -->
+    <!-- Por Vencer (1 a 5 días) -->
     <button
       (click)="cambiarPestana('por-vencer')"
       [class]="activeTab() === 'por-vencer' 
         ? 'inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white font-bold text-xs rounded-xl shadow-xs' 
         : 'inline-flex items-center gap-2 px-4 py-2 bg-white text-amber-700 hover:bg-amber-50 font-medium text-xs rounded-xl border border-amber-200 transition'"
     >
+      <i class="fa-solid fa-hourglass-half text-[11px]"></i>
+      <span>Por Vencer ({{ kpiPorVencer() }})</span>
+    </button>
+
+    <!-- Vencidas (Mora Diaria) -->
+    <button
+      (click)="cambiarPestana('vencidas')"
+      [class]="activeTab() === 'vencidas' 
+        ? 'inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white font-bold text-xs rounded-xl shadow-xs' 
+        : 'inline-flex items-center gap-2 px-4 py-2 bg-white text-rose-700 hover:bg-rose-50 font-medium text-xs rounded-xl border border-rose-200 transition'"
+    >
       <i class="fa-solid fa-calendar-xmark text-[11px]"></i>
-      <span>Por Vencer / Vencidas ({{ kpiPorVencer() }})</span>
+      <span>Vencidas ({{ kpiVencidas() }})</span>
     </button>
 
     <!-- En Trámite de Reliquidación -->
@@ -210,11 +226,21 @@
     </div>
   } @else if (activeTab() === 'por-vencer') {
     <div class="p-3.5 bg-amber-50/90 border border-amber-200 rounded-2xl flex items-start gap-3 text-amber-900 text-xs">
-      <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base mt-0.5 shrink-0"></i>
+      <i class="fa-solid fa-hourglass-half text-amber-600 text-base mt-0.5 shrink-0"></i>
       <div>
-        <span class="font-bold">Monitoreo de Plazos Fiscales:</span>
+        <span class="font-bold">Plazo Preventivo de Pago (Próximas a Vencer):</span>
         <p class="mt-0.5 text-amber-800 leading-relaxed">
-          Los títulos listados a continuación tienen un plazo inferior a 5 días o ya han vencido. Para evitar intereses de mora diarios establecidos en el Estatuto de Rentas del Departamento del Cauca, descargue el recibo para pago oportuno o solicite una reliquidación si procede alguna aclaración.
+          Títulos oficiales con plazo igual o inferior a 5 días. Realice el pago oportuno o adjunte el comprobante antes de su vencimiento para evitar intereses moratorios diarios.
+        </p>
+      </div>
+    </div>
+  } @else if (activeTab() === 'vencidas') {
+    <div class="p-3.5 bg-rose-50/90 border border-rose-200 rounded-2xl flex items-start gap-3 text-rose-900 text-xs">
+      <i class="fa-solid fa-circle-exclamation text-rose-600 text-base mt-0.5 shrink-0"></i>
+      <div>
+        <span class="font-bold">Liquidaciones Vencidas (Estatuto Tributario Nacional Arts. 634 y 635):</span>
+        <p class="mt-0.5 text-rose-800 leading-relaxed">
+          El plazo legal para pago oportuno de estos títulos ha expirado. Conforme a la normativa tributaria colombiana y departamental, <strong>no es procedente recibir ni registrar pago directo con el valor original</strong>, ya que se generan intereses de mora diarios. Para habilitar el pago debe tramitar una <strong>Reliquidación</strong> con corte de mora actualizado o solicitar la <strong>Anulación</strong> del título si no procede el registro.
         </p>
       </div>
     </div>
@@ -359,17 +385,17 @@
                   </td>
                 } @else if (activeTab() === 'por-vencer') {
                   <td class="py-3.5 px-4 text-center">
-                    @if (item.estaVencida) {
-                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 animate-pulse">
-                        <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
-                        Vencida (Mora Diaria)
-                      </span>
-                    } @else {
-                      <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                        Vence en {{ item.diasParaVencer }}d
-                      </span>
-                    }
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                      Vence en {{ item.diasParaVencer }}d
+                    </span>
+                  </td>
+                } @else if (activeTab() === 'vencidas') {
+                  <td class="py-3.5 px-4 text-center">
+                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200 animate-pulse">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                      Vencida (Mora Diaria)
+                    </span>
                   </td>
                 } @else {
                   <td class="py-3.5 px-4 text-center">
@@ -464,8 +490,41 @@
                     >
                       <i class="fa-solid fa-file-pdf"></i>
                     </button>
+                                    } @else if (item.estaVencida) {
+                    <!-- Liquidación Vencida: Según norma colombiana NO se permite subir soporte de pago directo -->
+                    <button
+                      (click)="abrirModalReliquidacion(item)"
+                      class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-xs transition active:scale-[0.98] cursor-pointer"
+                      title="Reliquidar título con cálculo de intereses de mora diarios"
+                    >
+                      <i class="fa-solid fa-rotate"></i>
+                      <span>Reliquidar</span>
+                    </button>
+
+                    <button
+                      (click)="abrirModalAnulacion(item)"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl transition cursor-pointer"
+                      title="Solicitar anulación formal motivada"
+                    >
+                      <i class="fa-solid fa-ban"></i>
+                      <span>Anular</span>
+                    </button>
+
+                    <button
+                      (click)="descargarPdf(item.id)"
+                      class="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+                      [disabled]="isDownloadingId() === item.id"
+                      title="Descargar liquidación vencida"
+                    >
+                      @if (isDownloadingId() === item.id) {
+                        <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                      } @else {
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>PDF</span>
+                      }
+                    </button>
                   } @else {
-                    <!-- Liquidación Activa Pendiente de Pago -->
+                    <!-- Liquidación Vigente Pendiente de Pago -->
                     <button
                       (click)="abrirModalPago(item)"
                       class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-xs transition active:scale-[0.98] cursor-pointer"

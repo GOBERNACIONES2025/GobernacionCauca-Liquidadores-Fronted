@@ -14,7 +14,7 @@ import { TableSearchComponent } from '../../../shared/components/table-search/ta
 
 import { MediosPagoFacade } from '../../../../application/facades/Pagos/medios-pago.facade';
 
-export type TabLiquidacion = 'todas' | 'vigentes' | 'pagadas' | 'por-vencer' | 'reliquidacion' | 'anuladas';
+export type TabLiquidacion = 'todas' | 'vigentes' | 'pagadas' | 'por-vencer' | 'vencidas' | 'reliquidacion' | 'anuladas';
 
 @Component({
   selector: 'app-entidades-liquidaciones',
@@ -102,7 +102,16 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   kpiPorVencer = computed(() => {
     return this.allLiquidaciones().filter(item => 
       !this.esPagada(item) &&
-      (item.estaVencida || (item.diasParaVencer !== undefined && item.diasParaVencer <= 5)) &&
+      !item.estaVencida &&
+      (item.diasParaVencer !== undefined && item.diasParaVencer >= 0 && item.diasParaVencer <= 5) &&
+      !this.esAnulada(item)
+    ).length;
+  });
+
+  kpiVencidas = computed(() => {
+    return this.allLiquidaciones().filter(item => 
+      !this.esPagada(item) &&
+      item.estaVencida &&
       !this.esAnulada(item)
     ).length;
   });
@@ -158,7 +167,15 @@ export class EntidadesLiquidacionesComponent implements OnInit {
       case 'por-vencer':
         return list.filter(item => 
           !this.esPagada(item) &&
-          (item.estaVencida || (item.diasParaVencer !== undefined && item.diasParaVencer <= 5)) &&
+          !item.estaVencida &&
+          (item.diasParaVencer !== undefined && item.diasParaVencer >= 0 && item.diasParaVencer <= 5) &&
+          !this.esAnulada(item)
+        );
+
+      case 'vencidas':
+        return list.filter(item => 
+          !this.esPagada(item) &&
+          item.estaVencida &&
           !this.esAnulada(item)
         );
 
@@ -480,6 +497,10 @@ export class EntidadesLiquidacionesComponent implements OnInit {
 
   // --- GESTIÓN DE RECAUDO Y COMPROBANTES DE PAGO ---
   abrirModalPago(liq: LiquidacionListadoDto): void {
+    if (liq.estaVencida) {
+      this.toast.warning('Esta liquidación está VENCIDA. Conforme al Estatuto Tributario, no es procedente registrar el pago sin liquidación de intereses moratorios diarios. Proceda a Reliquidar o Anular.');
+      return;
+    }
     this.selectedLiquidacion.set(liq);
     this.pagoValor.set(liq.totales?.totalPagar || 0);
     this.pagoReferencia.set('');
