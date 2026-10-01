@@ -70,6 +70,7 @@ export interface ConsultaGuiaRequest {
 
 export interface PlantaBeneficio {
   id: string;
+  idPlanta?: number;
   codigoInvima: string;
   nombre: string;
   municipio: string;
@@ -77,6 +78,12 @@ export interface PlantaBeneficio {
   capacidadDiariaCabezas: number;
   esActiva: boolean;
   telefono: string;
+  nit?: string;
+  claveAcceso?: string;
+  emailOficial?: string;
+  representanteLegal?: string;
+  docRepresentante?: string;
+  esFrigorificoRegional?: boolean;
 }
 
 export interface ParametrosDeguello {

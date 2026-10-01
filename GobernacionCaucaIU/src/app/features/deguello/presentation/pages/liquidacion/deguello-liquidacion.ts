@@ -137,6 +137,28 @@ export class DeguelloLiquidacionComponent implements OnInit {
     const edicion = this.deguelloService.declaracionEnEdicion();
     if (edicion) {
       this.cargarParaReliquidacion(edicion);
+    } else {
+      // 3. Si viene del Portal de la Empresa autenticada, precargar automáticamente los datos tributarios
+      const empresa = this.deguelloService.empresaAutenticada();
+      if (empresa) {
+        this.cargarDatosEmpresa(empresa);
+      }
+    }
+  }
+
+  cargarDatosEmpresa(empresa: PlantaBeneficio): void {
+    this.formGeneracion.nit = (empresa.nit || '').replace(/\D/g, '');
+    this.formGeneracion.dv = '9';
+    this.formGeneracion.razonSocial = empresa.nombre || '';
+    this.formGeneracion.municipio = empresa.municipio || 'POPAYÁN';
+    this.formGeneracion.direccionNotificacion = empresa.direccion || '';
+    this.formGeneracion.telefonoFijo = empresa.telefono || '';
+    this.formGeneracion.plantaBeneficio = empresa.nombre || '';
+    if (empresa.representanteLegal) {
+      this.formGeneracion.nombreRepresentante = empresa.representanteLegal;
+    }
+    if (empresa.docRepresentante) {
+      this.formGeneracion.numeroDocRepresentante = empresa.docRepresentante;
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject } from '@angular/core';
+import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -6,7 +6,7 @@ import {
   ConsultaCiudadanaSharedComponent, 
   ConsultaSubmitPayload 
 } from '../../../../../shared/components/consulta-ciudadana/consulta-ciudadana-shared';
-import { DeclaracionDeguelloData } from '../../../domain/models/deguello.model';
+import { DeclaracionDeguelloData, PlantaBeneficio } from '../../../domain/models/deguello.model';
 import { DeguelloService } from '../../../infrastructure/services/deguello.service';
 import { FacturaModalComponent } from '../../components/factura-modal/factura-modal';
 
@@ -22,9 +22,56 @@ import { FacturaModalComponent } from '../../components/factura-modal/factura-mo
   ],
   templateUrl: './deguello-portal-ciudadano.html',
 })
-export class DeguelloPortalCiudadanoComponent {
+export class DeguelloPortalCiudadanoComponent implements OnInit {
   private deguelloService = inject(DeguelloService);
   private router = inject(Router);
+
+  /** Modo de vista: 'login' (Autogestión PBA) | 'dashboard' (Portal Empresa) | 'consulta_publica' (Puntual ICA) */
+  readonly modoVista = signal<'login' | 'dashboard' | 'consulta_publica'>('login');
+
+  /** Formulario de Login Genérico */
+  readonly loginNit = signal<string>('900823411');
+  readonly loginClave = signal<string>('123456');
+  readonly loginError = signal<string>('');
+
+  /** Empresa autenticada en el servicio */
+  readonly empresaActiva = computed(() => this.deguelloService.empresaAutenticada());
+
+  /** Catálogo de plantas demo autorizadas para acceso rápido en 1 clic */
+  readonly plantasDemo = [
+    {
+      nombre: 'Frigorífico Regional de Popayán S.A.S.',
+      nit: '900823411',
+      municipio: 'POPAYÁN',
+      invima: 'INV-PBA-19001',
+      capacidad: 120,
+      icono: 'fa-building-columns'
+    },
+    {
+      nombre: 'Planta de Beneficio Animal Regional Patía',
+      nit: '10548920',
+      municipio: 'PATÍA - EL BORDO',
+      invima: 'INV-PBA-19517',
+      capacidad: 60,
+      icono: 'fa-wheat-awn'
+    },
+    {
+      nombre: 'Frigorífico Santander de Quilichao',
+      nit: '76321450',
+      municipio: 'SANTANDER DE QUILICHAO',
+      invima: 'INV-PBA-19698',
+      capacidad: 85,
+      icono: 'fa-industry'
+    },
+    {
+      nombre: 'Matadero Municipal de Bolívar',
+      nit: '891500987',
+      municipio: 'BOLÍVAR',
+      invima: 'INV-PBA-19100',
+      capacidad: 40,
+      icono: 'fa-mountain'
+    }
+  ];
 
   /** Control de visualización */
   readonly isConsulted = signal<boolean>(false);
@@ -42,18 +89,27 @@ export class DeguelloPortalCiudadanoComponent {
   /** Declaración activa para visualizar/imprimir en el modal */
   readonly declaracionSeleccionadaParaFactura = signal<DeclaracionDeguelloData | null>(null);
 
-  /** MODAL DE PAGO EN LÍNEA PSE */
-  readonly declaracionParaPse = signal<DeclaracionDeguelloData | null>(null);
-  readonly tipoPersonaPse = signal<'JURIDICA' | 'NATURAL'>('JURIDICA');
-  readonly bancoPse = signal<string>('Bancolombia');
-  readonly nombrePagadorPse = signal<string>('');
-  readonly docPagadorPse = signal<string>('');
-  readonly emailPse = signal<string>('pagos@contribuyente.com');
-  readonly procesandoPse = signal<boolean>(false);
-  readonly ticketPseExitoso = signal<{ cus: string; banco: string; fecha: string; valor: number; consecutivo: string; autorizacion: string } | null>(null);
-
-  /** Información del contribuyente a partir de los resultados */
+  /** Información del contribuyente a partir de la empresa o de los resultados */
   readonly contribuyenteInfo = computed(() => {
+    const emp = this.empresaActiva();
+    if (emp) {
+      return {
+        razonSocial: emp.nombre,
+        nit: emp.nit || '',
+        dv: '9',
+        municipio: emp.municipio,
+        direccion: emp.direccion,
+        telefono: emp.telefono,
+        representante: emp.representanteLegal || 'REPRESENTANTE LEGAL REGISTRADO',
+        docRepresentante: emp.docRepresentante || emp.nit || '',
+        emailOficial: emp.emailOficial || `tributario@${(emp.nit || 'cauca')}.gov.co`,
+        codigoInvima: emp.codigoInvima || 'INV-PBA-CAUCA',
+        capacidadDiaria: emp.capacidadDiariaCabezas || 60,
+        esFrigorifico: !!emp.esFrigorificoRegional,
+        predioOrigen: 'Predios Autorizados del Departamento del Cauca',
+        plantaBeneficio: emp.nombre
+      };
+    }
     const list = this.declaraciones();
     if (list.length === 0) return null;
     const item = list[0];
@@ -66,6 +122,10 @@ export class DeguelloPortalCiudadanoComponent {
       telefono: item.telefonoFijo,
       representante: item.nombreRepresentante,
       docRepresentante: item.numeroDocRepresentante,
+      emailOficial: '',
+      codigoInvima: '',
+      capacidadDiaria: 0,
+      esFrigorifico: false,
       predioOrigen: item.predioOrigen,
       plantaBeneficio: item.plantaBeneficio,
     };
@@ -120,6 +180,86 @@ export class DeguelloPortalCiudadanoComponent {
     return this.declaraciones().filter((d) => d.estadoPago === estado);
   });
 
+  ngOnInit(): void {
+    const emp = this.deguelloService.empresaAutenticada();
+    if (emp && emp.nit) {
+      this.modoVista.set('dashboard');
+      this.isConsulted.set(true);
+      this.criterioBusqueda.set({
+        doc: emp.nit,
+        guia: '',
+        tipoDoc: 1,
+      });
+      this.recargarDeclaraciones(emp.nit, '');
+    }
+  }
+
+  /** Selección rápida de una de las 4 plantas de beneficio autorizadas en Cauca */
+  seleccionarPlantaDemo(planta: { nit: string }): void {
+    this.loginNit.set(planta.nit);
+    this.iniciarSesion(planta.nit);
+  }
+
+  /** Iniciar sesión genérico de empresa / planta sin validaciones complejas */
+  iniciarSesion(nitOverride?: string): void {
+    const nit = (nitOverride || this.loginNit()).trim();
+    if (!nit) {
+      this.loginError.set('Por favor ingrese el NIT de la planta de beneficio o empresa.');
+      return;
+    }
+
+    this.loginError.set('');
+    this.isLoading.set(true);
+
+    this.deguelloService.loginEmpresa(nit, this.loginClave()).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        if (res.success && res.planta) {
+          this.criterioBusqueda.set({
+            doc: res.planta.nit || nit,
+            guia: '',
+            tipoDoc: 1,
+          });
+          this.modoVista.set('dashboard');
+          this.isConsulted.set(true);
+          this.recargarDeclaraciones(res.planta.nit || nit, '');
+        } else {
+          this.loginError.set(res.message || 'Error al iniciar sesión.');
+        }
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.loginError.set('No se pudo establecer conexión con el servidor.');
+      }
+    });
+  }
+
+  /** Cierre de sesión de la empresa */
+  cerrarSesion(): void {
+    this.deguelloService.setEmpresaAutenticada(null);
+    this.declaraciones.set([]);
+    this.criterioBusqueda.set(null);
+    this.filtroEstado.set('TODAS');
+    this.declaracionSeleccionadaParaFactura.set(null);
+    this.modoVista.set('login');
+    this.isConsulted.set(false);
+  }
+
+  /** Radicar una nueva guía desde el portal de la empresa */
+  radicarNuevaGuia(): void {
+    this.router.navigate(['/deguello/liquidacion']);
+  }
+
+  /** Navegar a la consulta pública por guía ICA */
+  irAConsultaPublica(): void {
+    this.modoVista.set('consulta_publica');
+  }
+
+  /** Volver a la pantalla de login de empresa */
+  volverALogin(): void {
+    this.modoVista.set('login');
+  }
+
   /** Al ejecutar la consulta desde el componente compartido */
   alConsultar(payload: ConsultaSubmitPayload): void {
     this.isLoading.set(true);
@@ -128,11 +268,12 @@ export class DeguelloPortalCiudadanoComponent {
       guia: payload.secondaryValue,
       tipoDoc: payload.tipoDocumento,
     });
-
+    this.modoVista.set('dashboard');
     this.recargarDeclaraciones(payload.numeroDocumento, payload.secondaryValue);
   }
 
   private recargarDeclaraciones(doc: string, guia: string): void {
+    this.isLoading.set(true);
     this.deguelloService
       .consultarDeclaracionesCiudadano(doc, guia)
       .subscribe({
@@ -152,13 +293,12 @@ export class DeguelloPortalCiudadanoComponent {
 
   /** Volver a la pantalla de consulta inicial */
   nuevaConsulta(): void {
-    this.isConsulted.set(false);
-    this.declaraciones.set([]);
-    this.criterioBusqueda.set(null);
-    this.filtroEstado.set('TODAS');
-    this.declaracionSeleccionadaParaFactura.set(null);
-    this.declaracionParaPse.set(null);
-    this.ticketPseExitoso.set(null);
+    if (this.empresaActiva()) {
+      const nit = this.empresaActiva()?.nit || '';
+      this.recargarDeclaraciones(nit, '');
+    } else {
+      this.cerrarSesion();
+    }
   }
 
   /** Cambiar filtro de estado */
@@ -176,73 +316,21 @@ export class DeguelloPortalCiudadanoComponent {
     this.declaracionSeleccionadaParaFactura.set(null);
   }
 
-  // --- FLUJO PASARELA PSE (PAGO EN LÍNEA CIUDADANO/EMPRESA) ---
-  abrirModalPse(d: DeclaracionDeguelloData): void {
-    if (d.estadoPago === 'VENCIDO') {
-      alert(`La liquidación N° ${d.consecutivo} se encuentra VENCIDA. No puede pagarse directamente; debe realizar la reliquidación correspondiente.`);
-      return;
-    }
-    if (d.estadoPago === 'RELIQUIDADA') {
-      alert(`La liquidación N° ${d.consecutivo} fue sustituida por una reliquidación (Inactiva). Debe pagar la nueva liquidación vigente.`);
-      return;
-    }
-    if (d.estadoPago === 'RADICADA') {
-      alert(`La liquidación N° ${d.consecutivo} aún se encuentra en revisión oficial por la Gobernación del Cauca. Una vez sea aprobada podrá proceder al pago con PSE.`);
-      return;
-    }
+  // --- BOTÓN DIRECTO DE PAGO (SIN PANTALLA INTERMEDIA) ---
+  pagar(d: DeclaracionDeguelloData): void {
+    if (d.estadoPago !== 'PENDIENTE') return;
 
-    this.ticketPseExitoso.set(null);
-    this.nombrePagadorPse.set(d.razonSocial);
-    this.docPagadorPse.set(d.nit);
-    this.declaracionParaPse.set(d);
-  }
-
-  cerrarModalPse(): void {
-    if (this.procesandoPse()) return;
-    this.declaracionParaPse.set(null);
-    this.ticketPseExitoso.set(null);
-  }
-
-  confirmarPagoPse(): void {
-    const dec = this.declaracionParaPse();
-    if (!dec) return;
-
-    this.procesandoPse.set(true);
-
-    const cus = Math.floor(100000000 + Math.random() * 900000000).toString();
-    const autorizacion = `AUTH-${Math.floor(100000 + Math.random() * 900000)}`;
-    const reciboPse = `PSE-${cus} (${this.bancoPse()})`;
-
-    // Simulación del débito bancario en línea con PSE (1.2 segundos)
-    setTimeout(() => {
-      this.deguelloService.marcarComoPagada(dec.consecutivo, reciboPse).subscribe({
-        next: (ok) => {
-          this.procesandoPse.set(false);
-          if (ok) {
-            this.ticketPseExitoso.set({
-              cus,
-              banco: this.bancoPse(),
-              fecha: new Date().toLocaleString('es-CO'),
-              valor: dec.totalAPagar,
-              consecutivo: dec.consecutivo,
-              autorizacion,
-            });
-
-            // Refrescar datos en el portal
-            const crit = this.criterioBusqueda();
-            if (crit) {
-              this.recargarDeclaraciones(crit.doc, crit.guia);
-            }
-          } else {
-            alert('No se pudo completar el débito PSE. Verifique que la liquidación esté vigente y habilitada para recaudo.');
+    const ref = `PSE-${Math.floor(100000000 + Math.random() * 900000000)}`;
+    this.deguelloService.marcarComoPagada(d.consecutivo, ref).subscribe({
+      next: (ok) => {
+        if (ok) {
+          const crit = this.criterioBusqueda();
+          if (crit) {
+            this.recargarDeclaraciones(crit.doc, crit.guia);
           }
-        },
-        error: () => {
-          this.procesandoPse.set(false);
-          alert('Error de comunicación con la pasarela bancaria PSE.');
         }
-      });
-    }, 1200);
+      }
+    });
   }
 
   // --- RELIQUIDAR DESDE EL PORTAL CIUDADANO ---

@@ -1,11 +1,279 @@
-@if (!isConsulted()) {
-  <!-- VISTA INICIAL: FORMULARIO COMPARTIDO DE CONSULTA CIUDADANA -->
-  <app-consulta-ciudadana-shared 
-    liquidadorKey="deguello" 
-    (onConsultar)="alConsultar($event)"
-  ></app-consulta-ciudadana-shared>
+@if (modoVista() === 'login') {
+  <!-- VISTA 1: AUTOGESTIÓN DE EMPRESAS Y PLANTAS DE BENEFICIO (LOGIN GENÉRICO) -->
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/20 to-slate-100 text-slate-800 font-sans flex flex-col">
+    <!-- TOPBAR INSTITUCIONAL -->
+    <header class="w-full bg-white border-b border-slate-200 py-3.5 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
+        <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-10 md:h-12 w-auto object-contain select-none" />
+        <div class="flex flex-col border-l border-slate-200 pl-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-[#1b53ad] tracking-tight leading-none uppercase">Portal de Autogestión &middot; Contribuyentes</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">En Línea</span>
+          </div>
+          <span class="text-[11px] text-slate-500 font-semibold leading-none mt-1">Impuesto de Degüello de Ganado Mayor &middot; Departamento del Cauca</span>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-2.5">
+        <button 
+          (click)="irAConsultaPublica()" 
+          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+          title="Consultar únicamente por número de Guía Sanitaria ICA o Consecutivo"
+        >
+          <i class="fa-solid fa-barcode text-xs text-[#1b53ad]"></i>
+          <span>Consulta Guía ICA</span>
+        </button>
+
+        <a 
+          routerLink="/" 
+          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer no-underline"
+          title="Regresar al Inicio"
+        >
+          <i class="fa-solid fa-house text-xs text-slate-500"></i>
+          <span class="hidden sm:inline">Inicio</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- CUERPO PRINCIPAL DEL LOGIN -->
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8 flex flex-col justify-center animate-fadeIn space-y-8 my-auto">
+      
+      <!-- HERO & BIENVENIDA -->
+      <div class="text-center space-y-2 max-w-2xl mx-auto">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100/70 text-[#1b53ad] text-xs font-bold">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Autogestión Oficial de Sujetos Pasivos y Frigoríficos</span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight m-0">
+          Portal del Contribuyente &middot; Degüello Mayor
+        </h1>
+        <p class="text-xs md:text-sm text-slate-600 leading-relaxed m-0">
+          Inicie sesión con el NIT tributario de su planta o empresa para consultar liquidaciones aprobadas, pagar en línea y radicar nuevas guías de sacrificio.
+        </p>
+      </div>
+
+      <!-- GRID PRINCIPAL: TARJETA DE LOGIN + ACCESOS RÁPIDOS DEMO -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        <!-- COLUMNA IZQUIERDA: FORMULARIO DE ACCESO CON NIT -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 flex flex-col justify-between">
+          <div class="space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1b53ad]">
+                  <i class="fa-solid fa-arrow-right-to-bracket text-sm"></i>
+                </div>
+                <div>
+                  <h2 class="text-sm font-black text-slate-800 m-0 uppercase tracking-wide">Inicio de Sesión</h2>
+                  <span class="text-[11px] text-slate-400">Ingreso directo sin validaciones complejas</span>
+                </div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                Fase Demo
+              </span>
+            </div>
+
+            @if (loginError()) {
+              <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
+                <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
+                <span>{{ loginError() }}</span>
+              </div>
+            }
+
+            <form (ngSubmit)="iniciarSesion()" class="space-y-4">
+              <!-- NIT -->
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700">
+                  NIT de la Empresa / Planta de Beneficio <span class="text-rose-500">*</span>
+                </label>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-building text-xs"></i>
+                  </div>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="loginNit" 
+                    name="loginNit"
+                    placeholder="Ej. 900823411" 
+                    required
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-[#1b53ad] focus:ring-2 focus:ring-blue-100 transition outline-none"
+                  />
+                </div>
+                <p class="text-[10.5px] text-slate-400 m-0">Sin guión ni dígito de verificación (Ej: 900823411)</p>
+              </div>
+
+              <!-- CONTRASEÑA -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="block text-xs font-bold text-slate-700">
+                    Contraseña de Acceso <span class="text-rose-500">*</span>
+                  </label>
+                  <span class="text-[10.5px] text-slate-400 font-mono">Por defecto: 123456</span>
+                </div>
+                <div class="relative">
+                  <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-lock text-xs"></i>
+                  </div>
+                  <input 
+                    type="password" 
+                    [(ngModel)]="loginClave" 
+                    name="loginClave"
+                    placeholder="123456" 
+                    required
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-800 placeholder:text-slate-400 focus:bg-white focus:border-[#1b53ad] focus:ring-2 focus:ring-blue-100 transition outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- BOTÓN INICIAR SESIÓN -->
+              <button 
+                type="submit" 
+                [disabled]="isLoading()"
+                class="w-full py-2.5 px-4 bg-[#1b53ad] hover:bg-[#154189] disabled:bg-slate-300 text-white font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer border-none"
+              >
+                @if (isLoading()) {
+                  <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                  <span>Cargando datos de la empresa...</span>
+                } @else {
+                  <i class="fa-solid fa-right-to-bracket text-xs"></i>
+                  <span>Ingresar al Portal del Contribuyente</span>
+                }
+              </button>
+            </form>
+
+            <div class="pt-2 text-center">
+              <button 
+                type="button"
+                (click)="irAConsultaPublica()"
+                class="text-xs text-[#1b53ad] hover:text-[#154189] font-semibold underline bg-transparent border-none cursor-pointer"
+              >
+                &iquest;Desea consultar sólo por Guía Sanitaria ICA sin iniciar sesión?
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-500 space-y-1">
+            <p class="m-0 flex items-center gap-1.5 font-bold text-slate-600">
+              <i class="fa-solid fa-circle-info text-blue-500"></i> Nota informativa:
+            </p>
+            <p class="m-0 leading-relaxed text-[10.5px]">
+              Al ingresar el NIT de la empresa se cargará automáticamente su perfil tributario, estadísticas de sacrificio y el historial de formularios para pago directo.
+            </p>
+          </div>
+        </div>
+
+        <!-- COLUMNA DERECHA: ACCESOS RÁPIDOS CON LAS 4 PLANTAS AUTORIZADAS -->
+        <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                  <i class="fa-solid fa-bolt text-sm"></i>
+                </div>
+                <div>
+                  <h2 class="text-sm font-black text-slate-800 m-0 uppercase tracking-wide">Acceso Rápido (1 Clic)</h2>
+                  <span class="text-[11px] text-slate-400">Plantas de beneficio animal registradas en el Cauca</span>
+                </div>
+              </div>
+              <span class="text-[11px] text-emerald-600 font-bold">4 Autorizadas</span>
+            </div>
+
+            <p class="text-xs text-slate-500 m-0 leading-relaxed">
+              Seleccione cualquiera de las plantas autorizadas para ingresar de inmediato con su NIT precargado:
+            </p>
+
+            <div class="grid grid-cols-1 gap-2.5">
+              @for (p of plantasDemo; track p.nit) {
+                <button
+                  type="button"
+                  (click)="seleccionarPlantaDemo(p)"
+                  class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-[#1b53ad] hover:bg-blue-50/40 bg-slate-50/60 transition group cursor-pointer flex items-center justify-between gap-3"
+                  [title]="'Ingresar como ' + p.nombre"
+                >
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-white border border-slate-200 group-hover:border-blue-200 flex items-center justify-center text-slate-600 group-hover:text-[#1b53ad] transition">
+                      <i class="fa-solid {{ p.icono }} text-xs"></i>
+                    </div>
+                    <div>
+                      <h3 class="text-xs font-bold text-slate-800 group-hover:text-[#1b53ad] m-0 transition leading-tight">
+                        {{ p.nombre }}
+                      </h3>
+                      <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[10.5px] font-mono font-bold text-slate-600">NIT: {{ p.nit }}</span>
+                        <span class="text-[10px] text-slate-400">&middot;</span>
+                        <span class="text-[10.5px] text-slate-500">{{ p.municipio }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1.5 text-xs text-[#1b53ad] font-bold opacity-0 group-hover:opacity-100 transition">
+                    <span>Ingresar</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Registro oficial INVIMA &middot; Cauca</span>
+            <span class="font-mono">Vigencia 2026</span>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- FOOTER INSTITUCIONAL -->
+    <footer class="w-full bg-white border-t border-slate-200 py-3 px-4 text-center text-xs text-slate-400">
+      Gobernación del Departamento del Cauca &middot; Secretaría de Hacienda &middot; Dirección de Rentas Departamentales
+    </footer>
+  </div>
+} @else if (modoVista() === 'consulta_publica') {
+  <!-- VISTA 2: CONSULTA PÚBLICA DE GUÍA ICA -->
+  <div class="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+    <!-- Topbar pública -->
+    <header class="w-full bg-white border-b border-slate-200 py-3.5 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
+        <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-10 md:h-12 w-auto object-contain select-none" />
+        <div class="flex flex-col border-l border-slate-200 pl-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-black text-[#1b53ad] tracking-tight leading-none uppercase">Consulta Pública de Guía Sanitaria ICA</span>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#1b53ad] border border-blue-200">En Línea</span>
+          </div>
+          <span class="text-[11px] text-slate-500 font-semibold leading-none mt-1">Impuesto de Degüello de Ganado Mayor &middot; Cauca</span>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-2.5">
+        <button 
+          (click)="volverALogin()" 
+          class="inline-flex items-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border-none"
+        >
+          <i class="fa-solid fa-building text-xs"></i>
+          <span>Acceso Empresas / Plantas</span>
+        </button>
+
+        <a 
+          routerLink="/" 
+          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer no-underline"
+          title="Regresar al Portal Principal"
+        >
+          <i class="fa-solid fa-house text-xs text-slate-500"></i>
+          <span class="hidden sm:inline">Inicio</span>
+        </a>
+      </div>
+    </header>
+
+    <div class="flex-1">
+      <app-consulta-ciudadana-shared 
+        liquidadorKey="deguello" 
+        (onConsultar)="alConsultar($event)"
+      ></app-consulta-ciudadana-shared>
+    </div>
+  </div>
 } @else {
-  <!-- VISTA DE RESULTADOS DEL PORTAL DEL CONTRIBUYENTE -->
+  <!-- VISTA 3: RESULTADOS / DASHBOARD DE LA EMPRESA -->
   <div class="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
     
     <!-- TOPBAR PÚBLICA INSTITUCIONAL -->
@@ -15,7 +283,9 @@
         <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-10 md:h-12 w-auto object-contain select-none" />
         <div class="flex flex-col border-l border-slate-200 pl-3">
           <div class="flex items-center gap-2">
-            <span class="text-xs font-black text-[#1b53ad] tracking-tight leading-none uppercase">Portal del Contribuyente &middot; Empresas</span>
+            <span class="text-xs font-black text-[#1b53ad] tracking-tight leading-none uppercase">
+              Portal del Contribuyente &middot; {{ contribuyenteInfo()?.razonSocial || 'Empresas' }}
+            </span>
             <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-[#1b53ad] border border-blue-200">En Línea</span>
           </div>
           <span class="text-[11px] text-slate-500 font-semibold leading-none mt-1">Impuesto de Degüello de Ganado Mayor &middot; Cauca</span>
@@ -25,12 +295,30 @@
       <!-- Right: Acciones -->
       <div class="flex items-center gap-2.5">
         <button 
+          (click)="radicarNuevaGuia()" 
+          class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border-none"
+          title="Radicar nueva guía de sacrificio para esta empresa"
+        >
+          <i class="fa-solid fa-plus text-xs"></i>
+          <span>+ Radicar Nueva Guía</span>
+        </button>
+
+        <button 
           (click)="nuevaConsulta()" 
           class="inline-flex items-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border-none"
-          title="Realizar una nueva búsqueda"
+          title="Actualizar información"
         >
-          <i class="fa-solid fa-magnifying-glass text-xs"></i>
-          <span>Nueva Consulta</span>
+          <i class="fa-solid fa-rotate-right text-xs"></i>
+          <span>Actualizar</span>
+        </button>
+
+        <button 
+          (click)="cerrarSesion()" 
+          class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer"
+          title="Cerrar sesión de la empresa"
+        >
+          <i class="fa-solid fa-right-from-bracket text-xs text-rose-500"></i>
+          <span class="hidden sm:inline">Cerrar Sesión</span>
         </button>
 
         <a 
@@ -59,7 +347,7 @@
             </h1>
           </div>
           <p class="text-xs text-slate-500 m-0 pl-10">
-            Portal oficial para la consulta de radicaciones, pago en línea inmediato mediante pasarela PSE y descarga de paz y salvos de sacrificio.
+            Portal oficial para la consulta de radicaciones, pago en línea y descarga de paz y salvos de sacrificio.
           </p>
         </div>
 
@@ -131,6 +419,14 @@
                 <span class="px-2.5 py-1 rounded-lg bg-blue-50 border border-blue-200 text-[#1b53ad] text-xs font-bold">
                   <i class="fa-solid fa-location-dot mr-1"></i> {{ cont.municipio }}
                 </span>
+                <button 
+                  (click)="radicarNuevaGuia()" 
+                  class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border-none shadow-xs"
+                  title="Radicar liquidación con los datos precargados de esta empresa"
+                >
+                  <i class="fa-solid fa-plus text-xs"></i>
+                  <span>Radicar Guía</span>
+                </button>
               </div>
             </div>
 
@@ -142,14 +438,14 @@
                 <span class="text-[11px] text-slate-500 font-mono">CC: {{ cont.docRepresentante }}</span>
               </div>
               <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block">Dirección de Notificación</span>
-                <span class="font-bold text-slate-800 block mt-0.5">{{ cont.direccion }}</span>
-                <span class="text-[11px] text-slate-500 font-mono">Tel: {{ cont.telefono }}</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Contacto y Notificación</span>
+                <span class="font-bold text-slate-800 block mt-0.5 truncate">{{ cont.direccion }}</span>
+                <span class="text-[11px] text-slate-500 font-mono truncate block">{{ cont.emailOficial || ('Tel: ' + cont.telefono) }}</span>
               </div>
               <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                <span class="text-[10px] font-bold text-slate-400 uppercase block">Planta de Beneficio Habitual</span>
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Planta &middot; Código INVIMA</span>
                 <span class="font-bold text-slate-800 block mt-0.5 truncate">{{ cont.plantaBeneficio || 'Planta Regional' }}</span>
-                <span class="text-[11px] text-slate-500">Inspección Oficial INVIMA</span>
+                <span class="text-[11px] text-slate-500 font-mono">{{ cont.codigoInvima || 'INV-PBA-CAUCA' }} &middot; {{ cont.capacidadDiaria || 60 }} cab/día</span>
               </div>
               <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-100">
                 <span class="text-[10px] font-bold text-blue-700 uppercase block">Total Por Pagar en Línea</span>
@@ -371,7 +667,7 @@
                     <div>
                       <p class="font-bold m-0">Radicación en Proceso de Aprobación Oficial (Turno de Atención #{{ d.turnoRevision || 1 }})</p>
                       <p class="text-[11.5px] text-blue-800 m-0 mt-0.5 leading-relaxed">
-                        Su expediente y soporte de Guía ICA están siendo cotejados por la Dirección de Rentas de la Gobernación del Cauca. Una vez revisada y aprobada por el funcionario, se habilitará automáticamente el botón para realizar el pago en línea mediante PSE.
+                        Su expediente y soporte de Guía ICA están siendo cotejados por la Dirección de Rentas de la Gobernación del Cauca. Una vez validada por el funcionario, se habilitará la opción de pago.
                       </p>
                     </div>
                   </div>
@@ -381,7 +677,7 @@
                       <i class="fa-solid fa-credit-card text-amber-600 text-base"></i>
                       <div>
                         <span class="font-bold block">Liquidación Oficial Aprobada y Habilitada para Pago</span>
-                        <span class="text-[11px] text-amber-700">Pague inmediatamente en línea con débito seguro PSE o imprima el formulario para pagar en ventanilla bancaria.</span>
+                        <span class="text-[11px] text-amber-700">Puede realizar el pago o imprimir el formulario para cancelar en ventanilla bancaria.</span>
                       </div>
                     </div>
                     <span class="text-[10px] font-bold px-2 py-0.5 bg-amber-200/60 rounded text-amber-950 uppercase">
@@ -432,7 +728,7 @@
                   @if (d.estadoPago === 'RADICADA') {
                     <span>En cola de revisión oficial por funcionarios de rentas departamentales.</span>
                   } @else if (d.estadoPago === 'PENDIENTE') {
-                    <span>Liquidación con código de barras GS1-128 habilitada para PSE y bancos.</span>
+                    <span>Liquidación con código de barras GS1-128 habilitada para pago y bancos.</span>
                   } @else if (d.estadoPago === 'PAGADO') {
                     <span>Comprobante oficial acreditado para faenado en planta de beneficio.</span>
                   } @else if (d.estadoPago === 'VENCIDO') {
@@ -444,14 +740,14 @@
 
                 <div class="flex items-center flex-wrap gap-2 w-full sm:w-auto justify-end">
                   
-                  <!-- BOTÓN PAGAR EN LÍNEA CON PSE (Exclusivo para PENDIENTE) -->
+                  <!-- BOTÓN PAGAR (Solo para PENDIENTE - Sin pantalla intermedia) -->
                   @if (d.estadoPago === 'PENDIENTE') {
                     <button 
-                      (click)="abrirModalPse(d)"
-                      class="inline-flex items-center justify-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-5 py-2.5 rounded-xl text-xs font-black transition shadow-md cursor-pointer border-none"
-                      title="Pagar en línea de forma inmediata mediante PSE">
+                      (click)="pagar(d)"
+                      class="inline-flex items-center justify-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer border-none"
+                      title="Pagar liquidación">
                       <i class="fa-solid fa-credit-card text-xs"></i>
-                      <span>Pagar en Línea con PSE</span>
+                      <span>Pagar</span>
                     </button>
                   }
 
@@ -498,237 +794,6 @@
       </div>
     </footer>
 
-  </div>
-}
-
-<!-- ========================================================================= -->
-<!-- MODAL DE PASARELA DE PAGO EN LÍNEA PSE (PORTAL CONTRIBUYENTE)             -->
-<!-- ========================================================================= -->
-@if (declaracionParaPse(); as dec) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-      
-      <!-- Modal Header PSE -->
-      <div class="px-6 py-4 bg-[#1b53ad] text-white flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl">
-            <i class="fa-solid fa-credit-card"></i>
-          </div>
-          <div>
-            <h2 class="text-base font-black tracking-tight m-0">Pasarela de Pago Seguro PSE</h2>
-            <p class="text-xs text-blue-100 m-0">Débito en Línea de Cuentas de Ahorros y Corrientes &middot; ACH Colombia</p>
-          </div>
-        </div>
-        <button 
-          (click)="cerrarModalPse()" 
-          [disabled]="procesandoPse()"
-          class="text-white/80 hover:text-white text-lg bg-transparent border-none cursor-pointer">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-
-      <!-- PANTALLA 1: FORMULARIO PSE (SI NO SE HA APROBADO EL TICKET) -->
-      @if (!ticketPseExitoso()) {
-        <div class="p-6 space-y-4 text-xs">
-          
-          <!-- Resumen de Facturación -->
-          <div class="bg-blue-50/70 p-4 rounded-xl border border-blue-200 space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-semibold">Tributo:</span>
-              <span class="font-bold text-slate-800">Impuesto de Degüello de Ganado Mayor</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-semibold">Formulario N°:</span>
-              <span class="font-mono font-bold text-[#1b53ad]">{{ dec.consecutivo }}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-semibold">Contribuyente:</span>
-              <span class="font-bold text-slate-800 truncate max-w-[200px]">{{ dec.razonSocial }}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-500 font-semibold">Semovientes Bovinos:</span>
-              <span class="font-bold text-slate-800">{{ dec.baseGravable }} Cabezas</span>
-            </div>
-            <div class="flex justify-between items-center pt-2 border-t border-blue-200">
-              <span class="text-slate-900 font-black text-sm">Valor Total a Debitar:</span>
-              <span class="font-mono font-black text-lg text-[#1b53ad]">$ {{ dec.totalAPagar | number:'1.0-0' }} COP</span>
-            </div>
-          </div>
-
-          <!-- Campos del Formulario PSE -->
-          <div class="space-y-3">
-            <div>
-              <label class="block text-slate-700 font-bold mb-1">Tipo de Cliente:</label>
-              <div class="grid grid-cols-2 gap-2">
-                <button 
-                  type="button"
-                  (click)="tipoPersonaPse.set('JURIDICA')"
-                  [class.bg-[#1b53ad]]="tipoPersonaPse() === 'JURIDICA'"
-                  [class.text-white]="tipoPersonaPse() === 'JURIDICA'"
-                  [class.bg-slate-100]="tipoPersonaPse() !== 'JURIDICA'"
-                  [class.text-slate-700]="tipoPersonaPse() !== 'JURIDICA'"
-                  class="py-2 px-3 rounded-xl font-bold text-xs border border-slate-200 transition cursor-pointer">
-                  Persona Jurídica (Empresa)
-                </button>
-                <button 
-                  type="button"
-                  (click)="tipoPersonaPse.set('NATURAL')"
-                  [class.bg-[#1b53ad]]="tipoPersonaPse() === 'NATURAL'"
-                  [class.text-white]="tipoPersonaPse() === 'NATURAL'"
-                  [class.bg-slate-100]="tipoPersonaPse() !== 'NATURAL'"
-                  [class.text-slate-700]="tipoPersonaPse() !== 'NATURAL'"
-                  class="py-2 px-3 rounded-xl font-bold text-xs border border-slate-200 transition cursor-pointer">
-                  Persona Natural
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-slate-700 font-bold mb-1">Seleccione su Entidad Financiera (Banco):</label>
-              <select 
-                [ngModel]="bancoPse()"
-                (ngModelChange)="bancoPse.set($event)"
-                class="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 font-semibold focus:ring-2 focus:ring-blue-600 transition">
-                <option value="Bancolombia">Bancolombia</option>
-                <option value="Banco de Bogotá">Banco de Bogotá</option>
-                <option value="Banco de Occidente">Banco de Occidente</option>
-                <option value="Banco Davivienda">Banco Davivienda</option>
-                <option value="Banco Agrario de Colombia">Banco Agrario de Colombia</option>
-                <option value="BBVA Colombia">BBVA Colombia</option>
-                <option value="Scotiabank Colpatria">Scotiabank Colpatria</option>
-                <option value="Banco Popular">Banco Popular</option>
-                <option value="Banco AV Villas">Banco AV Villas</option>
-                <option value="Nequi">Nequi</option>
-                <option value="Daviplata">Daviplata</option>
-              </select>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-slate-700 font-bold mb-1">Titular de la Cuenta:</label>
-                <input 
-                  type="text" 
-                  [ngModel]="nombrePagadorPse()"
-                  (ngModelChange)="nombrePagadorPse.set($event)"
-                  class="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-blue-600 transition" />
-              </div>
-              <div>
-                <label class="block text-slate-700 font-bold mb-1">NIT / Cédula:</label>
-                <input 
-                  type="text" 
-                  [ngModel]="docPagadorPse()"
-                  (ngModelChange)="docPagadorPse.set($event)"
-                  class="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 font-mono focus:ring-2 focus:ring-blue-600 transition" />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-slate-700 font-bold mb-1">Correo Electrónico Registrado en PSE:</label>
-              <input 
-                type="email" 
-                [ngModel]="emailPse()"
-                (ngModelChange)="emailPse.set($event)"
-                class="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-blue-600 transition" />
-            </div>
-          </div>
-
-          <!-- Spinner durante procesamiento -->
-          @if (procesandoPse()) {
-            <div class="p-4 bg-blue-50 border border-blue-200 rounded-xl text-center space-y-2">
-              <i class="fa-solid fa-spinner fa-spin text-2xl text-[#1b53ad]"></i>
-              <p class="font-bold text-[#1b53ad] m-0">Procesando débito bancario en línea con PSE...</p>
-              <p class="text-[11px] text-blue-700 m-0">Por favor espere mientras su banco autoriza la transferencia.</p>
-            </div>
-          }
-
-        </div>
-
-        <!-- Modal Footer PSE -->
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-          <button 
-            (click)="cerrarModalPse()" 
-            [disabled]="procesandoPse()"
-            class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
-            Cancelar
-          </button>
-
-          <button 
-            (click)="confirmarPagoPse()" 
-            [disabled]="procesandoPse()"
-            class="px-5 py-2.5 bg-[#1b53ad] hover:bg-[#154189] text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-2 border-none">
-            <i class="fa-solid fa-lock"></i>
-            <span>Continuar al Banco y Pagar</span>
-          </button>
-        </div>
-
-      } @else {
-        
-        <!-- PANTALLA 2: COMPROBANTE DE TRANSACCIÓN APROBADA (TICKET PSE) -->
-        @if (ticketPseExitoso(); as ticket) {
-          <div class="p-6 space-y-4 text-xs">
-            
-            <div class="text-center space-y-1">
-              <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-2xl">
-                <i class="fa-solid fa-circle-check"></i>
-              </div>
-              <h3 class="text-base font-black text-slate-900 m-0">¡Transacción Financiera Aprobada!</h3>
-              <p class="text-xs text-slate-500 m-0">El recaudo ha sido acreditado en las cuentas departamentales del Cauca.</p>
-            </div>
-
-            <!-- Recibo Digital -->
-            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-              <div class="flex justify-between items-center pb-2 border-b border-slate-200">
-                <span class="text-slate-500 font-semibold">Código Único de Seguimiento (CUS):</span>
-                <span class="font-mono font-bold text-emerald-700">{{ ticket.cus }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 font-semibold">N° Autorización ACH:</span>
-                <span class="font-mono font-bold text-slate-800">{{ ticket.autorizacion }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 font-semibold">Entidad Financiera Origen:</span>
-                <span class="font-bold text-slate-800">{{ ticket.banco }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 font-semibold">Fecha y Hora de Operación:</span>
-                <span class="font-semibold text-slate-700">{{ ticket.fecha }}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-500 font-semibold">Formulario Pagado:</span>
-                <span class="font-mono font-bold text-[#1b53ad]">{{ ticket.consecutivo }}</span>
-              </div>
-              <div class="flex justify-between items-center pt-2 border-t border-slate-200">
-                <span class="text-slate-900 font-black text-sm">Valor Debitado:</span>
-                <span class="font-mono font-black text-base text-emerald-700">$ {{ ticket.valor | number:'1.0-0' }} COP</span>
-              </div>
-            </div>
-
-            <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-900 text-center font-bold">
-              <i class="fa-solid fa-stamp mr-1 text-emerald-600"></i>
-              El formulario oficial cuenta con Paz y Salvo para faenado en la planta de beneficio.
-            </div>
-
-          </div>
-
-          <!-- Footer Ticket -->
-          <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-            <button 
-              (click)="cerrarModalPse()" 
-              class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
-              Cerrar
-            </button>
-
-            <button 
-              (click)="cerrarModalPse(); verFactura(dec)" 
-              class="px-5 py-2.5 bg-[#1b53ad] hover:bg-[#154189] text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-2 border-none">
-              <i class="fa-solid fa-print"></i>
-              <span>Ver Formulario con Sello Pagado</span>
-            </button>
-          </div>
-        }
-      }
-
-    </div>
   </div>
 }
 

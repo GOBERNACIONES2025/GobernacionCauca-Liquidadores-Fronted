@@ -29,6 +29,9 @@ export class DeguelloService {
   /** Declaración seleccionada para reliquidar / corrección */
   readonly declaracionEnEdicion = signal<DeclaracionDeguelloData | null>(null);
 
+  /** Empresa / Contribuyente autenticado en el Portal del Contribuyente */
+  readonly empresaAutenticada = signal<PlantaBeneficio | null>(null);
+
   /**
    * Normaliza los objetos de base de datos / API hacia el modelo de presentación de frontend
    */
@@ -257,43 +260,71 @@ export class DeguelloService {
   private plantasBeneficio: PlantaBeneficio[] = [
     {
       id: 'pba-01',
+      idPlanta: 1,
+      nit: '900823411',
+      claveAcceso: '123456',
       codigoInvima: 'INV-PBA-19001',
       nombre: 'Frigorífico Regional de Popayán S.A.S.',
       municipio: 'POPAYÁN',
       direccion: 'Km 4 Variante Norte # 12-40',
       capacidadDiariaCabezas: 120,
       esActiva: true,
-      telefono: '(602) 8234500'
+      telefono: '(602) 8234500',
+      emailOficial: 'gerencia@frigorificopopayan.com',
+      representanteLegal: 'CARLOS ALBERTO MOSQUERA',
+      docRepresentante: '1061789450',
+      esFrigorificoRegional: true
     },
     {
       id: 'pba-02',
+      idPlanta: 2,
+      nit: '10548920',
+      claveAcceso: '123456',
       codigoInvima: 'INV-PBA-19517',
       nombre: 'Planta de Beneficio Animal Regional Patía',
       municipio: 'PATÍA - EL BORDO',
       direccion: 'Vereda Guayabal Lote 3',
       capacidadDiariaCabezas: 60,
       esActiva: true,
-      telefono: '(602) 8431100'
+      telefono: '(602) 8431100',
+      emailOficial: 'contacto@pbapatia.gov.co',
+      representanteLegal: 'MARIO FERNANDO MUÑOZ',
+      docRepresentante: '10548920',
+      esFrigorificoRegional: false
     },
     {
       id: 'pba-03',
+      idPlanta: 3,
+      nit: '76321450',
+      claveAcceso: '123456',
       codigoInvima: 'INV-PBA-19698',
       nombre: 'Frigorífico Santander de Quilichao',
       municipio: 'SANTANDER DE QUILICHAO',
       direccion: 'Vía Panamericana Cra 9 # 14-55',
       capacidadDiariaCabezas: 85,
       esActiva: true,
-      telefono: '(602) 8203310'
+      telefono: '(602) 8203310',
+      emailOficial: 'sacrificio@santanderdequilichao.com',
+      representanteLegal: 'ANDRES FELIPE GUZMAN',
+      docRepresentante: '76321450',
+      esFrigorificoRegional: false
     },
     {
       id: 'pba-04',
+      idPlanta: 4,
+      nit: '891500987',
+      claveAcceso: '123456',
       codigoInvima: 'INV-PBA-19100',
       nombre: 'Matadero Municipal de Bolívar',
       municipio: 'BOLÍVAR',
       direccion: 'Sector San Pedro Salida al Macizo',
       capacidadDiariaCabezas: 40,
       esActiva: true,
-      telefono: '(602) 8342010'
+      telefono: '(602) 8342010',
+      emailOficial: 'alcaldia@bolivar-cauca.gov.co',
+      representanteLegal: 'JAIME EDUARDO ORTIZ',
+      docRepresentante: '891500987',
+      esFrigorificoRegional: false
     }
   ];
 
@@ -307,6 +338,67 @@ export class DeguelloService {
     sancionMinimaUvt: 10,
     diasLimiteDeclaracionMensual: 15
   };
+
+  setEmpresaAutenticada(planta: PlantaBeneficio | null): void {
+    this.empresaAutenticada.set(planta ? { ...planta } : null);
+  }
+
+  obtenerPlantaPorNit(nit: string): Observable<PlantaBeneficio | null> {
+    const nitLimpio = (nit || '').trim().replace(/\D/g, '');
+    return this.http.get<{ success: boolean; data: PlantaBeneficio }>(
+      `${this.apiUrl}/plantas-beneficio/nit/${encodeURIComponent(nitLimpio)}`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          return res.data;
+        }
+        const local = this.plantasBeneficio.find(p => (p.nit || '').replace(/\D/g, '') === nitLimpio);
+        return local || null;
+      }),
+      catchError(() => {
+        const local = this.plantasBeneficio.find(p => (p.nit || '').replace(/\D/g, '') === nitLimpio);
+        return of(local || null);
+      })
+    );
+  }
+
+  /**
+   * Inicio de sesión genérico para la empresa/planta sin validaciones complejas.
+   * Al pasar el NIT, busca la planta y auto-inicia sesión cargando sus datos.
+   */
+  loginEmpresa(nit: string, _clave?: string): Observable<{ success: boolean; planta?: PlantaBeneficio; message?: string }> {
+    const nitLimpio = (nit || '').trim().replace(/\D/g, '');
+    if (!nitLimpio) {
+      return of({ success: false, message: 'Ingrese el NIT de la empresa o planta.' });
+    }
+
+    return this.obtenerPlantaPorNit(nitLimpio).pipe(
+      map(planta => {
+        if (planta) {
+          this.setEmpresaAutenticada(planta);
+          return { success: true, planta };
+        }
+        // Fallback genérico para que cualquier NIT pueda ingresar sin bloqueos (fase demo)
+        const empresaGenerica: PlantaBeneficio = {
+          id: `pba-gen-${nitLimpio}`,
+          codigoInvima: `INV-AUTO-${nitLimpio.slice(0, 5)}`,
+          nombre: `EMPRESA / PLANTA BENEFICIO NIT ${nitLimpio}`,
+          municipio: 'POPAYÁN',
+          direccion: 'Zona de Beneficio Animal',
+          capacidadDiariaCabezas: 50,
+          esActiva: true,
+          telefono: '(602) 8000000',
+          nit: nitLimpio,
+          claveAcceso: '123456',
+          emailOficial: `tributario@nit${nitLimpio}.com`,
+          representanteLegal: 'REPRESENTANTE LEGAL',
+          docRepresentante: nitLimpio
+        };
+        this.setEmpresaAutenticada(empresaGenerica);
+        return { success: true, planta: empresaGenerica };
+      })
+    );
+  }
 
   listarPlantasBeneficio(): Observable<PlantaBeneficio[]> {
     return this.http.get<{ success: boolean; data: PlantaBeneficio[] }>(
