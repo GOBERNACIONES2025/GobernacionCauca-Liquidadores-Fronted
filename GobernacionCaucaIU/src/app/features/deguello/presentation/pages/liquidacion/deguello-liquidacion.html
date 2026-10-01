@@ -34,20 +34,80 @@
     </div>
   </div>
 
-  <!-- Banner de Modo Reliquidación / Corrección (Si viene desde Facturación) -->
-  <div *ngIf="formGeneracion.esCorreccion" class="p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-amber-100/60 border-2 border-amber-300 text-amber-950 space-y-3 shadow-xs">
+  <!-- =================================================================== -->
+  <!-- BANNER 1: MODO RELIQUIDACIÓN POR VENCIMIENTO DE FACTURA (Art. 634 E.T.) -->
+  <!-- =================================================================== -->
+  <div *ngIf="esModoReliquidacionVencimiento()" class="p-5 rounded-2xl bg-gradient-to-r from-purple-50 via-indigo-50/70 to-purple-100/50 border-2 border-indigo-300 text-indigo-950 space-y-3 shadow-xs">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center text-lg shrink-0">
-          <i class="fa-solid fa-arrows-rotate"></i>
+        <div class="w-10 h-10 rounded-xl bg-indigo-200/80 text-indigo-900 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-clock-rotate-left"></i>
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <h3 class="text-sm font-black uppercase tracking-wide text-amber-900">Modo de Reliquidación / Corrección Activo</h3>
+            <h3 class="text-sm font-black uppercase tracking-wide text-indigo-900">Reliquidación por Vencimiento de Factura</h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-200 text-indigo-900 border border-indigo-300">
+              Art. 634 Estatuto Tributario
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-white text-indigo-800 border border-indigo-200">
+              Sin Sanción de Corrección
+            </span>
+          </div>
+          <p class="text-xs text-indigo-800 mt-0.5">
+            Renovando plazo de pago para la Factura Vencida N° <strong class="font-mono">{{ declaracionOriginal()?.consecutivo }}</strong>. 
+            La factura original pasará a estado <span class="font-bold text-indigo-950 bg-indigo-100 px-1.5 py-0.5 rounded">RELIQUIDADA</span> y se generará una nueva con <strong>5 días hábiles</strong> de vigencia e intereses moratorios calculados.
+          </p>
+        </div>
+      </div>
+
+      <button 
+        (click)="cancelarModoCorreccion()"
+        class="px-3 py-1.5 bg-white hover:bg-indigo-100 text-indigo-900 font-semibold text-xs rounded-lg border border-indigo-300 transition cursor-pointer self-start sm:self-auto">
+        Cancelar Reliquidación
+      </button>
+    </div>
+
+    <!-- Comparativa Fiscal: Anterior vs Nueva -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-indigo-200/70 text-xs">
+      <div class="bg-white/90 p-2.5 rounded-xl border border-indigo-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Factura Vencida</span>
+        <span class="text-sm font-mono font-bold text-indigo-900">{{ declaracionOriginal()?.consecutivo }}</span>
+      </div>
+      <div class="bg-white/90 p-2.5 rounded-xl border border-indigo-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Impuesto Base</span>
+        <span class="text-sm font-mono font-bold text-slate-800">$ {{ subtotalAnterior() | number:'1.0-0' }}</span>
+      </div>
+      <div class="bg-white/90 p-2.5 rounded-xl border border-indigo-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Días de Retardo</span>
+        <span class="text-sm font-mono font-bold text-rose-700">
+          {{ diasMora() }} días de mora
+        </span>
+      </div>
+      <div class="bg-white/90 p-2.5 rounded-xl border border-indigo-200">
+        <span class="text-[10px] uppercase font-bold text-slate-500 block">Intereses de Mora (2.1% mes)</span>
+        <span class="text-sm font-mono font-black text-rose-800">
+          $ {{ interesMora() | number:'1.0-0' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- BANNER 2: MODO CORRECCIÓN FISCAL FORMAL (Art. 644 E.T.)            -->
+  <!-- =================================================================== -->
+  <div *ngIf="formGeneracion.esCorreccion && !esModoReliquidacionVencimiento()" class="p-5 rounded-2xl bg-gradient-to-r from-amber-50 to-amber-100/60 border-2 border-amber-300 text-amber-950 space-y-3 shadow-xs">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-200/80 text-amber-900 flex items-center justify-center text-lg shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h3 class="text-sm font-black uppercase tracking-wide text-amber-900">Modo de Corrección Fiscal de Declaración</h3>
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900">Art. 644 Estatuto Tributario</span>
           </div>
           <p class="text-xs text-amber-800 mt-0.5">
-            Corrigiendo la Declaración Inicial N° <strong class="font-mono">{{ formGeneracion.declaracionCorregida }}</strong>. Ingrese el nuevo valor de cabezas y liquide la sanción e intereses de ley.
+            Modificando datos de la Declaración Inicial N° <strong class="font-mono">{{ formGeneracion.declaracionCorregida }}</strong>. Ingrese el nuevo valor de cabezas y liquide la sanción por corrección (10% del mayor valor).
           </p>
         </div>
       </div>
@@ -85,81 +145,248 @@
   </div>
 
   <!-- =================================================================== -->
-  <!-- BARRA DE IMPORTACIÓN DESDE ICA SIGMA                                -->
+  <!-- SELECTOR DE MODALIDAD: AUTÓNOMO vs IMPORTACIÓN ICA SIGMA           -->
   <!-- =================================================================== -->
-  <div class="bg-white rounded-2xl shadow-xs border border-blue-100 p-5 space-y-3 bg-gradient-to-r from-blue-50/40 via-white to-blue-50/20">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <span class="w-7 h-7 rounded-lg bg-[#1b53ad] text-white flex items-center justify-center text-xs shadow-xs">
-          <i class="fa-solid fa-cloud-arrow-down"></i>
-        </span>
-        <h2 class="text-sm font-bold text-slate-900">
-          Traer Información Directamente desde el ICA (SIGMA)
+  <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-5 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-bold text-slate-900 flex items-center space-x-2">
+          <i class="fa-solid fa-sliders text-[#1b53ad]"></i>
+          <span>Modalidad de Diligenciamiento de la Declaración</span>
         </h2>
+        <p class="text-xs text-slate-500 mt-0.5">
+          Seleccione cómo desea ingresar la información sanitaria y respaldar el soporte documental.
+        </p>
       </div>
 
-      <span class="text-[11px] text-blue-700 bg-blue-100/70 px-2.5 py-0.5 rounded-full font-bold">
-        Interoperabilidad Sanitaria
-      </span>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-      <div class="sm:col-span-8 md:col-span-9">
-        <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Número de Guía Sanitaria ICA (GSMI)</label>
-        <div class="relative">
-          <i class="fa-solid fa-barcode absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-          <input 
-            type="text"
-            [ngModel]="guiaIcaBusqueda()"
-            (ngModelChange)="guiaIcaBusqueda.set($event)"
-            placeholder="Ej: GSMI-2026-004521"
-            class="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800 focus:ring-2 focus:ring-blue-600 uppercase" />
-        </div>
-      </div>
-
-      <div class="sm:col-span-4 md:col-span-3">
+      <!-- Tabs de Selección -->
+      <div class="flex items-center p-1 bg-slate-100 rounded-xl space-x-1 shrink-0 self-start sm:self-auto">
         <button 
-          (click)="traerDesdeIca()"
-          [disabled]="buscandoIca()"
-          class="w-full py-2 px-4 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50">
-          <i class="fa-solid" [ngClass]="buscandoIca() ? 'fa-spinner fa-spin' : 'fa-magnifying-glass'"></i>
-          <span>{{ buscandoIca() ? 'Consultando ICA...' : 'Traer Info de ICA' }}</span>
+          type="button"
+          (click)="setModoDiligenciamiento('autonomo')"
+          [ngClass]="modoDiligenciamiento() === 'autonomo' ? 'bg-white text-[#1b53ad] shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
+          class="px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center space-x-1.5">
+          <i class="fa-solid fa-file-signature"></i>
+          <span>Diligenciamiento Autónomo</span>
+        </button>
+
+        <button 
+          type="button"
+          (click)="setModoDiligenciamiento('sigma')"
+          [ngClass]="modoDiligenciamiento() === 'sigma' ? 'bg-white text-[#1b53ad] shadow-xs font-bold' : 'text-slate-600 hover:text-slate-900 font-medium'"
+          class="px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center space-x-1.5">
+          <i class="fa-solid fa-cloud-arrow-down"></i>
+          <span>Importación ICA SIGMA</span>
         </button>
       </div>
     </div>
 
-    <!-- Píldoras Rápidas -->
-    <div class="pt-2 flex flex-wrap items-center gap-2 text-xs">
-      <span class="text-slate-500 font-bold">Cargar ejemplos para pruebas:</span>
-      <button 
-        type="button"
-        (click)="seleccionarEjemploIca('GSMI-2026-004521')"
-        class="px-2.5 py-1 rounded-lg bg-blue-100 hover:bg-blue-200 text-[#1b53ad] border border-blue-300 transition cursor-pointer font-bold flex items-center space-x-1">
-        <i class="fa-solid fa-file-import"></i>
-        <span>Popayán (24 Cabezas)</span>
-      </button>
-      <button 
-        type="button"
-        (click)="seleccionarEjemploIca('GSMI-2026-008912')"
-        class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition cursor-pointer font-bold flex items-center space-x-1">
-        <i class="fa-solid fa-file-import"></i>
-        <span>Patía (12 Cabezas)</span>
-      </button>
-      <button 
-        type="button"
-        (click)="limpiarTodo()"
-        class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer font-semibold flex items-center space-x-1">
-        <i class="fa-solid fa-eraser"></i>
-        <span>Limpiar Formulario</span>
-      </button>
+    <!-- Panel 1: Importación en Línea desde ICA SIGMA -->
+    <div *ngIf="modoDiligenciamiento() === 'sigma'" 
+         class="rounded-xl border border-blue-100 p-4 space-y-3 bg-gradient-to-r from-blue-50/40 via-white to-blue-50/20">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <span class="w-6 h-6 rounded-lg bg-[#1b53ad] text-white flex items-center justify-center text-xs shadow-xs">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+          </span>
+          <span class="text-xs font-bold text-slate-900">
+            Consulta Directa al Servicio Web Sanitario (SIGMA)
+          </span>
+        </div>
+        <span class="text-[10px] text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full font-bold">
+          Interoperabilidad Sanitaria
+        </span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+        <div class="sm:col-span-8 md:col-span-9">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Número de Guía Sanitaria ICA (GSMI)</label>
+          <div class="relative">
+            <i class="fa-solid fa-barcode absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input 
+              type="text"
+              [ngModel]="guiaIcaBusqueda()"
+              (ngModelChange)="guiaIcaBusqueda.set($event)"
+              placeholder="Ej: GSMI-2026-004521"
+              class="w-full pl-9 pr-3 py-2 bg-white border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800 focus:ring-2 focus:ring-blue-600 uppercase" />
+          </div>
+        </div>
+
+        <div class="sm:col-span-4 md:col-span-3">
+          <button 
+            type="button"
+            (click)="traerDesdeIca()"
+            [disabled]="buscandoIca()"
+            class="w-full py-2 px-4 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50">
+            <i class="fa-solid" [ngClass]="buscandoIca() ? 'fa-spinner fa-spin' : 'fa-magnifying-glass'"></i>
+            <span>{{ buscandoIca() ? 'Consultando ICA...' : 'Traer Info de ICA' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Píldoras Rápidas con datos de Base de Datos -->
+      <div class="pt-1 flex flex-wrap items-center gap-2 text-xs">
+        <span class="text-slate-500 font-bold">Cargar guías reales en BD:</span>
+        <button 
+          type="button"
+          (click)="seleccionarEjemploIca('GSMI-2026-005510')"
+          class="px-2.5 py-1 rounded-lg bg-blue-100 hover:bg-blue-200 text-[#1b53ad] border border-blue-300 transition cursor-pointer font-bold flex items-center space-x-1">
+          <i class="fa-solid fa-file-import"></i>
+          <span>Popayán (18 Cabezas - En Cola)</span>
+        </button>
+        <button 
+          type="button"
+          (click)="seleccionarEjemploIca('GSMI-2026-004521')"
+          class="px-2.5 py-1 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 border border-indigo-300 transition cursor-pointer font-bold flex items-center space-x-1">
+          <i class="fa-solid fa-file-import"></i>
+          <span>Frigorífico Popayán (25 Cabezas)</span>
+        </button>
+        <button 
+          type="button"
+          (click)="seleccionarEjemploIca('GSMI-2026-008912')"
+          class="px-2.5 py-1 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 transition cursor-pointer font-bold flex items-center space-x-1">
+          <i class="fa-solid fa-file-import"></i>
+          <span>Patía (12 Cabezas)</span>
+        </button>
+        <button 
+          type="button"
+          (click)="seleccionarEjemploIca('GSMI-2026-001190')"
+          class="px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 border border-purple-300 transition cursor-pointer font-bold flex items-center space-x-1">
+          <i class="fa-solid fa-file-import"></i>
+          <span>Santander (8 Cabezas)</span>
+        </button>
+        <button 
+          type="button"
+          (click)="limpiarTodo()"
+          class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 transition cursor-pointer font-semibold flex items-center space-x-1">
+          <i class="fa-solid fa-eraser"></i>
+          <span>Limpiar</span>
+        </button>
+      </div>
+
+      <!-- Mensaje de estado ICA -->
+      <div *ngIf="mensajeIca() as msg" 
+           class="p-2.5 rounded-xl text-xs flex items-center space-x-2"
+           [ngClass]="msg.tipo === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-900' : 'bg-rose-50 border border-rose-200 text-rose-900'">
+        <i class="fa-solid" [ngClass]="msg.tipo === 'success' ? 'fa-circle-check text-emerald-600' : 'fa-circle-exclamation text-rose-600'"></i>
+        <span>{{ msg.texto }}</span>
+      </div>
     </div>
 
-    <!-- Mensaje de estado ICA -->
-    <div *ngIf="mensajeIca() as msg" 
-         class="p-2.5 rounded-xl text-xs flex items-center space-x-2"
-         [ngClass]="msg.tipo === 'success' ? 'bg-emerald-50 border border-emerald-200 text-emerald-900' : 'bg-rose-50 border border-rose-200 text-rose-900'">
-      <i class="fa-solid" [ngClass]="msg.tipo === 'success' ? 'fa-circle-check text-emerald-600' : 'fa-circle-exclamation text-rose-600'"></i>
-      <span>{{ msg.texto }}</span>
+    <!-- Panel 2: Diligenciamiento Autónomo Explicativo -->
+    <div *ngIf="modoDiligenciamiento() === 'autonomo'" 
+         class="rounded-xl border border-amber-200 bg-amber-50/60 p-4 space-y-2">
+      <div class="flex items-start space-x-3">
+        <div class="w-8 h-8 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-sm shrink-0 mt-0.5">
+          <i class="fa-solid fa-building-wheat"></i>
+        </div>
+        <div class="text-xs">
+          <span class="font-bold text-amber-950 block">Diligenciamiento Autónomo y Descentralizado Habilitado</span>
+          <p class="text-amber-800 mt-0.5 leading-relaxed">
+            Como Frigorífico, Matarife o Empresa Solicitante, puede ingresar todos los datos tributarios de manera directa. 
+            Para garantizar la autenticidad fiscal y permitir la <strong>validación y aprobación por parte de la Gobernación del Cauca</strong>, es fundamental anexar el documento digital de la Guía ICA a continuación.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECCIÓN FTP INSTITUCIONAL ORGANIZADO: ANEXO DE GUÍA SANITARIA ICA -->
+    <div class="pt-2 border-t border-slate-100">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+        <div class="flex items-center space-x-2">
+          <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center text-xs font-bold">
+            <i class="fa-solid fa-server"></i>
+          </span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+            Anexo Digital de Guía ICA (Almacenamiento FTP Gobernación)
+          </h3>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+            Jerarquía Institucional
+          </span>
+        </div>
+
+        <span class="text-[11px] text-slate-500 font-mono">
+          Ruta: /mnt/array1/GOBERNACION/DEGUELLO/EMPRESAS/{{ formGeneracion.nit || '{NIT}' }}/{{ formGeneracion.anioGravable || 2026 }}/GUIAS_ICA
+        </span>
+      </div>
+
+      <!-- Zona de Carga / Visualización de Archivo -->
+      <div class="space-y-3">
+        
+        <!-- Estado 1: No hay archivo cargado -->
+        <div *ngIf="!formGeneracion.rutaArchivoGuiaIca && !subiendoArchivoFtp()" class="border-2 border-dashed border-slate-300 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/20 rounded-xl p-5 text-center transition">
+          <label class="cursor-pointer block space-y-2">
+            <div class="w-10 h-10 rounded-full bg-blue-100 text-[#1b53ad] mx-auto flex items-center justify-center text-base">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div>
+              <span class="text-xs font-bold text-slate-800 hover:text-blue-700 block">
+                Haga clic para seleccionar o arrastre el archivo de la Guía Sanitaria ICA
+              </span>
+              <span class="text-[11px] text-slate-500 block mt-0.5">
+                Formatos permitidos: PDF, JPG, PNG (Tamaño máximo: 15 MB)
+              </span>
+            </div>
+            <input 
+              type="file" 
+              accept=".pdf,.png,.jpg,.jpeg" 
+              (change)="onFileSelected($event)" 
+              class="hidden" />
+          </label>
+        </div>
+
+        <!-- Estado 2: Subiendo archivo al FTP -->
+        <div *ngIf="subiendoArchivoFtp()" class="p-5 rounded-xl bg-blue-50 border border-blue-200 flex items-center space-x-3 text-blue-900">
+          <i class="fa-solid fa-circle-notch fa-spin text-xl text-[#1b53ad]"></i>
+          <div class="text-xs">
+            <span class="font-bold block">Transfiriendo archivo al servidor FTP departamental...</span>
+            <span class="text-blue-700 font-mono text-[11px]">
+              Organizando en DEGUELLO/EMPRESAS/{{ formGeneracion.nit || 'GENERAL' }}/{{ formGeneracion.anioGravable }}/GUIAS_ICA
+            </span>
+          </div>
+        </div>
+
+        <!-- Estado 3: Archivo cargado exitosamente en el FTP -->
+        <div *ngIf="formGeneracion.rutaArchivoGuiaIca && !subiendoArchivoFtp()" class="p-4 rounded-xl bg-emerald-50/80 border border-emerald-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-200/80 text-emerald-800 flex items-center justify-center text-lg shrink-0">
+              <i class="fa-solid fa-file-circle-check"></i>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-bold text-slate-900">
+                  {{ formGeneracion.nombreArchivoGuiaIca || 'GuiaSanitariaICA.pdf' }}
+                </span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center space-x-1">
+                  <i class="fa-solid fa-check"></i>
+                  <span>Almacenado en FTP</span>
+                </span>
+              </div>
+              <p class="text-[11px] font-mono text-emerald-800 mt-0.5 break-all">
+                <i class="fa-solid fa-folder-tree mr-1 text-emerald-600"></i>{{ formGeneracion.rutaArchivoGuiaIca }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2 self-end sm:self-auto shrink-0">
+            <button 
+              type="button"
+              (click)="descargarArchivoGuia()"
+              class="px-3 py-1.5 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs rounded-lg transition cursor-pointer flex items-center space-x-1 shadow-xs">
+              <i class="fa-solid fa-eye"></i>
+              <span>Ver Archivo</span>
+            </button>
+            <button 
+              type="button"
+              (click)="eliminarArchivoGuia()"
+              class="px-3 py-1.5 bg-white hover:bg-rose-50 text-rose-700 border border-rose-200 font-semibold text-xs rounded-lg transition cursor-pointer flex items-center space-x-1">
+              <i class="fa-solid fa-trash-can"></i>
+              <span>Reemplazar</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -306,7 +533,12 @@
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
         <div class="md:col-span-4">
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Número de Guía ICA (GSMI)</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1 flex items-center justify-between">
+            <span>Número de Guía ICA (GSMI)</span>
+            <span *ngIf="formGeneracion.rutaArchivoGuiaIca" class="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold border border-emerald-200">
+              <i class="fa-solid fa-paperclip"></i> Con Anexo FTP
+            </span>
+          </label>
           <input 
             type="text"
             [(ngModel)]="formGeneracion.numeroGuiaIca"
@@ -401,23 +633,35 @@
           </span>
         </div>
 
+        <!-- Banner explicativo en caso de Reliquidación por Vencimiento -->
+        <div *ngIf="esModoReliquidacionVencimiento()" class="p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-center space-x-2">
+          <i class="fa-solid fa-circle-info text-indigo-600"></i>
+          <span>
+            <strong>Régimen de Vencimiento (Art. 634 E.T.):</strong> En este caso aplican únicamente intereses de mora proporcionales a los días transcurridos. No se liquida sanción por corrección (Art. 644 E.T.).
+          </span>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
           
-          <!-- Botones Rápidos de Sanción -->
+          <!-- Botones Rápidos de Sanción (Solo en corrección formal) -->
           <div class="md:col-span-5 space-y-1">
             <span class="text-[11px] font-bold text-slate-600 uppercase block">Cálculo de Sanción por Corrección</span>
             <div class="flex flex-wrap gap-1.5">
               <button 
                 type="button"
                 (click)="aplicarSancion10Porciento()"
-                class="px-2.5 py-1 text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg border border-amber-300 transition cursor-pointer"
+                [disabled]="esModoReliquidacionVencimiento()"
+                [ngClass]="esModoReliquidacionVencimiento() ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : 'bg-amber-100 hover:bg-amber-200 text-amber-900 border-amber-300 cursor-pointer'"
+                class="px-2.5 py-1 text-xs font-bold rounded-lg border transition"
                 title="Aplica el 10% del mayor valor a pagar conforme al Art. 644 del Estatuto Tributario">
                 10% Mayor Valor ($ {{ mayorValorImpuesto() * 0.1 | number:'1.0-0' }})
               </button>
               <button 
                 type="button"
                 (click)="aplicarSancionMinima()"
-                class="px-2.5 py-1 text-xs font-bold bg-blue-100 hover:bg-blue-200 text-[#1b53ad] rounded-lg border border-blue-200 transition cursor-pointer"
+                [disabled]="esModoReliquidacionVencimiento()"
+                [ngClass]="esModoReliquidacionVencimiento() ? 'opacity-40 cursor-not-allowed bg-slate-100 text-slate-400 border-slate-200' : 'bg-blue-100 hover:bg-blue-200 text-[#1b53ad] border-blue-200 cursor-pointer'"
+                class="px-2.5 py-1 text-xs font-bold rounded-lg border transition"
                 title="Aplica la sanción mínima legal colombiana de 10 UVT ($498.000)">
                 Sanción Mínima (10 UVT)
               </button>
@@ -431,7 +675,7 @@
               type="number"
               min="0"
               [ngModel]="diasMora()"
-              (ngModelChange)="diasMora.set($event)"
+              (ngModelChange)="diasMora.set($event); calcularInteresesMoraAutomaticos()"
               class="w-full px-2.5 py-1 text-xs font-mono font-bold bg-white border border-slate-300 rounded-lg text-slate-900" />
           </div>
 
@@ -474,8 +718,8 @@
           <div class="text-xs sm:text-sm text-slate-600 mt-1">
             {{ calculoEnVivo().baseGravable }} Cabezas × ${{ calculoEnVivo().tarifa | number:'1.0-0' }} = 
             <strong class="text-slate-900">${{ calculoEnVivo().valorBruto | number:'1.0-0' }}</strong> 
-            | Menos 10% Municipios: 
-            <strong class="text-emerald-700">-${{ calculoEnVivo().participacionMunicipios | number:'1.0-0' }}</strong>
+            | Dispersión Municipal (10% Ley): 
+            <strong class="text-indigo-700">${{ calculoEnVivo().participacionMunicipios | number:'1.0-0' }}</strong>
             <span *ngIf="calculoEnVivo().sanciones > 0 || calculoEnVivo().interesMora > 0">
               | Sanciones/Mora: <strong class="text-rose-600">+${{ (calculoEnVivo().sanciones + calculoEnVivo().interesMora) | number:'1.0-0' }}</strong>
             </span>
@@ -496,11 +740,65 @@
       <button 
         (click)="liquidarYGenerarFactura()"
         class="px-6 py-3 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-sm rounded-xl shadow-md transition flex items-center space-x-2 cursor-pointer">
-        <i class="fa-solid fa-file-invoice"></i>
-        <span>Liquidar y Generar Formulario Oficial PDF</span>
+        <i *ngIf="esModoReliquidacionVencimiento()" class="fa-solid fa-clock-rotate-left"></i>
+        <i *ngIf="formGeneracion.esCorreccion && !esModoReliquidacionVencimiento()" class="fa-solid fa-file-pen"></i>
+        <i *ngIf="!esModoReliquidacionVencimiento() && !formGeneracion.esCorreccion" class="fa-solid fa-paper-plane"></i>
+        
+        <span *ngIf="esModoReliquidacionVencimiento()">Reliquidar Factura y Generar Nuevo Plazo</span>
+        <span *ngIf="formGeneracion.esCorreccion && !esModoReliquidacionVencimiento()">Aplicar Corrección Fiscal y Generar Formulario</span>
+        <span *ngIf="!esModoReliquidacionVencimiento() && !formGeneracion.esCorreccion">Radicar Declaración y Generar Formulario PDF</span>
       </button>
     </div>
 
+  </div>
+
+  <!-- Modal Aviso de Radicación Exitosa (Turno en cola Gobernación) -->
+  <div *ngIf="radicadoExitoso() as rad" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in duration-200">
+      <div class="w-16 h-16 rounded-2xl bg-blue-100 text-[#1b53ad] flex items-center justify-center text-3xl mx-auto shadow-inner">
+        <i class="fa-solid fa-file-circle-check"></i>
+      </div>
+
+      <div class="space-y-1">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+          <i class="fa-solid fa-hourglass-half mr-1.5"></i> En Turno de Revisión Departamental
+        </span>
+        <h2 class="text-xl font-black text-slate-900">¡Declaración Radicada Exitosamente!</h2>
+        <p class="text-xs text-slate-600 leading-relaxed">
+          Su solicitud ha ingresado a la cola oficial de validación de la <strong>Secretaría de Hacienda de la Gobernación del Cauca</strong>.
+        </p>
+      </div>
+
+      <!-- Tarjeta de Turno y Radicado -->
+      <div class="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left">
+        <div>
+          <span class="text-[10px] font-bold uppercase text-slate-400 block">Número de Radicado</span>
+          <span class="text-sm font-mono font-bold text-slate-900">{{ rad.radicado }}</span>
+        </div>
+        <div>
+          <span class="text-[10px] font-bold uppercase text-slate-400 block">Turno en Cola</span>
+          <span class="text-base font-black text-[#1b53ad]">Turno #{{ rad.turno }}</span>
+        </div>
+        <div class="col-span-2 pt-2 border-t border-slate-200 flex items-center justify-between">
+          <span class="text-[10px] font-bold uppercase text-slate-400">Consecutivo Generado</span>
+          <span class="text-xs font-mono font-bold text-slate-700">{{ rad.consecutivo }}</span>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-slate-500 text-justify bg-amber-50/70 p-3 rounded-xl border border-amber-200 text-amber-900">
+        <i class="fa-solid fa-shield-halved mr-1 text-amber-700"></i>
+        <strong>Próximo Paso:</strong> El funcionario asignado revisará la Guía ICA respaldada en el FTP. Una vez aprobada, el estado cambiará a <strong>PENDIENTE</strong> para habilitar el recaudo bancario o pago en línea PSE.
+      </p>
+
+      <div class="flex items-center space-x-3 pt-2">
+        <button 
+          (click)="cerrarModalRadicado()"
+          class="w-full py-2.5 px-4 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition cursor-pointer flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-file-invoice"></i>
+          <span>Ver Formulario Oficial Radicado</span>
+        </button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Visor Factura Oficial -->

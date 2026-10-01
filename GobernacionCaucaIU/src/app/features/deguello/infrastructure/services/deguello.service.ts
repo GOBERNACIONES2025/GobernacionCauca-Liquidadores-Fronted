@@ -29,260 +29,124 @@ export class DeguelloService {
   /** Declaración seleccionada para reliquidar / corrección */
   readonly declaracionEnEdicion = signal<DeclaracionDeguelloData | null>(null);
 
-  /** Base de datos simulada para integración ICA y consultas */
-  private guiasSimuladas: DeclaracionDeguelloData[] = [
-    {
-      consecutivo: '2026-0004521',
-      anioGravable: 2026,
-      periodoGravable: '09',
-      esInicial: true,
-      esCorreccion: false,
-      razonSocial: 'FRIGORÍFICO REGIONAL DEL VALLE Y CAUCA S.A.S.',
-      nit: '900.823.411',
-      dv: '2',
-      telefonoFijo: '(602) 8234500',
-      municipio: 'POPAYÁN',
-      direccionNotificacion: 'KM 4 VARIANTE NORTE # 12-40',
-      baseGravable: 25,
-      tarifa: 49800,
-      valorBruto: 1245000,
-      participacionMunicipios: 124500,
-      subtotal: 1120500,
-      sanciones: 0,
-      subtotalMasSanciones: 1120500,
-      interesMora: 0,
-      totalAPagar: 1120500,
-      firmaContador: true,
-      firmaRevisor: false,
-      nombreRepresentante: 'CARLOS ANDRÉS VELASCO MEJÍA',
-      tipoDocRep: 'CC',
-      numeroDocRepresentante: '10.548.920',
-      nombreContadorORevisor: 'MARTHA LUCÍA PATIÑO GÓMEZ',
-      tipoDocContador: 'CC',
-      numeroDocContadorORevisor: '34.521.890',
-      tarjetaProfesional: '184290-T',
-      fechaLimitePago: '25/09/2026',
-      numeroGuiaIca: 'GSMI-2026-004521',
-      predioOrigen: 'Hacienda San José - Vda. La Rejoya (RUV: 19-001-204)',
-      plantaBeneficio: 'Frigorífico Regional de Popayán (PBA-PO-01)',
-      especie: 'Bovino Macho Ceba',
-      fechaVencimientoGuia: '25/09/2026 18:00',
-      estadoPago: 'PENDIENTE',
-      esIntegracionIca: true,
-      consumida: false,
-    },
-    {
-      consecutivo: '2026-0003180',
-      anioGravable: 2026,
-      periodoGravable: '09',
-      esInicial: true,
-      esCorreccion: false,
-      razonSocial: 'FRIGORÍFICO REGIONAL DEL VALLE Y CAUCA S.A.S.',
-      nit: '900.823.411',
-      dv: '2',
-      telefonoFijo: '(602) 8234500',
-      municipio: 'POPAYÁN',
-      direccionNotificacion: 'KM 4 VARIANTE NORTE # 12-40',
-      baseGravable: 15,
-      tarifa: 49800,
-      valorBruto: 747000,
-      participacionMunicipios: 74700,
-      subtotal: 672300,
-      sanciones: 0,
-      subtotalMasSanciones: 672300,
-      interesMora: 0,
-      totalAPagar: 672300,
-      firmaContador: true,
-      firmaRevisor: false,
-      nombreRepresentante: 'CARLOS ANDRÉS VELASCO MEJÍA',
-      tipoDocRep: 'CC',
-      numeroDocRepresentante: '10.548.920',
-      nombreContadorORevisor: 'MARTHA LUCÍA PATIÑO GÓMEZ',
-      tipoDocContador: 'CC',
-      numeroDocContadorORevisor: '34.521.890',
-      tarjetaProfesional: '184290-T',
-      fechaLimitePago: '12/09/2026',
-      numeroGuiaIca: 'GSMI-2026-003180',
-      predioOrigen: 'Hacienda La Colina - Timbío (RUV: 19-001-890)',
-      plantaBeneficio: 'Frigorífico Regional de Popayán (PBA-PO-01)',
-      especie: 'Bovino Macho Ceba',
-      fechaVencimientoGuia: '12/09/2026 18:00',
-      estadoPago: 'PAGADO',
-      reciboBancario: 'OCC-771209-POPAYAN',
-      esIntegracionIca: true,
-      consumida: true,
-    },
-    {
-      consecutivo: '2026-0008912',
-      anioGravable: 2026,
-      periodoGravable: '09',
-      esInicial: true,
-      esCorreccion: false,
-      razonSocial: 'GANADERÍA Y COMERCIALIZADORA DEL PATÍA LTDA',
-      nit: '10.548.920',
-      dv: '1',
-      telefonoFijo: '(602) 8431100',
-      municipio: 'PATÍA - EL BORDO',
-      direccionNotificacion: 'CALLE 4 # 6-22 BARRIO EL CENTRO',
-      baseGravable: 12,
-      tarifa: 49800,
-      valorBruto: 597600,
-      participacionMunicipios: 59760,
-      subtotal: 537840,
-      sanciones: 0,
-      subtotalMasSanciones: 537840,
-      interesMora: 0,
-      totalAPagar: 537840,
-      firmaContador: false,
-      firmaRevisor: true,
-      nombreRepresentante: 'HERNANDO QUINTERO CHÁVEZ',
-      tipoDocRep: 'CC',
-      numeroDocRepresentante: '10.548.920',
-      nombreContadorORevisor: 'JORGE ELIÉCER GÓMEZ',
-      tipoDocContador: 'CC',
-      numeroDocContadorORevisor: '10.612.445',
-      tarjetaProfesional: '142300-T',
-      fechaLimitePago: '28/09/2026',
-      numeroGuiaIca: 'GSMI-2026-008912',
-      predioOrigen: 'Finca Villa Hermosa - Vereda Guayabal',
-      plantaBeneficio: 'Planta de Beneficio Animal Regional Patía (PBA-03)',
-      especie: 'Bovino Mixto (7 Machos, 5 Hembras)',
-      fechaVencimientoGuia: '28/09/2026 17:00',
-      estadoPago: 'PAGADO',
-      reciboBancario: 'BAN-984210-OCCIDENTE',
-      esIntegracionIca: true,
-      consumida: false,
-    },
-    {
-      consecutivo: '2026-0001190',
-      anioGravable: 2026,
-      periodoGravable: '08',
-      esInicial: true,
-      esCorreccion: false,
-      razonSocial: 'DISTRIBUIDORA DE CARNES DEL SUR',
-      nit: '76.321.450',
-      dv: '9',
-      telefonoFijo: '(602) 8203310',
-      municipio: 'SANTANDER DE QUILICHAO',
-      direccionNotificacion: 'CRA 9 # 14-55',
-      baseGravable: 8,
-      tarifa: 49800,
-      valorBruto: 398400,
-      participacionMunicipios: 39840,
-      subtotal: 358560,
-      sanciones: 120000,
-      subtotalMasSanciones: 478560,
-      interesMora: 45000,
-      totalAPagar: 523560,
-      firmaContador: true,
-      firmaRevisor: false,
-      nombreRepresentante: 'ALVARO JOSÉ MUÑOZ',
-      tipoDocRep: 'CC',
-      numeroDocRepresentante: '76.321.450',
-      nombreContadorORevisor: 'LUIS FELIPE RIVERA',
-      tipoDocContador: 'CC',
-      numeroDocContadorORevisor: '12.980.441',
-      tarjetaProfesional: '190442-T',
-      fechaLimitePago: '10/08/2026',
-      numeroGuiaIca: 'GSMI-2026-001190',
-      predioOrigen: 'Hacienda Los Samanes - Vía Villarrica',
-      plantaBeneficio: 'PBA Santander de Quilichao (PBA-SQ-02)',
-      especie: 'Bovino Macho',
-      fechaVencimientoGuia: '10/08/2026 18:00',
-      estadoPago: 'VENCIDO',
-      esIntegracionIca: true,
-      consumida: false,
-    },
-  ];
+  /**
+   * Normaliza los objetos de base de datos / API hacia el modelo de presentación de frontend
+   */
+  normalizarDeclaracion(raw: any): DeclaracionDeguelloData {
+    if (!raw) return raw;
 
-  /** Consultar guía por Documento y Número de Guía ICA o Consecutivo */
+    let estadoPagoNormalizado: DeclaracionDeguelloData['estadoPago'] = 'PENDIENTE';
+    const est = (raw.estadoPago || raw.estado || '').toUpperCase();
+    if (est === 'PAGADA' || est === 'PAGADO') {
+      estadoPagoNormalizado = 'PAGADO';
+    } else if (est === 'VENCIDA' || est === 'VENCIDO') {
+      estadoPagoNormalizado = 'VENCIDO';
+    } else if (est === 'RADICADA') {
+      estadoPagoNormalizado = 'RADICADA';
+    } else if (est === 'RELIQUIDADA') {
+      estadoPagoNormalizado = 'RELIQUIDADA';
+    } else if (est === 'CORREGIDA') {
+      estadoPagoNormalizado = 'CORREGIDA';
+    } else if (est === 'ANULADA') {
+      estadoPagoNormalizado = 'ANULADA';
+    } else if (est === 'PENDIENTE') {
+      estadoPagoNormalizado = 'PENDIENTE';
+    }
+
+    return {
+      consecutivo: raw.consecutivo || '',
+      anioGravable: raw.anioGravable || 2026,
+      periodoGravable: raw.periodoGravable || '09',
+      esInicial: raw.esInicial ?? true,
+      esCorreccion: raw.esCorreccion ?? false,
+      esReliquidacion: raw.esReliquidacion ?? false,
+      declaracionCorregida: raw.declaracionCorregida || raw.declaracionACorregir || '',
+      declaracionReliquidada: raw.declaracionReliquidada || '',
+      razonSocial: raw.razonSocial || raw.razonSocialDeclarante || '',
+      nit: raw.nit || raw.nitDeclarante || '',
+      dv: String(raw.dv ?? '0'),
+      telefonoFijo: raw.telefonoFijo || '',
+      municipio: raw.municipio || '',
+      direccionNotificacion: raw.direccionNotificacion || '',
+      baseGravable: Number(raw.baseGravable) || 0,
+      tarifa: Number(raw.tarifa) || this.TARIFA_BASE_2026,
+      valorBruto: Number(raw.valorBruto) || 0,
+      participacionMunicipios: Number(raw.participacionMunicipios) || 0,
+      subtotal: Number(raw.subtotal) || 0,
+      sanciones: Number(raw.sanciones) || 0,
+      subtotalMasSanciones: Number(raw.subtotalMasSanciones) || 0,
+      interesMora: Number(raw.interesMora) || 0,
+      totalAPagar: Number(raw.totalAPagar) || 0,
+      firmaContador: !!raw.firmaContador,
+      firmaRevisor: !!raw.firmaRevisor,
+      nombreRepresentante: raw.nombreRepresentante || raw.nombreCompletoRepLegal || '',
+      tipoDocRep: (raw.tipoDocRep || 'CC') as 'CC' | 'CE',
+      numeroDocRepresentante: raw.numeroDocRepresentante || raw.numeroDocumentoRepLegal || '',
+      nombreContadorORevisor: raw.nombreContadorORevisor || '',
+      tipoDocContador: (raw.tipoDocContador || 'CC') as 'CC' | 'CE',
+      numeroDocContadorORevisor: raw.numeroDocContadorORevisor || '',
+      tarjetaProfesional: raw.tarjetaProfesional || '',
+      fechaLimitePago: raw.fechaLimitePago || '',
+      codigoBarrasBase64: raw.codigoBarrasBase64,
+      numeroGuiaIca: raw.numeroGuiaIca || '',
+      predioOrigen: raw.predioOrigen || '',
+      plantaBeneficio: raw.plantaBeneficio || '',
+      especie: raw.especie || 'Bovino Macho Ceba',
+      fechaVencimientoGuia: raw.fechaVencimientoGuia || '',
+      estadoPago: estadoPagoNormalizado,
+      esIntegracionIca: !!raw.esIntegracionIca,
+      reciboBancario: raw.reciboBancario || '',
+      consumida: !!raw.consumida,
+      rutaArchivoGuiaIca: raw.rutaArchivoGuiaIca || '',
+      nombreArchivoGuiaIca: raw.nombreArchivoGuiaIca || '',
+      rutaArchivoLiquidacionPdf: raw.rutaArchivoLiquidacionPdf || '',
+      nombreArchivoLiquidacion: raw.nombreArchivoLiquidacion || '',
+      numeroRadicado: raw.numeroRadicado || (estadoPagoNormalizado === 'RADICADA' ? `RAD-${raw.consecutivo}` : undefined),
+      turnoRevision: raw.turnoRevision || (estadoPagoNormalizado === 'RADICADA' ? 1 : undefined),
+    };
+  }
+
+  /** Consultar guía por Documento y Número de Guía ICA o Consecutivo desde la BD */
   consultarGuia(req: ConsultaGuiaRequest): Observable<DeclaracionDeguelloData | null> {
     const doc = req.documento.trim().replace(/\D/g, '');
     const guia = req.numeroGuia.trim().toUpperCase();
 
-    return this.http.get<{ success: boolean; data: { declaraciones: DeclaracionDeguelloData[] } }>(
+    return this.http.get<{ success: boolean; data: { declaraciones: any[] } }>(
       `${this.apiUrl}/portalciudadano/consultar?documento=${encodeURIComponent(doc)}&secondaryStr=${encodeURIComponent(guia)}`
     ).pipe(
       map(res => {
         if (res?.success && res.data?.declaraciones && res.data.declaraciones.length > 0) {
-          return res.data.declaraciones[0];
+          return this.normalizarDeclaracion(res.data.declaraciones[0]);
         }
-        return this.consultarGuiaMock(req);
+        return null;
       }),
-      catchError(() => of(this.consultarGuiaMock(req)))
+      catchError(() => of(null))
     );
   }
 
-  private consultarGuiaMock(req: ConsultaGuiaRequest): DeclaracionDeguelloData | null {
-    const doc = req.documento.trim().replace(/\D/g, '');
-    const guia = req.numeroGuia.trim().toUpperCase();
-
-    const encontrada = this.guiasSimuladas.find((item) => {
-      const itemDoc = item.nit.replace(/\D/g, '');
-      const itemGuia = (item.numeroGuiaIca || '').toUpperCase();
-      const itemConsecutivo = item.consecutivo.toUpperCase();
-
-      const matchDoc = doc.length === 0 || itemDoc.includes(doc) || item.numeroDocRepresentante.replace(/\D/g, '').includes(doc);
-      const matchGuia = itemGuia.includes(guia) || itemConsecutivo.includes(guia) || guia.length === 0;
-
-      return matchDoc && matchGuia;
-    });
-
-    return encontrada ? { ...encontrada } : null;
-  }
-
-  /** Consultar todas las declaraciones y guías para el Portal del Contribuyente */
+  /** Consultar todas las declaraciones y guías para el Portal del Contribuyente desde la BD */
   consultarDeclaracionesCiudadano(docStr: string, secondaryStr: string): Observable<DeclaracionDeguelloData[]> {
     const doc = docStr ? docStr.trim().replace(/\D/g, '') : '';
     const guia = secondaryStr ? secondaryStr.trim().toUpperCase() : '';
 
-    return this.http.get<{ success: boolean; data: { declaraciones: DeclaracionDeguelloData[] } }>(
+    return this.http.get<{ success: boolean; data: { declaraciones: any[] } }>(
       `${this.apiUrl}/portalciudadano/consultar?documento=${encodeURIComponent(doc)}&secondaryStr=${encodeURIComponent(guia)}`
     ).pipe(
       map(res => {
-        if (res?.success && res.data?.declaraciones && res.data.declaraciones.length > 0) {
-          return res.data.declaraciones;
+        if (res?.success && res.data?.declaraciones) {
+          return res.data.declaraciones.map(d => this.normalizarDeclaracion(d));
         }
-        return this.consultarDeclaracionesCiudadanoMock(docStr, secondaryStr);
+        return [];
       }),
-      catchError(() => of(this.consultarDeclaracionesCiudadanoMock(docStr, secondaryStr)))
+      catchError(() => of([]))
     );
   }
 
-  private consultarDeclaracionesCiudadanoMock(docStr: string, secondaryStr: string): DeclaracionDeguelloData[] {
-    const doc = docStr ? docStr.trim().replace(/\D/g, '') : '';
-    const guia = secondaryStr ? secondaryStr.trim().toUpperCase() : '';
-
-    const filtradas = this.guiasSimuladas.filter((item) => {
-      const itemDoc = item.nit.replace(/\D/g, '');
-      const itemRepDoc = item.numeroDocRepresentante ? item.numeroDocRepresentante.replace(/\D/g, '') : '';
-      const itemGuia = (item.numeroGuiaIca || '').toUpperCase();
-      const itemConsecutivo = item.consecutivo.toUpperCase();
-
-      const matchDoc = doc.length > 0 ? (itemDoc.includes(doc) || itemRepDoc.includes(doc)) : false;
-      const matchGuia = guia.length > 0 ? (itemGuia.includes(guia) || itemConsecutivo.includes(guia)) : false;
-
-      // Si se especificó Guía ICA o Formulario, la búsqueda es puntual a esa guía exacta
-      if (guia.length > 0) {
-        return matchGuia;
-      }
-
-      // Si solo se especificó Documento (NIT o CC), se traen todas las declaraciones del contribuyente
-      if (doc.length > 0) {
-        return matchDoc;
-      }
-
-      return false;
-    });
-
-    return filtradas.map((d) => ({ ...d }));
-  }
-
-  /** Calcular liquidación matemática a partir de cabezas y valores */
+  /** Calcular liquidación matemática a partir de cabezas y valores (Se cobra el 100% completo; la Gobernación dispersa el 10% internamente) */
   calcularLiquidacion(cabezas: number, tarifa: number = this.TARIFA_BASE_2026, sanciones: number = 0, interesMora: number = 0) {
     const valorBruto = Math.round(cabezas * tarifa);
-    const participacionMunicipios = Math.round(valorBruto * 0.1); // 10% ley
-    const subtotal = valorBruto - participacionMunicipios;
+    const participacionMunicipios = Math.round(valorBruto * 0.1); // 10% ley para dispersión de la Gobernación
+    const subtotal = valorBruto; // Valor completo del impuesto a cargo
     const subtotalMasSanciones = subtotal + (sanciones || 0);
     const totalAPagar = subtotalMasSanciones + (interesMora || 0);
 
@@ -299,90 +163,93 @@ export class DeguelloService {
     };
   }
 
-  /** Crear una nueva declaración manual (modo subjetivo) */
-  crearDeclaracionManual(payload: Partial<DeclaracionDeguelloData>): DeclaracionDeguelloData {
-    const cabezas = Number(payload.baseGravable) || 10;
-    const tarifa = Number(payload.tarifa) || this.TARIFA_BASE_2026;
-    const sanciones = Number(payload.sanciones) || 0;
-    const mora = Number(payload.interesMora) || 0;
-    const calculo = this.calcularLiquidacion(cabezas, tarifa, sanciones, mora);
-
-    const consecutivoNuevo = `2026-${Math.floor(1000000 + Math.random() * 9000000).toString().substring(0, 7)}`;
-    const ahora = new Date();
-    const fechaLimite = new Date();
-    fechaLimite.setDate(ahora.getDate() + 5);
-
-    const fechaLimStr = `${fechaLimite.getDate().toString().padStart(2, '0')}/${(fechaLimite.getMonth() + 1).toString().padStart(2, '0')}/${fechaLimite.getFullYear()}`;
-
-    const nueva: DeclaracionDeguelloData = {
-      consecutivo: payload.consecutivo || consecutivoNuevo,
-      anioGravable: payload.anioGravable || ahora.getFullYear(),
-      periodoGravable: payload.periodoGravable || (ahora.getMonth() + 1).toString().padStart(2, '0'),
+  /** Crear una nueva declaración oficial con persistencia directa en SQL Server */
+  crearDeclaracion(payload: Partial<DeclaracionDeguelloData>): Observable<DeclaracionDeguelloData> {
+    const body = {
+      anioGravable: payload.anioGravable || 2026,
+      periodoGravable: payload.periodoGravable || '09',
       esInicial: payload.esInicial ?? true,
       esCorreccion: payload.esCorreccion ?? false,
-      declaracionCorregida: payload.declaracionCorregida || '',
-      razonSocial: payload.razonSocial?.toUpperCase() || 'AGROPECUARIA GANADERA DEL CAUCA S.A.S.',
-      nit: payload.nit || '900.554.890',
-      dv: payload.dv || '4',
-      telefonoFijo: payload.telefonoFijo || '(602) 8249000',
-      municipio: payload.municipio?.toUpperCase() || 'POPAYÁN',
-      direccionNotificacion: payload.direccionNotificacion?.toUpperCase() || 'CRA 6 # 3-45 CENTRO',
-      baseGravable: calculo.baseGravable,
-      tarifa: calculo.tarifa,
-      valorBruto: calculo.valorBruto,
-      participacionMunicipios: calculo.participacionMunicipios,
-      subtotal: calculo.subtotal,
-      sanciones: calculo.sanciones,
-      subtotalMasSanciones: calculo.subtotalMasSanciones,
-      interesMora: calculo.interesMora,
-      totalAPagar: calculo.totalAPagar,
-      firmaContador: payload.firmaContador ?? true,
+      esReliquidacion: payload.esReliquidacion ?? false,
+      declaracionCorregida: payload.declaracionCorregida || null,
+      declaracionReliquidada: payload.declaracionReliquidada || null,
+      estadoInicial: payload.estadoPago || 'RADICADA',
+      razonSocial: payload.razonSocial || '',
+      nit: (payload.nit || '').replace(/\D/g, ''),
+      dv: String(payload.dv ?? '0'),
+      telefonoFijo: payload.telefonoFijo || '',
+      municipio: payload.municipio || '',
+      direccionNotificacion: payload.direccionNotificacion || '',
+      baseGravable: Number(payload.baseGravable) || 1,
+      tarifa: Number(payload.tarifa) || this.TARIFA_BASE_2026,
+      sanciones: Number(payload.sanciones) || 0,
+      interesMora: Number(payload.interesMora) || 0,
+      firmaContador: payload.firmaContador ?? false,
       firmaRevisor: payload.firmaRevisor ?? false,
-      nombreRepresentante: payload.nombreRepresentante?.toUpperCase() || 'PEDRO NEL GÓMEZ CASTRO',
+      nombreRepresentante: payload.nombreRepresentante || '',
       tipoDocRep: payload.tipoDocRep || 'CC',
-      numeroDocRepresentante: payload.numeroDocRepresentante || '10.520.880',
-      nombreContadorORevisor: payload.nombreContadorORevisor?.toUpperCase() || 'ANA MARÍA CHAVES',
+      numeroDocRepresentante: payload.numeroDocRepresentante || '',
+      nombreContadorORevisor: payload.nombreContadorORevisor || '',
       tipoDocContador: payload.tipoDocContador || 'CC',
-      numeroDocContadorORevisor: payload.numeroDocContadorORevisor || '34.500.120',
-      tarjetaProfesional: payload.tarjetaProfesional || '195400-T',
-      fechaLimitePago: payload.fechaLimitePago || fechaLimStr,
-      numeroGuiaIca: payload.numeroGuiaIca || `GSMI-2026-${Math.floor(100000 + Math.random() * 900000)}`,
-      predioOrigen: payload.predioOrigen || 'Predio Registrado Local - Cauca',
-      plantaBeneficio: payload.plantaBeneficio || 'Frigorífico Popayán',
-      especie: payload.especie || 'Bovino Macho Ceba',
-      estadoPago: 'PENDIENTE',
-      esIntegracionIca: false,
-      consumida: false,
+      numeroDocContadorORevisor: payload.numeroDocContadorORevisor || '',
+      tarjetaProfesional: payload.tarjetaProfesional || '',
+      fechaLimitePago: payload.fechaLimitePago,
+      numeroGuiaIca: payload.numeroGuiaIca,
+      predioOrigen: payload.predioOrigen,
+      plantaBeneficio: payload.plantaBeneficio,
+      especie: payload.especie,
+      esIntegracionIca: payload.esIntegracionIca ?? false,
+      rutaArchivoGuiaIca: payload.rutaArchivoGuiaIca,
+      nombreArchivoGuiaIca: payload.nombreArchivoGuiaIca,
+      rutaArchivoLiquidacionPdf: payload.rutaArchivoLiquidacionPdf,
+      nombreArchivoLiquidacion: payload.nombreArchivoLiquidacion,
     };
 
-    // Guardar en la colección temporal
-    this.guiasSimuladas.unshift(nueva);
-    return nueva;
+    return this.http.post<{ success: boolean; data: any }>(
+      `${this.apiUrl}/declaraciones`,
+      body
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          return this.normalizarDeclaracion(res.data);
+        }
+        throw new Error('No se pudo crear la declaración');
+      })
+    );
   }
 
-  /** Simular el pago en línea vía PSE */
-  marcarComoPagada(consecutivo: string): boolean {
-    const idx = this.guiasSimuladas.findIndex((g) => g.consecutivo === consecutivo);
-    if (idx !== -1) {
-      this.guiasSimuladas[idx].estadoPago = 'PAGADO';
-      this.guiasSimuladas[idx].reciboBancario = `PSE-${Math.floor(100000 + Math.random() * 900000)}-APROBADO`;
-      return true;
-    }
-    return false;
+  crearDeclaracionManual(payload: Partial<DeclaracionDeguelloData>): Observable<DeclaracionDeguelloData> {
+    return this.crearDeclaracion(payload);
   }
 
-  /** Listar todas las declaraciones y formularios registrados */
+  /** Registrar el pago en línea vía PSE en la base de datos */
+  marcarComoPagada(consecutivo: string, reciboBancario?: string): Observable<boolean> {
+    const body = {
+      consecutivo,
+      reciboBancario: reciboBancario || `PSE-${Math.floor(100000 + Math.random() * 900000)}-APROBADO`,
+    };
+
+    return this.http.post<{ success: boolean; data: boolean }>(
+      `${this.apiUrl}/declaraciones/pago`,
+      body
+    ).pipe(
+      map(res => !!(res?.success)),
+      catchError(() => of(false))
+    );
+  }
+
+  /** Listar todas las declaraciones y formularios registrados directamente desde SQL Server */
   listarDeclaraciones(): Observable<DeclaracionDeguelloData[]> {
-    return this.http.get<{ success: boolean; data: { items: DeclaracionDeguelloData[] } }>(
+    return this.http.get<{ success: boolean; data: { items: any[] } }>(
       `${this.apiUrl}/declaraciones?pageSize=100`
     ).pipe(
       map(res => {
-        if (res?.success && res.data?.items && res.data.items.length > 0) {
-          return res.data.items;
+        if (res?.success && res.data?.items) {
+          return res.data.items.map(item => this.normalizarDeclaracion(item));
         }
-        return [...this.guiasSimuladas];
+        return [];
       }),
-      catchError(() => of([...this.guiasSimuladas]))
+      catchError(() => of([]))
     );
   }
 
@@ -445,12 +312,7 @@ export class DeguelloService {
     return this.http.get<{ success: boolean; data: PlantaBeneficio[] }>(
       `${this.apiUrl}/plantas-beneficio`
     ).pipe(
-      map(res => {
-        if (res?.success && res.data && res.data.length > 0) {
-          return res.data;
-        }
-        return [...this.plantasBeneficio];
-      }),
+      map(res => (res?.success && res.data && res.data.length > 0) ? res.data : [...this.plantasBeneficio]),
       catchError(() => of([...this.plantasBeneficio]))
     );
   }
@@ -459,12 +321,7 @@ export class DeguelloService {
     return this.http.get<{ success: boolean; data: ParametrosDeguello }>(
       `${this.apiUrl}/parametrizacion`
     ).pipe(
-      map(res => {
-        if (res?.success && res.data) {
-          return res.data;
-        }
-        return { ...this.parametrosActuales };
-      }),
+      map(res => (res?.success && res.data) ? res.data : { ...this.parametrosActuales }),
       catchError(() => of({ ...this.parametrosActuales }))
     );
   }
@@ -485,229 +342,175 @@ export class DeguelloService {
   }
 
   /**
-   * Importar información directamente desde el servicio de ICA SIGMA
+   * Importar información directamente desde el servicio de ICA o consulta en BD
    * buscando por número de guía de movilización (GSMI)
    */
   importarDatosIca(numeroGuia: string): Observable<DeclaracionDeguelloData | null> {
     const limpia = numeroGuia.trim().toUpperCase();
-    const match = this.guiasSimuladas.find(
-      (g) => (g.numeroGuiaIca || '').toUpperCase().includes(limpia) || g.consecutivo.toUpperCase().includes(limpia)
+
+    return this.http.get<{ success: boolean; data: { declaraciones: any[] } }>(
+      `${this.apiUrl}/portalciudadano/consultar?secondaryStr=${encodeURIComponent(limpia)}`
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data?.declaraciones && res.data.declaraciones.length > 0) {
+          return this.normalizarDeclaracion(res.data.declaraciones[0]);
+        }
+        return null;
+      }),
+      catchError(() => of(null))
     );
-
-    if (match) {
-      return of({ ...match });
-    }
-
-    // Si no está exactamente en la base, crear un lote mock realista desde ICA
-    const mockIca: DeclaracionDeguelloData = {
-      consecutivo: `2026-${Math.floor(1000000 + Math.random() * 9000000).toString().substring(0, 7)}`,
-      anioGravable: 2026,
-      periodoGravable: '09',
-      esInicial: true,
-      esCorreccion: false,
-      razonSocial: 'GANADERÍA COLOMBIANA REGIONAL S.A.S.',
-      nit: '901.442.110',
-      dv: '5',
-      telefonoFijo: '(602) 8291000',
-      municipio: 'POPAYÁN',
-      direccionNotificacion: 'KM 2 VÍA AL SUR',
-      baseGravable: 18,
-      tarifa: 49800,
-      valorBruto: 18 * 49800,
-      participacionMunicipios: Math.round(18 * 49800 * 0.1),
-      subtotal: (18 * 49800) - Math.round(18 * 49800 * 0.1),
-      sanciones: 0,
-      subtotalMasSanciones: (18 * 49800) - Math.round(18 * 49800 * 0.1),
-      interesMora: 0,
-      totalAPagar: (18 * 49800) - Math.round(18 * 49800 * 0.1),
-      firmaContador: true,
-      firmaRevisor: false,
-      nombreRepresentante: 'GUILLERMO LEÓN VALENCIA',
-      tipoDocRep: 'CC',
-      numeroDocRepresentante: '10.518.230',
-      nombreContadorORevisor: 'CLAUDIA PATRICIA GÓMEZ',
-      tipoDocContador: 'CC',
-      numeroDocContadorORevisor: '34.520.119',
-      tarjetaProfesional: '198420-T',
-      fechaLimitePago: '28/09/2026',
-      numeroGuiaIca: limpia || 'GSMI-2026-009941',
-      predioOrigen: 'Finca Bellavista - Vereda El Morro (RUV: 19-001-882)',
-      plantaBeneficio: 'Frigorífico Regional de Popayán (PBA-PO-01)',
-      especie: 'Bovino Macho Ceba',
-      fechaVencimientoGuia: '28/09/2026 18:00',
-      estadoPago: 'PENDIENTE',
-      esIntegracionIca: true,
-      consumida: false
-    };
-
-    return of(mockIca);
   }
 
   /**
-   * Generar Reliquidación / Declaración de Corrección
+   * Aprobar una declaración en estado RADICADA (Función del funcionario de Gobernación)
+   * Transiciona el estado a PENDIENTE en base de datos (habilitada para pago en banco o PSE).
    */
-  reliquidarDeclaracion(consecutivoOriginal: string, correccion: Partial<DeclaracionDeguelloData>): DeclaracionDeguelloData {
-    // 1. Marcar la original como CORREGIDA
-    const idx = this.guiasSimuladas.findIndex((g) => g.consecutivo === consecutivoOriginal);
-    if (idx !== -1) {
-      this.guiasSimuladas[idx].estadoPago = 'CORREGIDA';
-    }
-
-    // 2. Crear la nueva con marca de corrección
-    const cabezas = Number(correccion.baseGravable) || 1;
-    const tarifa = Number(correccion.tarifa) || this.TARIFA_BASE_2026;
-    const sanciones = Number(correccion.sanciones) || 0;
-    const mora = Number(correccion.interesMora) || 0;
-    const calculo = this.calcularLiquidacion(cabezas, tarifa, sanciones, mora);
-
-    const consecutivoNuevo = `2026-${Math.floor(1000000 + Math.random() * 9000000).toString().substring(0, 7)}`;
-    const ahora = new Date();
-    const fechaLimite = new Date();
-    fechaLimite.setDate(ahora.getDate() + 5);
-    const fechaLimStr = `${fechaLimite.getDate().toString().padStart(2, '0')}/${(fechaLimite.getMonth() + 1).toString().padStart(2, '0')}/${fechaLimite.getFullYear()}`;
-
-    const nuevaDeclaracion: DeclaracionDeguelloData = {
-      consecutivo: consecutivoNuevo,
-      anioGravable: correccion.anioGravable || ahora.getFullYear(),
-      periodoGravable: correccion.periodoGravable || (ahora.getMonth() + 1).toString().padStart(2, '0'),
-      esInicial: false,
-      esCorreccion: true,
-      declaracionCorregida: consecutivoOriginal,
-      razonSocial: correccion.razonSocial || 'CONTRIBUYENTE RELIQUIDADO',
-      nit: correccion.nit || '900.000.000',
-      dv: correccion.dv || '0',
-      telefonoFijo: correccion.telefonoFijo || '(602) 8000000',
-      municipio: correccion.municipio || 'POPAYÁN',
-      direccionNotificacion: correccion.direccionNotificacion || 'CRA 6 # 4-00',
-      baseGravable: calculo.baseGravable,
-      tarifa: calculo.tarifa,
-      valorBruto: calculo.valorBruto,
-      participacionMunicipios: calculo.participacionMunicipios,
-      subtotal: calculo.subtotal,
-      sanciones: calculo.sanciones,
-      subtotalMasSanciones: calculo.subtotalMasSanciones,
-      interesMora: calculo.interesMora,
-      totalAPagar: calculo.totalAPagar,
-      firmaContador: correccion.firmaContador ?? true,
-      firmaRevisor: correccion.firmaRevisor ?? false,
-      nombreRepresentante: correccion.nombreRepresentante || 'REPRESENTANTE LEGAL',
-      tipoDocRep: correccion.tipoDocRep || 'CC',
-      numeroDocRepresentante: correccion.numeroDocRepresentante || '10.000.000',
-      nombreContadorORevisor: correccion.nombreContadorORevisor || 'CONTADOR PÚBLICO',
-      tipoDocContador: correccion.tipoDocContador || 'CC',
-      numeroDocContadorORevisor: correccion.numeroDocContadorORevisor || '34.000.000',
-      tarjetaProfesional: correccion.tarjetaProfesional || '000000-T',
-      fechaLimitePago: correccion.fechaLimitePago || fechaLimStr,
-      numeroGuiaIca: correccion.numeroGuiaIca || 'GSMI-2026-REL',
-      predioOrigen: correccion.predioOrigen || 'Predio Registrado',
-      plantaBeneficio: correccion.plantaBeneficio || 'Frigorífico Popayán',
-      especie: correccion.especie || 'Bovino Macho Ceba',
-      estadoPago: 'PENDIENTE',
-      esIntegracionIca: correccion.esIntegracionIca ?? false,
-      consumida: false
-    };
-
-    this.guiasSimuladas.unshift(nuevaDeclaracion);
-    this.setDeclaracionEnEdicion(null);
-    return nuevaDeclaracion;
+  aprobarLiquidacion(consecutivo: string): Observable<DeclaracionDeguelloData | null> {
+    return this.http.post<{ success: boolean; data: any }>(
+      `${this.apiUrl}/declaraciones/${consecutivo}/aprobar`,
+      {}
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          return this.normalizarDeclaracion(res.data);
+        }
+        return null;
+      }),
+      catchError(() => of(null))
+    );
   }
 
   /**
-   * Generar informe consolidado de recaudo y participación del 10% por municipio
+   * Reliquidación por Vencimiento (Art. 634 E.T.)
+   * OJO: NO ES CORRECCIÓN. No aplica sanción de corrección (Art. 644 E.T.).
+   * Marca la factura original vencida como RELIQUIDADA en SQL Server.
+   * Emite una nueva declaración de tipo RELIQUIDACIÓN con 5 días hábiles de plazo e intereses moratorios calculados.
+   */
+  reliquidarPorVencimiento(consecutivoOriginal: string, datos: Partial<DeclaracionDeguelloData>): Observable<DeclaracionDeguelloData> {
+    const body = {
+      consecutivoOriginal,
+      motivoCorreccion: 'Reliquidación por Vencimiento (Art. 634 E.T.)',
+      esReliquidacion: true,
+      esCorreccion: false,
+      esInicial: false,
+      declaracionReliquidada: consecutivoOriginal,
+      estadoInicial: 'PENDIENTE',
+      sanciones: 0,
+      interesMora: Number(datos.interesMora) || 0,
+      baseGravable: Number(datos.baseGravable) || 1,
+      tarifa: Number(datos.tarifa) || this.TARIFA_BASE_2026,
+      razonSocial: datos.razonSocial || '',
+      nit: (datos.nit || '').replace(/\D/g, ''),
+      dv: String(datos.dv ?? '0'),
+      telefonoFijo: datos.telefonoFijo || '',
+      municipio: datos.municipio || '',
+      direccionNotificacion: datos.direccionNotificacion || '',
+      nombreRepresentante: datos.nombreRepresentante || '',
+      tipoDocRep: datos.tipoDocRep || 'CC',
+      numeroDocRepresentante: datos.numeroDocRepresentante || '',
+      nombreContadorORevisor: datos.nombreContadorORevisor || '',
+      tipoDocContador: datos.tipoDocContador || 'CC',
+      numeroDocContadorORevisor: datos.numeroDocContadorORevisor || '',
+      tarjetaProfesional: datos.tarjetaProfesional || '',
+      numeroGuiaIca: datos.numeroGuiaIca,
+      predioOrigen: datos.predioOrigen,
+      plantaBeneficio: datos.plantaBeneficio,
+      especie: datos.especie,
+      rutaArchivoGuiaIca: datos.rutaArchivoGuiaIca,
+      nombreArchivoGuiaIca: datos.nombreArchivoGuiaIca,
+      rutaArchivoLiquidacionPdf: datos.rutaArchivoLiquidacionPdf,
+      nombreArchivoLiquidacion: datos.nombreArchivoLiquidacion,
+    };
+
+    return this.http.post<{ success: boolean; data: any }>(
+      `${this.apiUrl}/declaraciones/reliquidar`,
+      body
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          this.setDeclaracionEnEdicion(null);
+          return this.normalizarDeclaracion(res.data);
+        }
+        throw new Error('No se pudo reliquidar la declaración');
+      })
+    );
+  }
+
+  /**
+   * Generar Declaración de Corrección Fiscal (Art. 644 E.T.)
+   */
+  reliquidarDeclaracion(consecutivoOriginal: string, correccion: Partial<DeclaracionDeguelloData>): Observable<DeclaracionDeguelloData> {
+    const body = {
+      consecutivoOriginal,
+      motivoCorreccion: 'Corrección fiscal formal (Art. 644 E.T.)',
+      esCorreccion: true,
+      esReliquidacion: false,
+      esInicial: false,
+      declaracionCorregida: consecutivoOriginal,
+      estadoInicial: 'PENDIENTE',
+      sanciones: Number(correccion.sanciones) || 0,
+      interesMora: Number(correccion.interesMora) || 0,
+      baseGravable: Number(correccion.baseGravable) || 1,
+      tarifa: Number(correccion.tarifa) || this.TARIFA_BASE_2026,
+      razonSocial: correccion.razonSocial || '',
+      nit: (correccion.nit || '').replace(/\D/g, ''),
+      dv: String(correccion.dv ?? '0'),
+      telefonoFijo: correccion.telefonoFijo || '',
+      municipio: correccion.municipio || '',
+      direccionNotificacion: correccion.direccionNotificacion || '',
+      nombreRepresentante: correccion.nombreRepresentante || '',
+      tipoDocRep: correccion.tipoDocRep || 'CC',
+      numeroDocRepresentante: correccion.numeroDocRepresentante || '',
+      nombreContadorORevisor: correccion.nombreContadorORevisor || '',
+      tipoDocContador: correccion.tipoDocContador || 'CC',
+      numeroDocContadorORevisor: correccion.numeroDocContadorORevisor || '',
+      tarjetaProfesional: correccion.tarjetaProfesional || '',
+      numeroGuiaIca: correccion.numeroGuiaIca,
+      predioOrigen: correccion.predioOrigen,
+      plantaBeneficio: correccion.plantaBeneficio,
+      especie: correccion.especie,
+      rutaArchivoGuiaIca: correccion.rutaArchivoGuiaIca,
+      nombreArchivoGuiaIca: correccion.nombreArchivoGuiaIca,
+      rutaArchivoLiquidacionPdf: correccion.rutaArchivoLiquidacionPdf,
+      nombreArchivoLiquidacion: correccion.nombreArchivoLiquidacion,
+    };
+
+    return this.http.post<{ success: boolean; data: any }>(
+      `${this.apiUrl}/declaraciones/reliquidar`,
+      body
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          this.setDeclaracionEnEdicion(null);
+          return this.normalizarDeclaracion(res.data);
+        }
+        throw new Error('No se pudo registrar la corrección');
+      })
+    );
+  }
+
+  /**
+   * Generar informe consolidado de recaudo y participación del 10% por municipio desde la base de datos
    */
   obtenerInformeMunicipios(): Observable<InformeMunicipioRecaudo[]> {
     return this.http.get<{ success: boolean; data: InformeMunicipioRecaudo[] }>(
       `${this.apiUrl}/informes/municipios`
     ).pipe(
-      map(res => {
-        if (res?.success && res.data && res.data.length > 0) {
-          return res.data;
-        }
-        return this.obtenerInformeMunicipiosMock();
-      }),
-      catchError(() => of(this.obtenerInformeMunicipiosMock()))
+      map(res => (res?.success && res.data) ? res.data : []),
+      catchError(() => of([]))
     );
   }
 
-  private obtenerInformeMunicipiosMock(): InformeMunicipioRecaudo[] {
-    const mapa = new Map<string, InformeMunicipioRecaudo>();
-
-    // Inicializar municipios oficiales del Cauca
-    const listaMunicipios = ['POPAYÁN', 'PATÍA - EL BORDO', 'SANTANDER DE QUILICHAO', 'BOLÍVAR', 'EL TAMBO', 'PUERTO TEJADA'];
-    listaMunicipios.forEach((m) => {
-      mapa.set(m, {
-        municipio: m,
-        cabezas: 0,
-        valorBruto: 0,
-        participacion10: 0,
-        totalDepartamental: 0,
-        formularios: 0
-      });
-    });
-
-    this.guiasSimuladas.forEach((d) => {
-      const muniKey = (d.municipio || 'POPAYÁN').toUpperCase();
-      let row = mapa.get(muniKey);
-      if (!row) {
-        row = {
-          municipio: muniKey,
-          cabezas: 0,
-          valorBruto: 0,
-          participacion10: 0,
-          totalDepartamental: 0,
-          formularios: 0
-        };
-        mapa.set(muniKey, row);
-      }
-
-      row.cabezas += d.baseGravable;
-      row.valorBruto += d.valorBruto;
-      row.participacion10 += d.participacionMunicipios;
-      row.totalDepartamental += d.subtotalMasSanciones;
-      row.formularios += 1;
-    });
-
-    return Array.from(mapa.values());
-  }
-
   /**
-   * Generar informe de sacrificios y recaudo por Planta de Beneficio Animal (PBA)
+   * Generar informe de sacrificios y recaudo por Planta de Beneficio Animal (PBA) desde la base de datos
    */
   obtenerInformePlantas(): Observable<InformePlantaBeneficio[]> {
     return this.http.get<{ success: boolean; data: InformePlantaBeneficio[] }>(
       `${this.apiUrl}/informes/plantas`
     ).pipe(
-      map(res => {
-        if (res?.success && res.data && res.data.length > 0) {
-          return res.data;
-        }
-        return this.obtenerInformePlantasMock();
-      }),
-      catchError(() => of(this.obtenerInformePlantasMock()))
+      map(res => (res?.success && res.data) ? res.data : []),
+      catchError(() => of([]))
     );
-  }
-
-  private obtenerInformePlantasMock(): InformePlantaBeneficio[] {
-    return this.plantasBeneficio.map((p) => {
-      const declaracionDePlanta = this.guiasSimuladas.filter((d) =>
-        (d.plantaBeneficio || '').toLowerCase().includes(p.municipio.toLowerCase()) ||
-        (d.plantaBeneficio || '').toLowerCase().includes(p.nombre.toLowerCase().substring(0, 8))
-      );
-
-      const cabezas = declaracionDePlanta.reduce((acc, curr) => acc + curr.baseGravable, 0) || (p.capacidadDiariaCabezas * 15);
-      const recaudo = cabezas * this.TARIFA_BASE_2026;
-      const capacidadMes = p.capacidadDiariaCabezas * 30;
-      const ocupacion = Math.min(100, Math.round((cabezas / capacidadMes) * 100));
-
-      return {
-        planta: p.nombre,
-        municipio: p.municipio,
-        cabezasFaenadas: cabezas,
-        capacidadDiaria: p.capacidadDiariaCabezas,
-        recaudoTotal: recaudo,
-        porcentajeOcupacion: ocupacion || 68
-      };
-    });
   }
 
   /** Formatear moneda colombiana */
@@ -895,7 +698,7 @@ export class DeguelloService {
                                 <td align="right" style="border-right: thin solid #000000; border-bottom: thin solid #000000; font-weight: bold;">$ ${this.formatDinero(data.valorBruto)}</td>
                             </tr>
                             <tr>
-                                <td colspan="2" style="border: thin solid #000000; border-top: none">11. MENOS 10% PARTICIPACIÓN MUNICIPIOS</td>
+                                <td colspan="2" style="border: thin solid #000000; border-top: none">11. PARTICIPACIÓN MUNICIPAL (10% LEY - DISPERSIÓN GOBERNACIÓN)</td>
                                 <td colspan="2" align="right" style="border-right: thin solid #000000; border-bottom: thin solid #000000;">$ ${this.formatDinero(data.participacionMunicipios)}</td>
                             </tr>
                             <tr>

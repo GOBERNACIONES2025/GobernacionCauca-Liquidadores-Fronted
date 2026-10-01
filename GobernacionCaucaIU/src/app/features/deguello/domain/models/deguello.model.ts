@@ -4,7 +4,9 @@ export interface DeclaracionDeguelloData {
   periodoGravable: string;
   esInicial: boolean;
   esCorreccion: boolean;
+  esReliquidacion?: boolean;
   declaracionCorregida?: string;
+  declaracionReliquidada?: string;
   
   // Datos del Responsable
   razonSocial: string;
@@ -47,10 +49,17 @@ export interface DeclaracionDeguelloData {
   plantaBeneficio?: string;
   especie?: string;
   fechaVencimientoGuia?: string;
-  estadoPago: 'PAGADO' | 'PENDIENTE' | 'VENCIDO' | 'CORREGIDA';
+  estadoPago: 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'PAGADA' | 'VENCIDO' | 'VENCIDA' | 'CORREGIDA' | 'RELIQUIDADA' | 'ANULADA';
   esIntegracionIca: boolean;
   reciboBancario?: string;
   consumida?: boolean;
+  rutaArchivoGuiaIca?: string;
+  nombreArchivoGuiaIca?: string;
+  rutaArchivoLiquidacionPdf?: string;
+  nombreArchivoLiquidacion?: string;
+  numeroRadicado?: string;
+  fechaRadicacion?: string;
+  turnoRevision?: number;
 }
 
 export interface ConsultaGuiaRequest {

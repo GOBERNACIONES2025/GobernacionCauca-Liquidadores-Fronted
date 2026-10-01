@@ -63,6 +63,20 @@ export const automotoresRoutes: Routes = [
         loadComponent: () => import('./presentation/pages/omisos-emplazamiento/omisos-emplazamiento').then(m => m.OmisosEmplazamientoPage),
       },
       {
+        path: 'cobro-coactivo/emplazamiento',
+        redirectTo: 'cobro-coactivo',
+        pathMatch: 'full'
+      },
+      {
+        path: 'cobro-coactivo/aforo',
+        loadComponent: () => import('./presentation/pages/liquidaciones-oficiales/liquidaciones-oficiales').then(m => m.LiquidacionesOficialesPage),
+      },
+      {
+        path: 'liquidaciones-oficiales',
+        redirectTo: 'cobro-coactivo/aforo',
+        pathMatch: 'full'
+      },
+      {
         path: 'omisos',
         redirectTo: 'cobro-coactivo',
         pathMatch: 'full'

@@ -2,7 +2,10 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { Observable } from 'rxjs';
 import { DeguelloService } from '../../../infrastructure/services/deguello.service';
+import { DeguelloFtpService } from '../../../infrastructure/services/deguello-ftp.service';
+import { FtpFileResult } from '../../../../automotores/domain/interfaces/ftp-file-result';
 import { DeclaracionDeguelloData, PlantaBeneficio } from '../../../domain/models/deguello.model';
 import { FacturaModalComponent } from '../../components/factura-modal/factura-modal';
 
@@ -14,11 +17,20 @@ import { FacturaModalComponent } from '../../components/factura-modal/factura-mo
 })
 export class DeguelloLiquidacionComponent implements OnInit {
   private deguelloService = inject(DeguelloService);
+  private deguelloFtpService = inject(DeguelloFtpService);
   private router = inject(Router);
 
   irAFacturacion(): void {
     this.router.navigate(['/deguello/facturacion']);
   }
+
+  // Modalidad de diligenciamiento: 'autonomo' (manual + anexo FTP) vs 'sigma' (consulta en línea ICA)
+  readonly modoDiligenciamiento = signal<'autonomo' | 'sigma'>('autonomo');
+
+  // Soporte y Anexo FTP Institucional
+  readonly archivoGuiaSeleccionado = signal<File | null>(null);
+  readonly subiendoArchivoFtp = signal<boolean>(false);
+  readonly archivoFtpResultado = signal<FtpFileResult | null>(null);
 
   // Input para búsqueda rápida desde ICA (Inicia en blanco)
   readonly guiaIcaBusqueda = signal<string>('');
@@ -63,6 +75,8 @@ export class DeguelloLiquidacionComponent implements OnInit {
     tipoDocContador: 'CC' as 'CC' | 'CE',
     numeroDocContadorORevisor: '',
     tarjetaProfesional: '',
+    rutaArchivoGuiaIca: '',
+    nombreArchivoGuiaIca: '',
   };
 
   readonly municipiosCauca = [
@@ -78,8 +92,10 @@ export class DeguelloLiquidacionComponent implements OnInit {
     'CALOTO',
   ];
 
-  // Estado específico para Reliquidación / Corrección (Art. 644 E.T.)
+  // Estado específico para Reliquidación por Vencimiento (Art. 634 E.T.) vs Corrección (Art. 644 E.T.)
   readonly declaracionOriginal = signal<DeclaracionDeguelloData | null>(null);
+  readonly esModoReliquidacionVencimiento = signal<boolean>(false);
+  readonly radicadoExitoso = signal<{ radicado: string; turno: number; consecutivo: string } | null>(null);
   readonly diasMora = signal<number>(18);
   readonly tasaMoraMensual = signal<number>(2.1); // 2.1% mensual aproximado
 
@@ -132,8 +148,20 @@ export class DeguelloLiquidacionComponent implements OnInit {
   cargarParaReliquidacion(d: DeclaracionDeguelloData): void {
     this.declaracionOriginal.set(d);
     this.formGeneracion.esInicial = false;
-    this.formGeneracion.esCorreccion = true;
-    this.formGeneracion.declaracionCorregida = d.consecutivo;
+
+    // Distinción tributaria oficial:
+    // Si la factura está VENCIDA: es Reliquidación por Vencimiento (Art. 634 E.T. - Mora). NO es Corrección.
+    const esVencida = d.estadoPago === 'VENCIDO';
+    if (esVencida) {
+      this.esModoReliquidacionVencimiento.set(true);
+      this.formGeneracion.esCorreccion = false;
+      this.formGeneracion.declaracionCorregida = '';
+    } else {
+      this.esModoReliquidacionVencimiento.set(false);
+      this.formGeneracion.esCorreccion = true;
+      this.formGeneracion.declaracionCorregida = d.consecutivo;
+    }
+
     this.formGeneracion.razonSocial = d.razonSocial;
     this.formGeneracion.nit = d.nit;
     this.formGeneracion.dv = d.dv;
@@ -148,8 +176,18 @@ export class DeguelloLiquidacionComponent implements OnInit {
     // Asignar señales reactivas
     this.baseGravable.set(d.baseGravable);
     this.tarifa.set(d.tarifa || 49800);
-    this.sanciones.set(d.sanciones || 0);
-    this.interesMora.set(d.interesMora || 0);
+
+    if (esVencida) {
+      // Art. 634 E.T.: Sin sanción de corrección ($0). Solo mora acumulada.
+      this.sanciones.set(0);
+      const dias = Number(this.diasMora()) || 18;
+      const tasaDiaria = (Number(this.tasaMoraMensual()) / 100) / 30;
+      const baseMora = d.subtotal || ((d.baseGravable || 1) * (d.tarifa || 49800));
+      this.interesMora.set(Math.round(baseMora * tasaDiaria * dias));
+    } else {
+      this.sanciones.set(d.sanciones || 0);
+      this.interesMora.set(d.interesMora || 0);
+    }
 
     this.formGeneracion.nombreRepresentante = d.nombreRepresentante;
     this.formGeneracion.numeroDocRepresentante = d.numeroDocRepresentante;
@@ -157,10 +195,17 @@ export class DeguelloLiquidacionComponent implements OnInit {
     this.formGeneracion.numeroDocContadorORevisor = d.numeroDocContadorORevisor;
     this.formGeneracion.tarjetaProfesional = d.tarjetaProfesional;
 
-    this.mensajeIca.set({
-      texto: `Modo Corrección / Reliquidación activo sobre la Declaración en mora N° ${d.consecutivo}`,
-      tipo: 'success',
-    });
+    if (esVencida) {
+      this.mensajeIca.set({
+        texto: `Modo Reliquidación por Vencimiento activo para la Factura N° ${d.consecutivo} (Art. 634 E.T. - Intereses de Mora sin sanción de corrección)`,
+        tipo: 'success',
+      });
+    } else {
+      this.mensajeIca.set({
+        texto: `Modo Corrección activo sobre la Declaración N° ${d.consecutivo} (Art. 644 E.T.)`,
+        tipo: 'success',
+      });
+    }
   }
 
   aplicarSancion10Porciento(): void {
@@ -266,6 +311,12 @@ export class DeguelloLiquidacionComponent implements OnInit {
     this.formGeneracion.esInicial = true;
     this.formGeneracion.declaracionCorregida = '';
 
+    this.formGeneracion.rutaArchivoGuiaIca = '';
+    this.formGeneracion.nombreArchivoGuiaIca = '';
+    this.archivoGuiaSeleccionado.set(null);
+    this.archivoFtpResultado.set(null);
+    this.subiendoArchivoFtp.set(false);
+
     this.baseGravable.set(null);
     this.tarifa.set(49800);
     this.sanciones.set(0);
@@ -273,11 +324,63 @@ export class DeguelloLiquidacionComponent implements OnInit {
     this.guiaIcaBusqueda.set('');
     this.mensajeIca.set(null);
     this.declaracionOriginal.set(null);
+    this.esModoReliquidacionVencimiento.set(false);
+    this.radicadoExitoso.set(null);
     this.deguelloService.setDeclaracionEnEdicion(null);
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.archivoGuiaSeleccionado.set(file);
+      this.subirGuiaAlFtp(file);
+    }
+  }
+
+  subirGuiaAlFtp(file: File): void {
+    const nit = this.formGeneracion.nit || 'GENERAL';
+    const anio = this.formGeneracion.anioGravable || 2026;
+    this.subiendoArchivoFtp.set(true);
+
+    this.deguelloFtpService.subirGuiaIca(file, nit, anio).subscribe({
+      next: (res) => {
+        this.subiendoArchivoFtp.set(false);
+        this.archivoFtpResultado.set(res);
+        this.formGeneracion.rutaArchivoGuiaIca = res.remoteFullPath;
+        this.formGeneracion.nombreArchivoGuiaIca = res.originalFileName || file.name;
+      },
+      error: () => {
+        this.subiendoArchivoFtp.set(false);
+      }
+    });
+  }
+
+  setModoDiligenciamiento(modo: 'autonomo' | 'sigma'): void {
+    this.modoDiligenciamiento.set(modo);
+  }
+
+  descargarArchivoGuia(): void {
+    const ruta = this.formGeneracion.rutaArchivoGuiaIca;
+    if (ruta) {
+      const url = this.deguelloFtpService.obtenerUrlDescarga(ruta);
+      window.open(url, '_blank');
+    }
+  }
+
+  eliminarArchivoGuia(): void {
+    this.archivoGuiaSeleccionado.set(null);
+    this.archivoFtpResultado.set(null);
+    this.formGeneracion.rutaArchivoGuiaIca = '';
+    this.formGeneracion.nombreArchivoGuiaIca = '';
   }
 
   cancelarModoCorreccion(): void {
     this.limpiarTodo();
+  }
+
+  cerrarModalRadicado(): void {
+    this.radicadoExitoso.set(null);
   }
 
   liquidarYGenerarFactura(): void {
@@ -290,21 +393,41 @@ export class DeguelloLiquidacionComponent implements OnInit {
       interesMora: Number(this.interesMora()) || 0,
     };
 
-    let declaracionEmitida: DeclaracionDeguelloData;
+    let accion$: Observable<DeclaracionDeguelloData>;
 
-    if (this.formGeneracion.esCorreccion && this.formGeneracion.declaracionCorregida) {
-      // Reliquidar sobre la anterior
-      declaracionEmitida = this.deguelloService.reliquidarDeclaracion(
+    if (this.esModoReliquidacionVencimiento() && this.declaracionOriginal()) {
+      // 1. Reliquidación por Vencimiento (Art. 634 E.T.) - Intereses moratorios, sin sanción de corrección
+      accion$ = this.deguelloService.reliquidarPorVencimiento(
+        this.declaracionOriginal()!.consecutivo,
+        datosFinales
+      );
+    } else if (this.formGeneracion.esCorreccion && this.formGeneracion.declaracionCorregida) {
+      // 2. Corrección fiscal formal (Art. 644 E.T.)
+      accion$ = this.deguelloService.reliquidarDeclaracion(
         this.formGeneracion.declaracionCorregida,
         datosFinales
       );
     } else {
-      // Crear nueva normal
-      declaracionEmitida = this.deguelloService.crearDeclaracionManual(datosFinales);
+      // 3. Declaración nueva en modo radicación (Persistida en SQL Server y asignada a cola de revisión)
+      accion$ = this.deguelloService.crearDeclaracion(datosFinales);
     }
 
-    // Abrir el modal visor con la plantilla HTML provista
-    this.declaracionParaModal.set(declaracionEmitida);
+    accion$.subscribe({
+      next: (declaracionEmitida) => {
+        if (declaracionEmitida.estadoPago === 'RADICADA') {
+          this.radicadoExitoso.set({
+            radicado: declaracionEmitida.numeroRadicado || `RAD-${declaracionEmitida.consecutivo}`,
+            turno: declaracionEmitida.turnoRevision || 1,
+            consecutivo: declaracionEmitida.consecutivo,
+          });
+        }
+        // Abrir el modal visor con la plantilla HTML provista
+        this.declaracionParaModal.set(declaracionEmitida);
+      },
+      error: (err) => {
+        console.error('Error al generar la liquidación en base de datos:', err);
+      }
+    });
   }
 
   cerrarFacturaModal(): void {

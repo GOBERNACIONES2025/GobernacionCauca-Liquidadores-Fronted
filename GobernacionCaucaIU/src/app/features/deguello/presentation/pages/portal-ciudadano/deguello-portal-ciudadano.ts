@@ -37,10 +37,20 @@ export class DeguelloPortalCiudadanoComponent {
   readonly declaraciones = signal<DeclaracionDeguelloData[]>([]);
 
   /** Filtro de estado para la lista de resultados */
-  readonly filtroEstado = signal<'TODAS' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO'>('TODAS');
+  readonly filtroEstado = signal<'TODAS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA'>('TODAS');
 
   /** Declaración activa para visualizar/imprimir en el modal */
   readonly declaracionSeleccionadaParaFactura = signal<DeclaracionDeguelloData | null>(null);
+
+  /** MODAL DE PAGO EN LÍNEA PSE */
+  readonly declaracionParaPse = signal<DeclaracionDeguelloData | null>(null);
+  readonly tipoPersonaPse = signal<'JURIDICA' | 'NATURAL'>('JURIDICA');
+  readonly bancoPse = signal<string>('Bancolombia');
+  readonly nombrePagadorPse = signal<string>('');
+  readonly docPagadorPse = signal<string>('');
+  readonly emailPse = signal<string>('pagos@contribuyente.com');
+  readonly procesandoPse = signal<boolean>(false);
+  readonly ticketPseExitoso = signal<{ cus: string; banco: string; fecha: string; valor: number; consecutivo: string; autorizacion: string } | null>(null);
 
   /** Información del contribuyente a partir de los resultados */
   readonly contribuyenteInfo = computed(() => {
@@ -68,6 +78,10 @@ export class DeguelloPortalCiudadanoComponent {
     return this.declaraciones().reduce((acc, curr) => acc + curr.baseGravable, 0);
   });
 
+  readonly countRadicadas = computed(() => {
+    return this.declaraciones().filter((d) => d.estadoPago === 'RADICADA').length;
+  });
+
   readonly countPendientes = computed(() => {
     return this.declaraciones().filter((d) => d.estadoPago === 'PENDIENTE').length;
   });
@@ -78,6 +92,10 @@ export class DeguelloPortalCiudadanoComponent {
 
   readonly countVencidas = computed(() => {
     return this.declaraciones().filter((d) => d.estadoPago === 'VENCIDO').length;
+  });
+
+  readonly countReliquidadas = computed(() => {
+    return this.declaraciones().filter((d) => d.estadoPago === 'RELIQUIDADA').length;
   });
 
   readonly totalPendientePagar = computed(() => {
@@ -111,8 +129,12 @@ export class DeguelloPortalCiudadanoComponent {
       tipoDoc: payload.tipoDocumento,
     });
 
+    this.recargarDeclaraciones(payload.numeroDocumento, payload.secondaryValue);
+  }
+
+  private recargarDeclaraciones(doc: string, guia: string): void {
     this.deguelloService
-      .consultarDeclaracionesCiudadano(payload.numeroDocumento, payload.secondaryValue)
+      .consultarDeclaracionesCiudadano(doc, guia)
       .subscribe({
         next: (res) => {
           this.declaraciones.set(res);
@@ -135,10 +157,12 @@ export class DeguelloPortalCiudadanoComponent {
     this.criterioBusqueda.set(null);
     this.filtroEstado.set('TODAS');
     this.declaracionSeleccionadaParaFactura.set(null);
+    this.declaracionParaPse.set(null);
+    this.ticketPseExitoso.set(null);
   }
 
   /** Cambiar filtro de estado */
-  setFiltro(estado: 'TODAS' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO'): void {
+  setFiltro(estado: 'TODAS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA'): void {
     this.filtroEstado.set(estado);
   }
 
@@ -150,5 +174,80 @@ export class DeguelloPortalCiudadanoComponent {
   /** Cerrar modal de factura */
   cerrarModalFactura(): void {
     this.declaracionSeleccionadaParaFactura.set(null);
+  }
+
+  // --- FLUJO PASARELA PSE (PAGO EN LÍNEA CIUDADANO/EMPRESA) ---
+  abrirModalPse(d: DeclaracionDeguelloData): void {
+    if (d.estadoPago === 'VENCIDO') {
+      alert(`La liquidación N° ${d.consecutivo} se encuentra VENCIDA. No puede pagarse directamente; debe realizar la reliquidación correspondiente.`);
+      return;
+    }
+    if (d.estadoPago === 'RELIQUIDADA') {
+      alert(`La liquidación N° ${d.consecutivo} fue sustituida por una reliquidación (Inactiva). Debe pagar la nueva liquidación vigente.`);
+      return;
+    }
+    if (d.estadoPago === 'RADICADA') {
+      alert(`La liquidación N° ${d.consecutivo} aún se encuentra en revisión oficial por la Gobernación del Cauca. Una vez sea aprobada podrá proceder al pago con PSE.`);
+      return;
+    }
+
+    this.ticketPseExitoso.set(null);
+    this.nombrePagadorPse.set(d.razonSocial);
+    this.docPagadorPse.set(d.nit);
+    this.declaracionParaPse.set(d);
+  }
+
+  cerrarModalPse(): void {
+    if (this.procesandoPse()) return;
+    this.declaracionParaPse.set(null);
+    this.ticketPseExitoso.set(null);
+  }
+
+  confirmarPagoPse(): void {
+    const dec = this.declaracionParaPse();
+    if (!dec) return;
+
+    this.procesandoPse.set(true);
+
+    const cus = Math.floor(100000000 + Math.random() * 900000000).toString();
+    const autorizacion = `AUTH-${Math.floor(100000 + Math.random() * 900000)}`;
+    const reciboPse = `PSE-${cus} (${this.bancoPse()})`;
+
+    // Simulación del débito bancario en línea con PSE (1.2 segundos)
+    setTimeout(() => {
+      this.deguelloService.marcarComoPagada(dec.consecutivo, reciboPse).subscribe({
+        next: (ok) => {
+          this.procesandoPse.set(false);
+          if (ok) {
+            this.ticketPseExitoso.set({
+              cus,
+              banco: this.bancoPse(),
+              fecha: new Date().toLocaleString('es-CO'),
+              valor: dec.totalAPagar,
+              consecutivo: dec.consecutivo,
+              autorizacion,
+            });
+
+            // Refrescar datos en el portal
+            const crit = this.criterioBusqueda();
+            if (crit) {
+              this.recargarDeclaraciones(crit.doc, crit.guia);
+            }
+          } else {
+            alert('No se pudo completar el débito PSE. Verifique que la liquidación esté vigente y habilitada para recaudo.');
+          }
+        },
+        error: () => {
+          this.procesandoPse.set(false);
+          alert('Error de comunicación con la pasarela bancaria PSE.');
+        }
+      });
+    }, 1200);
+  }
+
+  // --- RELIQUIDAR DESDE EL PORTAL CIUDADANO ---
+  reliquidar(d: DeclaracionDeguelloData): void {
+    this.deguelloService.setDeclaracionEnEdicion(d);
+    this.router.navigate(['/deguello/liquidacion']);
   }
 }
