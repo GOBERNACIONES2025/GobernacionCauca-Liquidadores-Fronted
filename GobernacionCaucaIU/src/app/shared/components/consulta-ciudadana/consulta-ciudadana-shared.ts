@@ -16,11 +16,18 @@ export interface TipoDocumentoOpcion {
 
 export const TIPOS_DOCUMENTO_OPCIONES: TipoDocumentoOpcion[] = [
   { id: 1, codigo: 'CC', nombre: 'Cédula de Ciudadanía' },
-  { id: 2, codigo: 'NIT', nombre: 'NIT' },
-  { id: 3, codigo: 'CE', nombre: 'Cédula de Extranjería' },
-  { id: 4, codigo: 'TI', nombre: 'Tarjeta de Identidad' },
+  { id: 2, codigo: 'CE', nombre: 'Cédula de Extranjería' },
+  { id: 3, codigo: 'TI', nombre: 'Tarjeta de Identidad' },
+  { id: 4, codigo: 'RC', nombre: 'Registro Civil de Nacimiento' },
   { id: 5, codigo: 'PA', nombre: 'Pasaporte' },
-  { id: 6, codigo: 'RC', nombre: 'Registro Civil' },
+  { id: 6, codigo: 'PEP', nombre: 'Permiso Especial de Permanencia' },
+  { id: 7, codigo: 'PPT', nombre: 'Permiso por Protección Temporal' },
+  { id: 8, codigo: 'AS', nombre: 'Adulto Sin Identificación' },
+  { id: 9, codigo: 'MS', nombre: 'Menor Sin Identificación' },
+  { id: 10, codigo: 'NIT', nombre: 'Número de Identificación Tributaria' },
+  { id: 11, codigo: 'NUIP', nombre: 'Número Único de Identificación Personal' },
+  { id: 12, codigo: 'NIT_EXT', nombre: 'NIT de Otro País (Extranjero)' },
+  { id: 13, codigo: 'TE', nombre: 'Tarjeta de Extranjería' },
 ];
 
 export interface ConsultaSubmitPayload {

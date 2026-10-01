@@ -227,7 +227,14 @@ export class PortalCiudadano implements OnInit {
       },
       error: (err) => {
         this.sharedComponent?.setLoading(false);
-        const errMsg = err?.error?.message || err?.message || 'No se encontró ningún registro con el documento y placa ingresados. Verifique los datos.';
+        let errMsg = 'No se encontró ningún registro con el documento y placa ingresados. Verifique los datos.';
+        if (err?.error && typeof err.error === 'object' && typeof err.error.message === 'string' && err.error.message.trim() !== '') {
+          errMsg = err.error.message.trim();
+        } else if (err?.status === 404) {
+          errMsg = 'No se encontró ningún vehículo o propietario asociado a la placa e identificación suministradas.';
+        } else if (err?.status === 0 || err?.status === 503) {
+          errMsg = 'No fue posible conectar con el servicio en este momento. Intente más tarde.';
+        }
         this.sharedComponent?.setErrorMessage(errMsg);
       }
     });

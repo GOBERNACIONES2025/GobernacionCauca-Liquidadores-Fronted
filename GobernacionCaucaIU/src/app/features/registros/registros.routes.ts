@@ -37,12 +37,12 @@ import { Contribuyentes } from './presentation/pages/configuracion/contribuyente
 import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/configuracion/entidades/entidades-tipo-acto-permitido/entidades-tipo-acto-permitido';
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
-import { ConsultaCiudadanaSharedComponent } from '../../shared/components/consulta-ciudadana/consulta-ciudadana-shared';
+import { RegistrosPortalCiudadanoComponent } from './presentation/pages/portal-ciudadano/registros-portal-ciudadano';
 
 export const registrosRoutes: Routes = [
   {
     path: 'portal-ciudadano',
-    component: ConsultaCiudadanaSharedComponent,
+    component: RegistrosPortalCiudadanoComponent,
   },
   {
     path: '',
