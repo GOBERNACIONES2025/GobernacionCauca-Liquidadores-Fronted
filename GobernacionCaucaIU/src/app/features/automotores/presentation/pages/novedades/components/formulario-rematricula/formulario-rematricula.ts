@@ -11,8 +11,8 @@ export interface RematriculaFormModel {
   fechaRematricula: string;
   organismoTransito: string;
   numeroActa: string;
-  numeroMotorConfirmado: string;
-  numeroChasisConfirmado: string;
+  servicioActual: string;
+  nuevoServicio: string;
   cilindrajeConfirmado: string;
   marcaLineaModelo: string;
   observaciones: string;
@@ -33,9 +33,19 @@ export class FormularioRematriculaComponent {
     { id: 'Pérdida definitiva de placas', nombre: 'Pérdida definitiva de placas' },
     { id: 'Vehículo Hurtado Recuperado', nombre: 'Vehículo Hurtado Recuperado' },
     { id: 'Deterioro severo o destrucción parcial', nombre: 'Deterioro severo o destrucción parcial' },
-    { id: 'Cambio de Servicio Público a Particular', nombre: 'Cambio de Servicio Público a Particular' },
+    { id: 'Cambio de Servicio', nombre: 'Cambio de Servicio' },
     { id: 'Reasignación por Orden Judicial', nombre: 'Reasignación por Orden Judicial' },
   ];
+
+  onMotivoChange(motivo: string): void {
+    const f = this.form();
+    f.motivo = motivo;
+    if (motivo === 'Cambio de Servicio') {
+      const actual = f.servicioActual || 'Particular';
+      const esPublico = actual.toLowerCase().includes('pub') || actual.toLowerCase().includes('púb');
+      f.nuevoServicio = esPublico ? 'Particular' : 'Público';
+    }
+  }
 
   onFileChange(event: Event): void {
     const inputEl = event.target as HTMLInputElement;

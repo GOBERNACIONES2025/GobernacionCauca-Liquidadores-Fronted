@@ -14,13 +14,13 @@
       </div>
 
       <div class="bg-white p-3 rounded-lg border border-slate-200">
-        <span class="text-[11px] text-slate-400 block font-medium">Organismo de Tránsito</span>
-        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().organismoTransito || 'Popayán' }}</span>
+        <span class="text-[11px] text-slate-400 block font-medium">Servicio Actual</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().servicioActual || 'Particular' }}</span>
       </div>
 
       <div class="bg-white p-3 rounded-lg border border-slate-200">
-        <span class="text-[11px] text-slate-400 block font-medium">Cilindraje Confirmado</span>
-        <span class="font-bold text-slate-800 mt-0.5 block">{{ form().cilindrajeConfirmado || 'N/A' }}</span>
+        <span class="text-[11px] text-slate-400 block font-medium">Organismo de Tránsito</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().organismoTransito || 'Popayán' }}</span>
       </div>
 
       <div class="bg-white p-3 rounded-lg border border-slate-200">
@@ -37,15 +37,16 @@
       2. Datos de Reasignación / Rematrícula
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
       <!-- Motivo de Rematrícula -->
-      <div>
+      <div class="sm:col-span-2 lg:col-span-1">
         <label class="block text-xs font-bold text-slate-700 mb-1.5">
           Motivo de la Rematrícula <span class="text-red-500">*</span>
         </label>
         <app-searchable-select
           [items]="motivosRematricula"
           [(ngModel)]="form().motivo"
+          (ngModelChange)="onMotivoChange($event)"
           labelKey="nombre"
           valueKey="id"
           placeholder="Seleccione motivo..."
@@ -54,7 +55,9 @@
 
       <!-- Nueva Placa Asignada -->
       <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Nueva Placa Asignada</label>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Nueva Placa Asignada <span class="text-red-500">*</span>
+        </label>
         <input
           type="text"
           maxlength="7"
@@ -88,29 +91,55 @@
           class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
         />
       </div>
-
-      <!-- Número de Chasis Confirmado -->
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Confirmación Chasis / VIN</label>
-        <input
-          type="text"
-          [(ngModel)]="form().numeroChasisConfirmado"
-          placeholder="Ej: 9BWCA41..."
-          class="w-full h-10 px-3 text-xs font-mono font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
-        />
-      </div>
-
-      <!-- Número de Motor Confirmado -->
-      <div>
-        <label class="block text-xs font-bold text-slate-700 mb-1.5">Confirmación Motor</label>
-        <input
-          type="text"
-          [(ngModel)]="form().numeroMotorConfirmado"
-          placeholder="Ej: K4M-78921"
-          class="w-full h-10 px-3 text-xs font-mono font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
-        />
-      </div>
     </div>
+
+    <!-- CAMBIO DE SERVICIO (RADIO BUTTONS: VISIBLE ÚNICAMENTE SI EL MOTIVO ES 'Cambio de Servicio') -->
+    @if (form().motivo === 'Cambio de Servicio') {
+      <div class="mt-4 pt-4 border-t border-purple-200 animate-fadeIn">
+        <label class="block text-xs font-bold text-slate-700 mb-2">
+          <i class="fa-solid fa-arrows-rotate text-purple-700 mr-1"></i>
+          Seleccionar Nuevo Servicio Destino <span class="text-red-500">*</span>
+        </label>
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-purple-50/50 p-3.5 rounded-xl border border-purple-200">
+          <div class="flex items-center gap-6">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="nuevoServicioRadio"
+                value="Particular"
+                [(ngModel)]="form().nuevoServicio"
+                class="w-4 h-4 text-[#0F3067] focus:ring-[#0F3067] border-slate-300 cursor-pointer"
+              />
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-car text-blue-600"></i>
+                Particular (Privado)
+              </span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="nuevoServicioRadio"
+                value="Público"
+                [(ngModel)]="form().nuevoServicio"
+                class="w-4 h-4 text-[#0F3067] focus:ring-[#0F3067] border-slate-300 cursor-pointer"
+              />
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-taxi text-amber-600"></i>
+                Público
+              </span>
+            </label>
+          </div>
+
+          @if (form().servicioActual && form().nuevoServicio && form().servicioActual !== form().nuevoServicio) {
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold bg-white text-purple-800 border border-purple-300 shadow-2xs">
+              <span>Actual: <strong>{{ form().servicioActual }}</strong></span>
+              <i class="fa-solid fa-arrow-right text-[10px] text-purple-500"></i>
+              <span>Pasa a: <strong>{{ form().nuevoServicio }}</strong></span>
+            </span>
+          }
+        </div>
+      </div>
+    }
 
     <!-- Observaciones -->
     <div class="mt-4">

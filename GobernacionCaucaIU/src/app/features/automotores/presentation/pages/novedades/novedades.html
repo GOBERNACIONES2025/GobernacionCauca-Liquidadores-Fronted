@@ -33,6 +33,37 @@
       </div>
     </div>
 
+    <!-- KPIS RESUMEN DE NOVEDADES -->
+    @if (kpis(); as kpi) {
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 shrink-0">
+        <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-2xs">
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Total Novedades</div>
+          <div class="text-xl font-black text-slate-900 mt-0.5">{{ kpi.totalNovedades }}</div>
+          <div class="text-[10.5px] text-slate-400 mt-0.5">{{ kpi.mesActual }} este mes</div>
+        </div>
+        <div class="bg-white border border-amber-200 rounded-xl p-3.5 shadow-2xs bg-amber-50/20">
+          <div class="text-[11px] font-bold text-amber-700 uppercase tracking-wide">Radicadas (Pendientes)</div>
+          <div class="text-xl font-black text-amber-900 mt-0.5">{{ kpi.radicadas }}</div>
+          <div class="text-[10.5px] text-amber-600 mt-0.5">Por auditar / visto bueno</div>
+        </div>
+        <div class="bg-white border border-blue-200 rounded-xl p-3.5 shadow-2xs bg-blue-50/20">
+          <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">En Revisión</div>
+          <div class="text-xl font-black text-blue-900 mt-0.5">{{ kpi.enRevision }}</div>
+          <div class="text-[10.5px] text-blue-600 mt-0.5">Verificación documental</div>
+        </div>
+        <div class="bg-white border border-emerald-200 rounded-xl p-3.5 shadow-2xs bg-emerald-50/20">
+          <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wide">Aprobadas</div>
+          <div class="text-xl font-black text-emerald-900 mt-0.5">{{ kpi.aprobadas }}</div>
+          <div class="text-[10.5px] text-emerald-600 mt-0.5">Mutaciones aplicadas</div>
+        </div>
+        <div class="bg-white border border-rose-200 rounded-xl p-3.5 shadow-2xs bg-rose-50/20">
+          <div class="text-[11px] font-bold text-rose-700 uppercase tracking-wide">Rechazadas</div>
+          <div class="text-xl font-black text-rose-900 mt-0.5">{{ kpi.rechazadas }}</div>
+          <div class="text-[10.5px] text-rose-600 mt-0.5">Inconsistencias</div>
+        </div>
+      </div>
+    }
+
     <!-- TARJETA PRINCIPAL: BÚSQUEDA DE PLACA Y SELECCIÓN DE NOVEDAD -->
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-5 shrink-0">
       <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
@@ -294,45 +325,108 @@
               <th class="py-2.5 px-4">Soporte Anexo</th>
               <th class="py-2.5 px-4">Responsable</th>
               <th class="py-2.5 px-4 text-center">Estado</th>
+              <th class="py-2.5 px-4 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            @for (item of historialNovedades(); track item.id) {
-              <tr class="hover:bg-slate-50/80 transition">
-                <td class="py-2.5 px-4 font-mono font-bold text-blue-900">{{ item.id }}</td>
-                <td class="py-2.5 px-4 text-slate-700 whitespace-nowrap font-medium">{{ item.fecha }}</td>
-                <td class="py-2.5 px-4">
-                  <span class="font-mono font-bold px-2 py-0.5 bg-amber-100 text-slate-900 rounded text-[11px] border border-amber-300">
-                    {{ item.placa }}
-                  </span>
-                </td>
-                <td class="py-2.5 px-4 font-bold text-slate-800 whitespace-nowrap">{{ item.tipoNovedad }}</td>
-                <td class="py-2.5 px-4 text-slate-700 font-medium max-w-xs truncate" [title]="item.detalle">{{ item.detalle }}</td>
-                <td class="py-2.5 px-4 whitespace-nowrap">
-                  @if (item.anexo) {
-                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                      <i class="fa-solid fa-paperclip text-xs"></i>
-                      <span class="truncate max-w-[130px]" [title]="item.anexo">{{ item.anexo }}</span>
-                    </span>
-                  } @else {
-                    <span class="text-slate-400 italic text-[11px]">Sin anexo</span>
-                  }
-                </td>
-                <td class="py-2.5 px-4 text-slate-600 whitespace-nowrap">{{ item.responsable }}</td>
-                <td class="py-2.5 px-4 text-center whitespace-nowrap">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold"
-                    [class.bg-emerald-50]="item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
-                    [class.text-emerald-700]="item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
-                    [class.border]="true"
-                    [class.border-emerald-200]="item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
-                    [class.bg-amber-50]="item.estado === 'EN_REVISION'"
-                    [class.text-amber-700]="item.estado === 'EN_REVISION'"
-                    [class.border-amber-200]="item.estado === 'EN_REVISION'"
-                  >
-                    {{ item.estado }}
-                  </span>
+            @if (historialNovedades().length === 0) {
+              <tr>
+                <td colspan="9" class="py-8 text-center text-slate-400">
+                  <i class="fa-solid fa-folder-open text-2xl mb-1.5 block"></i>
+                  No se registran novedades radicadas para el criterio consultado.
                 </td>
               </tr>
+            } @else {
+              @for (item of historialNovedades(); track item.id) {
+                <tr class="hover:bg-slate-50/80 transition">
+                  <td class="py-2.5 px-4 font-mono font-bold text-blue-900">{{ item.id }}</td>
+                  <td class="py-2.5 px-4 text-slate-700 whitespace-nowrap font-medium">{{ item.fecha }}</td>
+                  <td class="py-2.5 px-4">
+                    <span class="font-mono font-bold px-2 py-0.5 bg-amber-100 text-slate-900 rounded text-[11px] border border-amber-300">
+                      {{ item.placa }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-4 font-bold text-slate-800 whitespace-nowrap">{{ item.tipoNovedad }}</td>
+                  <td class="py-2.5 px-4 text-slate-700 font-medium max-w-xs truncate" [title]="item.detalle">{{ item.detalle }}</td>
+                  <td class="py-2.5 px-4 whitespace-nowrap">
+                    @if (item.anexo) {
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        <i class="fa-solid fa-paperclip text-xs"></i>
+                        <span class="truncate max-w-[130px]" [title]="item.anexo">{{ item.anexo }}</span>
+                      </span>
+                    } @else {
+                      <span class="text-slate-400 italic text-[11px]">Sin anexo</span>
+                    }
+                  </td>
+                  <td class="py-2.5 px-4 text-slate-600 whitespace-nowrap">{{ item.responsable }}</td>
+                  <td class="py-2.5 px-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold"
+                      [class.bg-emerald-50]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
+                      [class.text-emerald-700]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
+                      [class.border]="true"
+                      [class.border-emerald-200]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
+                      [class.bg-amber-50]="item.estado === 'EN_REVISION' || item.estado === 'RADICADO'"
+                      [class.text-amber-700]="item.estado === 'EN_REVISION' || item.estado === 'RADICADO'"
+                      [class.border-amber-200]="item.estado === 'EN_REVISION' || item.estado === 'RADICADO'"
+                      [class.bg-rose-50]="item.estado === 'RECHAZADO' || item.estado === 'ANULADO'"
+                      [class.text-rose-700]="item.estado === 'RECHAZADO' || item.estado === 'ANULADO'"
+                      [class.border-rose-200]="item.estado === 'RECHAZADO' || item.estado === 'ANULADO'"
+                    >
+                      {{ item.estado }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-4 text-center whitespace-nowrap">
+                    <div class="inline-flex items-center gap-1.5">
+                      <!-- Botón Ver Detalle -->
+                      <button
+                        type="button"
+                        (click)="verDetalle(item)"
+                        class="p-1.5 text-slate-600 hover:text-blue-900 hover:bg-blue-50 rounded border border-slate-200 transition cursor-pointer"
+                        title="Ver detalle de radicación y cambios"
+                      >
+                        <i class="fa-solid fa-eye text-xs"></i>
+                      </button>
+
+                      <!-- Botones de Aprobación/Rechazo: solo si está en trámite pendiente -->
+                      @if (esPendiente(item.estado)) {
+                        <!-- Botón Aprobar -->
+                        <button
+                          type="button"
+                          (click)="cambiarEstado(item.rawId, 'APROBADO')"
+                          [disabled]="accionLoading() === item.rawId"
+                          class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded shadow-2xs transition cursor-pointer"
+                          title="Aprobar novedad y aplicar cambios automáticamente"
+                        >
+                          @if (accionLoading() === item.rawId) {
+                            <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i>
+                          } @else {
+                            <i class="fa-solid fa-check text-[10px]"></i>
+                          }
+                          <span>Aprobar</span>
+                        </button>
+
+                        <!-- Botón Rechazar -->
+                        <button
+                          type="button"
+                          (click)="cambiarEstado(item.rawId, 'RECHAZADO')"
+                          [disabled]="accionLoading() === item.rawId"
+                          class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 rounded shadow-2xs transition cursor-pointer"
+                          title="Rechazar novedad por inconsistencias"
+                        >
+                          @if (accionLoading() === item.rawId) {
+                            <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i>
+                          } @else {
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                          }
+                          <span>Rechazar</span>
+                        </button>
+                      } @else {
+                        <span class="text-[10.5px] text-slate-400 italic px-1 select-none">Trámite finalizado</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
             }
           </tbody>
         </table>
@@ -340,4 +434,111 @@
     </div>
 
   </div>
+
+  <!-- MODAL DE DETALLE Y AUDITORÍA DE NOVEDAD -->
+  @if (detalleModal(); as modal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+        <!-- Modal Header -->
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-900 flex items-center justify-center">
+              <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 m-0">Detalle de Novedad Radicada</h3>
+              <p class="text-[11px] text-slate-500 m-0">Radicado: {{ modal.numeroRadicado || modal.id }} — Placa: {{ modal.placa }}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="cerrarModalDetalle()"
+            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-5 overflow-y-auto space-y-4 text-xs">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Trámite</span>
+              <span class="font-bold text-slate-800">{{ modal.tipoNovedad }}</span>
+            </div>
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Estado</span>
+              <span class="font-bold text-blue-900">{{ modal.estado }}</span>
+            </div>
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Fecha Radicación</span>
+              <span class="font-bold text-slate-800">{{ modal.fechaRadicacion ? modal.fechaRadicacion.substring(0, 10) : (modal.createdAt ? modal.createdAt.substring(0, 10) : 'N/A') }}</span>
+            </div>
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Placa</span>
+              <span class="font-mono font-bold text-amber-900">{{ modal.placa }}</span>
+            </div>
+          </div>
+
+          @if (modal.motivo || modal.observaciones) {
+            <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3.5">
+              <span class="text-[11px] font-bold text-blue-900 block mb-1">Motivo y Observaciones</span>
+              <p class="text-slate-700 m-0">{{ modal.motivo || modal.observaciones }}</p>
+            </div>
+          }
+
+          @if (modal.datosNuevosJson) {
+            <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-900 text-emerald-400 font-mono text-[11px]">
+              <span class="text-slate-400 block mb-1 text-[10.5px] font-sans font-bold uppercase">Mutación / Cambios a Aplicar (JSON):</span>
+              <pre class="overflow-x-auto whitespace-pre-wrap">{{ modal.datosNuevosJson }}</pre>
+            </div>
+          }
+
+          @if (modal.datosPreviosJson) {
+            <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-800 text-slate-300 font-mono text-[11px]">
+              <span class="text-slate-400 block mb-1 text-[10.5px] font-sans font-bold uppercase">Estado Previo del Automotor (JSON):</span>
+              <pre class="overflow-x-auto whitespace-pre-wrap">{{ modal.datosPreviosJson }}</pre>
+            </div>
+          }
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            @if (esPendiente(modal.estado)) {
+              <button
+                type="button"
+                (click)="cambiarEstado(modal.id, 'APROBADO'); cerrarModalDetalle();"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs transition cursor-pointer"
+              >
+                <i class="fa-solid fa-check"></i>
+                <span>Aprobar Novedad</span>
+              </button>
+              <button
+                type="button"
+                (click)="cambiarEstado(modal.id, 'RECHAZADO'); cerrarModalDetalle();"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-2xs transition cursor-pointer"
+              >
+                <i class="fa-solid fa-xmark"></i>
+                <span>Rechazar</span>
+              </button>
+            } @else {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                <i class="fa-solid fa-lock text-[10px]"></i> Novedad finalizada ({{ modal.estado }})
+              </span>
+            }
+          </div>
+
+          <button
+            type="button"
+            (click)="cerrarModalDetalle()"
+            class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </main>
+
