@@ -1,3 +1,4 @@
+import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { registrosGobernacionGuard, registrosEntidadesGuard } from './core/guards/registros-auth.guard';
 import { ConfiguracionLayoutComponent } from './presentation/layout/configuracion-layout/configuracion-layout';
@@ -38,6 +39,7 @@ import { EntidadesTipoActoPermitidoComponent } from './presentation/pages/config
 import { InmueblesComponent } from './presentation/pages/configuracion/inmuebles/inmuebles/inmuebles';
 
 import { RegistrosPortalCiudadanoComponent } from './presentation/pages/portal-ciudadano/registros-portal-ciudadano';
+import { RegistrosAuthStateService } from './core/auth/registros-auth-state.service';
 
 export const registrosRoutes: Routes = [
   {
@@ -46,16 +48,32 @@ export const registrosRoutes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'entidades/login',
-    pathMatch: 'full'
+    pathMatch: 'full',
+    redirectTo: () => {
+      const authState = inject(RegistrosAuthStateService);
+      if (authState.isGobernacion()) {
+        return 'gobernacion/dashboard';
+      }
+      if (authState.isEntidad()) {
+        return 'entidades/solicitudes';
+      }
+      return '/login?modulo=REGISTROS';
+    }
+  },
+  // Redirecciones de compatibilidad para enlaces heredados hacia el login central unificado
+  {
+    path: 'entidades/login',
+    pathMatch: 'full',
+    redirectTo: () => '/login?modulo=REGISTROS&portal=entidad'
+  },
+  {
+    path: 'gobernacion/login',
+    pathMatch: 'full',
+    redirectTo: () => '/login?modulo=REGISTROS&portal=gobernacion'
   },
   // =========================================================================
   // 1. PORTAL DE ENTIDADES EXTERNAS (Notarías / Cámaras / Juzgados)
   // =========================================================================
-  {
-    path: 'entidades/login',
-    loadComponent: () => import('./presentation/pages/entidades/entidades-login/entidades-login').then(m => m.EntidadesLoginComponent)
-  },
   {
     path: 'entidades',
     component: EntidadesLayoutComponent,
@@ -87,10 +105,6 @@ export const registrosRoutes: Routes = [
   // =========================================================================
   // 2. PORTAL DE LA GOBERNACIÓN DEL CAUCA (Fiscalización y Rentas)
   // =========================================================================
-  {
-    path: 'gobernacion/login',
-    loadComponent: () => import('./presentation/pages/gobernacion/gobernacion-login/gobernacion-login').then(m => m.GobernacionLoginComponent)
-  },
   {
     path: 'gobernacion',
     component: GobernacionLayoutComponent,

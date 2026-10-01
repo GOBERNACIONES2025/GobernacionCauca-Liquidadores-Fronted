@@ -8,6 +8,10 @@ import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { registrosAuthInterceptor } from './features/registros/core/interceptors/registros-auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
+import { AUTH_STRATEGIES } from './core/auth/strategies/auth-strategy.interface';
+import { RegistrosEntidadesAuthStrategy } from './core/auth/strategies/registros-entidades-auth.strategy';
+import { RegistrosGobernacionAuthStrategy } from './core/auth/strategies/registros-gobernacion-auth.strategy';
+import { CoreGobernacionAuthStrategy } from './core/auth/strategies/core-gobernacion-auth.strategy';
 
 registerLocaleData(localeEsCo);
 
@@ -19,5 +23,8 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([authInterceptor, registrosAuthInterceptor, errorInterceptor])
     ),
     { provide: LOCALE_ID, useValue: 'es-CO' },
+    { provide: AUTH_STRATEGIES, useClass: RegistrosEntidadesAuthStrategy, multi: true },
+    { provide: AUTH_STRATEGIES, useClass: RegistrosGobernacionAuthStrategy, multi: true },
+    { provide: AUTH_STRATEGIES, useClass: CoreGobernacionAuthStrategy, multi: true },
   ]
 };

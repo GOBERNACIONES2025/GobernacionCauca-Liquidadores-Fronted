@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
+import { CanActivateFn, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { of, Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { RegistrosAuthStateService } from '../auth/registros-auth-state.service';
@@ -8,15 +8,13 @@ import { RegistrosTokenStorageService } from '../tokens/registros-token-storage.
 import { ToastService } from '../../../../core/services/toast.service';
 
 /**
- * Valida la sesión y vigencia del token JWT para el acceso a rutas protegidas.
- * Si el access token ha expirado:
- * - Si existe un refresh token, intenta refrescarlo automáticamente.
- * - Si no existe o la renovación falla, limpia el almacenamiento,
- *   alerta al usuario con un Toast y redirige al formulario de inicio de sesión correspondiente.
+ * Valida la sesión y vigencia del token JWT para el acceso a rutas protegidas de Registro.
+ * Si el usuario no está autenticado o la sesión ha expirado, redirige al Login Central (/login)
+ * conservando el contexto del portal (Gobernación o Entidad) y la URL de retorno (returnUrl).
  */
 function checkAuthAndToken(
   targetPortal: 'GOBERNACION' | 'ENTIDAD_REGISTRO' | 'ANY',
-  defaultLoginRoute: string
+  state: RouterStateSnapshot
 ): Observable<boolean | UrlTree> | boolean | UrlTree {
   const authState = inject(RegistrosAuthStateService);
   const tokenStorage = inject(RegistrosTokenStorageService);
@@ -27,9 +25,24 @@ function checkAuthAndToken(
   const token = tokenStorage.getAccessToken();
   const isAuth = authState.isAuthenticated();
 
+  const queryParams: Record<string, string> = {
+    modulo: 'REGISTROS',
+    returnUrl: state.url,
+  };
+
+  if (targetPortal === 'GOBERNACION') {
+    queryParams['portal'] = 'gobernacion';
+  } else if (targetPortal === 'ENTIDAD_REGISTRO') {
+    queryParams['portal'] = 'entidad';
+  }
+
+  const buildLoginUrlTree = (): UrlTree => {
+    return router.createUrlTree(['/login'], { queryParams });
+  };
+
   // Caso 1: El usuario nunca ha iniciado sesión
   if (!isAuth && !token) {
-    return router.createUrlTree([defaultLoginRoute]);
+    return buildLoginUrlTree();
   }
 
   // Helper para verificar el rol/portal requerido cuando el token es válido
@@ -56,7 +69,7 @@ function checkAuthAndToken(
     tokenStorage.clearTokens();
     authState.clearSession();
     toast.warning('Su sesión ha expirado. Por favor ingrese sus credenciales nuevamente.');
-    return router.createUrlTree([defaultLoginRoute]);
+    return buildLoginUrlTree();
   };
 
   // Caso 2: El token de acceso NO ha expirado y la sesión está activa
@@ -84,22 +97,22 @@ function checkAuthAndToken(
 /**
  * Guardia general de autenticación para el módulo de Impuesto de Registro.
  */
-export const registrosAuthGuard: CanActivateFn = () => {
-  return checkAuthAndToken('ANY', '/registros/entidades/login');
+export const registrosAuthGuard: CanActivateFn = (_route, state) => {
+  return checkAuthAndToken('ANY', state);
 };
 
 /**
  * Guardia que asegura acceso exclusivo a funcionarios de la Gobernación del Cauca
  * (Fiscalización, Rentas, Liquidación central y Parametrización).
  */
-export const registrosGobernacionGuard: CanActivateFn = () => {
-  return checkAuthAndToken('GOBERNACION', '/registros/gobernacion/login');
+export const registrosGobernacionGuard: CanActivateFn = (_route, state) => {
+  return checkAuthAndToken('GOBERNACION', state);
 };
 
 /**
  * Guardia que asegura acceso exclusivo a Entidades Registrales Externas
  * (Notarías, Cámaras de Comercio, Juzgados, ORIP).
  */
-export const registrosEntidadesGuard: CanActivateFn = () => {
-  return checkAuthAndToken('ENTIDAD_REGISTRO', '/registros/entidades/login');
+export const registrosEntidadesGuard: CanActivateFn = (_route, state) => {
+  return checkAuthAndToken('ENTIDAD_REGISTRO', state);
 };
