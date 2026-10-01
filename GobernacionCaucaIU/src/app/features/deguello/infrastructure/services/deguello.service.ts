@@ -104,6 +104,8 @@ export class DeguelloService {
       nombreArchivoGuiaIca: raw.nombreArchivoGuiaIca || '',
       rutaArchivoLiquidacionPdf: raw.rutaArchivoLiquidacionPdf || '',
       nombreArchivoLiquidacion: raw.nombreArchivoLiquidacion || '',
+      rutaArchivoPago: raw.rutaArchivoPago || '',
+      nombreArchivoPago: raw.nombreArchivoPago || '',
       numeroRadicado: raw.numeroRadicado || (estadoPagoNormalizado === 'RADICADA' ? `RAD-${raw.consecutivo}` : undefined),
       turnoRevision: raw.turnoRevision || (estadoPagoNormalizado === 'RADICADA' ? 1 : undefined),
     };
@@ -225,12 +227,21 @@ export class DeguelloService {
     return this.crearDeclaracion(payload);
   }
 
-  /** Registrar el pago en línea vía PSE en la base de datos */
-  marcarComoPagada(consecutivo: string, reciboBancario?: string): Observable<boolean> {
-    const body = {
+  /** Registrar el pago en línea vía PSE o bancario en la base de datos */
+  marcarComoPagada(
+    consecutivo: string, 
+    reciboBancario?: string, 
+    rutaArchivoPago?: string, 
+    nombreArchivoPago?: string
+  ): Observable<boolean> {
+    const body: any = {
       consecutivo,
       reciboBancario: reciboBancario || `PSE-${Math.floor(100000 + Math.random() * 900000)}-APROBADO`,
     };
+    if (rutaArchivoPago) {
+      body.rutaArchivoPago = rutaArchivoPago;
+      body.nombreArchivoPago = nombreArchivoPago || '';
+    }
 
     return this.http.post<{ success: boolean; data: boolean }>(
       `${this.apiUrl}/declaraciones/pago`,

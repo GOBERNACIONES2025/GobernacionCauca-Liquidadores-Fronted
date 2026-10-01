@@ -2,6 +2,7 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { DeguelloService } from '../../../infrastructure/services/deguello.service';
 import { DeguelloFtpService } from '../../../infrastructure/services/deguello-ftp.service';
 import { DeclaracionDeguelloData } from '../../../domain/models/deguello.model';
@@ -17,6 +18,7 @@ export class DeguelloFacturacionComponent implements OnInit {
   private deguelloService = inject(DeguelloService);
   private deguelloFtpService = inject(DeguelloFtpService);
   private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
 
   readonly listaDeclaraciones = signal<DeclaracionDeguelloData[]>([]);
   readonly filtroTexto = signal<string>('');
@@ -37,8 +39,20 @@ export class DeguelloFacturacionComponent implements OnInit {
   readonly numeroComprobante = signal<string>('');
   readonly fechaPagoBancario = signal<string>(new Date().toISOString().substring(0, 10));
 
+  // Soporte de Pago / Archivo FTP
+  readonly archivoComprobanteSeleccionado = signal<File | null>(null);
+  readonly subiendoComprobanteFtp = signal<boolean>(false);
+  readonly errorArchivoComprobante = signal<string | null>(null);
+
   // Modal de VISUALIZACIÓN DE COMPROBANTE DE RECAUDO (Para declaraciones Pagadas)
   readonly declaracionParaComprobante = signal<DeclaracionDeguelloData | null>(null);
+
+  // Modal de PREVISUALIZACIÓN DE SOPORTES (Guías ICA, Comprobantes de pago) - Sin descarga
+  readonly previewSoporteVisible = signal<boolean>(false);
+  readonly previewSoporteUrl = signal<SafeResourceUrl | null>(null);
+  readonly previewSoporteUrlRaw = signal<string>('');
+  readonly previewSoporteNombre = signal<string>('');
+  readonly previewSoporteEsPdf = signal<boolean>(true);
 
   // KPIs
   readonly totalRecaudado = computed(() => {
@@ -154,11 +168,39 @@ export class DeguelloFacturacionComponent implements OnInit {
     const radRandom = Math.floor(100000 + Math.random() * 900000);
     this.numeroComprobante.set(`REC-BAN-${radRandom}`);
     this.fechaPagoBancario.set(new Date().toISOString().substring(0, 10));
+    this.archivoComprobanteSeleccionado.set(null);
+    this.subiendoComprobanteFtp.set(false);
+    this.errorArchivoComprobante.set(null);
     this.declaracionParaPagoBancario.set(d);
   }
 
   cerrarPagoBancario(): void {
     this.declaracionParaPagoBancario.set(null);
+    this.archivoComprobanteSeleccionado.set(null);
+    this.subiendoComprobanteFtp.set(false);
+    this.errorArchivoComprobante.set(null);
+  }
+
+  onArchivoComprobanteSeleccionado(event: any): void {
+    const file = event?.target?.files?.[0];
+    if (!file) {
+      this.archivoComprobanteSeleccionado.set(null);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.errorArchivoComprobante.set('El comprobante no debe superar los 10MB.');
+      this.archivoComprobanteSeleccionado.set(null);
+      return;
+    }
+
+    this.errorArchivoComprobante.set(null);
+    this.archivoComprobanteSeleccionado.set(file);
+  }
+
+  eliminarArchivoComprobante(): void {
+    this.archivoComprobanteSeleccionado.set(null);
+    this.errorArchivoComprobante.set(null);
   }
 
   confirmarPagoBancario(): void {
@@ -167,14 +209,46 @@ export class DeguelloFacturacionComponent implements OnInit {
 
     const recibo = this.numeroComprobante().trim() || `REC-${Math.floor(100000 + Math.random() * 900000)}`;
     const detalleRecibo = `${recibo} (${this.bancoSeleccionado().split(' - ')[0]} - ${this.canalPago()})`;
+    const file = this.archivoComprobanteSeleccionado();
 
-    this.deguelloService.marcarComoPagada(dec.consecutivo, detalleRecibo).subscribe({
+    // Si se adjuntó archivo, se sube por FTP directamente a la carpeta del mismo contribuyente:
+    // /DEGUELLO/EMPRESAS/{nitContribuyente}/{anio}/SOPORTES_PAGO
+    if (file) {
+      this.subiendoComprobanteFtp.set(true);
+      const nitContribuyente = (dec.nit || 'GENERAL').replace(/[^0-9a-zA-Z]/g, '');
+      const anio = dec.anioGravable || 2026;
+
+      this.deguelloFtpService.subirSoportePago(file, nitContribuyente, anio).subscribe({
+        next: (ftpRes) => {
+          this.subiendoComprobanteFtp.set(false);
+          const rutaFtp = ftpRes?.remoteFullPath || '';
+          const nombreFtp = ftpRes?.originalFileName || file.name;
+          this.ejecutarRegistroPago(dec, detalleRecibo, rutaFtp, nombreFtp);
+        },
+        error: (err) => {
+          console.warn('FTP no disponible o error al subir comprobante. Registrando pago con referencia.', err);
+          this.subiendoComprobanteFtp.set(false);
+          this.ejecutarRegistroPago(dec, detalleRecibo, '', file.name);
+        }
+      });
+    } else {
+      this.ejecutarRegistroPago(dec, detalleRecibo, '', '');
+    }
+  }
+
+  private ejecutarRegistroPago(
+    dec: DeclaracionDeguelloData, 
+    detalleRecibo: string, 
+    rutaFtp: string, 
+    nombreFtp: string
+  ): void {
+    this.deguelloService.marcarComoPagada(dec.consecutivo, detalleRecibo, rutaFtp, nombreFtp).subscribe({
       next: (ok) => {
         this.cerrarPagoBancario();
         if (ok) {
           this.cargarDatos();
           this.mensajeAccion.set({
-            texto: `✅ Se registró exitosamente el recaudo bancario para el formulario N° ${dec.consecutivo} (Comprobante: ${detalleRecibo}).`,
+            texto: `✅ Se registró exitosamente el recaudo bancario para el formulario N° ${dec.consecutivo} (Comprobante: ${detalleRecibo}${rutaFtp ? ' · Guardado en FTP del contribuyente' : ''}).`,
             tipo: 'success'
           });
           setTimeout(() => this.mensajeAccion.set(null), 6000);
@@ -220,5 +294,23 @@ export class DeguelloFacturacionComponent implements OnInit {
 
   obtenerUrlDescarga(ruta?: string): string {
     return ruta ? this.deguelloFtpService.obtenerUrlDescarga(ruta) : '#';
+  }
+
+  // --- PREVISUALIZACIÓN DE SOPORTES (ICA, COMPROBANTES) SIN DESCARGA ---
+  abrirPreviewSoporte(ruta?: string, nombreArchivo?: string): void {
+    if (!ruta) return;
+    const rawUrl = this.deguelloFtpService.obtenerUrlPreview(ruta);
+    this.previewSoporteUrlRaw.set(rawUrl);
+    this.previewSoporteUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl));
+    this.previewSoporteNombre.set(nombreArchivo || 'Soporte_Guia_ICA.pdf');
+    const esPdf = !nombreArchivo || nombreArchivo.toLowerCase().endsWith('.pdf') || ruta.toLowerCase().endsWith('.pdf');
+    this.previewSoporteEsPdf.set(esPdf);
+    this.previewSoporteVisible.set(true);
+  }
+
+  cerrarPreviewSoporte(): void {
+    this.previewSoporteVisible.set(false);
+    this.previewSoporteUrl.set(null);
+    this.previewSoporteUrlRaw.set('');
   }
 }

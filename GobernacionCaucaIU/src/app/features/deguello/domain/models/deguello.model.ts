@@ -57,6 +57,8 @@ export interface DeclaracionDeguelloData {
   nombreArchivoGuiaIca?: string;
   rutaArchivoLiquidacionPdf?: string;
   nombreArchivoLiquidacion?: string;
+  rutaArchivoPago?: string;
+  nombreArchivoPago?: string;
   numeroRadicado?: string;
   fechaRadicacion?: string;
   turnoRevision?: number;

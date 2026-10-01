@@ -8,6 +8,7 @@ import {
 } from '../../../../../shared/components/consulta-ciudadana/consulta-ciudadana-shared';
 import { DeclaracionDeguelloData, PlantaBeneficio } from '../../../domain/models/deguello.model';
 import { DeguelloService } from '../../../infrastructure/services/deguello.service';
+import { DeguelloFtpService } from '../../../infrastructure/services/deguello-ftp.service';
 import { FacturaModalComponent } from '../../components/factura-modal/factura-modal';
 
 @Component({
@@ -24,6 +25,7 @@ import { FacturaModalComponent } from '../../components/factura-modal/factura-mo
 })
 export class DeguelloPortalCiudadanoComponent implements OnInit {
   private deguelloService = inject(DeguelloService);
+  private deguelloFtpService = inject(DeguelloFtpService);
   private router = inject(Router);
 
   /** Modo de vista: 'login' (Autogestión PBA) | 'dashboard' (Portal Empresa) | 'consulta_publica' (Puntual ICA) */
@@ -89,6 +91,87 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
   /** Declaración activa para visualizar/imprimir en el modal */
   readonly declaracionSeleccionadaParaFactura = signal<DeclaracionDeguelloData | null>(null);
 
+  /** Modal de resumen previo al pago y simulación de pasarela */
+  readonly declaracionParaPago = signal<DeclaracionDeguelloData | null>(null);
+  readonly simulandoPago = signal<boolean>(false);
+  readonly fasePago = signal<'resumen' | 'procesando' | 'exito'>('resumen');
+  readonly textoLoaderPago = signal<string>('Conectando con la pasarela de pagos PSE...');
+  readonly reciboGenerado = signal<string>('');
+
+  /** Modal de Radicación de Guía ICA (Descentralizado en portal de contribuyente) */
+  readonly modalRadicarGuiaAbierto = signal<boolean>(false);
+  readonly radicandoGuia = signal<boolean>(false);
+  readonly radicadoResultado = signal<{ radicado: string; turno: number; consecutivo: string } | null>(null);
+  readonly errorRadicacion = signal<string>('');
+
+  /** Formulario de Radicación de Guía */
+  readonly formRadicacion = {
+    numeroGuiaIca: '',
+    predioOrigen: '',
+    municipioProcedenciaGanado: '',
+    especie: 'Bovino Macho Ceba',
+    periodoGravable: '09',
+    anioGravable: 2026,
+    rutaArchivoGuiaIca: '',
+    nombreArchivoGuiaIca: '',
+  };
+
+  /** Municipios del Cauca para procedencia del ganado */
+  readonly municipiosCauca = [
+    'POPAYÁN',
+    'PATÍA - EL BORDO',
+    'SANTANDER DE QUILICHAO',
+    'BOLÍVAR',
+    'EL TAMBO',
+    'PUERTO TEJADA',
+    'PIENDAMÓ',
+    'TIMBÍO',
+    'SILVIA',
+    'CALOTO',
+    'MERCADERES',
+    'LA SIERRA',
+    'SUCRE',
+    'ALMAGUER',
+    'BALBOA',
+    'BUENOS AIRES',
+    'CAJIBÍO',
+    'CORINTO',
+    'MORALES',
+    'PADILLA',
+    'ROSAS',
+    'SOTARÁ',
+    'TORIBÍO',
+  ];
+
+  /** Archivo soporte de Guía ICA */
+  readonly archivoGuiaSeleccionado = signal<File | null>(null);
+  readonly subiendoGuiaFtp = signal<boolean>(false);
+
+  /** Búsqueda en ICA SIGMA dentro del modal */
+  readonly buscandoIcaModal = signal<boolean>(false);
+  readonly mensajeIcaModal = signal<{ texto: string; tipo: 'success' | 'error' } | null>(null);
+
+  /** Valores financieros reactivos para el modal de radicación */
+  readonly baseGravableRadicacion = signal<number | null>(null);
+  readonly tarifaRadicacion = signal<number>(49800);
+
+  readonly valorBrutoRadicacion = computed(() => {
+    const cab = Number(this.baseGravableRadicacion()) || 0;
+    return cab * (this.tarifaRadicacion() || 49800);
+  });
+
+  readonly dispersionMpalRadicacion = computed(() => {
+    return Math.round(this.valorBrutoRadicacion() * 0.1);
+  });
+
+  readonly totalRadicacion = computed(() => {
+    return this.valorBrutoRadicacion();
+  });
+
+  /** Modal de Reliquidación por Vencimiento */
+  readonly declaracionParaReliquidar = signal<DeclaracionDeguelloData | null>(null);
+  readonly reliquidando = signal<boolean>(false);
+
   /** Información del contribuyente a partir de la empresa o de los resultados */
   readonly contribuyenteInfo = computed(() => {
     const emp = this.empresaActiva();
@@ -106,7 +189,7 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
         codigoInvima: emp.codigoInvima || 'INV-PBA-CAUCA',
         capacidadDiaria: emp.capacidadDiariaCabezas || 60,
         esFrigorifico: !!emp.esFrigorificoRegional,
-        predioOrigen: 'Predios Autorizados del Departamento del Cauca',
+        predioOrigen: '',
         plantaBeneficio: emp.nombre
       };
     }
@@ -245,9 +328,9 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
     this.isConsulted.set(false);
   }
 
-  /** Radicar una nueva guía desde el portal de la empresa */
+  /** Radicar una nueva guía desde el portal de la empresa - ABRE EL MODAL SIN IR AL PANEL ADMIN */
   radicarNuevaGuia(): void {
-    this.router.navigate(['/deguello/liquidacion']);
+    this.abrirModalRadicarGuia();
   }
 
   /** Navegar a la consulta pública por guía ICA */
@@ -316,26 +399,326 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
     this.declaracionSeleccionadaParaFactura.set(null);
   }
 
-  // --- BOTÓN DIRECTO DE PAGO (SIN PANTALLA INTERMEDIA) ---
-  pagar(d: DeclaracionDeguelloData): void {
+  /** Abrir modal de resumen previo al pago */
+  abrirModalPago(d: DeclaracionDeguelloData): void {
     if (d.estadoPago !== 'PENDIENTE') return;
+    this.declaracionParaPago.set(d);
+    this.fasePago.set('resumen');
+    this.simulandoPago.set(false);
+    this.reciboGenerado.set('');
+  }
 
-    const ref = `PSE-${Math.floor(100000000 + Math.random() * 900000000)}`;
-    this.deguelloService.marcarComoPagada(d.consecutivo, ref).subscribe({
-      next: (ok) => {
-        if (ok) {
-          const crit = this.criterioBusqueda();
-          if (crit) {
-            this.recargarDeclaraciones(crit.doc, crit.guia);
-          }
+  /** Cerrar modal de pago */
+  cerrarModalPago(): void {
+    if (this.simulandoPago() && this.fasePago() === 'procesando') {
+      return;
+    }
+    this.declaracionParaPago.set(null);
+    this.simulandoPago.set(false);
+    this.fasePago.set('resumen');
+  }
+
+  /** Simular el pago con loader y actualizar el estado a PAGADO como está dispuesto */
+  ejecutarPagoSimulado(): void {
+    const dec = this.declaracionParaPago();
+    if (!dec || dec.estadoPago !== 'PENDIENTE') return;
+
+    this.simulandoPago.set(true);
+    this.fasePago.set('procesando');
+    this.textoLoaderPago.set('Conectando con la pasarela de pagos oficial (PSE / Redeban)...');
+
+    // Animación fluida de pasos
+    setTimeout(() => {
+      this.textoLoaderPago.set('Validando transacción y debitando fondos de la cuenta...');
+    }, 800);
+
+    setTimeout(() => {
+      this.textoLoaderPago.set('Acreditando recaudo tributario ante la Tesorería del Cauca...');
+    }, 1600);
+
+    setTimeout(() => {
+      const ref = `PSE-${Math.floor(100000000 + Math.random() * 900000000)}`;
+      this.deguelloService.marcarComoPagada(dec.consecutivo, ref).subscribe({
+        next: (ok) => {
+          this.simulandoPago.set(false);
+          this.fasePago.set('exito');
+          this.reciboGenerado.set(ref);
+
+          // Actualizar inmediatamente en memoria para que se muestre como pagada tal como está dispuesto
+          const hoy = new Date().toLocaleDateString('es-CO');
+          this.declaraciones.update((lista) =>
+            lista.map((item) =>
+              item.consecutivo === dec.consecutivo
+                ? {
+                    ...item,
+                    estadoPago: 'PAGADO',
+                    reciboBancario: ref,
+                    fechaPago: hoy,
+                  }
+                : item
+            )
+          );
+
+          // Cerrar modal automáticamente después de mostrar el éxito brevemente
+          setTimeout(() => {
+            this.cerrarModalPago();
+            // Refrescar en segundo plano con el servidor
+            const crit = this.criterioBusqueda();
+            if (crit) {
+              this.recargarDeclaraciones(crit.doc, crit.guia);
+            }
+          }, 1400);
+        },
+        error: () => {
+          this.simulandoPago.set(false);
+          this.fasePago.set('resumen');
         }
+      });
+    }, 2400);
+  }
+
+  // --- BOTÓN DE PAGO (ABRE MODAL DE CONCEPTO) ---
+  pagar(d: DeclaracionDeguelloData): void {
+    this.abrirModalPago(d);
+  }
+
+  /** Abrir modal de radicación de guía ICA */
+  abrirModalRadicarGuia(): void {
+    this.modalRadicarGuiaAbierto.set(true);
+    this.radicadoResultado.set(null);
+    this.errorRadicacion.set('');
+    this.mensajeIcaModal.set(null);
+    this.archivoGuiaSeleccionado.set(null);
+    this.subiendoGuiaFtp.set(false);
+
+    const emp = this.empresaActiva();
+    const info = this.contribuyenteInfo();
+    const mesActual = (new Date().getMonth() + 1).toString().padStart(2, '0');
+
+    this.formRadicacion.numeroGuiaIca = '';
+    this.formRadicacion.predioOrigen = '';
+    this.formRadicacion.municipioProcedenciaGanado = '';
+    this.formRadicacion.especie = 'Bovino Macho Ceba';
+    this.formRadicacion.periodoGravable = mesActual;
+    this.formRadicacion.anioGravable = new Date().getFullYear();
+    this.formRadicacion.rutaArchivoGuiaIca = '';
+    this.formRadicacion.nombreArchivoGuiaIca = '';
+
+    this.baseGravableRadicacion.set(null);
+    this.tarifaRadicacion.set(49800);
+  }
+
+  /** Cerrar modal de radicación de guía ICA */
+  cerrarModalRadicarGuia(): void {
+    const huboRadicado = !!this.radicadoResultado();
+    this.modalRadicarGuiaAbierto.set(false);
+    this.radicadoResultado.set(null);
+    this.errorRadicacion.set('');
+
+    if (huboRadicado) {
+      const crit = this.criterioBusqueda();
+      if (crit) {
+        this.recargarDeclaraciones(crit.doc, crit.guia);
+      }
+    }
+  }
+
+  /** Manejo de archivo digital de la Guía ICA para FTP */
+  onArchivoGuiaSeleccionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      this.archivoGuiaSeleccionado.set(file);
+      this.subirGuiaAlFtp(file);
+    }
+  }
+
+  subirGuiaAlFtp(file: File): void {
+    const emp = this.empresaActiva();
+    const info = this.contribuyenteInfo();
+    const nit = emp?.nit || info?.nit || 'GENERAL';
+    const anio = this.formRadicacion.anioGravable || 2026;
+    this.subiendoGuiaFtp.set(true);
+
+    this.deguelloFtpService.subirGuiaIca(file, nit, anio).subscribe({
+      next: (res) => {
+        this.subiendoGuiaFtp.set(false);
+        this.formRadicacion.rutaArchivoGuiaIca = res.remoteFullPath;
+        this.formRadicacion.nombreArchivoGuiaIca = res.originalFileName || file.name;
+      },
+      error: () => {
+        this.subiendoGuiaFtp.set(false);
       }
     });
   }
 
-  // --- RELIQUIDAR DESDE EL PORTAL CIUDADANO ---
+  eliminarArchivoGuia(): void {
+    this.archivoGuiaSeleccionado.set(null);
+    this.formRadicacion.rutaArchivoGuiaIca = '';
+    this.formRadicacion.nombreArchivoGuiaIca = '';
+  }
+
+  /** Búsqueda en línea ICA SIGMA dentro del modal */
+  consultarGuiaEnIca(): void {
+    const guia = this.formRadicacion.numeroGuiaIca.trim().toUpperCase();
+    if (!guia) {
+      this.mensajeIcaModal.set({ texto: 'Ingrese el número de Guía ICA para consultar.', tipo: 'error' });
+      return;
+    }
+
+    this.buscandoIcaModal.set(true);
+    this.mensajeIcaModal.set(null);
+
+    this.deguelloService.importarDatosIca(guia).subscribe({
+      next: (data) => {
+        this.buscandoIcaModal.set(false);
+        if (data) {
+          this.formRadicacion.numeroGuiaIca = data.numeroGuiaIca || guia;
+          this.formRadicacion.predioOrigen = data.predioOrigen || '';
+          this.formRadicacion.especie = data.especie || 'Bovino Macho Ceba';
+          this.baseGravableRadicacion.set(data.baseGravable);
+          this.tarifaRadicacion.set(data.tarifa || 49800);
+          this.mensajeIcaModal.set({
+            texto: `Información de la Guía ICA "${guia}" importada exitosamente (${data.baseGravable} Bovinos).`,
+            tipo: 'success'
+          });
+        } else {
+          this.mensajeIcaModal.set({
+            texto: `Guía "${guia}" no encontrada en SIGMA en línea. Puede diligenciar los campos manualmente.`,
+            tipo: 'error'
+          });
+        }
+      },
+      error: () => {
+        this.buscandoIcaModal.set(false);
+        this.mensajeIcaModal.set({ texto: 'No se pudo conectar con el servicio ICA. Ingrese los datos manualmente.', tipo: 'error' });
+      }
+    });
+  }
+
+  /** Confirmar y registrar radicación oficial en la base de datos */
+  confirmarRadicacionGuia(): void {
+    const cabezas = Number(this.baseGravableRadicacion()) || 0;
+    if (!this.formRadicacion.numeroGuiaIca.trim()) {
+      this.errorRadicacion.set('Debe ingresar el número de la Guía Sanitaria ICA (GSMI).');
+      return;
+    }
+    if (cabezas <= 0) {
+      this.errorRadicacion.set('Debe ingresar una cantidad de bovinos mayor a cero.');
+      return;
+    }
+
+    this.errorRadicacion.set('');
+    this.radicandoGuia.set(true);
+
+    const emp = this.empresaActiva();
+    const info = this.contribuyenteInfo();
+
+    // Procedencia de los animales según la Guía ICA (predio o municipio de origen)
+    const partesProcedencia: string[] = [];
+    if (this.formRadicacion.predioOrigen.trim()) {
+      partesProcedencia.push(this.formRadicacion.predioOrigen.trim());
+    }
+    if (this.formRadicacion.municipioProcedenciaGanado.trim()) {
+      partesProcedencia.push(this.formRadicacion.municipioProcedenciaGanado.trim());
+    }
+    const procedenciaAnimales = partesProcedencia.join(' - ');
+
+    const payload: Partial<DeclaracionDeguelloData> = {
+      anioGravable: this.formRadicacion.anioGravable,
+      periodoGravable: this.formRadicacion.periodoGravable,
+      esInicial: true,
+      esCorreccion: false,
+      esReliquidacion: false,
+      estadoPago: 'RADICADA',
+      razonSocial: emp?.nombre || info?.razonSocial || 'EMPRESA CONTRIBUYENTE',
+      nit: emp?.nit || info?.nit || '',
+      dv: info?.dv || '9',
+      telefonoFijo: emp?.telefono || info?.telefono || '',
+      municipio: emp?.municipio || info?.municipio || 'POPAYÁN',
+      direccionNotificacion: emp?.direccion || info?.direccion || '',
+      plantaBeneficio: emp?.nombre || info?.plantaBeneficio || 'Planta Regional',
+      nombreRepresentante: emp?.representanteLegal || info?.representante || '',
+      tipoDocRep: 'CC',
+      numeroDocRepresentante: emp?.docRepresentante || info?.docRepresentante || '',
+      numeroGuiaIca: this.formRadicacion.numeroGuiaIca.trim().toUpperCase(),
+      predioOrigen: procedenciaAnimales,
+      especie: this.formRadicacion.especie,
+      baseGravable: cabezas,
+      tarifa: this.tarifaRadicacion(),
+      sanciones: 0,
+      interesMora: 0,
+      rutaArchivoGuiaIca: this.formRadicacion.rutaArchivoGuiaIca,
+      nombreArchivoGuiaIca: this.formRadicacion.nombreArchivoGuiaIca,
+    };
+
+    this.deguelloService.crearDeclaracion(payload).subscribe({
+      next: (creada) => {
+        this.radicandoGuia.set(false);
+        this.radicadoResultado.set({
+          radicado: creada.numeroRadicado || `RAD-${creada.consecutivo}`,
+          turno: creada.turnoRevision || 1,
+          consecutivo: creada.consecutivo,
+        });
+
+        // Insertar en la lista local para reflejo inmediato
+        this.declaraciones.update((lista) => [creada, ...lista]);
+        this.filtroEstado.set('TODAS');
+      },
+      error: () => {
+        this.radicandoGuia.set(false);
+        this.errorRadicacion.set('Ocurrió un error al registrar la radicación en base de datos. Intente nuevamente.');
+      }
+    });
+  }
+
+  // --- RELIQUIDAR DESDE EL PORTAL CIUDADANO (SIN SALIR AL PANEL ADMIN) ---
   reliquidar(d: DeclaracionDeguelloData): void {
-    this.deguelloService.setDeclaracionEnEdicion(d);
-    this.router.navigate(['/deguello/liquidacion']);
+    this.abrirModalReliquidar(d);
+  }
+
+  abrirModalReliquidar(d: DeclaracionDeguelloData): void {
+    this.declaracionParaReliquidar.set(d);
+  }
+
+  cerrarModalReliquidar(): void {
+    this.declaracionParaReliquidar.set(null);
+  }
+
+  confirmarReliquidacion(): void {
+    const dec = this.declaracionParaReliquidar();
+    if (!dec) return;
+
+    this.reliquidando.set(true);
+    const moraEstimada = Math.round(dec.subtotal * 0.05); // Interés de mora conforme al Art. 634 E.T.
+
+    this.deguelloService.reliquidarPorVencimiento(dec.consecutivo, {
+      ...dec,
+      interesMora: moraEstimada,
+    }).subscribe({
+      next: (nueva) => {
+        this.reliquidando.set(false);
+        this.cerrarModalReliquidar();
+
+        // Actualizar en memoria
+        this.declaraciones.update((lista) => [
+          nueva,
+          ...lista.map((item) => item.consecutivo === dec.consecutivo ? { ...item, estadoPago: 'RELIQUIDADA' as const } : item)
+        ]);
+
+        const crit = this.criterioBusqueda();
+        if (crit) {
+          this.recargarDeclaraciones(crit.doc, crit.guia);
+        }
+      },
+      error: () => {
+        this.reliquidando.set(false);
+      }
+    });
+  }
+
+
+  obtenerUrlDescarga(ruta?: string): string {
+    return ruta ? this.deguelloFtpService.obtenerUrlDescarga(ruta) : '#';
   }
 }

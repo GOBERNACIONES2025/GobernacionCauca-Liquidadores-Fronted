@@ -138,11 +138,8 @@ export class DeguelloLiquidacionComponent implements OnInit {
     if (edicion) {
       this.cargarParaReliquidacion(edicion);
     } else {
-      // 3. Si viene del Portal de la Empresa autenticada, precargar automáticamente los datos tributarios
-      const empresa = this.deguelloService.empresaAutenticada();
-      if (empresa) {
-        this.cargarDatosEmpresa(empresa);
-      }
+      // 3. En el panel de administración, el formulario debe iniciar 100% limpio
+      this.limpiarTodo();
     }
   }
 
@@ -380,6 +377,10 @@ export class DeguelloLiquidacionComponent implements OnInit {
 
   setModoDiligenciamiento(modo: 'autonomo' | 'sigma'): void {
     this.modoDiligenciamiento.set(modo);
+    if (modo === 'sigma') {
+      // Al cambiar a la modalidad de importación ICA SIGMA en el panel admin, traer el formulario 100% limpio
+      this.limpiarTodo();
+    }
   }
 
   descargarArchivoGuia(): void {
