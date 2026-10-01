@@ -692,6 +692,7 @@
     <app-portal-ciudadano-detalle-pago
       [liquidacion]="liq"
       [propietario]="ciudadano()?.propietario ?? null"
+      [placa]="ciudadano()?.vehiculo?.placa || liq.placa"
       (cerrar)="cerrarPago()"
       (pagar)="procesarPago($event)"
     />

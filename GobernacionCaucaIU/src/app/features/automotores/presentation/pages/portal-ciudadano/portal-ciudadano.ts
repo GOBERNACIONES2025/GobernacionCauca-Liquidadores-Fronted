@@ -426,7 +426,7 @@ export class PortalCiudadano implements OnInit {
         id: `liq-${index + 1}`,
         liquidacionId: l.liquidacionId || 0,
         vigencia: l.vigencia,
-        placa: l.placa,
+        placa: (l.placa || veh?.placa || '').toUpperCase().trim(),
         detalle: l.detalle || `Vigencia ${l.vigencia}`,
         valor,
         estado: l.estado,

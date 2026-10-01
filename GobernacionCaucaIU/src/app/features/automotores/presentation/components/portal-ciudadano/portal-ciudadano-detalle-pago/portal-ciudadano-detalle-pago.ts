@@ -17,6 +17,7 @@ import { PagosApiService } from '../../../../infrastructure/api/pagos-api.servic
 export class PortalCiudadanoDetallePago {
   @Input() liquidacion: LiquidacionCiudadano | null = null;
   @Input() propietario: PropietarioCiudadano | null = null;
+  @Input() placa: string = '';
   @Output() cerrar = new EventEmitter<void>();
   @Output() pagar = new EventEmitter<void>();
 
@@ -24,6 +25,10 @@ export class PortalCiudadanoDetallePago {
 
   readonly cargando = signal<boolean>(false);
   readonly errorMensaje = signal<string | null>(null);
+
+  get placaEfectiva(): string {
+    return (this.liquidacion?.placa || this.placa || '').toUpperCase().trim();
+  }
 
   cerrarModal(): void {
     if (this.cargando()) return;
@@ -39,7 +44,7 @@ export class PortalCiudadanoDetallePago {
     const request = {
       // liquidacionId e identidad del ciudadano vienen de la sesión — nunca del input del usuario
       liquidacionId: this.liquidacion.liquidacionId,
-      placa: this.liquidacion.placa,
+      placa: this.placaEfectiva,
       documento: this.propietario?.documento ?? '',
       email: this.propietario?.email ?? undefined,
       telefono: this.propietario?.telefono ?? undefined,

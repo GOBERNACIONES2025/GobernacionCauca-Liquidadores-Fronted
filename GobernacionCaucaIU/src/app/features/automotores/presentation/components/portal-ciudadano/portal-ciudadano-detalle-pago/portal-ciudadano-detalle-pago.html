@@ -38,7 +38,7 @@
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm border-collapse">
           <thead>
-            <tr class="border-b border-slate-200 text-slate-700 font-bold text-xs sm:text-sm">
+            <tr class="border-b border-slate-200 text-slate-700 font-bold text-xs sm:text-sm bg-slate-50">
               <th class="py-3 px-4 font-bold text-slate-700 w-1/4">Placa</th>
               <th class="py-3 px-4 font-bold text-slate-700 w-1/4">
                 <span>Cantidad de vigencias</span>
@@ -53,13 +53,15 @@
           </thead>
           <tbody>
             <tr class="border-b border-slate-100 text-slate-600 text-xs sm:text-sm">
-              <td class="py-4 px-4 font-bold text-slate-800 uppercase font-mono">
-                {{ liquidacion?.placa || '---' }}
+              <td class="py-4 px-4 font-bold">
+                <span class="inline-flex items-center px-2.5 py-1 rounded bg-amber-400 text-slate-900 border border-amber-500 font-extrabold font-mono tracking-wider text-xs shadow-2xs">
+                  {{ placaEfectiva || '---' }}
+                </span>
               </td>
               <td class="py-4 px-4 font-normal text-slate-700">
                 1 vigencia
               </td>
-              <td class="py-4 px-4 font-normal text-slate-700 font-mono">
+              <td class="py-4 px-4 font-bold text-slate-800 font-mono">
                 {{ liquidacion?.vigencia }}
               </td>
               <td class="py-4 px-4 text-right font-extrabold text-slate-900 font-mono text-base">
@@ -70,13 +72,22 @@
         </table>
       </div>
 
-      <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between text-xs text-slate-600">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-file-invoice text-slate-400"></i>
-          <span>Documento oficial: <strong class="text-slate-800">{{ liquidacion?.detalle }}</strong></span>
+      <div class="p-4 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2 text-xs text-slate-600">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-file-invoice text-[#0f4984]"></i>
+            <span>Documento oficial: <strong class="text-slate-900 font-mono">{{ liquidacion?.detalle }}</strong></span>
+          </div>
+          @if (propietario?.nombre) {
+            <div class="flex items-center gap-1.5 text-slate-500 text-[11px]">
+              <i class="fa-solid fa-user-check text-emerald-600"></i>
+              <span>Titular: <strong class="text-slate-800">{{ propietario?.nombre }}</strong> ({{ propietario?.documento }})</span>
+            </div>
+          }
         </div>
-        <div class="font-bold text-slate-800 text-sm sm:text-base">
-          Total a pagar: <span class="text-[#0f4984] font-mono">${{ (liquidacion?.valor | number:'1.0-0') || '0' }} COP</span>
+        <div class="flex items-center justify-between pt-2 border-t border-slate-200/60">
+          <span class="font-medium text-slate-600">Total a debitar en pasarela PSE:</span>
+          <span class="font-extrabold text-[#0f4984] font-mono text-lg">${{ (liquidacion?.valor | number:'1.0-0') || '0' }} COP</span>
         </div>
       </div>
 
