@@ -7,7 +7,7 @@
     <app-page-header
       [breadcrumbs]="breadcrumbs"
       title="Roles de Seguridad"
-      [tags]="[{ text: 'Catálogo simple', type: 'info' }]"
+      [tags]="[{ text: 'Seguridad', type: 'info' }, { text: 'Perfiles y Permisos', type: 'neutral' }]"
       [counts]="counts()"
     ></app-page-header>
 
@@ -69,22 +69,23 @@
     <table class="w-full text-left border-collapse">
       <thead class="sticky top-0 bg-base-100 z-10 border-b border-slate-200">
         <tr class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-          <th class="py-3 px-4 w-32">Código</th>
+          <th class="py-3 px-4 w-36">Código</th>
           <th class="py-3 px-4">Nombre del Rol</th>
-          <th class="py-3 px-4 w-40">Estado</th>
+          <th class="py-3 px-4 w-56">Tipo de Rol / Ámbito</th>
+          <th class="py-3 px-4 w-36">Estado</th>
           <th class="py-3 px-4 w-28 text-right">Acciones</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
         @if (facade.loading()) {
           <tr>
-            <td colspan="4" class="text-center py-12">
+            <td colspan="5" class="text-center py-12">
               <span class="loading loading-spinner text-primary"></span>
             </td>
           </tr>
         } @else if (rolesFiltrados().length === 0) {
           <tr>
-            <td colspan="4" class="text-center py-12 text-slate-400 text-xs">
+            <td colspan="5" class="text-center py-12 text-slate-400 text-xs">
               No se encontraron roles coincidentes.
             </td>
           </tr>
@@ -94,12 +95,23 @@
           <tr class="hover:bg-slate-50/70 transition-colors group">
             <!-- Codigo -->
             <td class="py-3.5 px-4 font-bold text-slate-800 text-sm">
-              {{ item.codigo }}
+              <span class="font-mono bg-slate-100 px-2 py-0.5 rounded text-xs text-slate-700 font-semibold border border-slate-200">
+                {{ item.codigo }}
+              </span>
             </td>
             
             <!-- Nombre -->
-            <td class="py-3.5 px-4 text-slate-700 font-medium text-sm">
+            <td class="py-3.5 px-4 text-slate-800 font-semibold text-sm">
               {{ item.nombre }}
+            </td>
+
+            <!-- Tipo de Rol -->
+            <td class="py-3.5 px-4">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border shadow-2xs"
+                    [ngClass]="getTipoRolBadgeClass(item.tipoRolCodigo)">
+                <i [class]="getTipoRolIcon(item.tipoRolCodigo)" class="text-[11px]"></i>
+                <span>{{ item.tipoRolNombre || item.tipoRolCodigo || 'Gobernación / Departamental' }}</span>
+              </span>
             </td>
             
             <!-- Estado -->
@@ -135,10 +147,10 @@
                 </button>
                 
                 <button 
-                  (click)="toggleActivo(item)"
-                  [title]="item.activo ? 'Desactivar' : 'Activar'"
+                  (click)="promptToggleActivo(item)"
+                  [title]="item.activo ? 'Desactivar rol' : 'Activar rol'"
                   class="p-1 rounded border border-transparent transition-colors"
-                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -166,11 +178,11 @@
   </div>
 </div>
 
-<!-- Slide-Over Component for Create / Edit -->
+<!-- Modal Component for Create / Edit -->
 <app-slide-over 
   [isOpen]="isSlideOverOpen" 
   [title]="isEditMode ? 'Editar Rol' : 'Nuevo Rol'" 
-  [description]="isEditMode ? 'Modifica los datos del rol' : 'Ingresa los datos del nuevo rol de seguridad'"
+  [description]="isEditMode ? 'Modifica los datos del rol y su tipo de clasificación' : 'Ingresa los datos del nuevo rol de seguridad y asigna su ámbito'"
   [isSaving]="facade.actionLoading()"
   (onClose)="closeSlideOver()" 
   (onSave)="saveRol()">
@@ -179,13 +191,13 @@
     <!-- Código -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Código</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Código del Rol <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="codigo" 
-        placeholder="Ej. ADMIN" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        placeholder="Ej. LIQUIDADOR_GOBERNACION" 
+        class="input input-sm input-bordered w-full uppercase font-mono text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="rolForm.get('codigo')?.invalid && (rolForm.get('codigo')?.touched || rolForm.get('codigo')?.dirty)" 
       />
       <app-form-error [control]="rolForm.get('codigo')" fieldName="Código"></app-form-error>
@@ -194,16 +206,39 @@
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Rol</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Rol <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
-        placeholder="Ej. Administrador del Sistema" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        placeholder="Ej. Liquidador Departamental" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="rolForm.get('nombre')?.invalid && (rolForm.get('nombre')?.touched || rolForm.get('nombre')?.dirty)" 
       />
       <app-form-error [control]="rolForm.get('nombre')" fieldName="Nombre del Rol"></app-form-error>
+    </div>
+
+    <!-- Tipo de Rol Selector -->
+    <div class="form-control w-full">
+      <label class="label pt-0 pb-1">
+        <span class="label-text font-bold text-xs uppercase text-slate-600">
+          Tipo de Rol / Ámbito <span class="text-rose-500 font-bold">*</span>
+        </span>
+      </label>
+      <app-searchable-select
+        formControlName="tipoRolId"
+        [searchFn]="searchTiposRolFn"
+        [resolveIdFn]="resolveTipoRolFn"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Seleccione el tipo de rol..."
+        icon="fa-solid fa-layer-group"
+        [isInvalid]="rolForm.get('tipoRolId')?.invalid && (rolForm.get('tipoRolId')?.touched || rolForm.get('tipoRolId')?.dirty)"
+      ></app-searchable-select>
+      <span class="text-[10px] text-slate-400 mt-1">
+        Clasifica si este rol pertenece a la Gobernación del Cauca, a Entidades de Registro (Notarías/Cámaras/ORIP) o es Global.
+      </span>
+      <app-form-error [control]="rolForm.get('tipoRolId')" fieldName="Tipo de Rol"></app-form-error>
     </div>
 
     <!-- Estado -->
@@ -217,3 +252,20 @@
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal for Status Toggle -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="itemToToggle()?.activo ? 'Desactivar Rol de Seguridad' : 'Activar Rol de Seguridad'"
+  [message]="itemToToggle()?.activo 
+    ? '¿Está seguro de que desea desactivar el rol «' + itemToToggle()?.nombre + '»?' 
+    : '¿Está seguro de que desea activar el rol «' + itemToToggle()?.nombre + '»?'"
+  [impactMessage]="itemToToggle()?.activo 
+    ? 'Al desactivar este rol, los usuarios que lo tengan asignado perderán de inmediato los permisos y accesos asociados en el sistema.' 
+    : 'Al reactivar este rol, se restablecerán los permisos y accesos correspondientes a los usuarios asignados.'"
+  [confirmText]="itemToToggle()?.activo ? 'Desactivar' : 'Activar'"
+  [type]="itemToToggle()?.activo ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (confirm)="executeToggleActivo()"
+  (cancel)="cancelToggleActivo()">
+</app-confirm-modal>

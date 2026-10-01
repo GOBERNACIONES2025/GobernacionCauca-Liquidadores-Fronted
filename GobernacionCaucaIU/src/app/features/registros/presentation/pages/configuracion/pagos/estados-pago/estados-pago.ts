@@ -4,18 +4,20 @@ import { PaginationComponent } from '../../../../../../shared/components/paginat
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { EstadosPagoFacade } from '../../../../../application/facades/Pagos/estados-pago.facade';
 import { EstadoPago } from '../../../../../domain/models/Pagos/estado-pago.model';
 import { EstadosPagoApiService } from '../../../../../infrastructure/api/Pagos/estados-pago-api.service';
 import { ToastService } from '../../../../../../../core/services/toast.service';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
 
 @Component({
   selector: 'app-estados-pago',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, TableSearchComponent, FormFieldErrorComponent],
   templateUrl: './estados-pago.html',
   styleUrl: './estados-pago.css'
 })
@@ -35,6 +37,9 @@ export class EstadosPago implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<EstadoPago | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -96,8 +101,6 @@ export class EstadosPago implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.estadoPagoForm.reset({ codigo: '', nombre: '', activo: true });
@@ -120,13 +123,27 @@ export class EstadosPago implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del estado de pago');
+        this.toast.error(formatUserErrorMessage(err, 'Error al obtener la información del estado de pago'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: EstadoPago) {
+  promptToggleActivo(item: EstadoPago) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
+    this.isTogglingStatus.set(true);
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
 
@@ -137,11 +154,15 @@ export class EstadosPago implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Estado de pago ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar el estado de pago`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'Error al actualizar el estado de pago'));
         console.error(err);
       }
     });
@@ -170,7 +191,7 @@ export class EstadosPago implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el estado de pago`);
+            this.toast.error(formatUserErrorMessage(err, `Error al actualizar el estado de pago`));
             console.error(err);
           }
         });
@@ -185,12 +206,13 @@ export class EstadosPago implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear el estado de pago`);
+            this.toast.error(formatUserErrorMessage(err, `Error al crear el estado de pago`));
             console.error(err);
           }
         });
       }
     } else {
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
       this.estadoPagoForm.markAllAsTouched();
     }
   }

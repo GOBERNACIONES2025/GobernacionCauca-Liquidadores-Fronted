@@ -237,3 +237,58 @@ export interface FacturaPreview {
   barcodeSvg: string;
   htmlContent: string;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DTOs de la API — Liquidaciones emitidas y KPIs
+// Representan exactamente la forma en que el backend devuelve la información.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Datos del propietario/contribuyente tal como los devuelve el endpoint /liquidaciones */
+export interface PropietarioItem {
+  completeName: string;
+  identification: string;
+  typeIdentification: string;
+}
+
+
+export interface LiquidacionItem {
+  id: number;
+  tipoRegistro?: string;
+  numeroLiquidacion: string;
+  placa: string;
+  marcaLinea: string;
+  modelo?: number;
+  propietario: PropietarioItem[];
+  vigenciaAnio: number;
+  baseGravableAvaluo: number;
+  impuestoBase: number;
+  descuentos: number;
+  sancionExtemporaneidad: number;
+  interesesMora: number;
+  sistematizacionEstampillas: number;
+  totalPagar: number;
+  fechaCalculo: string;
+  fechaVencimiento?: string;
+  estado: string;
+  vigenciasPendientes?: number[];
+
+  diasMora?: number;
+  fechaLimitePago?: string;
+  fechaCalculoMora?: string;
+  esCalculoHoy?: boolean;
+  motivoMora?: string;
+  tasaMoraAplicada?: number;
+}
+
+/** KPIs del panel de liquidaciones tal como los devuelve el endpoint /liquidaciones/kpis */
+export interface LiquidacionKpis {
+  totalVehiculosActivos: number;
+  vehiculosPendientesLiquidar: number;
+  vehiculosConLiquidacionesEmitidas: number;
+  totalLiquidacionesEmitidas: number;
+  totalRecaudoEmitido: number;
+  totalImpuestoBaseEmitido: number;
+  totalSancionesExtemporaneidad: number;
+  interesesMoratoriosLiquidados: number;
+  interesesMoratoriosPendientes: number;
+}

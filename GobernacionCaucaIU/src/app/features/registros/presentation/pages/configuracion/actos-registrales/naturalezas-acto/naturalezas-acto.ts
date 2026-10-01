@@ -8,6 +8,8 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { PageHeaderComponent } from '../../../../shared/components/page-header/page-header';
 import { TableSearchComponent } from '../../../../shared/components/table-search/table-search';
 import { SlideOverComponent } from '../../../../shared/components/slide-over/slide-over';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { NaturalezasActoFacade } from '../../../../../application/facades/Registro/naturalezas-acto.facade';
 import { NaturalezaActo } from '../../../../../domain/models/Registro/naturaleza-acto.model';
 import { NaturalezasActoApiService } from '../../../../../infrastructure/api/Registro/naturalezas-acto-api.service';
@@ -16,7 +18,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-naturalezas-acto',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, ConfirmModalComponent, PaginationComponent, FormFieldErrorComponent],
   templateUrl: './naturalezas-acto.html',
   styleUrl: './naturalezas-acto.css'
 })
@@ -36,6 +38,11 @@ export class NaturalezasActo implements OnInit {
 
   isSlideOverOpen = false;
   selectedId: number | null = null;
+
+  // Smart Confirmation Modal State
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<NaturalezaActo | null>(null);
+  isTogglingStatus = signal<boolean>(false);
 
   get isEditMode(): boolean {
     return this.selectedId !== null;
@@ -99,8 +106,6 @@ export class NaturalezasActo implements OnInit {
     this.cargarItems();
   }
 
-  
-
   openNew() {
     this.selectedId = null;
     this.naturalezaForm.reset({ codigo: '', nombre: '', descripcion: '', esSinCuantia: false, activo: true });
@@ -125,16 +130,30 @@ export class NaturalezasActo implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información de la naturaleza de acto');
+        this.toast.error(formatUserErrorMessage(err, 'obtener la naturaleza de acto'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: NaturalezaActo) {
+  promptToggleActivo(item: NaturalezaActo) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activada' : 'desactivada';
 
+    this.isTogglingStatus.set(true);
     this.facade.actualizar(item.id, {
       id: item.id,
       codigo: item.codigo,
@@ -144,11 +163,15 @@ export class NaturalezasActo implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
         this.toast.success(`Naturaleza de acto ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar la naturaleza de acto`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, 'actualizar estado de la naturaleza de acto'));
         console.error(err);
       }
     });
@@ -179,7 +202,7 @@ export class NaturalezasActo implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar la naturaleza de acto`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar la naturaleza de acto'));
             console.error(err);
           }
         });
@@ -196,13 +219,14 @@ export class NaturalezasActo implements OnInit {
             this.cargarItems();
           },
           error: (err: any) => {
-            this.toast.error(`Error al crear la naturaleza de acto`);
+            this.toast.error(formatUserErrorMessage(err, 'crear la naturaleza de acto'));
             console.error(err);
           }
         });
       }
     } else {
       this.naturalezaForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

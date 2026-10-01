@@ -125,7 +125,11 @@
                     </svg>
                   }
                 </button>
-                <button (click)="toggleActivo(item)" class="p-1.5 text-slate-400 hover:bg-slate-100 rounded-md transition-colors" [title]="item.activo ? 'Desactivar' : 'Activar'">
+                <button 
+                  (click)="promptToggleActivo(item)" 
+                  class="p-1.5 rounded-md transition-colors cursor-pointer"
+                  [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'" 
+                  [title]="item.activo ? 'Desactivar municipio' : 'Activar municipio'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -149,7 +153,7 @@
   </app-pagination>
 </div>
 
-<!-- Slide-Over Component for Create / Edit -->
+<!-- Modal Component for Create / Edit -->
 <app-slide-over 
   [isOpen]="isSlideOverOpen" 
   [title]="isEditMode ? 'Editar Municipio' : 'Nuevo Municipio'" 
@@ -162,13 +166,13 @@
     <!-- Cód. DANE -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Código DANE</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Código DANE <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="codigoDane" 
         placeholder="Ej. 19001" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="municipioForm.get('codigoDane')?.invalid && (municipioForm.get('codigoDane')?.touched || municipioForm.get('codigoDane')?.dirty)" 
       />
       <app-form-error [control]="municipioForm.get('codigoDane')" fieldName="Código DANE"></app-form-error>
@@ -177,13 +181,13 @@
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Municipio</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Municipio <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
         placeholder="Ej. Popayán" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="municipioForm.get('nombre')?.invalid && (municipioForm.get('nombre')?.touched || municipioForm.get('nombre')?.dirty)" 
       />
       <app-form-error [control]="municipioForm.get('nombre')" fieldName="Nombre"></app-form-error>
@@ -192,7 +196,7 @@
     <!-- Departamento Select -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Departamento <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <app-searchable-select
         formControlName="departamentoId"
@@ -215,10 +219,27 @@
     <div class="form-control w-full mt-2">
       <label class="label cursor-pointer justify-start gap-4 p-0">
         <span class="label-text font-bold text-xs uppercase text-slate-600">Estado Activo</span>
-        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm" />
+        <input type="checkbox" formControlName="activo" class="toggle toggle-success toggle-sm cursor-pointer" />
       </label>
       <p class="text-[10px] text-slate-400 mt-1">Si está inactivo, no estará disponible para nuevas liquidaciones.</p>
     </div>
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal for State Changes (Criterion 10) -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="itemToToggle()?.activo ? '¿Desactivar municipio?' : '¿Activar municipio?'"
+  [message]="itemToToggle()?.activo 
+    ? '¿Está seguro de que desea desactivar el municipio &quot;' + itemToToggle()?.nombre + '&quot;?' 
+    : '¿Desea activar el municipio &quot;' + itemToToggle()?.nombre + '&quot;?'"
+  [impactMessage]="itemToToggle()?.activo 
+    ? 'Al desactivarlo, este municipio no estará disponible para nuevas radicaciones, liquidaciones territoriales ni selección en predios.' 
+    : 'Al activarlo, volverá a estar disponible para todas las liquidaciones y radicaciones del impuesto de registro.'"
+  [confirmText]="itemToToggle()?.activo ? 'Sí, desactivar' : 'Sí, activar'"
+  [confirmType]="itemToToggle()?.activo ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (onConfirm)="executeToggleActivo()"
+  (onCancel)="cancelToggleActivo()">
+</app-confirm-modal>

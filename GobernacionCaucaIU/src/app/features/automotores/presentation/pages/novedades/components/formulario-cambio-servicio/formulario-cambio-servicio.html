@@ -1,0 +1,242 @@
+<div class="space-y-4">
+  
+  <!-- 1. INFORMACIÓN BASE Y SERVICIO ACTUAL -->
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+    <div class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+      <i class="fa-solid fa-car-side text-indigo-700"></i>
+      1. Información Actual del Vehículo
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-slate-200 flex items-center justify-between">
+        <div>
+          <span class="text-[11px] text-slate-400 block font-medium">Servicio Registrado Actualmente</span>
+          <span class="font-bold text-slate-900 mt-0.5 text-sm block flex items-center gap-1.5">
+            <i class="fa-solid" [ngClass]="form().servicioActual.toLowerCase() === 'publico' || form().servicioActual.toLowerCase() === 'público' ? 'fa-bus text-amber-600' : 'fa-car text-blue-600'"></i>
+            {{ form().servicioActual || 'Particular' }}
+          </span>
+        </div>
+        <span class="px-2 py-1 rounded text-[10.5px] font-bold uppercase"
+              [ngClass]="form().servicioActual.toLowerCase() === 'publico' || form().servicioActual.toLowerCase() === 'público' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-blue-50 text-blue-700 border border-blue-200'">
+          Actual
+        </span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Transición Sugerida</span>
+        <span class="font-bold text-indigo-700 mt-0.5 text-xs block">
+          {{ form().servicioActual.toLowerCase() === 'publico' || form().servicioActual.toLowerCase() === 'público' ? 'Cambio a Servicio Particular (Privado)' : 'Cambio a Servicio Público' }}
+        </span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Régimen Tributario Aplicable</span>
+        <span class="font-semibold text-slate-700 mt-0.5 text-xs block">
+          {{ form().nuevoServicio === 'Publico' ? 'Tarifas y exenciones para servicio público' : 'Tarifa estándar departamental' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. SELECCIÓN DE NUEVO SERVICIO Y DATOS DEL TRÁMITE -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3.5 flex items-center gap-1.5">
+      <i class="fa-solid fa-arrows-rotate text-indigo-700"></i>
+      2. Selección del Nuevo Servicio y Radicación
+    </div>
+
+    <!-- Radio Buttons Visuales para Cambio de Servicio -->
+    <div class="mb-5">
+      <label class="block text-xs font-bold text-slate-700 mb-2">
+        Nuevo Servicio a Asignar <span class="text-red-500">*</span>
+      </label>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <!-- Opción: Particular / Privado -->
+        <label 
+          (click)="seleccionarServicio('Particular')"
+          class="relative flex items-start p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-150"
+          [ngClass]="form().nuevoServicio === 'Particular' 
+            ? 'border-indigo-600 bg-indigo-50/50 shadow-xs' 
+            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
+        >
+          <div class="flex items-center h-5 mr-3">
+            <input
+              type="radio"
+              name="nuevoServicioRadio"
+              value="Particular"
+              [(ngModel)]="form().nuevoServicio"
+              class="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+            />
+          </div>
+          <div class="text-xs">
+            <div class="font-bold text-slate-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-car text-indigo-600"></i>
+              Particular / Privado
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              Vehículo de uso particular familiar o empresarial privado.
+            </p>
+          </div>
+        </label>
+
+        <!-- Opción: Público -->
+        <label 
+          (click)="seleccionarServicio('Publico')"
+          class="relative flex items-start p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-150"
+          [ngClass]="form().nuevoServicio === 'Publico' 
+            ? 'border-indigo-600 bg-indigo-50/50 shadow-xs' 
+            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
+        >
+          <div class="flex items-center h-5 mr-3">
+            <input
+              type="radio"
+              name="nuevoServicioRadio"
+              value="Publico"
+              [(ngModel)]="form().nuevoServicio"
+              class="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+            />
+          </div>
+          <div class="text-xs">
+            <div class="font-bold text-slate-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-taxi text-amber-600"></i>
+              Público
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              Transporte público de pasajeros, taxi, bus o transporte de carga.
+            </p>
+          </div>
+        </label>
+
+        <!-- Opción: Oficial -->
+        <label 
+          (click)="seleccionarServicio('Oficial')"
+          class="relative flex items-start p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-150"
+          [ngClass]="form().nuevoServicio === 'Oficial' 
+            ? 'border-indigo-600 bg-indigo-50/50 shadow-xs' 
+            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'"
+        >
+          <div class="flex items-center h-5 mr-3">
+            <input
+              type="radio"
+              name="nuevoServicioRadio"
+              value="Oficial"
+              [(ngModel)]="form().nuevoServicio"
+              class="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500 cursor-pointer"
+            />
+          </div>
+          <div class="text-xs">
+            <div class="font-bold text-slate-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-building-columns text-slate-600"></i>
+              Oficial
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">
+              Vehículo asignado a entidad oficial, gubernamental o municipal.
+            </p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+      <!-- Fecha de Cambio -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Fecha del Trámite / Cambio <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="form().fechaCambio"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition cursor-pointer"
+        />
+      </div>
+
+      <!-- N° Acta / Resolución / Radicado RUNT -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          N° Acta / Radicado / Resolución <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="form().numeroActa"
+          placeholder="Ej: ACTA-CAMBIO-2026-089"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+        />
+      </div>
+
+      <!-- Empresa de Transporte (si aplica) -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Empresa de Transporte Vinculada / Desvinculada
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="form().empresaTransporte"
+          placeholder="Ej: COOMOTOR, TAXIS DEL VALLE (Opcional)"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+        />
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div class="mt-4">
+      <label class="block text-xs font-bold text-slate-700 mb-1.5">Observaciones Técnicas y Justificación</label>
+      <textarea
+        [(ngModel)]="form().observaciones"
+        rows="2"
+        placeholder="Motivo del cambio de servicio, número de tarjeta de operación o resolución de desvinculación..."
+        class="w-full p-3 text-xs font-medium text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition resize-y min-h-[70px]"
+      ></textarea>
+    </div>
+  </div>
+
+  <!-- 3. CARGA DE ANEXO / SOPORTE DOCUMENTAL -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center justify-between">
+      <span class="flex items-center gap-1.5">
+        <i class="fa-solid fa-paperclip text-indigo-600"></i>
+        3. Cargar Soporte / Resolución de Cambio de Servicio
+      </span>
+      @if (anexo(); as a) {
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i> Anexado
+        </span>
+      }
+    </div>
+
+    <div class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl bg-slate-50 hover:bg-indigo-50/40 p-4 transition-all">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="flex-1">
+          <label class="block text-[11.5px] text-slate-600 mb-1.5 font-medium">
+            Adjunte el acto administrativo de cambio de servicio, carta de desvinculación o tarjeta de operación (PDF, PNG, JPG - Máx. 10MB)
+          </label>
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.docx"
+            (change)="onFileChange($event)"
+            class="block w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#0F3067] file:text-white hover:file:bg-[#162c60] file:cursor-pointer cursor-pointer"
+          />
+        </div>
+
+        @if (anexo(); as a) {
+          <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg shrink-0 shadow-xs">
+            <i class="fa-solid fa-file-pdf text-red-500 text-base"></i>
+            <div class="text-left">
+              <span class="text-xs font-bold text-slate-800 block truncate max-w-[200px]" [title]="a.nombre">{{ a.nombre }}</span>
+              <span class="text-[10.5px] text-slate-500 font-medium">{{ a.tamano }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="removerAnexo()"
+              class="text-slate-400 hover:text-red-600 p-1 transition cursor-pointer"
+              title="Quitar anexo"
+            >
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+</div>

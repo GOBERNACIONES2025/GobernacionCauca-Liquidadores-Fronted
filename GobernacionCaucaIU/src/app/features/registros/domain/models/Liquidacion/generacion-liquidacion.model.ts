@@ -1,5 +1,5 @@
 /**
- * DTO para la información de un contribuyente en el proceso de generación de liquidación.
+ * DTO para la informaciÃ³n de un contribuyente en el proceso de generaciÃ³n de liquidaciÃ³n.
  */
 export interface ContribuyenteLiquidacionDto {
   id?: number | null;
@@ -13,7 +13,7 @@ export interface ContribuyenteLiquidacionDto {
 }
 
 /**
- * DTO para la información de la radicación en el proceso de liquidación.
+ * DTO para la informaciÃ³n de la radicaciÃ³n en el proceso de liquidaciÃ³n.
  */
 export interface RadicacionLiquidacionDto {
   numeroRadicado: string;
@@ -24,7 +24,7 @@ export interface RadicacionLiquidacionDto {
 }
 
 /**
- * DTO para el documento de registro que origina la liquidación (ej. Escritura pública).
+ * DTO para el documento de registro que origina la liquidaciÃ³n (ej. Escritura pÃºblica).
  */
 export interface DocumentoRegistroLiquidacionDto {
   numeroDocumento: string;
@@ -45,7 +45,7 @@ export interface IntervinienteActoLiquidacionDto {
 }
 
 /**
- * DTO para un acto de registro dentro de la solicitud de liquidación.
+ * DTO para un acto de registro dentro de la solicitud de liquidaciÃ³n.
  */
 export interface ActoRegistradoLiquidacionDto {
   tipoActoRegistroId: number;
@@ -58,14 +58,14 @@ export interface ActoRegistradoLiquidacionDto {
 }
 
 /**
- * Payload completo para la generación de una liquidación (a partir de una solicitud completada).
+ * Payload completo para la generaciÃ³n de una liquidaciÃ³n (a partir de una solicitud completada).
  */
 export interface GenerarLiquidacionDto {
   solicitudId: number;
 }
 
 /**
- * Payload completo para la simulación de una liquidación (stateless).
+ * Payload completo para la simulaciÃ³n de una liquidaciÃ³n (stateless).
  */
 export interface SimularLiquidacionDto {
   radicacion: RadicacionLiquidacionDto;
@@ -99,7 +99,9 @@ export interface RadicacionLiquidacionListadoDto {
   solicitudId: number;
   numeroRadicado: string;
   fechaRadicacion: string;
-  observacion: string;
+  vigenciaId?: number | null;
+  vigenciaAnio?: number | null;
+  observacion?: string | null;
 }
 
 export interface EstadoLiquidacionListadoDto {
@@ -157,8 +159,83 @@ export interface LiquidacionListadoDto {
   creadoPor: string;
   radicacion: RadicacionLiquidacionListadoDto;
   estado: EstadoLiquidacionListadoDto;
+  estadoLiquidacionId?: number;
   accionesPermitidas: AccionesPermitidasDto;
   contribuyente: ContribuyenteLiquidacionListadoDto;
   documentoRegistro: DocumentoRegistroListadoDto;
   totales: TotalesLiquidacionListadoDto;
+  pago?: PagoInfoDto;
+  vencimiento?: VencimientoInfoDto;
+}
+
+export interface PagoInfoDto {
+  estaPagada: boolean;
+  pagado?: boolean;
+  fechaPago?: string | null;
+  valorPagado?: number | null;
+  medioPagoId?: number | null;
+  medioPagoCodigo?: string;
+  medioPagoNombre?: string;
+  referenciaPago?: string;
+  numeroAprobacion?: string;
+  tieneSoporteAdjunto?: boolean;
+  tieneSoporteDigital?: boolean;
+  nombreArchivoSoporte?: string | null;
+  registradoPor?: string;
+}
+
+export interface VencimientoInfoDto {
+  fechaVencimiento: string;
+  diasRestantes: number;
+  estaVencida: boolean;
+  semaforo: 'NORMAL' | 'VIGENTE' | 'POR_VENCER' | 'VENCIDA' | 'PAGADA';
+}
+
+export interface ComprobantePagoDto {
+  pagoId: number;
+  liquidacionId: number;
+  numeroLiquidacion: string;
+  valorTotal: number;
+  valorPagado: number;
+  medioPagoId?: number | null;
+  medioPagoCodigo: string;
+  medioPagoNombre: string;
+  referencia: string;
+  fechaPago: string;
+  nombreArchivoSoporte?: string | null;
+  tieneSoporteAdjunto: boolean;
+  observaciones?: string | null;
+  fechaRegistro: string;
+  registradoPor: string;
+}
+
+export interface SolicitarReliquidacionRequest {
+  causal: string;
+  motivo: string;
+  documentoSoporteUrl?: string;
+}
+
+export interface SolicitudReliquidacionDto {
+  id?: number;
+  liquidacionId: number;
+  numeroLiquidacion: string;
+  fechaLiquidacion: string;
+  valorTotal: number;
+  solicitudId: number;
+  numeroRadicado: string;
+  nombreContribuyente?: string;
+  numeroIdentificacionContribuyente?: string;
+  nombreEntidadRegistro?: string;
+  causal?: string;
+  motivo?: string;
+  documentoAclaratorio?: string;
+  fechaSolicitud: string;
+}
+
+export interface AprobarReliquidacionRequest {
+  observaciones?: string;
+}
+
+export interface RechazarReliquidacionRequest {
+  motivo: string;
 }

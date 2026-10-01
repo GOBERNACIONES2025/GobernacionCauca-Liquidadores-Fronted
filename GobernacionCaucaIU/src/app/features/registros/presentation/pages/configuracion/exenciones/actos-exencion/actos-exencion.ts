@@ -14,6 +14,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 import { ExencionesApiService } from '../../../../../infrastructure/api/Exenciones/exenciones-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -125,7 +126,7 @@ export class ActosExencionComponent implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener las vinculaciones del acto');
+        this.toast.error(formatUserErrorMessage(err, 'Error al obtener las vinculaciones del acto'));
         console.error(err);
       }
     });
@@ -175,11 +176,12 @@ export class ActosExencionComponent implements OnInit {
           this.cargarItems();
         },
         error: (err: any) => {
-          this.toast.error('Error al vincular los tipos de acto');
+          this.toast.error(formatUserErrorMessage(err, 'Error al vincular los tipos de acto'));
           console.error(err);
         }
       });
     } else {
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
       this.vinculacionForm.markAllAsTouched();
     }
   }

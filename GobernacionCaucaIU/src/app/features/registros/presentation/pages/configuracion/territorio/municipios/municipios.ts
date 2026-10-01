@@ -17,10 +17,13 @@ import { SearchableSelectComponent } from '../../../../../../../shared/component
 import { DepartamentosApiService } from '../../../../../infrastructure/api/Territorios/departamentos-api.service';
 import { map } from 'rxjs/operators';
 
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
+
 @Component({
   selector: 'app-municipios',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, SearchableSelectComponent, FormFieldErrorComponent, ConfirmModalComponent],
   templateUrl: './municipios.html',
   styleUrl: './municipios.css'
 })
@@ -184,10 +187,29 @@ export class Municipios implements OnInit {
     });
   }
 
-  toggleActivo(item: Municipio) {
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<Municipio | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
+  promptToggleActivo(item: Municipio) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
     const depId = this.resolveDepartamentoId(item);
+    this.isTogglingStatus.set(true);
 
     this.facade.actualizarMunicipio(item.id, {
       codigoDane: item.codigoDane,
@@ -196,16 +218,19 @@ export class Municipios implements OnInit {
       departamentoId: depId
     }).subscribe({
       next: () => {
-        this.toast.success(`Municipio ${actionName} exitosamente`);
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
+        this.toast.success(`Municipio "${item.nombre}" ${actionName} exitosamente`);
         this.cargarDatos();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar estado del municipio`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `actualizar estado del municipio "${item.nombre}"`));
         console.error(err);
       }
     });
   }
-
 
   closeSlideOver() {
     this.isSlideOverOpen = false;
@@ -227,12 +252,12 @@ export class Municipios implements OnInit {
 
       const observer = {
         next: () => {
-          this.toast.success(`Municipio ${actionName} exitosamente`);
+          this.toast.success(`Municipio "${payload.nombre}" ${actionName} exitosamente`);
           this.closeSlideOver();
           this.cargarDatos();
         },
         error: (err: any) => {
-          this.toast.error(`Error al intentar guardar el municipio`);
+          this.toast.error(formatUserErrorMessage(err, 'guardar el municipio'));
           console.error(err);
         }
       };
@@ -244,6 +269,7 @@ export class Municipios implements OnInit {
       }
     } else {
       this.municipioForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

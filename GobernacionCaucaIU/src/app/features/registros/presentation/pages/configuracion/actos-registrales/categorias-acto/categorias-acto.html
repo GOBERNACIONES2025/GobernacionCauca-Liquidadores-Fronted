@@ -141,10 +141,10 @@
                 </button>
                 
                 <button 
-                  (click)="toggleActivo(item)"
+                  (click)="promptToggleActivo(item)"
                   [title]="item.activo ? 'Desactivar' : 'Activar'"
                   class="p-1 rounded border border-transparent transition-colors"
-                  [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                  [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                   <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -185,13 +185,13 @@
     <!-- Código -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Código</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Código <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="codigo" 
         placeholder="Ej. CAT-01" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="categoriaForm.get('codigo')?.invalid && (categoriaForm.get('codigo')?.touched || categoriaForm.get('codigo')?.dirty)" 
       />
       <app-form-error [control]="categoriaForm.get('codigo')" fieldName="Código"></app-form-error>
@@ -200,13 +200,13 @@
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre de la Categoría</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre de la Categoría <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
         placeholder="Ej. Actos con cuantía" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="categoriaForm.get('nombre')?.invalid && (categoriaForm.get('nombre')?.touched || categoriaForm.get('nombre')?.dirty)" 
       />
       <app-form-error [control]="categoriaForm.get('nombre')" fieldName="Nombre"></app-form-error>
@@ -221,7 +221,7 @@
         formControlName="descripcion" 
         rows="2"
         placeholder="Descripción adicional..." 
-        class="textarea textarea-sm textarea-bordered w-full text-slate-800"
+        class="textarea textarea-sm textarea-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none"
       ></textarea>
     </div>
 
@@ -236,3 +236,20 @@
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="itemToToggle()?.activo ? 'Desactivar Categoría de Acto' : 'Activar Categoría de Acto'"
+  [message]="itemToToggle()?.activo 
+    ? '¿Está seguro de desactivar la categoría \'' + (itemToToggle()?.nombre || '') + '\'?' 
+    : '¿Está seguro de activar la categoría \'' + (itemToToggle()?.nombre || '') + '\'?'"
+  [impactMessage]="itemToToggle()?.activo 
+    ? 'Al desactivar esta categoría, los tipos de acto asociados no podrán ser seleccionados en nuevas solicitudes de liquidación.' 
+    : 'La categoría volverá a estar disponible para clasificar actos registrales en el sistema.'"
+  [confirmText]="itemToToggle()?.activo ? 'Sí, desactivar' : 'Sí, activar'"
+  [confirmColor]="itemToToggle()?.activo ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (confirm)="executeToggleActivo()"
+  (cancel)="cancelToggleActivo()">
+</app-confirm-modal>

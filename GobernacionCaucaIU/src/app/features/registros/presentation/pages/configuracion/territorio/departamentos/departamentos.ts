@@ -2,6 +2,8 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PaginationComponent } from '../../../../../../shared/components/pagination/pagination';
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { ConfirmModalComponent } from '../../../../shared/components/confirm-modal/confirm-modal.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,7 +18,7 @@ import { ToastService } from '../../../../../../../core/services/toast.service';
 @Component({
   selector: 'app-departamentos',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PageHeaderComponent, TableSearchComponent, SlideOverComponent, PaginationComponent, FormFieldErrorComponent, ConfirmModalComponent],
   templateUrl: './departamentos.html',
   styleUrl: './departamentos.css'
 })
@@ -99,6 +101,11 @@ export class Departamentos implements OnInit {
 
   
 
+  // Smart Confirmation Modal State (Criteria 6, 10 & 16)
+  isConfirmModalOpen = signal<boolean>(false);
+  itemToToggle = signal<Departamento | null>(null);
+  isTogglingStatus = signal<boolean>(false);
+
   openNew() {
     this.selectedId = null;
     this.departamentoForm.reset({ activo: true });
@@ -121,15 +128,29 @@ export class Departamentos implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del departamento');
+        this.toast.error(formatUserErrorMessage(err, 'obtener los datos del departamento'));
         console.error(err);
       }
     });
   }
 
-  toggleActivo(item: Departamento) {
+  promptToggleActivo(item: Departamento) {
+    this.itemToToggle.set(item);
+    this.isConfirmModalOpen.set(true);
+  }
+
+  cancelToggleActivo() {
+    this.isConfirmModalOpen.set(false);
+    this.itemToToggle.set(null);
+  }
+
+  executeToggleActivo() {
+    const item = this.itemToToggle();
+    if (!item) return;
+
     const nuevoEstado = !item.activo;
     const actionName = nuevoEstado ? 'activado' : 'desactivado';
+    this.isTogglingStatus.set(true);
 
     this.facade.actualizarDepartamento(item.id, {
       codigoDane: item.codigoDane,
@@ -137,11 +158,15 @@ export class Departamentos implements OnInit {
       activo: nuevoEstado
     }).subscribe({
       next: () => {
-        this.toast.success(`Departamento ${actionName} exitosamente`);
+        this.isTogglingStatus.set(false);
+        this.isConfirmModalOpen.set(false);
+        this.itemToToggle.set(null);
+        this.toast.success(`Departamento "${item.nombre}" ${actionName} exitosamente`);
         this.cargarItems();
       },
       error: (err: any) => {
-        this.toast.error(`Error al actualizar estado del departamento`);
+        this.isTogglingStatus.set(false);
+        this.toast.error(formatUserErrorMessage(err, `actualizar estado del departamento "${item.nombre}"`));
         console.error(err);
       }
     });
@@ -159,12 +184,12 @@ export class Departamentos implements OnInit {
       
       const observer = {
         next: () => {
-          this.toast.success(`Departamento ${actionName} exitosamente`);
+          this.toast.success(`Departamento "${data.nombre}" ${actionName} exitosamente`);
           this.closeSlideOver();
           this.cargarItems();
         },
         error: (err: any) => {
-          this.toast.error(`Error al intentar guardar el departamento`);
+          this.toast.error(formatUserErrorMessage(err, 'guardar el departamento'));
           console.error(err);
         }
       };
@@ -176,6 +201,7 @@ export class Departamentos implements OnInit {
       }
     } else {
       this.departamentoForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del formulario.');
     }
   }
 }

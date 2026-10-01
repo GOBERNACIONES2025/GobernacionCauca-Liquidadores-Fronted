@@ -90,11 +90,16 @@ export interface VehiculoItemDto {
     tipoPersona?: string;
   };
   tituloFichaTecnica?: string;
-  subtituloFichaTecnica?: string;
   propietarioId?: number;
   propietarioNombre?: string;
   propietarioDocumento?: string;
   propietarios?: VehiculoPropietarioResumenDto[];
+  numeroMotor?: string;
+  numeroChasis?: string;
+  numeroVin?: string;
+  motor?: string;
+  chasis?: string;
+  vin?: string;
 }
 
 export interface VehiculoPropietarioResumenDto {

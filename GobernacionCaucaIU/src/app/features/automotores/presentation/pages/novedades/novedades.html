@@ -1,0 +1,544 @@
+<main class="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 sm:py-5 min-w-0 bg-slate-50 relative h-full">
+  <div class="flex flex-col gap-5 h-full min-h-0 max-w-7xl mx-auto">
+
+    <!-- BREADCRUMB & HEADER -->
+    <div class="mb-1 shrink-0">
+      <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-2" />
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-900 flex items-center justify-center border border-blue-200 shadow-sm">
+              <i class="fa-solid fa-arrows-rotate text-sm"></i>
+            </div>
+            <h1 class="text-[17px] sm:text-[18px] font-bold text-slate-900 m-0 leading-snug">
+              Módulo de Novedades Vehiculares
+            </h1>
+          </div>
+          <p class="text-[12px] text-slate-500 mt-1">
+            Consulta integral del parque automotor y registro de mutaciones, traspasos, traslados y rematrículas tributarias.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            (click)="limpiarBusqueda()"
+            class="inline-flex items-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition cursor-pointer shadow-sm"
+          >
+            <i class="fa-solid fa-rotate-left text-xs text-slate-500"></i>
+            Reiniciar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPIS RESUMEN DE NOVEDADES -->
+    @if (kpis(); as kpi) {
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 shrink-0">
+        <div class="bg-white border border-slate-200 rounded-xl p-3.5 shadow-2xs">
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Total Novedades</div>
+          <div class="text-xl font-black text-slate-900 mt-0.5">{{ kpi.totalNovedades }}</div>
+          <div class="text-[10.5px] text-slate-400 mt-0.5">{{ kpi.mesActual }} este mes</div>
+        </div>
+        <div class="bg-white border border-amber-200 rounded-xl p-3.5 shadow-2xs bg-amber-50/20">
+          <div class="text-[11px] font-bold text-amber-700 uppercase tracking-wide">Radicadas (Pendientes)</div>
+          <div class="text-xl font-black text-amber-900 mt-0.5">{{ kpi.radicadas }}</div>
+          <div class="text-[10.5px] text-amber-600 mt-0.5">Por auditar / visto bueno</div>
+        </div>
+        <div class="bg-white border border-blue-200 rounded-xl p-3.5 shadow-2xs bg-blue-50/20">
+          <div class="text-[11px] font-bold text-blue-700 uppercase tracking-wide">En Revisión</div>
+          <div class="text-xl font-black text-blue-900 mt-0.5">{{ kpi.enRevision }}</div>
+          <div class="text-[10.5px] text-blue-600 mt-0.5">Verificación documental</div>
+        </div>
+        <div class="bg-white border border-emerald-200 rounded-xl p-3.5 shadow-2xs bg-emerald-50/20">
+          <div class="text-[11px] font-bold text-emerald-700 uppercase tracking-wide">Aprobadas</div>
+          <div class="text-xl font-black text-emerald-900 mt-0.5">{{ kpi.aprobadas }}</div>
+          <div class="text-[10.5px] text-emerald-600 mt-0.5">Mutaciones aplicadas</div>
+        </div>
+        <div class="bg-white border border-rose-200 rounded-xl p-3.5 shadow-2xs bg-rose-50/20">
+          <div class="text-[11px] font-bold text-rose-700 uppercase tracking-wide">Rechazadas</div>
+          <div class="text-xl font-black text-rose-900 mt-0.5">{{ kpi.rechazadas }}</div>
+          <div class="text-[10.5px] text-rose-600 mt-0.5">Inconsistencias</div>
+        </div>
+      </div>
+    }
+
+    <!-- TARJETA PRINCIPAL: BÚSQUEDA DE PLACA Y SELECCIÓN DE NOVEDAD -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-5 shrink-0">
+      <div class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+        <i class="fa-solid fa-magnifying-glass text-[#0F3067]"></i>
+        Búsqueda de Vehículo y Selección de Novedad
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-end">
+        <!-- Input Placa -->
+        <div class="md:col-span-4">
+          <label for="inputPlaca" class="block text-xs font-bold text-slate-700 mb-1.5">
+            Placa del Vehículo <span class="text-red-500">*</span>
+          </label>
+          <div class="relative flex items-center">
+            <div class="absolute left-3 flex items-center pointer-events-none text-slate-400">
+              <i class="fa-solid fa-car text-sm"></i>
+            </div>
+            <input
+              id="inputPlaca"
+              type="text"
+              maxlength="7"
+              [ngModel]="placa()"
+              (ngModelChange)="onPlacaInput($event)"
+              (keydown.enter)="buscarPlaca()"
+              placeholder="Ej: ABC123"
+              class="w-full h-10 pl-9 pr-8 text-sm font-mono font-bold uppercase tracking-wider text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+            />
+            @if (placa()) {
+              <button
+                type="button"
+                (click)="placa.set(''); vehiculo.set(null); error.set(null);"
+                class="absolute right-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                title="Borrar placa"
+              >
+                <i class="fa-solid fa-xmark text-xs"></i>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Botón Buscar Placa -->
+        <div class="md:col-span-3">
+          <button
+            type="button"
+            (click)="buscarPlaca()"
+            [disabled]="loading() || !placa().trim()"
+            class="w-full h-10 inline-flex items-center justify-center gap-2 px-4 rounded-lg text-xs font-bold text-white bg-[#0F3067] hover:bg-[#162c60] disabled:bg-slate-300 disabled:cursor-not-allowed transition shadow-sm cursor-pointer"
+          >
+            @if (loading()) {
+              <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+              <span>Consultando...</span>
+            } @else {
+              <i class="fa-solid fa-magnifying-glass text-xs"></i>
+              <span>Buscar Placa</span>
+            }
+          </button>
+        </div>
+
+        <!-- Select Tipo de Novedad -->
+        <div class="md:col-span-5">
+          <label class="block text-xs font-bold text-slate-700 mb-1.5">
+            Seleccionar Novedad <span class="text-red-500">*</span>
+          </label>
+          <app-searchable-select
+            [items]="tiposNovedadOpciones"
+            [ngModel]="tipoNovedad()"
+            (ngModelChange)="onTipoNovedadChange($event)"
+            labelKey="nombre"
+            valueKey="id"
+            placeholder="-- Seleccione o busque tipo de novedad --"
+          />
+        </div>
+      </div>
+
+      <!-- ALERTA DE ERROR DE BÚSQUEDA -->
+      @if (error()) {
+        <div class="mt-3.5 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2.5 animate-fadeIn">
+          <i class="fa-solid fa-triangle-exclamation text-red-500 shrink-0 text-sm"></i>
+          <div class="flex-1 font-medium">{{ error() }}</div>
+          <button (click)="error.set(null)" class="text-red-400 hover:text-red-600 cursor-pointer">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- TARJETA DE INFORMACIÓN DEL VEHÍCULO Y PROPIETARIO OBTENIDO -->
+    @if (vehiculoDisplay(); as v) {
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden animate-fadeIn">
+        <!-- Cabecera de la ficha vehicular -->
+        <div class="bg-slate-50 border-b border-slate-200 px-4 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-3">
+            <!-- Placa Badge -->
+            <div class="inline-flex items-center justify-center px-3 py-1 bg-[#ffd100] text-slate-950 font-mono font-bold text-sm rounded border border-slate-800 shadow-xs">
+              {{ v.placa }}
+            </div>
+            <div>
+              <span class="text-sm font-bold text-slate-800">{{ v.marca }} {{ v.linea }}</span>
+              <span class="text-xs text-slate-500 ml-1.5 font-medium">Modelo {{ v.modelo }}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              {{ v.estadoMatricula }}
+            </span>
+            <span class="text-xs text-slate-400">|</span>
+            <span class="text-xs text-slate-600 font-semibold">
+              <i class="fa-solid fa-location-dot text-slate-400 mr-1"></i>
+              {{ v.organismoTransito }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Grilla de Detalles del Vehículo y Propietario -->
+        <div class="p-4 sm:p-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 text-xs">
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="block text-[11px] text-slate-400 font-medium">Clase</span>
+            <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ v.clase }}</span>
+          </div>
+
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="block text-[11px] text-slate-400 font-medium">Cilindraje</span>
+            <span class="font-bold text-slate-800 mt-0.5 block">{{ v.cilindraje }}</span>
+          </div>
+
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="block text-[11px] text-slate-400 font-medium">Combustible</span>
+            <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ v.combustible }}</span>
+          </div>
+
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="block text-[11px] text-slate-400 font-medium">Servicio</span>
+            <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ v.servicio }}</span>
+          </div>
+
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="block text-[11px] text-slate-400 font-medium">Municipio Tránsito</span>
+            <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ v.municipio }}</span>
+          </div>
+
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="block text-[11px] text-slate-400 font-medium">Propietario Actual</span>
+            <span class="font-bold text-slate-800 mt-0.5 block truncate" [title]="v.propietarioNombre">
+              {{ v.propietarioNombre }}
+            </span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- SECCIÓN DINÁMICA POR NOVEDAD SELECCIONADA -->
+    @if (tipoNovedad(); as novedad) {
+      <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-4 sm:p-6 space-y-5 animate-fadeIn">
+        
+        <!-- Encabezado de la novedad elegida -->
+        <div class="border-b border-slate-200 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5">
+            @if (novedad === 'Traspaso de Propiedad del Vehiculo') {
+              <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200 text-sm">
+                <i class="fa-solid fa-user-pen"></i>
+              </div>
+            } @else if (novedad === 'Traslado') {
+              <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-200 text-sm">
+                <i class="fa-solid fa-truck-moving"></i>
+              </div>
+            } @else {
+              <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center border border-purple-200 text-sm">
+                <i class="fa-solid fa-id-card-clip"></i>
+              </div>
+            }
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">{{ novedad }}</h2>
+              <p class="text-[11.5px] text-slate-500">
+                Diligencie los campos y cargue los soportes documentales requeridos para radicar esta novedad.
+              </p>
+            </div>
+          </div>
+
+          <span class="text-xs font-semibold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 shrink-0">
+            Vehículo: <strong class="font-mono text-slate-900">{{ vehiculo() ? vehiculo()!.placa : (placa() || 'Sin placa') }}</strong>
+          </span>
+        </div>
+
+        <!-- FORMULARIO 1: TRASPASO DE PROPIEDAD -->
+        @if (novedad === 'Traspaso de Propiedad del Vehiculo') {
+          <app-formulario-traspaso
+            [form]="traspasoForm"
+            [tiposDocumento]="tiposDocumento()"
+            [anexo]="anexoTraspaso()"
+            (anexoChange)="anexoTraspaso.set($event)"
+          />
+        }
+
+        <!-- FORMULARIO 2: TRASLADO DE CUENTA / MATRÍCULA -->
+        @if (novedad === 'Traslado') {
+          <app-formulario-traslado
+            [form]="trasladoForm"
+            [organismosTransito]="organismosTransito()"
+            [anexo]="anexoTraslado()"
+            (anexoChange)="anexoTraslado.set($event)"
+          />
+        }
+
+        <!-- FORMULARIO 3: REMATRÍCULA -->
+        @if (novedad === 'Rematricula') {
+          <app-formulario-rematricula
+            [form]="rematriculaForm"
+            [anexo]="anexoRematricula()"
+            (anexoChange)="anexoRematricula.set($event)"
+          />
+        }
+
+        <!-- BOTÓN DE ACCIÓN: PROCESAR NOVEDAD -->
+        <div class="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-3">
+          <button
+            type="button"
+            (click)="procesarNovedad()"
+            [disabled]="submitting() || !vehiculo()"
+            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 h-10 px-6 rounded-lg text-xs font-bold text-white bg-[#70b238] hover:bg-[#5f972f] disabled:bg-slate-300 disabled:cursor-not-allowed shadow-sm transition cursor-pointer"
+          >
+            @if (submitting()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Procesando Radicación...</span>
+            } @else {
+              <i class="fa-solid fa-check"></i>
+              <span>Registrar Novedad</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    }
+
+    <!-- TABLA DE HISTORIAL DE NOVEDADES RADICADAS -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0">
+      <div class="px-4 sm:px-5 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-slate-500 text-xs"></i>
+          <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">
+            Historial de Novedades Radicadas del Parque Automotor
+          </h3>
+        </div>
+        <span class="text-[11px] text-slate-500 font-bold">
+          {{ historialNovedades().length }} registros
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 bg-slate-100 text-slate-700 font-bold">
+              <th class="py-2.5 px-4">Radicado</th>
+              <th class="py-2.5 px-4">Fecha</th>
+              <th class="py-2.5 px-4">Placa</th>
+              <th class="py-2.5 px-4">Tipo Novedad</th>
+              <th class="py-2.5 px-4">Detalle / Justificación</th>
+              <th class="py-2.5 px-4">Soporte Anexo</th>
+              <th class="py-2.5 px-4">Responsable</th>
+              <th class="py-2.5 px-4 text-center">Estado</th>
+              <th class="py-2.5 px-4 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            @if (historialNovedades().length === 0) {
+              <tr>
+                <td colspan="9" class="py-8 text-center text-slate-400">
+                  <i class="fa-solid fa-folder-open text-2xl mb-1.5 block"></i>
+                  No se registran novedades radicadas para el criterio consultado.
+                </td>
+              </tr>
+            } @else {
+              @for (item of historialNovedades(); track item.id) {
+                <tr class="hover:bg-slate-50/80 transition">
+                  <td class="py-2.5 px-4 font-mono font-bold text-blue-900">{{ item.id }}</td>
+                  <td class="py-2.5 px-4 text-slate-700 whitespace-nowrap font-medium">{{ item.fecha }}</td>
+                  <td class="py-2.5 px-4">
+                    <span class="font-mono font-bold px-2 py-0.5 bg-amber-100 text-slate-900 rounded text-[11px] border border-amber-300">
+                      {{ item.placa }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-4 font-bold text-slate-800 whitespace-nowrap">{{ item.tipoNovedad }}</td>
+                  <td class="py-2.5 px-4 text-slate-700 font-medium max-w-xs truncate" [title]="item.detalle">{{ item.detalle }}</td>
+                  <td class="py-2.5 px-4 whitespace-nowrap">
+                    @if (item.anexo) {
+                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        <i class="fa-solid fa-paperclip text-xs"></i>
+                        <span class="truncate max-w-[130px]" [title]="item.anexo">{{ item.anexo }}</span>
+                      </span>
+                    } @else {
+                      <span class="text-slate-400 italic text-[11px]">Sin anexo</span>
+                    }
+                  </td>
+                  <td class="py-2.5 px-4 text-slate-600 whitespace-nowrap">{{ item.responsable }}</td>
+                  <td class="py-2.5 px-4 text-center whitespace-nowrap">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold"
+                      [class.bg-emerald-50]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
+                      [class.text-emerald-700]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
+                      [class.border]="true"
+                      [class.border-emerald-200]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
+                      [class.bg-amber-50]="item.estado === 'EN_REVISION' || item.estado === 'RADICADO'"
+                      [class.text-amber-700]="item.estado === 'EN_REVISION' || item.estado === 'RADICADO'"
+                      [class.border-amber-200]="item.estado === 'EN_REVISION' || item.estado === 'RADICADO'"
+                      [class.bg-rose-50]="item.estado === 'RECHAZADO' || item.estado === 'ANULADO'"
+                      [class.text-rose-700]="item.estado === 'RECHAZADO' || item.estado === 'ANULADO'"
+                      [class.border-rose-200]="item.estado === 'RECHAZADO' || item.estado === 'ANULADO'"
+                    >
+                      {{ item.estado }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 px-4 text-center whitespace-nowrap">
+                    <div class="inline-flex items-center gap-1.5">
+                      <!-- Botón Ver Detalle -->
+                      <button
+                        type="button"
+                        (click)="verDetalle(item)"
+                        class="p-1.5 text-slate-600 hover:text-blue-900 hover:bg-blue-50 rounded border border-slate-200 transition cursor-pointer"
+                        title="Ver detalle de radicación y cambios"
+                      >
+                        <i class="fa-solid fa-eye text-xs"></i>
+                      </button>
+
+                      <!-- Botones de Aprobación/Rechazo: solo si está en trámite pendiente -->
+                      @if (esPendiente(item.estado)) {
+                        <!-- Botón Aprobar -->
+                        <button
+                          type="button"
+                          (click)="cambiarEstado(item.rawId, 'APROBADO')"
+                          [disabled]="accionLoading() === item.rawId"
+                          class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded shadow-2xs transition cursor-pointer"
+                          title="Aprobar novedad y aplicar cambios automáticamente"
+                        >
+                          @if (accionLoading() === item.rawId) {
+                            <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i>
+                          } @else {
+                            <i class="fa-solid fa-check text-[10px]"></i>
+                          }
+                          <span>Aprobar</span>
+                        </button>
+
+                        <!-- Botón Rechazar -->
+                        <button
+                          type="button"
+                          (click)="cambiarEstado(item.rawId, 'RECHAZADO')"
+                          [disabled]="accionLoading() === item.rawId"
+                          class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 rounded shadow-2xs transition cursor-pointer"
+                          title="Rechazar novedad por inconsistencias"
+                        >
+                          @if (accionLoading() === item.rawId) {
+                            <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i>
+                          } @else {
+                            <i class="fa-solid fa-xmark text-[10px]"></i>
+                          }
+                          <span>Rechazar</span>
+                        </button>
+                      } @else {
+                        <span class="text-[10.5px] text-slate-400 italic px-1 select-none">Trámite finalizado</span>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODAL DE DETALLE Y AUDITORÍA DE NOVEDAD -->
+  @if (detalleModal(); as modal) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+      <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+        <!-- Modal Header -->
+        <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-100 text-blue-900 flex items-center justify-center">
+              <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 m-0">Detalle de Novedad Radicada</h3>
+              <p class="text-[11px] text-slate-500 m-0">Radicado: {{ modal.numeroRadicado || modal.id }} — Placa: {{ modal.placa }}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            (click)="cerrarModalDetalle()"
+            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200/60 transition cursor-pointer"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-5 overflow-y-auto space-y-4 text-xs">
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Trámite</span>
+              <span class="font-bold text-slate-800">{{ modal.tipoNovedad }}</span>
+            </div>
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Estado</span>
+              <span class="font-bold text-blue-900">{{ modal.estado }}</span>
+            </div>
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Fecha Radicación</span>
+              <span class="font-bold text-slate-800">{{ modal.fechaRadicacion ? modal.fechaRadicacion.substring(0, 10) : (modal.createdAt ? modal.createdAt.substring(0, 10) : 'N/A') }}</span>
+            </div>
+            <div>
+              <span class="text-[10.5px] font-semibold text-slate-400 block uppercase">Placa</span>
+              <span class="font-mono font-bold text-amber-900">{{ modal.placa }}</span>
+            </div>
+          </div>
+
+          @if (modal.motivo || modal.observaciones) {
+            <div class="bg-blue-50/50 border border-blue-100 rounded-xl p-3.5">
+              <span class="text-[11px] font-bold text-blue-900 block mb-1">Motivo y Observaciones</span>
+              <p class="text-slate-700 m-0">{{ modal.motivo || modal.observaciones }}</p>
+            </div>
+          }
+
+          @if (modal.datosNuevosJson) {
+            <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-900 text-emerald-400 font-mono text-[11px]">
+              <span class="text-slate-400 block mb-1 text-[10.5px] font-sans font-bold uppercase">Mutación / Cambios a Aplicar (JSON):</span>
+              <pre class="overflow-x-auto whitespace-pre-wrap">{{ modal.datosNuevosJson }}</pre>
+            </div>
+          }
+
+          @if (modal.datosPreviosJson) {
+            <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-800 text-slate-300 font-mono text-[11px]">
+              <span class="text-slate-400 block mb-1 text-[10.5px] font-sans font-bold uppercase">Estado Previo del Automotor (JSON):</span>
+              <pre class="overflow-x-auto whitespace-pre-wrap">{{ modal.datosPreviosJson }}</pre>
+            </div>
+          }
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="px-5 py-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2">
+            @if (esPendiente(modal.estado)) {
+              <button
+                type="button"
+                (click)="cambiarEstado(modal.id, 'APROBADO'); cerrarModalDetalle();"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-2xs transition cursor-pointer"
+              >
+                <i class="fa-solid fa-check"></i>
+                <span>Aprobar Novedad</span>
+              </button>
+              <button
+                type="button"
+                (click)="cambiarEstado(modal.id, 'RECHAZADO'); cerrarModalDetalle();"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 shadow-2xs transition cursor-pointer"
+              >
+                <i class="fa-solid fa-xmark"></i>
+                <span>Rechazar</span>
+              </button>
+            } @else {
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                <i class="fa-solid fa-lock text-[10px]"></i> Novedad finalizada ({{ modal.estado }})
+              </span>
+            }
+          </div>
+
+          <button
+            type="button"
+            (click)="cerrarModalDetalle()"
+            class="px-4 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 rounded-lg transition cursor-pointer"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</main>
+

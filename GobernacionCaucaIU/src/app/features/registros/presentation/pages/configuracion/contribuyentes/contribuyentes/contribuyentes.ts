@@ -15,6 +15,7 @@ import { TiposPersonaApiService } from '../../../../../infrastructure/api/Contri
 import { TiposIdentificacionApiService } from '../../../../../infrastructure/api/Contribuyentes/tipos-identificacion-api.service';
 import { SearchableSelectComponent } from '../../../../../../../shared/components/searchable-select/searchable-select';
 import { FormFieldErrorComponent } from '../../../../../../shared/components/form-error/form-error.component';
+import { formatUserErrorMessage } from '../../../../shared/utils/error-formatter.util';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -151,7 +152,7 @@ export class Contribuyentes implements OnInit {
       },
       error: (err) => {
         this.loadingEditId.set(null);
-        this.toast.error('Error al obtener la información del contribuyente');
+        this.toast.error(formatUserErrorMessage(err, 'obtener los datos del contribuyente'));
         console.error(err);
       }
     });
@@ -184,7 +185,7 @@ export class Contribuyentes implements OnInit {
             this.cargarDatos();
           },
           error: (err: any) => {
-            this.toast.error(`Error al actualizar el contribuyente`);
+            this.toast.error(formatUserErrorMessage(err, 'actualizar el contribuyente'));
             console.error(err);
           }
         });
@@ -204,13 +205,14 @@ export class Contribuyentes implements OnInit {
             this.cargarDatos();
           },
           error: (err: any) => {
-            this.toast.error(`Error al registrar el contribuyente`);
+            this.toast.error(formatUserErrorMessage(err, 'registrar el contribuyente'));
             console.error(err);
           }
         });
       }
     } else {
       this.contribuyenteForm.markAllAsTouched();
+      this.toast.warning('Por favor complete los campos obligatorios del contribuyente.');
     }
   }
 }

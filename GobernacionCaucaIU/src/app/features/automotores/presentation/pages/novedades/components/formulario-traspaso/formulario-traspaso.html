@@ -1,0 +1,454 @@
+<div class="space-y-5">
+  
+  <!-- 1. DATOS DEL PROPIETARIO ACTUAL (CEDENTE) -->
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+    <div class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-3 flex items-center justify-between">
+      <span class="flex items-center gap-1.5">
+        <i class="fa-solid fa-user-check text-emerald-600"></i>
+        1. Datos del Propietario Actual (Cedente) — Obtenido de /api/vehiculos
+      </span>
+      <span class="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+        {{ form().propietarioActualPorcentaje }}% Propiedad
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Nombre Completo</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().propietarioActualNombre || 'Pendiente de consulta' }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Documento de Identidad</span>
+        <span class="font-bold text-slate-800 mt-0.5 block">{{ form().propietarioActualDoc || 'N/A' }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Teléfono de Contacto</span>
+        <span class="font-bold text-slate-800 mt-0.5 block">{{ form().propietarioActualTelefono || 'No registrado' }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Correo Electrónico</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().propietarioActualCorreo || 'No registrado' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DATOS DE LOS NUEVOS PROPIETARIOS (ADQUIRENTES) -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-xs space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-users text-blue-900 text-sm"></i>
+        <span class="text-xs font-bold text-slate-800 uppercase tracking-wide">
+          2. Nuevos Propietarios (Adquirentes)
+        </span>
+        <span 
+          class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border transition-all"
+          [ngClass]="{
+            'bg-emerald-50 text-emerald-700 border-emerald-200': calcularPorcentajeTotal() === 100,
+            'bg-amber-50 text-amber-700 border-amber-200': calcularPorcentajeTotal() < 100,
+            'bg-rose-50 text-rose-700 border-rose-200': calcularPorcentajeTotal() > 100
+          }"
+        >
+          @if (calcularPorcentajeTotal() === 100) {
+            <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> 100% Asignado
+          } @else if (calcularPorcentajeTotal() < 100) {
+            <i class="fa-solid fa-triangle-exclamation text-amber-600 mr-1"></i> Falta {{ calcularPorcentajeRestante() }}%
+          } @else {
+            <i class="fa-solid fa-circle-exclamation text-rose-600 mr-1"></i> Supera 100% ({{ calcularPorcentajeTotal() }}%)
+          }
+        </span>
+      </div>
+
+      <button
+        type="button"
+        (click)="agregarPropietario()"
+        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-[#0F3067] hover:bg-[#162c60] shadow-2xs transition-all active:scale-95 cursor-pointer shrink-0"
+      >
+        <i class="fa-solid fa-user-plus text-xs"></i>
+        <span>Agregar Copropietario</span>
+      </button>
+    </div>
+
+    <!-- Barra de progreso del porcentaje total -->
+    <div class="space-y-1.5">
+      <div class="flex items-center justify-between text-[11px] font-semibold text-slate-600">
+        <span>Participación total acumulada:</span>
+        <span class="font-bold" [ngClass]="{
+          'text-emerald-700': calcularPorcentajeTotal() === 100,
+          'text-amber-700': calcularPorcentajeTotal() < 100,
+          'text-rose-700': calcularPorcentajeTotal() > 100
+        }">{{ calcularPorcentajeTotal() }}% / 100%</span>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+        <div 
+          class="h-full transition-all duration-300 rounded-full"
+          [ngClass]="{
+            'bg-emerald-500': calcularPorcentajeTotal() === 100,
+            'bg-amber-500': calcularPorcentajeTotal() < 100,
+            'bg-rose-500': calcularPorcentajeTotal() > 100
+          }"
+          [style.width.%]="calcularPorcentajeTotal() > 100 ? 100 : calcularPorcentajeTotal()"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Alertas informativas sobre porcentaje -->
+    @if (calcularPorcentajeTotal() < 100) {
+      <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-center justify-between gap-2 animate-fadeIn">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600 shrink-0 text-sm"></i>
+          <span>El porcentaje de propiedad debe sumar exactamente <strong>100%</strong>. Queda un <strong>{{ calcularPorcentajeRestante() }}%</strong> por asignar. Añada los copropietarios requeridos o ajuste la participación.</span>
+        </div>
+      </div>
+    } @else if (calcularPorcentajeTotal() > 100) {
+      <div class="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-900 flex items-center gap-2 animate-fadeIn">
+        <i class="fa-solid fa-circle-exclamation text-rose-600 shrink-0 text-sm"></i>
+        <span>La suma total de propiedad supera el 100% (actualmente suma <strong>{{ calcularPorcentajeTotal() }}%</strong>). Ajuste los porcentajes para poder registrar el traspaso.</span>
+      </div>
+    }
+
+    <!-- Tarjetas de Propietarios y Copropietarios -->
+    <div class="space-y-4 pt-1">
+      @for (p of getPropietarios(); track $index; let i = $index) {
+        <div class="p-4 bg-slate-50/60 border border-slate-200 rounded-xl shadow-2xs space-y-4 transition-all">
+          
+          <!-- Cabecera de la tarjeta -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2.5">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-[#0F3067] text-white text-[11px] font-bold flex items-center justify-center shadow-xs">
+                {{ i + 1 }}
+              </span>
+              <span class="text-xs font-bold text-slate-800">
+                {{ i === 0 ? 'Propietario Principal / Titular' : ('Copropietario ' + (i + 1)) }}
+              </span>
+
+              <label class="inline-flex items-center gap-1.5 cursor-pointer ml-2 text-[11.5px] font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200 hover:border-blue-300 transition">
+                <input 
+                  type="radio" 
+                  name="principalOwner" 
+                  [checked]="p.esResponsablePrincipal" 
+                  (change)="setResponsablePrincipal(i)"
+                  class="text-[#0F3067] focus:ring-[#0F3067] cursor-pointer"
+                />
+                <span>{{ p.esResponsablePrincipal ? 'Responsable Principal' : 'Marcar Principal' }}</span>
+              </label>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-700 bg-white px-2.5 py-1 rounded border border-slate-200">
+                Participación: <strong>{{ p.porcentajePropiedad || 0 }}%</strong>
+              </span>
+
+              @if (calcularPorcentajeTotal() !== 100) {
+                <button
+                  type="button"
+                  (click)="asignarRestante(i)"
+                  class="text-[11px] font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2 py-1 rounded transition cursor-pointer"
+                  title="Ajustar automáticamente la participación con el porcentaje restante"
+                >
+                  Ajustar restante
+                </button>
+              }
+
+              @if (getPropietarios().length > 1) {
+                <button
+                  type="button"
+                  (click)="eliminarPropietario(i)"
+                  class="text-slate-400 hover:text-rose-600 hover:bg-rose-50 px-2 py-1 rounded transition cursor-pointer"
+                  title="Eliminar copropietario"
+                >
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Campos del Propietario -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs">
+            <!-- Tipo Documento -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                Tipo de Documento <span class="text-red-500">*</span>
+              </label>
+              <app-searchable-select
+                [items]="tiposDocumentoItems()"
+                [(ngModel)]="p.tipoDocumentoId"
+                (ngModelChange)="onTipoDocumentoChange(i, $event)"
+                labelKey="nombre"
+                valueKey="id"
+                placeholder="Seleccione tipo documento..."
+              />
+            </div>
+
+            <!-- Número de Documento con Botón Buscar -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                Número de Documento <span class="text-red-500">*</span>
+              </label>
+              <div class="flex gap-2">
+                <input
+                  type="text"
+                  [(ngModel)]="p.numeroDocumento"
+                  (keydown.enter)="$event.preventDefault(); buscarPropietario(i)"
+                  [placeholder]="isPersonaJuridica(i) ? 'Ej: 900123456' : 'Ej: 1061789456'"
+                  class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+                />
+                <button
+                  type="button"
+                  (click)="buscarPropietario(i)"
+                  [disabled]="buscandoPropietarioIndex() === i || !p.numeroDocumento"
+                  class="h-10 px-3.5 bg-[#0F3067] hover:bg-[#162c60] active:scale-95 text-white rounded-lg flex items-center justify-center gap-1.5 font-bold text-xs shadow-xs transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+                  title="Buscar en base de datos"
+                >
+                  @if (buscandoPropietarioIndex() === i) {
+                    <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                    <span class="hidden sm:inline">Buscando</span>
+                  } @else {
+                    <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    <span class="hidden sm:inline">Buscar</span>
+                  }
+                </button>
+              </div>
+            </div>
+
+            <!-- Porcentaje de Propiedad -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                % Participación <span class="text-red-500">*</span>
+              </label>
+              <div class="relative flex items-center">
+                <input
+                  type="number"
+                  min="0.01"
+                  max="100"
+                  step="0.01"
+                  [(ngModel)]="p.porcentajePropiedad"
+                  class="w-full h-10 pl-3 pr-7 text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+                />
+                <span class="absolute right-3 text-xs text-slate-500 font-bold">%</span>
+              </div>
+            </div>
+
+            @if (getMensaje(i); as msg) {
+              <div 
+                class="sm:col-span-2 lg:col-span-3 px-3.5 py-2.5 rounded-lg text-xs font-medium flex items-center justify-between gap-2 border transition-all animate-fadeIn"
+                [ngClass]="{
+                  'bg-emerald-50 text-emerald-800 border-emerald-200': msg.tipo === 'exito',
+                  'bg-blue-50 text-blue-800 border-blue-200': msg.tipo === 'aviso',
+                  'bg-amber-50 text-amber-800 border-amber-200': msg.tipo === 'error'
+                }"
+              >
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid" [ngClass]="{
+                    'fa-circle-check text-emerald-600': msg.tipo === 'exito',
+                    'fa-circle-info text-blue-600': msg.tipo === 'aviso',
+                    'fa-triangle-exclamation text-amber-600': msg.tipo === 'error'
+                  }"></i>
+                  <span>{{ msg.texto }}</span>
+                </div>
+                <button 
+                  type="button" 
+                  (click)="limpiarMensajeBusqueda(i)"
+                  class="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                  title="Cerrar mensaje"
+                >
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+              </div>
+            }
+
+            @if (isPersonaJuridica(i)) {
+              <!-- Razón Social -->
+              <div class="sm:col-span-2 lg:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Razón Social / Empresa <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  [(ngModel)]="p.razonSocial"
+                  placeholder="Ej: Transportes del Cauca S.A.S."
+                  class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+                />
+              </div>
+            } @else {
+              <!-- Nombres y Apellidos -->
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Primer Nombre <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  [(ngModel)]="p.primerNombre"
+                  placeholder="Ej: Carlos"
+                  class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">Segundo Nombre</label>
+                <input
+                  type="text"
+                  [(ngModel)]="p.segundoNombre"
+                  placeholder="Ej: Alberto"
+                  class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                  Primer Apellido <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  [(ngModel)]="p.primerApellido"
+                  placeholder="Ej: Mendoza"
+                  class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+                />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5">Segundo Apellido</label>
+                <input
+                  type="text"
+                  [(ngModel)]="p.segundoApellido"
+                  placeholder="Ej: Gómez"
+                  class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+                />
+              </div>
+            }
+
+            <!-- Teléfono -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Teléfono / Celular</label>
+              <input
+                type="text"
+                [(ngModel)]="p.telefono"
+                placeholder="Ej: 3123456789"
+                class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+              />
+            </div>
+
+            <!-- Correo Electrónico -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Correo Electrónico</label>
+              <input
+                type="email"
+                [(ngModel)]="p.correoElectronico"
+                placeholder="correo@ejemplo.com"
+                class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+              />
+            </div>
+
+            <!-- Dirección -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1.5">Dirección de Notificación</label>
+              <input
+                type="text"
+                [(ngModel)]="p.direccion"
+                placeholder="Ej: Calle 5 # 4-20 Popayán"
+                class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+              />
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- 3. DATOS DEL TRÁMITE Y ANEXO -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-xs space-y-4">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+      <i class="fa-solid fa-file-contract text-blue-900"></i>
+      3. Datos del Trámite de Traspaso
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+      <!-- Fecha de Traspaso -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Fecha de Traspaso <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="form().fechaTraspaso"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition cursor-pointer"
+        />
+      </div>
+
+      <!-- Número de Radicado / Acta RUNT -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">Radicado RUNT / Acta de Traspaso</label>
+        <input
+          type="text"
+          [(ngModel)]="form().numeroRadicado"
+          placeholder="Ej: RUNT-2026-89472"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+        />
+      </div>
+    </div>
+
+    <!-- Observaciones -->
+    <div>
+      <label class="block text-xs font-bold text-slate-700 mb-1.5">Observaciones y Justificación</label>
+      <textarea
+        [(ngModel)]="form().observaciones"
+        rows="2"
+        placeholder="Detalles adicionales sobre el trámite de traspaso..."
+        class="w-full p-3 text-xs font-medium text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition resize-y min-h-[70px]"
+      ></textarea>
+    </div>
+  </div>
+
+  <!-- 4. CARGA DE ANEXO / SOPORTE DOCUMENTAL -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-xs">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center justify-between">
+      <span class="flex items-center gap-1.5">
+        <i class="fa-solid fa-paperclip text-amber-600"></i>
+        4. Cargar Soporte / Anexo del Traspaso
+      </span>
+      @if (anexo(); as a) {
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i> Anexado
+        </span>
+      }
+    </div>
+
+    <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl bg-slate-50 hover:bg-blue-50/40 p-4 transition-all">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="flex-1">
+          <label class="block text-[11.5px] text-slate-600 mb-1.5 font-medium">
+            Adjunte el contrato de compraventa, acta de entrega, certificado RUNT o cédula (PDF, PNG, JPG - Máx. 10MB)
+          </label>
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.docx"
+            (change)="onFileChange($event)"
+            class="block w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#0F3067] file:text-white hover:file:bg-[#162c60] file:cursor-pointer cursor-pointer"
+          />
+        </div>
+
+        @if (anexo(); as a) {
+          <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg shrink-0 shadow-xs">
+            <i class="fa-solid fa-file-pdf text-red-500 text-base"></i>
+            <div class="text-left">
+              <span class="text-xs font-bold text-slate-800 block truncate max-w-[200px]" [title]="a.nombre">{{ a.nombre }}</span>
+              <span class="text-[10.5px] text-slate-500 font-medium">{{ a.tamano }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="removerAnexo()"
+              class="text-slate-400 hover:text-red-600 p-1 transition cursor-pointer"
+              title="Quitar anexo"
+            >
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+</div>

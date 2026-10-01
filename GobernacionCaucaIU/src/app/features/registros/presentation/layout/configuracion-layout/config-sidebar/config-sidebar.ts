@@ -22,11 +22,16 @@ import { TiposBeneficiarioExencionFacade } from '../../../../application/facades
 import { ExencionesFacade } from '../../../../application/facades/Exenciones/exenciones.facade';
 import { TiposPersonaFacade } from '../../../../application/facades/Contribuyentes/tipos-persona.facade';
 import { TiposIdentificacionFacade } from '../../../../application/facades/Contribuyentes/tipos-identificacion.facade';
+import { TiposRolFacade } from '../../../../application/facades/Seguridad/tipos-rol.facade';
 import { RolesFacade } from '../../../../application/facades/Seguridad/roles.facade';
+import { PermisosFacade } from '../../../../application/facades/Seguridad/permisos.facade';
 import { UsuariosFacade } from '../../../../application/facades/Seguridad/usuarios.facade';
 import { RolesIntervinienteFacade } from '../../../../application/facades/Intervinientes/roles-interviniente.facade';
 import { EstadosLiquidacionFacade } from '../../../../application/facades/Liquidacion/estados-liquidacion.facade';
+import { CausalesReliquidacionFacade } from '../../../../application/facades/Liquidacion/causales-reliquidacion.facade';
+import { CausalesAnulacionFacade } from '../../../../application/facades/Liquidacion/causales-anulacion.facade';
 import { EstadosPagoFacade } from '../../../../application/facades/Pagos/estados-pago.facade';
+import { MediosPagoFacade } from '../../../../application/facades/Pagos/medios-pago.facade';
 import { EstadosSolicitudFacade } from '../../../../application/facades/Radicacion/estados-solicitud.facade';
 import { EntidadesTipoActoPermitidoFacade } from '../../../../application/facades/Registro/entidades-tipo-acto-permitido.facade';
 import { ContribuyentesFacade } from '../../../../application/facades/Contribuyentes/contribuyentes.facade';
@@ -74,11 +79,16 @@ export class ConfigSidebar {
   private exencionesFacade = inject(ExencionesFacade);
   private tiposPersonaFacade = inject(TiposPersonaFacade);
   private tiposIdentificacionFacade = inject(TiposIdentificacionFacade);
+  private tiposRolFacade = inject(TiposRolFacade);
   private rolesFacade = inject(RolesFacade);
+  private permisosFacade = inject(PermisosFacade);
   private usuariosFacade = inject(UsuariosFacade);
   private rolesIntervinienteFacade = inject(RolesIntervinienteFacade);
   private estadosLiquidacionFacade = inject(EstadosLiquidacionFacade);
+  public causalesReliquidacionFacade = inject(CausalesReliquidacionFacade);
+  public causalesAnulacionFacade = inject(CausalesAnulacionFacade);
   private estadosPagoFacade = inject(EstadosPagoFacade);
+  private mediosPagoFacade = inject(MediosPagoFacade);
   private estadosSolicitudFacade = inject(EstadosSolicitudFacade);
   private entidadesTipoActoPermitidoFacade = inject(EntidadesTipoActoPermitidoFacade);
   private contribuyentesFacade = inject(ContribuyentesFacade);
@@ -124,12 +134,12 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Departamento', 
-          route: '/registros/configuracion/territorio/departamento', 
+          route: '/registros/gobernacion/configuracion/territorio/departamento', 
           count: this.departamentosFacade.totalDepartamentos() || this.departamentosFacade.departamentos().length 
         },
         { 
           name: 'Municipio', 
-          route: '/registros/configuracion/territorio/municipio', 
+          route: '/registros/gobernacion/configuracion/territorio/municipio', 
           count: this.municipiosFacade.totalMunicipios() || this.municipiosFacade.municipios().length, 
           hasWarning: true 
         }
@@ -141,7 +151,7 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Inmuebles y Avalúos', 
-          route: '/registros/configuracion/inmuebles/inmuebles',
+          route: '/registros/gobernacion/configuracion/inmuebles/inmuebles',
           count: this.inmueblesFacade.totalInmuebles() || this.inmueblesFacade.inmuebles().length 
         }
       ]
@@ -152,22 +162,22 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Estado de Norma', 
-          route: '/registros/configuracion/normatividad/estado-norma', 
+          route: '/registros/gobernacion/configuracion/normatividad/estado-norma', 
           count: this.estadosNormaFacade.totalEstadosNorma() || this.estadosNormaFacade.estadosNorma().length 
         },
         { 
           name: 'Tipo de Norma', 
-          route: '/registros/configuracion/normatividad/tipo-norma', 
+          route: '/registros/gobernacion/configuracion/normatividad/tipo-norma', 
           count: this.tiposNormaFacade.totalTiposNorma() || this.tiposNormaFacade.tiposNorma().length 
         },
         { 
           name: 'Vigencia', 
-          route: '/registros/configuracion/normatividad/vigencia', 
+          route: '/registros/gobernacion/configuracion/normatividad/vigencia', 
           count: this.vigenciasFacade.totalVigencias() || this.vigenciasFacade.vigencias().length 
         },
         { 
           name: 'Norma', 
-          route: '/registros/configuracion/normatividad/normas', 
+          route: '/registros/gobernacion/configuracion/normatividad/normas', 
           count: this.normasFacade.totalNormas() || this.normasFacade.normas().length,
           hasWarning: true 
         }
@@ -179,18 +189,18 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Tipo de Entidad de Registro', 
-          route: '/registros/configuracion/entidades/tipo-entidad',
+          route: '/registros/gobernacion/configuracion/entidades/tipo-entidad',
           count: this.tiposEntidadFacade.totalTiposEntidadRegistro() || this.tiposEntidadFacade.tiposEntidadRegistro().length 
         },
         { 
           name: 'Entidad de Registro', 
-          route: '/registros/configuracion/entidades/entidades',
+          route: '/registros/gobernacion/configuracion/entidades/entidades',
           count: this.entidadesRegistroFacade.totalEntidadesRegistro() || this.entidadesRegistroFacade.entidadesRegistro().length, 
           hasWarning: true 
         },
         { 
           name: 'Actos Permitidos', 
-          route: '/registros/configuracion/entidades/actos-permitidos',
+          route: '/registros/gobernacion/configuracion/entidades/actos-permitidos',
           count: this.entidadesTipoActoPermitidoFacade.totalEntidadesTipoActoPermitido() || this.entidadesTipoActoPermitidoFacade.entidadesTipoActoPermitido().length 
         }
       ]
@@ -201,17 +211,17 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Categoría de Acto', 
-          route: '/registros/configuracion/actos-registrales/categoria-acto',
+          route: '/registros/gobernacion/configuracion/actos-registrales/categoria-acto',
           count: this.categoriasFacade.totalCategoriasActo() || this.categoriasFacade.categoriasActo().length 
         },
         { 
           name: 'Naturaleza de Acto', 
-          route: '/registros/configuracion/actos-registrales/naturaleza-acto',
+          route: '/registros/gobernacion/configuracion/actos-registrales/naturaleza-acto',
           count: this.naturalezasFacade.totalNaturalezasActo() || this.naturalezasFacade.naturalezasActo().length 
         },
         { 
           name: 'Tipo de Acto de Registro', 
-          route: '/registros/configuracion/actos-registrales/tipo-acto',
+          route: '/registros/gobernacion/configuracion/actos-registrales/tipo-acto',
           count: this.tiposActoFacade.totalTiposActoRegistro() || this.tiposActoFacade.tiposActoRegistro().length, 
           hasWarning: true 
         }
@@ -223,23 +233,23 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Tipo de Cálculo de Tarifa', 
-          route: '/registros/configuracion/tarifas/tipo-calculo',
+          route: '/registros/gobernacion/configuracion/tarifas/tipo-calculo',
           count: this.tiposCalculoFacade.totalTiposCalculoTarifa() || this.tiposCalculoFacade.tiposCalculoTarifa().length 
         },
         { 
           name: 'Tarifa', 
-          route: '/registros/configuracion/tarifas/tarifas',
+          route: '/registros/gobernacion/configuracion/tarifas/tarifas',
           count: this.tarifasFacade.totalTarifas() || this.tarifasFacade.tarifas().length, 
           hasWarning: true 
         },
         { 
           name: 'Extemporaneidad', 
-          route: '/registros/configuracion/tarifas/extemporaneidad',
+          route: '/registros/gobernacion/configuracion/tarifas/extemporaneidad',
           count: this.extemporaneidadFacade.totalConfiguraciones() || this.extemporaneidadFacade.configuraciones().length 
         },
         { 
           name: 'Tasas de Interés de Mora', 
-          route: '/registros/configuracion/tarifas/tasas-mora',
+          route: '/registros/gobernacion/configuracion/tarifas/tasas-mora',
           count: this.tasasMoraFacade.totalTasas() || this.tasasMoraFacade.tasas().length 
         }
       ]
@@ -250,12 +260,12 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Tipo de Beneficiario de Exención', 
-          route: '/registros/configuracion/exenciones/tipo-beneficiario',
+          route: '/registros/gobernacion/configuracion/exenciones/tipo-beneficiario',
           count: this.tiposBeneficiarioFacade.totalTiposBeneficiario() || this.tiposBeneficiarioFacade.tiposBeneficiario().length 
         },
         { 
           name: 'Exención', 
-          route: '/registros/configuracion/exenciones/exenciones',
+          route: '/registros/gobernacion/configuracion/exenciones/exenciones',
           count: this.exencionesFacade.totalExenciones() || this.exencionesFacade.exenciones().length, 
           hasWarning: true 
         }
@@ -267,17 +277,17 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Directorio de Contribuyentes', 
-          route: '/registros/configuracion/contribuyentes/directorio',
+          route: '/registros/gobernacion/configuracion/contribuyentes/directorio',
           count: this.contribuyentesFacade.totalContribuyentes() || this.contribuyentesFacade.contribuyentes().length 
         },
         { 
           name: 'Tipo de Persona', 
-          route: '/registros/configuracion/contribuyentes/tipo-persona',
+          route: '/registros/gobernacion/configuracion/contribuyentes/tipo-persona',
           count: this.tiposPersonaFacade.totalTiposPersona() || this.tiposPersonaFacade.tiposPersona().length 
         },
         { 
           name: 'Tipo de Documento', 
-          route: '/registros/configuracion/contribuyentes/tipo-documento',
+          route: '/registros/gobernacion/configuracion/contribuyentes/tipo-documento',
           count: this.tiposIdentificacionFacade.totalTiposIdentificacion() || this.tiposIdentificacionFacade.tiposIdentificacion().length 
         }
       ]
@@ -288,7 +298,7 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Rol de Interviniente', 
-          route: '/registros/configuracion/intervinientes/roles-interviniente',
+          route: '/registros/gobernacion/configuracion/intervinientes/roles-interviniente',
           count: this.rolesIntervinienteFacade.totalRolesInterviniente() || this.rolesIntervinienteFacade.rolesInterviniente().length 
         }
       ]
@@ -299,7 +309,7 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Estado de Solicitud', 
-          route: '/registros/configuracion/radicacion/estados-solicitud',
+          route: '/registros/gobernacion/configuracion/radicacion/estados-solicitud',
           count: this.estadosSolicitudFacade.totalEstadosSolicitud() || this.estadosSolicitudFacade.estadosSolicitud().length 
         }
       ]
@@ -310,7 +320,7 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Estado de Liquidación', 
-          route: '/registros/configuracion/liquidacion/estados-liquidacion',
+          route: '/registros/gobernacion/configuracion/liquidacion/estados-liquidacion',
           count: this.estadosLiquidacionFacade.totalEstadosLiquidacion() || this.estadosLiquidacionFacade.estadosLiquidacion().length 
         }
       ]
@@ -321,8 +331,13 @@ export class ConfigSidebar {
       items: [
         { 
           name: 'Estado de Pago', 
-          route: '/registros/configuracion/pagos/estados-pago',
+          route: '/registros/gobernacion/configuracion/pagos/estados-pago',
           count: this.estadosPagoFacade.totalEstadosPago() || this.estadosPagoFacade.estadosPago().length 
+        },
+        { 
+          name: 'Medios de Pago', 
+          route: '/registros/gobernacion/configuracion/pagos/medios-pago',
+          count: this.mediosPagoFacade.totalMediosPago() || this.mediosPagoFacade.mediosPago().length 
         }
       ]
     },
@@ -331,13 +346,28 @@ export class ConfigSidebar {
       icon: 'shield-check',
       items: [
         { 
+          name: 'Tipos de Rol', 
+          route: '/registros/gobernacion/configuracion/seguridad/tipos-rol',
+          count: this.tiposRolFacade.totalTiposRol() || this.tiposRolFacade.tiposRol().length 
+        },
+        { 
           name: 'Roles', 
-          route: '/registros/configuracion/seguridad/roles',
+          route: '/registros/gobernacion/configuracion/seguridad/roles',
+          count: this.rolesFacade.totalRoles() || this.rolesFacade.roles().length 
+        },
+        { 
+          name: 'Permisos', 
+          route: '/registros/gobernacion/configuracion/seguridad/permisos',
+          count: this.permisosFacade.totalPermisos() || this.permisosFacade.permisos().length 
+        },
+        { 
+          name: 'Permisos por Rol', 
+          route: '/registros/gobernacion/configuracion/seguridad/rol-permisos',
           count: this.rolesFacade.totalRoles() || this.rolesFacade.roles().length 
         },
         { 
           name: 'Usuarios', 
-          route: '/registros/configuracion/seguridad/usuarios',
+          route: '/registros/gobernacion/configuracion/seguridad/usuarios',
           count: this.usuariosFacade.totalUsuarios() || this.usuariosFacade.usuarios().length 
         }
       ]

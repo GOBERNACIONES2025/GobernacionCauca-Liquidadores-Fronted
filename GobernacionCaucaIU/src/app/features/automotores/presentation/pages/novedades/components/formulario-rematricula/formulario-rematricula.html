@@ -1,0 +1,205 @@
+<div class="space-y-4">
+  
+  <!-- 1. INFORMACIÓN BASE DEL VEHÍCULO (AUTO-COMPLETADA) -->
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+    <div class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+      <i class="fa-solid fa-car text-purple-700"></i>
+      1. Información Base del Vehículo (Auto-completada desde /api/vehiculos)
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Placa Actual</span>
+        <span class="font-mono font-bold text-slate-900 mt-0.5 block">{{ form().placaActual }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Servicio Actual</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().servicioActual || 'Particular' }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Organismo de Tránsito</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().organismoTransito || 'Popayán' }}</span>
+      </div>
+
+      <div class="bg-white p-3 rounded-lg border border-slate-200">
+        <span class="text-[11px] text-slate-400 block font-medium">Marca / Línea / Modelo</span>
+        <span class="font-bold text-slate-800 mt-0.5 block truncate">{{ form().marcaLineaModelo || 'Vehículo Seleccionado' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. DATOS DE REASIGNACIÓN / REMATRÍCULA -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3.5 flex items-center gap-1.5">
+      <i class="fa-solid fa-pen-to-square text-purple-700"></i>
+      2. Datos de Reasignación / Rematrícula
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+      <!-- Motivo de Rematrícula -->
+      <div class="sm:col-span-2 lg:col-span-1">
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Motivo de la Rematrícula <span class="text-red-500">*</span>
+        </label>
+        <app-searchable-select
+          [items]="motivosRematricula"
+          [(ngModel)]="form().motivo"
+          (ngModelChange)="onMotivoChange($event)"
+          labelKey="nombre"
+          valueKey="id"
+          placeholder="Seleccione motivo..."
+        />
+      </div>
+
+      <!-- Nueva Placa Asignada -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Nueva Placa Asignada <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          maxlength="7"
+          [(ngModel)]="form().nuevaPlaca"
+          placeholder="Ej: DEF789"
+          class="w-full h-10 px-3 text-xs font-mono font-bold uppercase tracking-wider text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-sans placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+        />
+      </div>
+
+      <!-- Fecha de Rematrícula -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          Fecha de Rematrícula <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="date"
+          [(ngModel)]="form().fechaRematricula"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition cursor-pointer"
+        />
+      </div>
+
+      <!-- N° Acta / Radicado RUNT -->
+      <div>
+        <label class="block text-xs font-bold text-slate-700 mb-1.5">
+          N° Acta / Radicado RUNT <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="form().numeroActa"
+          placeholder="Ej: ACTA-REM-2026-441"
+          class="w-full h-10 px-3 text-xs font-semibold text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition"
+        />
+      </div>
+    </div>
+
+    <!-- CAMBIO DE SERVICIO (RADIO BUTTONS: VISIBLE ÚNICAMENTE SI EL MOTIVO ES 'Cambio de Servicio') -->
+    @if (form().motivo === 'Cambio de Servicio') {
+      <div class="mt-4 pt-4 border-t border-purple-200 animate-fadeIn">
+        <label class="block text-xs font-bold text-slate-700 mb-2">
+          <i class="fa-solid fa-arrows-rotate text-purple-700 mr-1"></i>
+          Seleccionar Nuevo Servicio Destino <span class="text-red-500">*</span>
+        </label>
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-purple-50/50 p-3.5 rounded-xl border border-purple-200">
+          <div class="flex items-center gap-6">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="nuevoServicioRadio"
+                value="Particular"
+                [(ngModel)]="form().nuevoServicio"
+                class="w-4 h-4 text-[#0F3067] focus:ring-[#0F3067] border-slate-300 cursor-pointer"
+              />
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-car text-blue-600"></i>
+                Particular (Privado)
+              </span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="radio"
+                name="nuevoServicioRadio"
+                value="Público"
+                [(ngModel)]="form().nuevoServicio"
+                class="w-4 h-4 text-[#0F3067] focus:ring-[#0F3067] border-slate-300 cursor-pointer"
+              />
+              <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-taxi text-amber-600"></i>
+                Público
+              </span>
+            </label>
+          </div>
+
+          @if (form().servicioActual && form().nuevoServicio && form().servicioActual !== form().nuevoServicio) {
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold bg-white text-purple-800 border border-purple-300 shadow-2xs">
+              <span>Actual: <strong>{{ form().servicioActual }}</strong></span>
+              <i class="fa-solid fa-arrow-right text-[10px] text-purple-500"></i>
+              <span>Pasa a: <strong>{{ form().nuevoServicio }}</strong></span>
+            </span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Observaciones -->
+    <div class="mt-4">
+      <label class="block text-xs font-bold text-slate-700 mb-1.5">Observaciones Técnicas y Dictamen</label>
+      <textarea
+        [(ngModel)]="form().observaciones"
+        rows="2"
+        placeholder="Detalles sobre la inspección técnica o la asignación de rematrícula..."
+        class="w-full p-3 text-xs font-medium text-slate-800 bg-white border border-slate-300 rounded-lg placeholder:text-slate-400 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-[#0F3067] focus:border-[#0F3067] transition resize-y min-h-[70px]"
+      ></textarea>
+    </div>
+  </div>
+
+  <!-- 3. CARGA DE ANEXO / SOPORTE DOCUMENTAL (REMATRÍCULA) -->
+  <div class="border border-slate-200 rounded-xl p-4 sm:p-5 bg-white shadow-sm">
+    <div class="text-xs font-bold text-slate-800 uppercase tracking-wide mb-3 flex items-center justify-between">
+      <span class="flex items-center gap-1.5">
+        <i class="fa-solid fa-paperclip text-purple-600"></i>
+        3. Cargar Soporte / Anexo de Rematrícula
+      </span>
+      @if (anexo(); as a) {
+        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <i class="fa-solid fa-circle-check text-emerald-600"></i> Anexado
+        </span>
+      }
+    </div>
+
+    <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl bg-slate-50 hover:bg-blue-50/40 p-4 transition-all">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="flex-1">
+          <label class="block text-[11.5px] text-slate-600 mb-1.5 font-medium">
+            Adjunte el denuncio por pérdida/hurto, peritaje técnico de la SIJIN o acta de asignación (PDF, PNG, JPG - Máx. 10MB)
+          </label>
+          <input
+            type="file"
+            accept=".pdf,.jpg,.jpeg,.png,.docx"
+            (change)="onFileChange($event)"
+            class="block w-full text-xs text-slate-700 file:mr-3 file:py-1.5 file:px-3.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-[#0F3067] file:text-white hover:file:bg-[#162c60] file:cursor-pointer cursor-pointer"
+          />
+        </div>
+
+        @if (anexo(); as a) {
+          <div class="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 px-3.5 py-2 rounded-lg shrink-0 shadow-xs">
+            <i class="fa-solid fa-file-pdf text-red-500 text-base"></i>
+            <div class="text-left">
+              <span class="text-xs font-bold text-slate-800 block truncate max-w-[200px]" [title]="a.nombre">{{ a.nombre }}</span>
+              <span class="text-[10.5px] text-slate-500 font-medium">{{ a.tamano }}</span>
+            </div>
+            <button
+              type="button"
+              (click)="removerAnexo()"
+              class="text-slate-400 hover:text-red-600 p-1 transition cursor-pointer"
+              title="Quitar anexo"
+            >
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+</div>

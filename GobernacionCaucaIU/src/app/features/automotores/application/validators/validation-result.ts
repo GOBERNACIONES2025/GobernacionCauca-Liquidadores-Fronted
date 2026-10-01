@@ -1,22 +1,4 @@
-﻿/**
- * @file validation-result.ts
- * @description Tipo base compartido para todos los validators del módulo Automotores.
- *
- * Equivalente a `ValidationResult` de FluentValidation en C#.
- * Es un tipo PURO TypeScript — sin dependencias de Angular.
- * Todos los validators del módulo devuelven este contrato.
- *
- * Uso:
- *   const result = validator.validarPaso1(formGroup);
- *   if (!result.isValid) {
- *     const msg = result.getError('placa'); // 'La placa es obligatoria'
- *   }
- */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tipos de error por campo
-// ─────────────────────────────────────────────────────────────────────────────
-
+﻿
 /** Representa un error de validación para un campo específico del formulario */
 export interface FieldError {
   /** Nombre del control del FormGroup (e.g. 'placa', 'numeroDocumento') */

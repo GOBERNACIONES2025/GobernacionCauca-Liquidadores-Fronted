@@ -1,0 +1,265 @@
+<div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300 p-6">
+  <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-1" />
+
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+    <div>
+      <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200 mb-2">
+        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Bandeja Departamental de Reliquidaciones
+      </div>
+      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Gestión de Trámites de Reliquidación</h2>
+      <p class="text-sm text-slate-500 mt-0.5">
+        Solicitudes de reliquidación radicadas por Entidades Externas (Notarías, Cámaras de Comercio, ORIP) pendientes de evaluación y resolución oficial por la Gobernación del Cauca.
+      </p>
+    </div>
+  </div>
+
+  <!-- Contenedor Principal de la Grilla -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="p-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-50/50">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Estado:</span>
+        <span class="px-3 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg border border-amber-200 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+          Pendientes por Resolver ({{ totalCount() }})
+        </span>
+      </div>
+
+      <app-table-search
+        placeholder="Buscar liquidación, radicado, contribuyente..."
+        [value]="searchText()"
+        [loading]="isLoading()"
+        (search)="onSearch($event)"
+        (clear)="onClearSearch()"
+      ></app-table-search>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-white border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
+            <th class="p-4">Liquidación Origen</th>
+            <th class="p-4">Radicado Solicitud</th>
+            <th class="p-4">Contribuyente</th>
+            <th class="p-4">Entidad Solicitante</th>
+            <th class="p-4">Motivo Alegado</th>
+            <th class="p-4 text-right">Valor Liquidado</th>
+            <th class="p-4 text-center">Acciones de Resolución</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          @for (item of reliquidaciones(); track item.liquidacioId || item.solicitudId) {
+            <tr class="hover:bg-slate-50/80 transition-colors group">
+              <td class="p-4">
+                <div class="font-bold text-blue-900 text-sm font-mono">{{ item.numeroLiquidacion }}</div>
+                <div class="text-xs text-slate-400 mt-0.5">{{ item.fechaLiquidacion | date:'mediumDate' }}</div>
+              </td>
+              <td class="p-4">
+                <div class="font-semibold text-slate-700 text-sm font-mono">{{ item.numeroRadicado }}</div>
+                <div class="text-xs text-slate-400 mt-0.5">Fecha: {{ item.fechaSolicitud | date:'shortDate' }}</div>
+              </td>
+              <td class="p-4">
+                <div class="font-medium text-slate-800 text-sm truncate max-w-[180px]">{{ item.nombreContribuyente || 'N/A' }}</div>
+                <div class="text-xs text-slate-500 mt-0.5">Doc: {{ item.numeroIdentificacionContribuyente || 'N/A' }}</div>
+              </td>
+              <td class="p-4">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                  {{ item.nombreEntidadRegistro || 'Entidad Externa' }}
+                </span>
+              </td>
+              <td class="p-4 max-w-[240px]">
+                <div class="text-xs text-slate-700 bg-amber-50/70 p-2 rounded-lg border border-amber-200/80 line-clamp-3">
+                  {{ item.motivo || 'Sin observaciones detalladas' }}
+                </div>
+              </td>
+              <td class="p-4 text-right">
+                <span class="font-bold text-slate-800 text-sm font-mono">
+                  {{ item.valorTotal | currency:'COP':'symbol-narrow':'1.0-0' }}
+                </span>
+              </td>
+              <td class="p-4 text-center">
+                <div class="flex items-center justify-center gap-1.5">
+                  <button 
+                    (click)="abrirModalAprobar(item)"
+                    class="px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 border border-emerald-200 transition-colors flex items-center gap-1"
+                    title="Aprobar Reliquidación">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Aprobar
+                  </button>
+
+                  <button 
+                    (click)="abrirModalRechazar(item)"
+                    class="px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 rounded-lg hover:bg-rose-100 border border-rose-200 transition-colors flex items-center gap-1"
+                    title="Rechazar Reliquidación">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    Rechazar
+                  </button>
+
+                  <button 
+                    (click)="verSolicitud(item.solicitudId)"
+                    class="px-2 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                    title="Ver detalle del expediente">
+                    Expediente
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="p-12 text-center text-slate-500">
+                <div class="flex flex-col items-center justify-center max-w-md mx-auto">
+                  <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-3">
+                    <svg class="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <p class="text-base font-semibold text-slate-700">No hay reliquidaciones pendientes</p>
+                  <p class="text-xs text-slate-500 mt-1 text-center">
+                    Todas las solicitudes de reliquidación radicadas por las notarías y cámaras de comercio han sido tramitadas o no existen peticiones pendientes.
+                  </p>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginador -->
+    <div class="p-4 border-t border-slate-200 bg-slate-50/50 flex items-center justify-between">
+      <div class="text-xs text-slate-500">
+        Total trámites pendientes: <span class="font-bold text-slate-700">{{ totalCount() }}</span>
+      </div>
+      <app-pagination
+        [totalCount]="totalCount()"
+        [pageSize]="pageSize()"
+        [pageNumber]="pageNumber()"
+        (pageChange)="onPageChange($event)"
+      ></app-pagination>
+    </div>
+  </div>
+
+  <!-- Modal Aprobar Reliquidación -->
+  @if (showAprobarModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-100 overflow-hidden">
+        <div class="p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-800">Aprobar Solicitud de Reliquidación</h3>
+              <p class="text-xs text-slate-500">Liquidación #{{ itemSeleccionado()?.numeroLiquidacion }} (Rad. {{ itemSeleccionado()?.numeroRadicado }})</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalAprobar()" class="text-slate-400 hover:text-slate-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-800">
+            <strong>Atención:</strong> Al confirmar la aprobación, el sistema anulará la liquidación oficial anterior y emitirá automáticamente la nueva liquidación corregida.
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Motivo alegado por la entidad:</label>
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-600 italic">
+              "{{ itemSeleccionado()?.motivo || 'Sin observaciones' }}"
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Observaciones oficiales de aprobación:</label>
+            <textarea 
+              [(ngModel)]="motivoAprobacion" 
+              rows="3" 
+              class="w-full text-xs p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+              placeholder="Ingrese las observaciones técnicas o jurídicas de la aprobación..."></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+          <button (click)="cerrarModalAprobar()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarAprobacion()" 
+            [disabled]="isLoading()"
+            class="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors shadow-md shadow-emerald-600/20 flex items-center gap-2">
+            @if (isLoading()) {
+              <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            }
+            Confirmar y Emitir Nueva Liquidación
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Modal Rechazar Reliquidación -->
+  @if (showRechazarModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-100 overflow-hidden">
+        <div class="p-6 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold">
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-slate-800">Rechazar Solicitud de Reliquidación</h3>
+              <p class="text-xs text-slate-500">Liquidación #{{ itemSeleccionado()?.numeroLiquidacion }} (Rad. {{ itemSeleccionado()?.numeroRadicado }})</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalRechazar()" class="text-slate-400 hover:text-slate-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs text-slate-700">
+            La liquidación oficial original se mantendrá vigente y exigible sin modificaciones. Por favor motive la causal técnica o legal del rechazo.
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Motivo / Justificación del Rechazo *:</label>
+            <textarea 
+              [(ngModel)]="motivoRechazo" 
+              rows="4" 
+              class="w-full text-xs p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+              placeholder="Indique las razones por las cuales no procede la solicitud de reliquidación..."></textarea>
+          </div>
+        </div>
+
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+          <button (click)="cerrarModalRechazar()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-lg transition-colors">
+            Cancelar
+          </button>
+          <button 
+            (click)="confirmarRechazo()" 
+            [disabled]="isLoading() || motivoRechazo().trim().length < 5"
+            class="px-5 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg transition-colors shadow-md shadow-rose-600/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+            @if (isLoading()) {
+              <span class="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            }
+            Confirmar Rechazo
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

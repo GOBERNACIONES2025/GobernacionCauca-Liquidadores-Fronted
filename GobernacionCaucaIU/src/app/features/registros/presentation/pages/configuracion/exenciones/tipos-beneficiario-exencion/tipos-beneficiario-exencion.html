@@ -122,9 +122,9 @@
                 }
               </button>
 
-              <button (click)="toggleActivo(item)" [title]="item.activo ? 'Desactivar' : 'Activar'"
+              <button (click)="promptToggleActivo(item)" [title]="item.activo ? 'Desactivar' : 'Activar'"
                 class="p-1 rounded border border-transparent transition-colors"
-                [class]="item.activo ? 'text-slate-400 hover:text-slate-600 hover:bg-slate-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
+                [class]="item.activo ? 'text-slate-400 hover:text-amber-600 hover:bg-amber-50 hover:border-amber-200' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-200'">
                 <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                   stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round"
@@ -164,10 +164,10 @@
     <!-- Código -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Código</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Código <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input type="text" formControlName="codigo" placeholder="Ej. TBE-01"
-        class="input input-sm input-bordered w-full text-slate-800"
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none"
         [class.input-error]="tipoBeneficiarioForm.get('codigo')?.invalid && (tipoBeneficiarioForm.get('codigo')?.touched || tipoBeneficiarioForm.get('codigo')?.dirty)" />
       <app-form-error [control]="tipoBeneficiarioForm.get('codigo')" fieldName="Código"></app-form-error>
     </div>
@@ -175,10 +175,10 @@
     <!-- Nombre -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Tipo</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre del Tipo <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input type="text" formControlName="nombre" placeholder="Ej. Entidad Pública / Beneficencia"
-        class="input input-sm input-bordered w-full text-slate-800"
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none"
         [class.input-error]="tipoBeneficiarioForm.get('nombre')?.invalid && (tipoBeneficiarioForm.get('nombre')?.touched || tipoBeneficiarioForm.get('nombre')?.dirty)" />
       <app-form-error [control]="tipoBeneficiarioForm.get('nombre')" fieldName="Nombre"></app-form-error>
     </div>
@@ -194,3 +194,20 @@
   </form>
 
 </app-slide-over>
+
+<!-- Smart Confirmation Modal -->
+<app-confirm-modal
+  [isOpen]="isConfirmModalOpen()"
+  [title]="itemToToggle()?.activo ? 'Desactivar Tipo de Beneficiario' : 'Activar Tipo de Beneficiario'"
+  [message]="itemToToggle()?.activo 
+    ? '¿Está seguro de desactivar el tipo de beneficiario \'' + (itemToToggle()?.nombre || '') + '\'?' 
+    : '¿Está seguro de activar el tipo de beneficiario \'' + (itemToToggle()?.nombre || '') + '\'?'"
+  [impactMessage]="itemToToggle()?.activo 
+    ? 'Al desactivar este tipo, no podrá ser asociado a nuevas normas ni exenciones tributarias departamentales.' 
+    : 'El tipo de beneficiario volverá a estar disponible para la categorización de exenciones.'"
+  [confirmText]="itemToToggle()?.activo ? 'Sí, desactivar' : 'Sí, activar'"
+  [confirmColor]="itemToToggle()?.activo ? 'warning' : 'primary'"
+  [isProcessing]="isTogglingStatus()"
+  (confirm)="executeToggleActivo()"
+  (cancel)="cancelToggleActivo()">
+</app-confirm-modal>

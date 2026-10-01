@@ -175,7 +175,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <div class="form-control w-full">
         <label class="label pt-0 pb-1">
-          <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Persona</span>
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Persona <span class="text-rose-500 font-bold">*</span></span>
         </label>
         <app-searchable-select
           formControlName="tipoPersonaId"
@@ -195,7 +195,7 @@
 
       <div class="form-control w-full">
         <label class="label pt-0 pb-1">
-          <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Documento</span>
+          <span class="label-text font-bold text-xs uppercase text-slate-600">Tipo de Documento <span class="text-rose-500 font-bold">*</span></span>
         </label>
         <app-searchable-select
           formControlName="tipoIdentificacionId"
@@ -217,13 +217,13 @@
     <!-- Número de Identificación -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Número de Identificación</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Número de Identificación <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="numeroIdentificacion" 
         placeholder="Ej. 1061789456 o 900123456-1" 
-        class="input input-sm input-bordered w-full text-slate-800 font-mono" 
+        class="input input-sm input-bordered w-full text-slate-800 font-mono focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="contribuyenteForm.get('numeroIdentificacion')?.invalid && (contribuyenteForm.get('numeroIdentificacion')?.touched || contribuyenteForm.get('numeroIdentificacion')?.dirty)" 
       />
       <app-form-error [control]="contribuyenteForm.get('numeroIdentificacion')" fieldName="Número de Identificación"></app-form-error>
@@ -232,13 +232,13 @@
     <!-- Nombre o Razón Social -->
     <div class="form-control w-full">
       <label class="label pt-0 pb-1">
-        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre / Razón Social</span>
+        <span class="label-text font-bold text-xs uppercase text-slate-600">Nombre / Razón Social <span class="text-rose-500 font-bold">*</span></span>
       </label>
       <input 
         type="text" 
         formControlName="nombre" 
         placeholder="Ej. Juan Pérez o Inversiones Cauca S.A.S." 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         [class.input-error]="contribuyenteForm.get('nombre')?.invalid && (contribuyenteForm.get('nombre')?.touched || contribuyenteForm.get('nombre')?.dirty)" 
       />
       <app-form-error [control]="contribuyenteForm.get('nombre')" fieldName="Nombre o Razón Social"></app-form-error>
@@ -253,7 +253,7 @@
         type="text" 
         formControlName="direccion" 
         placeholder="Ej. Carrera 6 # 3-24, Popayán" 
-        class="input input-sm input-bordered w-full text-slate-800" 
+        class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
       />
     </div>
 
@@ -267,7 +267,7 @@
           type="text" 
           formControlName="telefono" 
           placeholder="Ej. 3124567890" 
-          class="input input-sm input-bordered w-full text-slate-800" 
+          class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
         />
       </div>
 
@@ -279,7 +279,7 @@
           type="email" 
           formControlName="email" 
           placeholder="correo@ejemplo.com" 
-          class="input input-sm input-bordered w-full text-slate-800" 
+          class="input input-sm input-bordered w-full text-slate-800 focus:ring-2 focus:ring-blue-600 focus:outline-none" 
           [class.input-error]="contribuyenteForm.get('email')?.invalid && (contribuyenteForm.get('email')?.touched || contribuyenteForm.get('email')?.dirty)"
         />
         <app-form-error [control]="contribuyenteForm.get('email')" fieldName="Correo Electrónico"></app-form-error>
