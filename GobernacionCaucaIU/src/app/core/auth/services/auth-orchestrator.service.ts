@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, of, tap, throwError } from 'rxjs';
 import {
   IAuthStrategy,
   AUTH_STRATEGIES,
@@ -42,17 +42,89 @@ export class AuthOrchestratorService {
   }
 
   /**
-   * Ejecuta la autenticación seleccionando la estrategia apropiada según el contexto
-   * (Renta / Módulo y Perfil de Usuario), sincroniza las sesiones de estado y despacha la navegación.
+   * Ejecuta la autenticación seleccionando la estrategia apropiada según el contexto.
+   * - ÚNICAMENTE si el usuario es 'admin' y la contraseña es 'admin123' a la vez:
+   *   Genera la sesión de Administrador General y redirecciona al panel general ('/').
+   * - Para cualquier otra credencial:
+   *   Utiliza el patrón Strategy para consumir los endpoints de autenticación reales de BD.
    */
   authenticate(
     credentials: AuthCredentials,
     context: AuthTargetContext,
     returnUrl?: string | null
   ): Observable<AuthSessionResult> {
-    const strategy = this.resolveStrategy(context);
+    const isMockAdmin =
+      credentials.usuario?.trim().toLowerCase() === 'admin' &&
+      credentials.clave === 'admin123';
 
-    return strategy.authenticate(credentials, context).pipe(
+    // 1. Caso exclusivo: admin y admin123 a la vez
+    if (isMockAdmin) {
+      const adminSession: AuthSessionResult = {
+        user: {
+          id: 1,
+          nombre: 'Administrador Departamental',
+          email: 'admin@cauca.gov.co',
+          roles: ['ADMINISTRADOR', 'FUNCIONARIO', 'SUPER_ADMIN'],
+        },
+        modulo: 'GENERAL',
+        tokens: {
+          accessToken: 'mock_demo_admin_access_token',
+          refreshToken: 'mock_demo_admin_refresh_token',
+        },
+        portal: 'GOBERNACION',
+      };
+
+      this.synchronizeSession(adminSession);
+      this.dispatcher.navigatePostLogin(adminSession, returnUrl);
+      return of(adminSession);
+    }
+
+    // 2. Credenciales reales de Base de Datos -> Ejecutar Strategy correspondiente
+    const modulo = (context.modulo || '').toUpperCase();
+    const portal = context.portal;
+
+    if (portal === 'ENTIDAD_REGISTRO') {
+      const entidadStrategy = this.defaultStrategies[0];
+      return entidadStrategy.authenticate(credentials, context).pipe(
+        tap((result) => {
+          this.synchronizeSession(result);
+          this.dispatcher.navigatePostLogin(result, returnUrl);
+        })
+      );
+    }
+
+    if (modulo === 'REGISTROS') {
+      const registrosStrategy = this.defaultStrategies[1];
+      return registrosStrategy.authenticate(credentials, context).pipe(
+        tap((result) => {
+          this.synchronizeSession(result);
+          this.dispatcher.navigatePostLogin(result, returnUrl);
+        })
+      );
+    }
+
+    if (modulo === 'AUTOMOTORES' || modulo === 'DEGUELLO') {
+      const coreStrategy = this.defaultStrategies[2];
+      return coreStrategy.authenticate(credentials, context).pipe(
+        tap((result) => {
+          this.synchronizeSession(result);
+          this.dispatcher.navigatePostLogin(result, returnUrl);
+        })
+      );
+    }
+
+    // Si es login general unificado: Probar primero la estrategia de Impuesto de Registro (5001) y luego Core (5023)
+    const registrosStrategy = this.defaultStrategies[1];
+    const coreStrategy = this.defaultStrategies[2];
+
+    return registrosStrategy.authenticate(credentials, { modulo: 'REGISTROS' }).pipe(
+      catchError((regErr) => {
+        return coreStrategy.authenticate(credentials, { modulo: 'AUTOMOTORES' }).pipe(
+          catchError(() => {
+            return throwError(() => regErr);
+          })
+        );
+      }),
       tap((result) => {
         this.synchronizeSession(result);
         this.dispatcher.navigatePostLogin(result, returnUrl);

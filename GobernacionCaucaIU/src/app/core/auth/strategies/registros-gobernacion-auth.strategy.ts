@@ -14,7 +14,7 @@ export class RegistrosGobernacionAuthStrategy implements IAuthStrategy {
 
   canHandle(context: AuthTargetContext): boolean {
     const modulo = (context.modulo || '').toUpperCase();
-    return modulo === 'REGISTROS' || !context.modulo;
+    return modulo === 'REGISTROS';
   }
 
   authenticate(credentials: AuthCredentials, _context: AuthTargetContext): Observable<AuthSessionResult> {
