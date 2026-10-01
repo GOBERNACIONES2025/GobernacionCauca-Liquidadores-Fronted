@@ -49,7 +49,7 @@ export interface DeclaracionDeguelloData {
   plantaBeneficio?: string;
   especie?: string;
   fechaVencimientoGuia?: string;
-  estadoPago: 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'PAGADA' | 'VENCIDO' | 'VENCIDA' | 'CORREGIDA' | 'RELIQUIDADA' | 'ANULADA';
+  estadoPago: 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'PAGADA' | 'VENCIDO' | 'VENCIDA' | 'CORREGIDA' | 'RELIQUIDADA' | 'ANULADA' | 'RECHAZADA';
   esIntegracionIca: boolean;
   reciboBancario?: string;
   consumida?: boolean;
@@ -62,6 +62,8 @@ export interface DeclaracionDeguelloData {
   numeroRadicado?: string;
   fechaRadicacion?: string;
   turnoRevision?: number;
+  observacionAnulacion?: string;
+  fechaHoraAnulacion?: string;
 }
 
 export interface ConsultaGuiaRequest {
@@ -114,4 +116,22 @@ export interface InformePlantaBeneficio {
   capacidadDiaria: number;
   recaudoTotal: number;
   porcentajeOcupacion: number;
+}
+
+export interface ResponsableConsulta {
+  existe: boolean;
+  tipo: 'PLANTA' | 'HISTORICO_DECLARACIONES' | 'NO_REGISTRADO';
+  mensaje: string;
+  nit?: string;
+  dv?: string;
+  razonSocial?: string;
+  municipio?: string;
+  idMunicipio?: number;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
+  representanteLegal?: string;
+  docRepresentante?: string;
+  codigoInvima?: string;
+  idPlanta?: number;
 }

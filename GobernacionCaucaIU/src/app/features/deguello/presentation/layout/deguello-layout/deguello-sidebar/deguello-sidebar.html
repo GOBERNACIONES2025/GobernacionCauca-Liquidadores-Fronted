@@ -64,7 +64,26 @@
         </a>
       </li>
 
-      <!-- 3. INFORMES & FISCALIZACIÓN -->
+      <!-- 3. EMPRESAS & PLANTAS -->
+      <li>
+        <a
+          routerLink="/deguello/empresas"
+          routerLinkActive="bg-blue-50 text-[#1b53ad] font-bold border-l-4 border-[#1b53ad]"
+          class="flex items-center space-x-3 px-3.5 py-3 text-xs sm:text-sm transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent rounded-r-xl cursor-pointer"
+          [title]="isCollapsed() ? 'Empresas & Plantas de Beneficio' : ''">
+          <div class="w-6 h-6 flex items-center justify-center shrink-0 text-slate-500 group-hover:text-[#1b53ad]">
+            <i class="fa-solid fa-industry text-base"></i>
+          </div>
+          @if (!isCollapsed()) {
+            <div class="flex flex-col truncate">
+              <span class="truncate leading-tight">Empresas & Plantas</span>
+              <span class="text-[10px] font-normal text-slate-400">Censo & Plantas Autorizadas</span>
+            </div>
+          }
+        </a>
+      </li>
+
+      <!-- 4. INFORMES & FISCALIZACIÓN -->
       <li>
         <a
           routerLink="/deguello/informes"

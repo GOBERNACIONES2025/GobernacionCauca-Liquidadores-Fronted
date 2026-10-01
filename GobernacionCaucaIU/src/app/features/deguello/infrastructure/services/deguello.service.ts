@@ -9,7 +9,8 @@ import {
   PlantaBeneficio, 
   ParametrosDeguello,
   InformeMunicipioRecaudo,
-  InformePlantaBeneficio 
+  InformePlantaBeneficio,
+  ResponsableConsulta 
 } from '../../domain/models/deguello.model';
 
 @Injectable({
@@ -50,8 +51,8 @@ export class DeguelloService {
       estadoPagoNormalizado = 'RELIQUIDADA';
     } else if (est === 'CORREGIDA') {
       estadoPagoNormalizado = 'CORREGIDA';
-    } else if (est === 'ANULADA') {
-      estadoPagoNormalizado = 'ANULADA';
+    } else if (est === 'ANULADA' || est === 'RECHAZADA') {
+      estadoPagoNormalizado = 'RECHAZADA';
     } else if (est === 'PENDIENTE') {
       estadoPagoNormalizado = 'PENDIENTE';
     }
@@ -108,6 +109,8 @@ export class DeguelloService {
       nombreArchivoPago: raw.nombreArchivoPago || '',
       numeroRadicado: raw.numeroRadicado || (estadoPagoNormalizado === 'RADICADA' ? `RAD-${raw.consecutivo}` : undefined),
       turnoRevision: raw.turnoRevision || (estadoPagoNormalizado === 'RADICADA' ? 1 : undefined),
+      observacionAnulacion: raw.observacionAnulacion || raw.observacionesAnulacion || '',
+      fechaHoraAnulacion: raw.fechaHoraAnulacion || '',
     };
   }
 
@@ -420,6 +423,91 @@ export class DeguelloService {
     );
   }
 
+  /** Consultar si un responsable/contribuyente existe en BD (como Planta o por histórico de declaraciones) */
+  consultarResponsable(nit: string): Observable<ResponsableConsulta> {
+    const nitLimpio = (nit || '').trim();
+    if (!nitLimpio) {
+      return of({
+        existe: false,
+        tipo: 'NO_REGISTRADO',
+        mensaje: 'NIT no especificado.'
+      });
+    }
+
+    return this.http.get<{ success: boolean; data: ResponsableConsulta }>(
+      `${this.apiUrl}/plantas-beneficio/consultar-responsable/${encodeURIComponent(nitLimpio)}`
+    ).pipe(
+      map(res => res?.data || { existe: false, tipo: 'NO_REGISTRADO', mensaje: 'No se obtuvo respuesta.' }),
+      catchError(() => {
+        // Fallback local: verificar si coincide con alguna planta local en memoria
+        const pLocal = this.plantasBeneficio.find(p => p.nit && p.nit.replace(/\D/g, '') === nitLimpio.replace(/\D/g, ''));
+        if (pLocal) {
+          return of({
+            existe: true,
+            tipo: 'PLANTA' as const,
+            mensaje: 'Empresa / Planta registrada en el sistema.',
+            nit: pLocal.nit,
+            dv: '9',
+            razonSocial: pLocal.nombre,
+            municipio: pLocal.municipio,
+            direccion: pLocal.direccion,
+            telefono: pLocal.telefono,
+            representanteLegal: pLocal.representanteLegal,
+            docRepresentante: pLocal.docRepresentante,
+            codigoInvima: pLocal.codigoInvima,
+            idPlanta: pLocal.idPlanta
+          });
+        }
+        return of({
+          existe: false,
+          tipo: 'NO_REGISTRADO' as const,
+          nit: nitLimpio,
+          mensaje: `El NIT ${nitLimpio} no se encuentra registrado en el censo tributario.`
+        });
+      })
+    );
+  }
+
+  /** Registrar o actualizar una Empresa / Planta de Beneficio en BD SQL Server */
+  guardarPlantaBeneficio(planta: Partial<PlantaBeneficio>): Observable<{ success: boolean; data?: PlantaBeneficio; message?: string }> {
+    const payload = {
+      idPlanta: planta.idPlanta,
+      codigoInvima: planta.codigoInvima || 'INV-PBA-GEN',
+      nombre: planta.nombre,
+      idMunicipio: 0,
+      municipio: planta.municipio || 'POPAYÁN',
+      direccion: planta.direccion || 'DIRECCIÓN PRINCIPAL',
+      telefono: planta.telefono,
+      capacidadDiariaCabezas: Number(planta.capacidadDiariaCabezas) || 50,
+      esFrigorificoRegional: !!planta.esFrigorificoRegional,
+      activa: planta.esActiva !== false,
+      nit: planta.nit,
+      claveAcceso: planta.claveAcceso || '123456',
+      emailOficial: planta.emailOficial,
+      representanteLegal: planta.representanteLegal,
+      docRepresentante: planta.docRepresentante
+    };
+
+    return this.http.post<{ success: boolean; data: PlantaBeneficio; message?: string }>(
+      `${this.apiUrl}/plantas-beneficio`,
+      payload
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          const idx = this.plantasBeneficio.findIndex(p => p.idPlanta === res.data.idPlanta || (p.nit && p.nit === res.data.nit));
+          if (idx >= 0) {
+            this.plantasBeneficio[idx] = res.data;
+          } else {
+            this.plantasBeneficio.push(res.data);
+          }
+          return { success: true, data: res.data, message: 'Empresa guardada exitosamente en la base de datos.' };
+        }
+        return { success: false, message: res?.message || 'No se pudo guardar la empresa.' };
+      }),
+      catchError(err => of({ success: false, message: err?.error?.message || 'Error de conexión al guardar la empresa en el servidor.' }))
+    );
+  }
+
   obtenerParametros(): Observable<ParametrosDeguello> {
     return this.http.get<{ success: boolean; data: ParametrosDeguello }>(
       `${this.apiUrl}/parametrizacion`
@@ -472,6 +560,54 @@ export class DeguelloService {
     return this.http.post<{ success: boolean; data: any }>(
       `${this.apiUrl}/declaraciones/${consecutivo}/aprobar`,
       {}
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          return this.normalizarDeclaracion(res.data);
+        }
+        return null;
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  /**
+   * Rechazar una radicación oficial por inconsistencias documentales o sanitarias
+   */
+  rechazarLiquidacion(consecutivo: string, motivo?: string): Observable<DeclaracionDeguelloData | null> {
+    return this.http.post<{ success: boolean; data: any }>(
+      `${this.apiUrl}/declaraciones/${consecutivo}/rechazar`,
+      { motivo: motivo || 'Inconsistencias documentales o sanitarias en la Guía ICA' }
+    ).pipe(
+      map(res => {
+        if (res?.success && res.data) {
+          return this.normalizarDeclaracion(res.data);
+        }
+        return null;
+      }),
+      catchError(() => of(null))
+    );
+  }
+
+  /**
+   * Modificar / Corregir datos de una declaración en revisión oficial (cabezas, guía, observaciones)
+   */
+  modificarLiquidacion(
+    consecutivo: string, 
+    baseGravable?: number, 
+    numeroGuiaIca?: string, 
+    observaciones?: string,
+    aprobarInmediatamente: boolean = false
+  ): Observable<DeclaracionDeguelloData | null> {
+    const body: any = {
+      baseGravable,
+      numeroGuiaIca,
+      observaciones,
+      aprobarInmediatamente
+    };
+    return this.http.put<{ success: boolean; data: any }>(
+      `${this.apiUrl}/declaraciones/${consecutivo}`,
+      body
     ).pipe(
       map(res => {
         if (res?.success && res.data) {

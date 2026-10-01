@@ -92,6 +92,29 @@ export class DeguelloLiquidacionComponent implements OnInit {
     'CALOTO',
   ];
 
+  // Búsqueda y control de existencia del responsable
+  readonly buscandoResponsable = signal<boolean>(false);
+  readonly estadoResponsable = signal<{ existe: boolean; tipo?: string; mensaje: string; autocompletado?: boolean } | null>(null);
+  readonly modalRegistroEmpresaRapido = signal<boolean>(false);
+  readonly guardandoEmpresaRapida = signal<boolean>(false);
+
+  formEmpresaRapida = {
+    nombre: '',
+    nit: '',
+    dv: '9',
+    municipio: 'POPAYÁN',
+    direccion: '',
+    telefono: '',
+    emailOficial: '',
+    claveAcceso: '123456',
+    representanteLegal: '',
+    docRepresentante: '',
+    codigoInvima: '',
+    capacidadDiariaCabezas: 60,
+    esFrigorificoRegional: false,
+    esActiva: true,
+  };
+
   // Estado específico para Reliquidación por Vencimiento (Art. 634 E.T.) vs Corrección (Art. 644 E.T.)
   readonly declaracionOriginal = signal<DeclaracionDeguelloData | null>(null);
   readonly esModoReliquidacionVencimiento = signal<boolean>(false);
@@ -157,6 +180,153 @@ export class DeguelloLiquidacionComponent implements OnInit {
     if (empresa.docRepresentante) {
       this.formGeneracion.numeroDocRepresentante = empresa.docRepresentante;
     }
+  }
+
+  buscarResponsablePorNit(nitManual?: string): void {
+    const nit = (nitManual || this.formGeneracion.nit || '').trim();
+    if (!nit) {
+      this.estadoResponsable.set(null);
+      return;
+    }
+
+    this.buscandoResponsable.set(true);
+    this.deguelloService.consultarResponsable(nit).subscribe({
+      next: (res) => {
+        this.buscandoResponsable.set(false);
+        if (res.existe) {
+          this.estadoResponsable.set({
+            existe: true,
+            tipo: res.tipo,
+            mensaje: res.mensaje,
+            autocompletado: true,
+          });
+          if (res.razonSocial) this.formGeneracion.razonSocial = res.razonSocial;
+          if (res.dv) this.formGeneracion.dv = res.dv;
+          if (res.municipio) this.formGeneracion.municipio = res.municipio;
+          if (res.direccion) this.formGeneracion.direccionNotificacion = res.direccion;
+          if (res.telefono) this.formGeneracion.telefonoFijo = res.telefono;
+          if (res.representanteLegal) this.formGeneracion.nombreRepresentante = res.representanteLegal;
+          if (res.docRepresentante) this.formGeneracion.numeroDocRepresentante = res.docRepresentante;
+          if (res.tipo === 'PLANTA' && res.razonSocial) {
+            this.formGeneracion.plantaBeneficio = res.razonSocial;
+          }
+        } else {
+          this.estadoResponsable.set({
+            existe: false,
+            tipo: 'NO_REGISTRADO',
+            mensaje: res.mensaje || `El NIT ${nit} no se encuentra registrado en el censo tributario.`,
+          });
+        }
+      },
+      error: () => {
+        this.buscandoResponsable.set(false);
+        this.estadoResponsable.set({
+          existe: false,
+          tipo: 'NO_REGISTRADO',
+          mensaje: 'No fue posible validar el NIT con el servidor.',
+        });
+      },
+    });
+  }
+
+  abrirModalRegistroRapido(): void {
+    const nitActual = (this.formGeneracion.nit || '').trim();
+    const nombreActual = (this.formGeneracion.razonSocial || '').trim();
+    const munActual = this.formGeneracion.municipio || 'POPAYÁN';
+    const randomInv = Math.floor(100 + Math.random() * 900);
+
+    this.formEmpresaRapida = {
+      nombre: nombreActual,
+      nit: nitActual,
+      dv: this.formGeneracion.dv || '9',
+      municipio: munActual,
+      direccion: this.formGeneracion.direccionNotificacion || '',
+      telefono: this.formGeneracion.telefonoFijo || '',
+      emailOficial: '',
+      claveAcceso: '123456',
+      representanteLegal: this.formGeneracion.nombreRepresentante || '',
+      docRepresentante: this.formGeneracion.numeroDocRepresentante || '',
+      codigoInvima: `INV-PBA-CAUCA-${randomInv}`,
+      capacidadDiariaCabezas: 60,
+      esFrigorificoRegional: false,
+      esActiva: true,
+    };
+    this.modalRegistroEmpresaRapido.set(true);
+  }
+
+  cerrarModalRegistroRapido(): void {
+    this.modalRegistroEmpresaRapido.set(false);
+  }
+
+  guardarEmpresaRapida(): void {
+    if (!this.formEmpresaRapida.nombre.trim()) {
+      alert('La Razón Social o Nombre de la empresa es obligatorio.');
+      return;
+    }
+    if (!this.formEmpresaRapida.nit.trim()) {
+      alert('El NIT es obligatorio.');
+      return;
+    }
+
+    this.guardandoEmpresaRapida.set(true);
+
+    const dataAGuardar: Partial<PlantaBeneficio> = {
+      nombre: this.formEmpresaRapida.nombre.trim().toUpperCase(),
+      nit: this.formEmpresaRapida.nit.trim(),
+      codigoInvima: this.formEmpresaRapida.codigoInvima.trim().toUpperCase() || 'INV-PBA-GEN',
+      municipio: this.formEmpresaRapida.municipio,
+      direccion: this.formEmpresaRapida.direccion.trim().toUpperCase() || 'DIRECCIÓN REGISTRADA',
+      telefono: this.formEmpresaRapida.telefono.trim(),
+      emailOficial: this.formEmpresaRapida.emailOficial.trim(),
+      claveAcceso: this.formEmpresaRapida.claveAcceso.trim() || '123456',
+      representanteLegal: this.formEmpresaRapida.representanteLegal.trim().toUpperCase(),
+      docRepresentante: this.formEmpresaRapida.docRepresentante.trim(),
+      capacidadDiariaCabezas: Number(this.formEmpresaRapida.capacidadDiariaCabezas) || 60,
+      esFrigorificoRegional: this.formEmpresaRapida.esFrigorificoRegional,
+      esActiva: this.formEmpresaRapida.esActiva,
+    };
+
+    this.deguelloService.guardarPlantaBeneficio(dataAGuardar).subscribe({
+      next: (res) => {
+        this.guardandoEmpresaRapida.set(false);
+        if (res.success && res.data) {
+          // Aplicar directamente al formulario de liquidación
+          this.formGeneracion.nit = res.data.nit || this.formEmpresaRapida.nit;
+          this.formGeneracion.dv = '9';
+          this.formGeneracion.razonSocial = res.data.nombre;
+          this.formGeneracion.municipio = res.data.municipio;
+          this.formGeneracion.direccionNotificacion = res.data.direccion;
+          this.formGeneracion.telefonoFijo = res.data.telefono || '';
+          this.formGeneracion.plantaBeneficio = res.data.nombre;
+          if (res.data.representanteLegal) {
+            this.formGeneracion.nombreRepresentante = res.data.representanteLegal;
+          }
+          if (res.data.docRepresentante) {
+            this.formGeneracion.numeroDocRepresentante = res.data.docRepresentante;
+          }
+
+          this.estadoResponsable.set({
+            existe: true,
+            tipo: 'PLANTA',
+            mensaje: `Empresa "${res.data.nombre}" registrada exitosamente en base de datos.`,
+            autocompletado: true,
+          });
+
+          // Recargar catálogo de plantas para el selector
+          this.deguelloService.listarPlantasBeneficio().subscribe((lista) => {
+            this.plantas.set(lista);
+          });
+
+          this.modalRegistroEmpresaRapido.set(false);
+        } else {
+          alert(res.message || 'Error al guardar la empresa en la base de datos.');
+        }
+      },
+      error: () => {
+        this.guardandoEmpresaRapida.set(false);
+        alert('Error en la comunicación con el servidor al registrar la empresa.');
+      },
+    });
   }
 
   onBaseGravableChange(val: any): void {

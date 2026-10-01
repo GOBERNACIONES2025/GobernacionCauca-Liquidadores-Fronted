@@ -22,7 +22,7 @@ export class DeguelloFacturacionComponent implements OnInit {
 
   readonly listaDeclaraciones = signal<DeclaracionDeguelloData[]>([]);
   readonly filtroTexto = signal<string>('');
-  readonly filtroEstado = signal<'TODOS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA'>('TODOS');
+  readonly filtroEstado = signal<'TODOS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA' | 'RECHAZADA'>('TODOS');
   readonly mensajeAccion = signal<{ texto: string; tipo: 'success' | 'info' | 'error' } | null>(null);
 
   // Modal para ver/imprimir el formulario oficial
@@ -31,6 +31,16 @@ export class DeguelloFacturacionComponent implements OnInit {
   // Modal de REVISIÓN DE RADICACIÓN (Funcionario)
   readonly declaracionParaRevision = signal<DeclaracionDeguelloData | null>(null);
   readonly observacionesRevision = signal<string>('Soporte ICA verificado y conforme. Cumple requisitos sanitarios y destinación a PBA autorizada.');
+  readonly modoEdicionRevision = signal<boolean>(false);
+  readonly editCabezasRevision = signal<number>(0);
+  readonly editGuiaRevision = signal<string>('');
+  readonly procesandoRevision = signal<boolean>(false);
+
+  // Cálculo tributario reactivo en vivo cuando el funcionario edita los datos en la revisión
+  readonly calculoEdicionRevision = computed(() => {
+    const cabezas = Number(this.editCabezasRevision()) || 0;
+    return this.deguelloService.calcularLiquidacion(cabezas, 49800);
+  });
 
   // Modal de REGISTRO DE PAGO BANCARIO / VENTANILLA (Funcionario / Tesorería)
   readonly declaracionParaPagoBancario = signal<DeclaracionDeguelloData | null>(null);
@@ -71,6 +81,10 @@ export class DeguelloFacturacionComponent implements OnInit {
 
   readonly totalRadicadas = computed(() => {
     return this.listaDeclaraciones().filter((d) => d.estadoPago === 'RADICADA').length;
+  });
+
+  readonly totalRechazadas = computed(() => {
+    return this.listaDeclaraciones().filter((d) => d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA').length;
   });
 
   // Lista Filtrada
@@ -114,20 +128,141 @@ export class DeguelloFacturacionComponent implements OnInit {
 
   // --- MODAL DE REVISIÓN OFICIAL (FUNCIONARIO) ---
   abrirRevision(d: DeclaracionDeguelloData): void {
+    this.modoEdicionRevision.set(false);
+    this.editCabezasRevision.set(d.baseGravable || 0);
+    this.editGuiaRevision.set(d.numeroGuiaIca || '');
+    this.procesandoRevision.set(false);
     this.observacionesRevision.set('Soporte ICA verificado y conforme. Cumple requisitos sanitarios y destinación a PBA autorizada.');
     this.declaracionParaRevision.set(d);
   }
 
   cerrarRevision(): void {
     this.declaracionParaRevision.set(null);
+    this.modoEdicionRevision.set(false);
+    this.procesandoRevision.set(false);
+  }
+
+  activarEdicionRevision(): void {
+    const dec = this.declaracionParaRevision();
+    if (!dec) return;
+    this.editCabezasRevision.set(dec.baseGravable || 0);
+    this.editGuiaRevision.set(dec.numeroGuiaIca || '');
+    this.observacionesRevision.set('Ajuste de datos sanitarios y cabezas según cotejo con Guía ICA oficial.');
+    this.modoEdicionRevision.set(true);
+  }
+
+  cancelarEdicionRevision(): void {
+    const dec = this.declaracionParaRevision();
+    if (dec) {
+      this.editCabezasRevision.set(dec.baseGravable || 0);
+      this.editGuiaRevision.set(dec.numeroGuiaIca || '');
+    }
+    this.modoEdicionRevision.set(false);
+  }
+
+  guardarEdicionRevision(aprobarInmediatamente: boolean = false): void {
+    const dec = this.declaracionParaRevision();
+    if (!dec) return;
+
+    const cabezas = Number(this.editCabezasRevision());
+    if (!cabezas || cabezas <= 0) {
+      alert('Ingrese una cantidad válida de semovientes (mayor a 0).');
+      return;
+    }
+
+    this.procesandoRevision.set(true);
+    this.deguelloService.modificarLiquidacion(
+      dec.consecutivo,
+      cabezas,
+      this.editGuiaRevision().trim(),
+      this.observacionesRevision().trim(),
+      aprobarInmediatamente
+    ).subscribe({
+      next: (updated) => {
+        this.procesandoRevision.set(false);
+        this.modoEdicionRevision.set(false);
+        if (aprobarInmediatamente) {
+          this.cerrarRevision();
+          this.cargarDatos();
+          this.mensajeAccion.set({
+            texto: `✅ La declaración N° ${dec.consecutivo} fue AJUSTADA a ${cabezas} cabezas y APROBADA oficialmente para pago.`,
+            tipo: 'success'
+          });
+          setTimeout(() => this.mensajeAccion.set(null), 6000);
+        } else {
+          if (updated) {
+            this.declaracionParaRevision.set(updated);
+          }
+          this.cargarDatos();
+          this.mensajeAccion.set({
+            texto: `💾 Datos modificados y guardados para la radicación N° ${dec.consecutivo} (${cabezas} cabezas). Permanece en revisión.`,
+            tipo: 'info'
+          });
+          setTimeout(() => this.mensajeAccion.set(null), 4000);
+        }
+      },
+      error: () => {
+        this.procesandoRevision.set(false);
+        this.cargarDatos();
+      }
+    });
+  }
+
+  rechazarRadicacion(): void {
+    const dec = this.declaracionParaRevision();
+    if (!dec) return;
+
+    const obsActual = this.observacionesRevision().trim();
+    let motivoFinal = obsActual;
+
+    if (!motivoFinal || motivoFinal.startsWith('Soporte ICA verificado')) {
+      const nuevoMotivo = prompt(
+        `Indique el MOTIVO OFICIAL de RECHAZO para la radicación N° ${dec.consecutivo}:`,
+        'Inconsistencia en número de semovientes o Guía Sanitaria ICA adjunta no corresponde.'
+      );
+      if (nuevoMotivo === null) return;
+      if (!nuevoMotivo.trim()) {
+        alert('Debe especificar un motivo para rechazar la radicación.');
+        return;
+      }
+      motivoFinal = nuevoMotivo.trim();
+      this.observacionesRevision.set(motivoFinal);
+    }
+
+    this.procesandoRevision.set(true);
+    this.deguelloService.rechazarLiquidacion(dec.consecutivo, motivoFinal).subscribe({
+      next: () => {
+        this.procesandoRevision.set(false);
+        this.cerrarRevision();
+        this.cargarDatos();
+        this.mensajeAccion.set({
+          texto: `❌ La radicación N° ${dec.consecutivo} ha sido RECHAZADA. El contribuyente ha sido notificado con el motivo: "${motivoFinal}".`,
+          tipo: 'error'
+        });
+        setTimeout(() => this.mensajeAccion.set(null), 7000);
+      },
+      error: () => {
+        this.procesandoRevision.set(false);
+        this.cerrarRevision();
+        this.cargarDatos();
+      }
+    });
+  }
+
+  irALiquidadorAvanzado(d: DeclaracionDeguelloData): void {
+    this.cerrarRevision();
+    this.deguelloService.setDeclaracionEnEdicion(d);
+    this.router.navigate(['/deguello/liquidacion']);
   }
 
   confirmarAprobacion(): void {
     const dec = this.declaracionParaRevision();
     if (!dec) return;
 
+    this.procesandoRevision.set(true);
     this.deguelloService.aprobarLiquidacion(dec.consecutivo).subscribe({
       next: () => {
+        this.procesandoRevision.set(false);
         this.cerrarRevision();
         this.cargarDatos();
         this.mensajeAccion.set({
@@ -137,6 +272,7 @@ export class DeguelloFacturacionComponent implements OnInit {
         setTimeout(() => this.mensajeAccion.set(null), 6000);
       },
       error: () => {
+        this.procesandoRevision.set(false);
         this.cerrarRevision();
         this.cargarDatos();
         this.mensajeAccion.set({

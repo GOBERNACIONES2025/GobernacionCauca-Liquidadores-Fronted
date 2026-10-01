@@ -465,27 +465,62 @@
     </div>
 
     <!-- Bloque 2: INFORMACIÓN DEL RESPONSABLE Y DECLARANTE -->
-    <div class="pt-4 border-t border-slate-100">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-[#1b53ad] mb-3 flex items-center space-x-2">
-        <span class="w-5 h-5 rounded-full bg-blue-100 text-[#1b53ad] inline-flex items-center justify-center text-xs font-bold">2</span>
-        <span>Información del Responsable y Declarante</span>
-      </h3>
+    <!-- Bloque 2: INFORMACIÓN DEL RESPONSABLE Y DECLARANTE -->
+    <div class="pt-4 border-t border-slate-100 space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-[#1b53ad] flex items-center space-x-2 m-0">
+          <span class="w-5 h-5 rounded-full bg-blue-100 text-[#1b53ad] inline-flex items-center justify-center text-xs font-bold">2</span>
+          <span>Información del Responsable y Declarante</span>
+        </h3>
+
+        <!-- Acciones de Gestión de Empresas / Censo -->
+        <div class="flex items-center gap-2">
+          <a 
+            routerLink="/deguello/empresas" 
+            target="_blank"
+            class="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#1b53ad] hover:text-[#154189] bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 transition no-underline"
+            title="Abrir censo general de empresas y plantas de beneficio">
+            <i class="fa-solid fa-industry"></i>
+            <span>Módulo de Empresas</span>
+          </a>
+          <button 
+            type="button"
+            (click)="abrirModalRegistroRapido()"
+            class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 transition cursor-pointer">
+            <i class="fa-solid fa-plus"></i>
+            <span>+ Registrar Empresa</span>
+          </button>
+        </div>
+      </div>
 
       <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-        <div class="md:col-span-6">
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Razón Social / Matarife</label>
-          <input 
-            type="text"
-            [(ngModel)]="formGeneracion.razonSocial"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-900 uppercase" />
-        </div>
-
+        <!-- NIT con buscador inteligente -->
         <div class="md:col-span-4">
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">NIT / Cédula</label>
-          <input 
-            type="text"
-            [(ngModel)]="formGeneracion.nit"
-            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800" />
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1 flex items-center justify-between">
+            <span>NIT / Cédula *</span>
+            <span class="text-[10px] text-slate-400 font-normal">Buscar en censo</span>
+          </label>
+          <div class="flex items-center gap-1.5">
+            <input 
+              type="text"
+              [(ngModel)]="formGeneracion.nit"
+              (blur)="buscarResponsablePorNit()"
+              (keyup.enter)="buscarResponsablePorNit()"
+              placeholder="Ej: 900823411"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800 focus:bg-white" />
+            <button 
+              type="button"
+              (click)="buscarResponsablePorNit()"
+              [disabled]="buscandoResponsable()"
+              class="px-3 py-2 bg-[#1b53ad] hover:bg-[#154189] text-white rounded-xl text-xs font-bold transition cursor-pointer shrink-0 border-none shadow-xs disabled:opacity-50"
+              title="Verificar si el contribuyente o planta existe en la base de datos">
+              @if (buscandoResponsable()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+              } @else {
+                <i class="fa-solid fa-magnifying-glass"></i>
+              }
+            </button>
+          </div>
         </div>
 
         <div class="md:col-span-2">
@@ -497,8 +532,17 @@
             class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-center text-slate-900" />
         </div>
 
+        <div class="md:col-span-6">
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Razón Social / Matarife *</label>
+          <input 
+            type="text"
+            [(ngModel)]="formGeneracion.razonSocial"
+            placeholder="Nombre comercial o razón social"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-900 uppercase focus:bg-white" />
+        </div>
+
         <div class="md:col-span-4">
-          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Municipio de Declaración</label>
+          <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Municipio de Declaración *</label>
           <select 
             [(ngModel)]="formGeneracion.municipio"
             class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-semibold text-slate-800">
@@ -512,6 +556,7 @@
           <input 
             type="text"
             [(ngModel)]="formGeneracion.telefonoFijo"
+            placeholder="Ej: (602) 8234500"
             class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800" />
         </div>
 
@@ -520,9 +565,53 @@
           <input 
             type="text"
             [(ngModel)]="formGeneracion.direccionNotificacion"
+            placeholder="Ej: CALLE 4 # 10-20"
             class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 uppercase" />
         </div>
       </div>
+
+      <!-- Banner de Estado de Verificación del Responsable -->
+      @if (estadoResponsable(); as est) {
+        @if (est.existe) {
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs flex items-center justify-between flex-wrap gap-2 animate-fadeIn">
+            <div class="flex items-center gap-2 text-emerald-900">
+              <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+              <div>
+                <span class="font-extrabold block">
+                  Responsable Encontrado: {{ formGeneracion.razonSocial }}
+                </span>
+                <span class="text-[11px] text-emerald-700">
+                  {{ est.tipo === 'PLANTA' ? 'Empresa / Planta de Beneficio autorizada registrada en Base de Datos.' : 'Contribuyente registrado con declaraciones fiscales previas.' }} Datos fiscales precargados.
+                </span>
+              </div>
+            </div>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-200 text-emerald-900 uppercase">
+              Registrado Oficialmente
+            </span>
+          </div>
+        } @else {
+          <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-xs flex items-center justify-between flex-wrap gap-2 animate-fadeIn">
+            <div class="flex items-center gap-2.5 text-amber-950">
+              <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base"></i>
+              <div>
+                <span class="font-extrabold block">
+                  Responsable No Registrado en el Censo Tributario
+                </span>
+                <span class="text-[11px] text-amber-800">
+                  El NIT <strong>{{ formGeneracion.nit }}</strong> no se encuentra registrado en la base de datos de plantas ni en declaraciones previas. Puede ingresar los datos o registrar la empresa.
+                </span>
+              </div>
+            </div>
+            <button 
+              type="button"
+              (click)="abrirModalRegistroRapido()"
+              class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold text-xs transition cursor-pointer shadow-xs border-none flex items-center gap-1.5">
+              <i class="fa-solid fa-building-circle-check"></i>
+              <span>+ Registrar Empresa en BD</span>
+            </button>
+          </div>
+        }
+      }
     </div>
 
     <!-- Bloque 3: DATOS DEL GANADO Y CÁLCULO DE TARIFA -->
@@ -802,6 +891,209 @@
       </div>
     </div>
   </div>
+
+  <!-- MODAL RÁPIDO: REGISTRAR EMPRESA O PLANTA EN BASE DE DATOS -->
+  @if (modalRegistroEmpresaRapido()) {
+    <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8 animate-fadeIn">
+        <!-- Header -->
+        <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white">
+              <i class="fa-solid fa-building-circle-check"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-black m-0 uppercase tracking-wide">
+                Registrar Empresa / Planta de Beneficio en Base de Datos
+              </h2>
+              <span class="text-[11px] text-slate-400">
+                Guarda directamente en SQL Server para habilitar el censo tributario
+              </span>
+            </div>
+          </div>
+          <button 
+            type="button"
+            (click)="cerrarModalRegistroRapido()"
+            class="text-slate-400 hover:text-white transition cursor-pointer text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Formulario -->
+        <form (ngSubmit)="guardarEmpresaRapida()" class="p-6 space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+            <div class="md:col-span-8">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Razón Social / Nombre de la Empresa *
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.nombre"
+                name="nombreRapido"
+                placeholder="Ej: FRIGORÍFICO CENTRAL DEL CAUCA S.A.S."
+                required
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-900 uppercase focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                NIT *
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.nit"
+                name="nitRapido"
+                placeholder="Ej: 900823411"
+                required
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Municipio de Operación *
+              </label>
+              <select 
+                [(ngModel)]="formEmpresaRapida.municipio"
+                name="municipioRapido"
+                required
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:bg-white">
+                @for (m of municipiosCauca; track m) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="md:col-span-8">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Dirección Oficial de la Planta
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.direccion"
+                name="direccionRapida"
+                placeholder="Ej: KM 4 VARIANTE NORTE"
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm uppercase text-slate-800 focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Teléfono de Contacto
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.telefono"
+                name="telefonoRapido"
+                placeholder="Ej: (602) 8234500"
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Correo Electrónico Oficial
+              </label>
+              <input 
+                type="email"
+                [(ngModel)]="formEmpresaRapida.emailOficial"
+                name="emailRapido"
+                placeholder="Ej: contacto@frigorifico.com"
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Clave Portal Contribuyente
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.claveAcceso"
+                name="claveRapida"
+                placeholder="Ej: 123456"
+                class="w-full px-3.5 py-2 bg-amber-50/60 border border-amber-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-amber-950 focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-6">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Representante Legal
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.representanteLegal"
+                name="repRapido"
+                placeholder="Ej: Carlos Gómez"
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm uppercase text-slate-800 focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-6">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Cédula del Representante
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.docRepresentante"
+                name="docRepRapido"
+                placeholder="Ej: 1061748291"
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800 focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-4">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Código INVIMA
+              </label>
+              <input 
+                type="text"
+                [(ngModel)]="formEmpresaRapida.codigoInvima"
+                name="invimaRapido"
+                placeholder="Ej: PBA-CAUCA-01"
+                class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-800 uppercase focus:bg-white" />
+            </div>
+
+            <div class="md:col-span-4 flex items-center pt-5">
+              <label class="inline-flex items-center cursor-pointer gap-2">
+                <input 
+                  type="checkbox"
+                  [(ngModel)]="formEmpresaRapida.esFrigorificoRegional"
+                  name="esFrigoRapido"
+                  class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" />
+                <span class="text-xs font-bold text-slate-700">¿Frigorífico Regional?</span>
+              </label>
+            </div>
+
+            <div class="md:col-span-4 flex items-center pt-5">
+              <label class="inline-flex items-center cursor-pointer gap-2">
+                <input 
+                  type="checkbox"
+                  [(ngModel)]="formEmpresaRapida.esActiva"
+                  name="esActivaRapida"
+                  class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" />
+                <span class="text-xs font-bold text-slate-700">Empresa Activa</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+            <button 
+              type="button"
+              (click)="cerrarModalRegistroRapido()"
+              class="px-4 py-2 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold text-xs transition cursor-pointer">
+              Cancelar
+            </button>
+            <button 
+              type="submit"
+              [disabled]="guardandoEmpresaRapida()"
+              class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-bold text-xs transition shadow-xs cursor-pointer border-none disabled:opacity-50">
+              @if (guardandoEmpresaRapida()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Guardando en BD...</span>
+              } @else {
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Guardar y Aplicar a Declaración</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
 
   <!-- Modal Visor Factura Oficial -->
   <app-factura-modal 

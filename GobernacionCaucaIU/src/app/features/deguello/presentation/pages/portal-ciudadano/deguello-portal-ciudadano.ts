@@ -86,7 +86,7 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
   readonly declaraciones = signal<DeclaracionDeguelloData[]>([]);
 
   /** Filtro de estado para la lista de resultados */
-  readonly filtroEstado = signal<'TODAS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA'>('TODAS');
+  readonly filtroEstado = signal<'TODAS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA' | 'RECHAZADA'>('TODAS');
 
   /** Declaración activa para visualizar/imprimir en el modal */
   readonly declaracionSeleccionadaParaFactura = signal<DeclaracionDeguelloData | null>(null);
@@ -241,6 +241,10 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
     return this.declaraciones().filter((d) => d.estadoPago === 'RELIQUIDADA').length;
   });
 
+  readonly countRechazadas = computed(() => {
+    return this.declaraciones().filter((d) => d.estadoPago === 'RECHAZADA').length;
+  });
+
   readonly totalPendientePagar = computed(() => {
     return this.declaraciones()
       .filter((d) => d.estadoPago === 'PENDIENTE')
@@ -385,7 +389,7 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
   }
 
   /** Cambiar filtro de estado */
-  setFiltro(estado: 'TODAS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA'): void {
+  setFiltro(estado: 'TODAS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA' | 'RECHAZADA'): void {
     this.filtroEstado.set(estado);
   }
 
