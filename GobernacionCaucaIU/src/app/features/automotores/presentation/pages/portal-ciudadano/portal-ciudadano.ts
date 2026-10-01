@@ -1,8 +1,14 @@
+// Autor: Juan Sebastián Montaño Pérez
+// Fecha: 01/10/2026
+// Módulo: Portal Ciudadano
+// Descripción: Controlador principal para consulta ciudadana vehicular y gestión de trámites y pagos.
+
 import { Component, signal, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { VehiculosApiService } from '../../../infrastructure/api/vehiculos-api.service';
 import { DataMaskingUtil } from '../../../../../shared/utils/data-masking.util';
+import { PortalCiudadanoDetallePago } from '../../components/portal-ciudadano';
 import { 
   ConsultaCiudadanaSharedComponent, 
   ConsultaSubmitPayload,
@@ -14,18 +20,12 @@ import {
   HistorialConsultaDto,
   VehiculoConsultaDto,
   LiquidacionConsultaDto,
-  NovedadConsultaDto
+  NovedadConsultaDto,
+  LiquidacionCiudadano,
+  PropietarioCiudadano
 } from '../../../domain/interfaces/consulta-vehicular.interface';
 
-export interface LiquidacionCiudadano {
-  id: string;
-  vigencia: number;
-  placa: string;
-  detalle: string;
-  valor: number;
-  estado: string;
-  esPagada: boolean;
-}
+export type { LiquidacionCiudadano, PropietarioCiudadano };
 
 export interface HistorialCiudadano {
   fecha: string;
@@ -54,20 +54,6 @@ export interface CertificadoCiudadano {
   placa: string;
   fecha: string;
   codigo: string;
-}
-
-export interface PropietarioCiudadano {
-  id?: number;
-  nombre: string;
-  tipoDocumentoId: number;
-  tipoDocumentoNombre: string;
-  documento: string;
-  email: string | null;
-  telefono: string | null;
-  direccion: string | null;
-  ciudad: string | null;
-  activo: boolean;
-  estaEnmascarado?: boolean;
 }
 
 export interface VehiculoCiudadano {
@@ -109,7 +95,7 @@ export interface CiudadanoData {
 @Component({
   selector: 'app-portal-ciudadano',
   standalone: true,
-  imports: [CommonModule, ConsultaCiudadanaSharedComponent],
+  imports: [CommonModule, ConsultaCiudadanaSharedComponent, PortalCiudadanoDetallePago],
   templateUrl: './portal-ciudadano.html',
 })
 export class PortalCiudadano implements OnInit {
@@ -438,6 +424,7 @@ export class PortalCiudadano implements OnInit {
       const esPagada = valor === 0 || estadoUpper.includes('PAGAD') || estadoUpper.includes('SATISFECH');
       return {
         id: `liq-${index + 1}`,
+        liquidacionId: l.liquidacionId || 0,
         vigencia: l.vigencia,
         placa: l.placa,
         detalle: l.detalle || `Vigencia ${l.vigencia}`,
@@ -548,6 +535,10 @@ export class PortalCiudadano implements OnInit {
 
   cerrarPago(): void {
     this.liquidacionParaPagar.set(null);
+  }
+
+  procesarPago(event?: unknown): void {
+    this.cerrarPago();
   }
 
   nuevaConsulta(): void {

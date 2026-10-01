@@ -10,7 +10,13 @@
       </p>
     </div>
 
-    <div class="flex items-center gap-2.5 shrink-0">
+    <div class="flex items-center gap-2.5 shrink-0 flex-wrap">
+      <a routerLink="/automotores/liquidaciones-snapshots"
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-blue-900 hover:bg-blue-950 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer text-decoration-none">
+        <i class="fa-solid fa-scale-balanced text-emerald-400"></i>
+        <span>Pagos Snapshot (Asobancaria)</span>
+      </a>
+
       <div class="relative">
         <input type="text" [(ngModel)]="placaBuscarModal" (keyup.enter)="onSimularDirecto()"
           placeholder="Ingresar Placa (ej: AAA001, HJK-892)..."

@@ -36,7 +36,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       // 2. Errores de Autenticación / Autorización (401, 403)
       else if (error.status === 401) {
         const isRegistros = req.url.includes(':5001') || req.url.includes('/api/v1/') || router.url.includes('/registros');
-        if (isRegistros) {
+        const isPortalCiudadano = req.url.includes('/pagos') || router.url.includes('/portal-ciudadano');
+        if (isRegistros || isPortalCiudadano) {
           return throwError(() => error);
         }
         tokenStorage.clearTokens();

@@ -407,7 +407,6 @@
                 </button>
               </div>
 
-              <!-- Divisor horizontal -->
               <hr class="border-t border-slate-200/80 my-4" />
 
               <!-- Summary Table -->
@@ -420,6 +419,7 @@
                         <th class="py-3 px-4">Detalle</th>
                         <th class="py-3 px-4">Estado</th>
                         <th class="py-3 px-4">Valor ($ COP)</th>
+                        <th class="py-3 px-6">Estado de la transacción</th>
                         <th class="py-3 px-4 text-right">Acción</th>
                       </tr>
                     </thead>
@@ -449,6 +449,10 @@
                             ${{ liq.valor | number:'1.0-0' }} COP
                           </td>
 
+                          <td class="py-3.5 px-4 text-center font-mono font-extrabold">
+                            <p>En proceso</p>
+                          </td>
+
                           <td class="py-3.5 px-4 text-right">
                             @if (!liq.esPagada && liq.valor > 0) {
                               <button 
@@ -456,7 +460,7 @@
                                 type="button" 
                                 class="px-4 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer border-none"
                               >
-                                Pagar Ahora
+                                Ir a pagar.
                               </button>
                             } @else {
                               <span class="text-emerald-600 font-bold text-xs inline-flex items-center gap-1">
@@ -479,12 +483,7 @@
           </div>
         }
 
-        <!-- ======================================================== -->
-        <!-- PESTAÑA 2: HISTORIAL COMPLETO                            -->
-        <!-- ======================================================== -->
-        <!-- ======================================================== -->
-        <!-- PESTAÑA 2: HISTORIAL DE TRÁMITES (LÍNEA DE TIEMPO OFICIAL)  -->
-        <!-- ======================================================== -->
+     
         @if (activeTab() === 'historial') {
           <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
             
@@ -647,9 +646,6 @@
           </div>
         }
 
-        <!-- ======================================================== -->
-        <!-- PESTAÑA 4: CERTIFICADOS                                  -->
-        <!-- ======================================================== -->
         @if (activeTab() === 'certificados') {
           <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -691,54 +687,13 @@
   </div>
 }
 
-<!-- MODAL DE PASARELA DE PAGO PSE -->
-@if (liquidacionParaPagar()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
-      <div class="px-6 py-4 bg-[#0f4984] text-white flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-credit-card text-lg"></i>
-          <h3 class="text-sm font-bold text-white m-0">Pasarela de Pago PSE</h3>
-        </div>
-        <button (click)="cerrarPago()" class="text-white/80 hover:text-white cursor-pointer bg-transparent border-none">
-          <i class="fa-solid fa-xmark text-base"></i>
-        </button>
-      </div>
-
-      <div class="p-6 text-xs space-y-4">
-        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200">
-          <span class="text-slate-400 font-bold uppercase text-[10px] block">Vigencia y Placa</span>
-          <span class="text-slate-800 font-mono font-bold text-sm block mt-0.5">
-            {{ liquidacionParaPagar()?.vigencia }} &middot; {{ liquidacionParaPagar()?.placa }}
-          </span>
-          <span class="text-slate-500 block mt-1">{{ liquidacionParaPagar()?.detalle }}</span>
-        </div>
-
-        <div class="flex items-center justify-between text-sm py-2 border-y border-slate-100">
-          <span class="font-bold text-slate-700">Total a Pagar:</span>
-          <span class="font-extrabold text-[#0f4984] font-mono text-base">${{ liquidacionParaPagar()?.valor | number:'1.0-0' }} COP</span>
-        </div>
-
-        <div class="space-y-2">
-          <label class="block font-bold text-slate-700">Seleccione su Banco:</label>
-          <select class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold cursor-pointer">
-            <option>Bancolombia</option>
-            <option>Banco de Bogotá</option>
-            <option>Davivienda</option>
-            <option>Nequi / Daviplata</option>
-            <option>BBVA Colombia</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
-        <button (click)="cerrarPago()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition cursor-pointer">
-          Cancelar
-        </button>
-        <button (click)="cerrarPago()" class="px-5 py-2 rounded-xl text-xs font-bold bg-[#0f4984] hover:bg-[#0c3c6d] text-white shadow-sm transition cursor-pointer border-none">
-          Pagar Ahora
-        </button>
-      </div>
-    </div>
-  </div>
+@defer (when liquidacionParaPagar()) {
+  @if (liquidacionParaPagar(); as liq) {
+    <app-portal-ciudadano-detalle-pago
+      [liquidacion]="liq"
+      [propietario]="ciudadano()?.propietario ?? null"
+      (cerrar)="cerrarPago()"
+      (pagar)="procesarPago($event)"
+    />
+  }
 }
