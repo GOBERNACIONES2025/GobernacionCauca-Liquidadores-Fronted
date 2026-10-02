@@ -16,6 +16,8 @@ import {
   HistorialRadicadoDto
 } from '../../../domain/models/Consultas/consulta-radicado.model';
 import { RegistrosConsultaApiService } from '../../../infrastructure/api/Consultas/registros-consulta-api.service';
+import { RegistrosPagosApiService } from '../../../infrastructure/api/Pagos/registros-pagos-api.service';
+import { ModalPagoPasarelaComponent } from '../../components/modal-pago-pasarela/modal-pago-pasarela';
 import { DataMaskingUtil } from '../../../../../shared/utils/data-masking.util';
 
 @Component({
@@ -24,7 +26,8 @@ import { DataMaskingUtil } from '../../../../../shared/utils/data-masking.util';
   imports: [
     CommonModule, 
     RouterLink, 
-    ConsultaCiudadanaSharedComponent
+    ConsultaCiudadanaSharedComponent,
+    ModalPagoPasarelaComponent
   ],
   templateUrl: './registros-portal-ciudadano.html',
 })
@@ -32,6 +35,7 @@ export class RegistrosPortalCiudadanoComponent implements OnInit {
   @ViewChild(ConsultaCiudadanaSharedComponent) sharedComponent?: ConsultaCiudadanaSharedComponent;
 
   private registrosConsultaApi = inject(RegistrosConsultaApiService);
+  private registrosPagosApi = inject(RegistrosPagosApiService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -42,6 +46,12 @@ export class RegistrosPortalCiudadanoComponent implements OnInit {
 
   readonly criterioBusqueda = signal<{ doc: string; radicado: string; tipoDoc: number } | null>(null);
   readonly consultaData = signal<ConsultaRadicadoData | null>(null);
+
+  // Estados de Pagos Pasarela
+  readonly modalPagoAbierto = signal<boolean>(false);
+  readonly liquidacionSeleccionadaPago = signal<LiquidacionDocumentoDto | null>(null);
+  readonly alertaRetornoPago = signal<{ tipo: 'exito' | 'error' | 'info'; mensaje: string } | null>(null);
+  readonly verificandoPago = signal<boolean>(false);
 
   /** Computed helpers */
   readonly solicitud = computed(() => this.consultaData()?.solicitud || null);
@@ -139,14 +149,28 @@ export class RegistrosPortalCiudadanoComponent implements OnInit {
     );
   });
 
+  readonly puedePagar = computed<boolean>(() => {
+    if (this.estaPagado()) return false;
+    if (this.estaVencido()) return false;
+    const vig = this.liquidacionVigente();
+    return vig ? vig.esVigente : false;
+  });
+
   ngOnInit(): void {
     const qp = this.route.snapshot.queryParamMap;
     const rad = qp.get('radicado');
     const doc = qp.get('doc');
+    const ref = qp.get('ref') || qp.get('referencia');
+    const estado = qp.get('estado');
 
     // Auto-consulta si venimos redirigidos con parámetros
     if (rad && doc) {
       this.ejecutarConsulta(rad, doc, 1);
+    }
+
+    // Si retornó de la pasarela bancaria
+    if (ref && estado === 'retorno') {
+      this.verificarRetornoPasarela(ref);
     }
   }
 
@@ -192,6 +216,61 @@ export class RegistrosPortalCiudadanoComponent implements OnInit {
   alConsultar(payload: ConsultaSubmitPayload): void {
     const tipoDocId = Number(payload.tipoDocumento) || 1;
     this.ejecutarConsulta(payload.secondaryValue, payload.numeroDocumento, tipoDocId);
+  }
+
+  verificarRetornoPasarela(referencia: string): void {
+    this.verificandoPago.set(true);
+    this.registrosPagosApi.consultarEstado(referencia).subscribe({
+      next: (res) => {
+        this.verificandoPago.set(false);
+        const st = res.result ?? res.Result;
+
+        if (st?.estaAprobada) {
+          this.alertaRetornoPago.set({
+            tipo: 'exito',
+            mensaje: `¡Pago Aprobado! La entidad bancaria (${st.banco || 'PSE'}) ha confirmado la transacción exitosamente con CUS: ${st.cus || 'N/A'}. Su liquidación se encuentra al día.`
+          });
+          // Re-consultar para actualizar los datos en pantalla
+          const crit = this.criterioBusqueda();
+          if (crit) {
+            this.ejecutarConsulta(crit.radicado, crit.doc, crit.tipoDoc);
+          }
+        } else if (st?.estaPendiente) {
+          this.alertaRetornoPago.set({
+            tipo: 'info',
+            mensaje: 'Su transacción se encuentra en proceso de confirmación por la red bancaria (PSE). Puede consultar el estado en unos minutos.'
+          });
+        } else {
+          this.alertaRetornoPago.set({
+            tipo: 'error',
+            mensaje: `La pasarela no aprobó la transacción: ${st?.mensaje || 'Pago cancelado o rechazado por el banco'}. Puede intentar nuevamente.`
+          });
+        }
+      },
+      error: () => {
+        this.verificandoPago.set(false);
+        this.alertaRetornoPago.set({
+          tipo: 'info',
+          mensaje: 'Se completó el retorno bancario. Verifique el estado de su radicado o consulte nuevamente en unos instantes.'
+        });
+      }
+    });
+  }
+
+  limpiarAlertaRetorno(): void {
+    this.alertaRetornoPago.set(null);
+  }
+
+  abrirModalPago(liq?: LiquidacionDocumentoDto): void {
+    const objetivo = liq || this.liquidacionVigente();
+    if (!objetivo) return;
+    this.liquidacionSeleccionadaPago.set(objetivo);
+    this.modalPagoAbierto.set(true);
+  }
+
+  cerrarModalPago(): void {
+    this.modalPagoAbierto.set(false);
+    this.liquidacionSeleccionadaPago.set(null);
   }
 
   toggleProteccionDatos(): void {
@@ -270,6 +349,7 @@ export class RegistrosPortalCiudadanoComponent implements OnInit {
     this.consultaData.set(null);
     this.criterioBusqueda.set(null);
     this.tabActivo.set('resumen');
+    this.alertaRetornoPago.set(null);
   }
 
   salir(): void {
