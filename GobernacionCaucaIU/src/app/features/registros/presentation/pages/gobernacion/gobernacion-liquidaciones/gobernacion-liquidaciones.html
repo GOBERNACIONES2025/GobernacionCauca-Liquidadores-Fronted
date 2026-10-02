@@ -884,9 +884,9 @@
               (ngModelChange)="pagoMedioPagoId.set(+$event)"
               class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-slate-800 cursor-pointer"
             >
-              @for (m of mediosPagoFacade.mediosPago(); track m.id) {
+              @for (m of mediosPagoFacade.mediosPagoManuales(); track m.id) {
                 <option [value]="m.id">
-                  {{ m.nombre }} {{ m.requiereComprobante ? '(Exige Comprobante)' : '(En línea)' }}
+                  {{ m.nombre }}
                 </option>
               }
             </select>

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -30,6 +30,18 @@ export class EntidadesLiquidacionesComponent implements OnInit {
   public mediosPagoFacade = inject(MediosPagoFacade);
   private router = inject(Router);
   private toast = inject(ToastService);
+
+  constructor() {
+    effect(() => {
+      const manuales = this.mediosPagoFacade.mediosPagoManuales();
+      const actual = this.pagoMedioPagoId();
+      if (this.showPagoModal() && manuales.length > 0) {
+        if (!actual || !manuales.some(m => m.id === actual)) {
+          this.pagoMedioPagoId.set(manuales[0].id);
+        }
+      }
+    });
+  }
 
   // Pestaña de filtrado activa
   activeTab = signal<TabLiquidacion>('todas');
@@ -510,9 +522,11 @@ export class EntidadesLiquidacionesComponent implements OnInit {
     this.pagoArchivoNombre.set('');
     
     this.mediosPagoFacade.cargarMediosPago(1, 100, undefined, true);
-    const medios = this.mediosPagoFacade.mediosPago();
+    const medios = this.mediosPagoFacade.mediosPagoManuales();
     if (medios.length > 0) {
       this.pagoMedioPagoId.set(medios[0].id);
+    } else {
+      this.pagoMedioPagoId.set(null);
     }
     this.showPagoModal.set(true);
   }
@@ -546,8 +560,12 @@ export class EntidadesLiquidacionesComponent implements OnInit {
       return;
     }
 
-    const medioSeleccionado = this.mediosPagoFacade.mediosPago().find(m => m.id === this.pagoMedioPagoId());
-    if (medioSeleccionado?.requiereComprobante && !this.pagoArchivo()) {
+    const medioSeleccionado = this.mediosPagoFacade.mediosPagoManuales().find(m => m.id === this.pagoMedioPagoId());
+    if (!medioSeleccionado) {
+      this.toast.warning('El canal o entidad seleccionada no es válida para recaudo manual.');
+      return;
+    }
+    if (medioSeleccionado.requiereComprobante && !this.pagoArchivo()) {
       this.toast.warning(`El canal ${medioSeleccionado.nombre} requiere adjuntar el soporte físico o voucher bancario.`);
       return;
     }
