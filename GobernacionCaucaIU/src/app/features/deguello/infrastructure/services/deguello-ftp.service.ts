@@ -141,9 +141,16 @@ export class DeguelloFtpService {
   }
 
   /**
-   * Construye la URL de descarga/previsualización directa de un documento en el FTP
+   * Construye la URL de descarga directa de un documento en el FTP
    */
   obtenerUrlDescarga(remoteFilePath: string): string {
     return `${this.apiUrl}/ftp/descargar?remoteFilePath=${encodeURIComponent(remoteFilePath)}`;
+  }
+
+  /**
+   * Construye la URL de previsualización inline en el navegador sin forzar descarga
+   */
+  obtenerUrlPreview(remoteFilePath: string): string {
+    return `${this.apiUrl}/ftp/descargar?remoteFilePath=${encodeURIComponent(remoteFilePath)}&preview=true`;
   }
 }

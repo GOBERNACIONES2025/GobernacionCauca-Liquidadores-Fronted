@@ -523,6 +523,17 @@
                 class="px-3 py-1.5 rounded-xl border border-slate-200 font-bold transition cursor-pointer shadow-xs">
                 Reliquidadas ({{ countReliquidadas() }})
               </button>
+
+              <button 
+                (click)="setFiltro('RECHAZADA')"
+                [class.bg-red-600]="filtroEstado() === 'RECHAZADA'"
+                [class.text-white]="filtroEstado() === 'RECHAZADA'"
+                [class.bg-white]="filtroEstado() !== 'RECHAZADA'"
+                [class.text-red-700]="filtroEstado() !== 'RECHAZADA'"
+                class="px-3 py-1.5 rounded-xl border border-red-200 font-bold transition cursor-pointer shadow-xs flex items-center space-x-1">
+                <i class="fa-solid fa-triangle-exclamation text-[10px]"></i>
+                <span>Rechazadas ({{ countRechazadas() }})</span>
+              </button>
             </div>
 
             <span class="text-xs text-slate-500 font-semibold">
@@ -540,6 +551,7 @@
               [class.border-blue-300]="d.estadoPago === 'RADICADA'"
               [class.border-amber-300]="d.estadoPago === 'PENDIENTE'"
               [class.border-rose-300]="d.estadoPago === 'VENCIDO'"
+              [class.border-red-300]="d.estadoPago === 'RECHAZADA'"
             >
               <!-- Card Header -->
               <div 
@@ -552,6 +564,8 @@
                 [class.border-amber-100]="d.estadoPago === 'PENDIENTE'"
                 [class.bg-rose-50/60]="d.estadoPago === 'VENCIDO'"
                 [class.border-rose-100]="d.estadoPago === 'VENCIDO'"
+                [class.bg-red-50/70]="d.estadoPago === 'RECHAZADA'"
+                [class.border-red-100]="d.estadoPago === 'RECHAZADA'"
               >
                 <div class="flex items-center gap-3">
                   <span class="font-mono font-extrabold text-sm text-slate-900">
@@ -590,6 +604,10 @@
                   } @else if (d.estadoPago === 'RELIQUIDADA') {
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-slate-100 text-slate-600 border border-slate-300">
                       <i class="fa-solid fa-ban text-slate-400"></i> Sustituida por Reliquidación
+                    </span>
+                  } @else if (d.estadoPago === 'RECHAZADA') {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-red-100 text-red-800 border border-red-200">
+                      <i class="fa-solid fa-triangle-exclamation text-red-600"></i> Radicación Rechazada
                     </span>
                   }
                 </div>
@@ -715,9 +733,46 @@
                         </span>
                       </div>
                     </div>
-                    <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-200/60 rounded text-emerald-900 uppercase">
-                      Habilitado PBA
-                    </span>
+                    <div class="flex items-center gap-2">
+                      @if (d.rutaArchivoPago) {
+                        <a 
+                          [href]="obtenerUrlDescarga(d.rutaArchivoPago)"
+                          target="_blank"
+                          class="px-2.5 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold no-underline inline-flex items-center gap-1.5 transition shadow-xs"
+                          title="Descargar comprobante bancario del servidor FTP"
+                        >
+                          <i class="fa-solid fa-file-invoice text-xs"></i>
+                          <span>Descargar Comprobante</span>
+                        </a>
+                      }
+                      <span class="text-[10px] font-bold px-2 py-0.5 bg-emerald-200/60 rounded text-emerald-900 uppercase">
+                        Habilitado PBA
+                      </span>
+                    </div>
+                  </div>
+                } @else if (d.estadoPago === 'RECHAZADA') {
+                  <div class="mt-4 p-3.5 bg-red-50 border border-red-200 rounded-xl text-xs text-red-950 flex items-start gap-3">
+                    <i class="fa-solid fa-triangle-exclamation text-red-600 text-base mt-0.5"></i>
+                    <div class="flex-1">
+                      <p class="font-bold m-0 text-red-950">Radicación Rechazada por la Administración Tributaria</p>
+                      <div class="mt-1.5 p-2.5 bg-white rounded-lg border border-red-200">
+                        <span class="text-[11px] font-bold text-red-700 block uppercase">Motivo del Rechazo:</span>
+                        <p class="text-xs m-0 mt-0.5 leading-relaxed font-semibold text-red-900">
+                          {{ d.observacionAnulacion || 'Los datos de cabezas o la guía sanitaria ICA presentan inconsistencias con los registros oficiales.' }}
+                        </p>
+                      </div>
+                      <p class="text-[11px] text-red-800 m-0 mt-2 leading-relaxed">
+                        Por favor verifique la información de la guía expedida por el ICA y radíquela nuevamente con los datos correctos para iniciar un nuevo proceso de validación.
+                      </p>
+                      <div class="mt-2.5">
+                        <button 
+                          type="button" 
+                          (click)="abrirModalRadicarGuia()"
+                          class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-700 hover:bg-red-800 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-xs border-none">
+                          <i class="fa-solid fa-file-circle-plus"></i> Radicar Nueva Guía Corregida
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 }
               </div>
@@ -733,6 +788,8 @@
                     <span>Comprobante oficial acreditado para faenado en planta de beneficio.</span>
                   } @else if (d.estadoPago === 'VENCIDO') {
                     <span>Liquidación caducada. Requiere actualización de mora.</span>
+                  } @else if (d.estadoPago === 'RECHAZADA') {
+                    <span class="text-red-700 font-semibold">Radicación rechazada por la administración tributaria.</span>
                   } @else {
                     <span>Registro histórico sustituido.</span>
                   }
@@ -760,6 +817,19 @@
                       <i class="fa-solid fa-clock-rotate-left text-xs"></i>
                       <span>Reliquidar Factura Vencida</span>
                     </button>
+                  }
+
+                  <!-- BOTÓN DESCARGAR COMPROBANTE FTP SI EXISTE -->
+                  @if (d.estadoPago === 'PAGADO' && d.rutaArchivoPago) {
+                    <a 
+                      [href]="obtenerUrlDescarga(d.rutaArchivoPago)"
+                      target="_blank"
+                      class="inline-flex items-center justify-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 px-3.5 py-2.5 rounded-xl text-xs font-bold transition shadow-xs no-underline"
+                      title="Descargar soporte de consignación bancaria almacenado en FTP"
+                    >
+                      <i class="fa-solid fa-file-invoice text-xs"></i>
+                      <span>Soporte Pago (FTP)</span>
+                    </a>
                   }
 
                   <!-- BOTÓN VER FORMULARIO / FACTURA OFICIAL -->
@@ -804,3 +874,622 @@
     (cerrar)="cerrarModalFactura()"
   ></app-factura-modal>
 }
+
+<!-- ========================================================================= -->
+<!-- MODAL: RESUMEN DE CONCEPTO Y SIMULACIÓN DE PAGO EN LÍNEA -->
+<!-- ========================================================================= -->
+@if (declaracionParaPago(); as dec) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all">
+      
+      <!-- FASE 1: RESUMEN DE CONCEPTO ("PEQUEÑA VISTA CON EL CONCEPTO Y QUE DIGA IR A PAGAR") -->
+      @if (fasePago() === 'resumen') {
+        <!-- Header -->
+        <div class="px-6 py-4 bg-[#1b53ad] text-white flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-black m-0 leading-tight">Resumen de Liquidación para Pago</h2>
+              <span class="text-[11px] text-blue-100 font-medium">Verifique el concepto antes de iniciar la transacción</span>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="cerrarModalPago()" 
+            class="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition border-none bg-transparent cursor-pointer"
+            title="Cerrar">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Body: Detalle del Concepto -->
+        <div class="p-6 space-y-4 text-xs">
+          
+          <!-- Concepto Principal -->
+          <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span class="text-[10px] font-black uppercase tracking-wider text-[#1b53ad] block">Concepto del Tributo</span>
+                <h3 class="text-sm font-extrabold text-slate-900 m-0 mt-0.5">Impuesto de Degüello de Ganado Mayor</h3>
+                <span class="text-[11px] text-slate-500">Estatuto Tributario del Departamento del Cauca &middot; Ley 8 de 1909</span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 whitespace-nowrap">
+                Pendiente de Pago
+              </span>
+            </div>
+          </div>
+
+          <!-- Datos de la Declaración y Contribuyente -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">Formulario Oficial</span>
+              <span class="font-mono font-black text-slate-800 text-xs mt-0.5 block">{{ dec.consecutivo }}</span>
+              @if (dec.numeroGuiaIca) {
+                <span class="text-[10.5px] font-mono text-[#1b53ad] block truncate mt-0.5">
+                  <i class="fa-solid fa-barcode mr-1"></i>{{ dec.numeroGuiaIca }}
+                </span>
+              }
+            </div>
+
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">Período / Vigencia</span>
+              <span class="font-bold text-slate-800 text-xs mt-0.5 block">Mes {{ dec.periodoGravable }} / {{ dec.anioGravable }}</span>
+              <span class="text-[10.5px] text-slate-500 block truncate mt-0.5">Vence: {{ dec.fechaLimitePago }}</span>
+            </div>
+
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 col-span-2">
+              <span class="text-[10px] text-slate-400 font-bold uppercase block">Sujeto Pasivo / Contribuyente</span>
+              <span class="font-bold text-slate-800 text-xs block truncate mt-0.5">{{ dec.razonSocial }}</span>
+              <span class="text-[10.5px] text-slate-500 font-mono">NIT: {{ dec.nit }}-{{ dec.dv }} &middot; {{ dec.municipio }}</span>
+            </div>
+
+            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 col-span-2 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] text-slate-400 font-bold uppercase block">Semovientes & Tarifa</span>
+                <span class="font-extrabold text-slate-800 text-xs block mt-0.5">
+                  {{ dec.baseGravable }} Bovinos ({{ dec.especie || 'Bovino Macho Ceba' }})
+                </span>
+              </div>
+              <span class="font-mono text-xs font-bold text-slate-600 bg-white px-2 py-1 rounded-lg border border-slate-200">
+                ${{ dec.tarifa | number:'1.0-0' }} / Cab.
+              </span>
+            </div>
+          </div>
+
+          <!-- Desglose de Valores -->
+          <div class="border-t border-slate-100 pt-3 space-y-1.5">
+            <div class="flex justify-between text-slate-600">
+              <span>Valor Bruto Liquidado:</span>
+              <span class="font-mono font-semibold">${{ dec.valorBruto | number:'1.0-0' }} COP</span>
+            </div>
+            <div class="flex justify-between text-slate-600">
+              <span class="flex items-center gap-1">
+                <span>10% Dispersión Municipal (Ley):</span>
+                <i class="fa-solid fa-circle-info text-[10px] text-slate-400" title="Retenido para distribución de los municipios"></i>
+              </span>
+              <span class="font-mono font-semibold">${{ dec.participacionMunicipios | number:'1.0-0' }} COP</span>
+            </div>
+            @if (dec.sanciones > 0 || dec.interesMora > 0) {
+              <div class="flex justify-between text-rose-600 font-medium">
+                <span>Sanciones / Intereses de Mora:</span>
+                <span class="font-mono font-semibold">+${{ (dec.sanciones + dec.interesMora) | number:'1.0-0' }} COP</span>
+              </div>
+            }
+          </div>
+
+          <!-- Total a Pagar Destacado -->
+          <div class="p-3.5 bg-blue-50 border-2 border-[#1b53ad]/30 rounded-xl flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-black uppercase tracking-wider text-[#1b53ad] block">Total a Pagar</span>
+              <span class="text-[11px] text-slate-500">Valor total del tributo</span>
+            </div>
+            <span class="font-mono font-black text-xl text-[#1b53ad]">
+              ${{ dec.totalAPagar | number:'1.0-0' }} COP
+            </span>
+          </div>
+
+          <!-- Mensaje Informativo de Pasarela / Simulación -->
+          <div class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500">
+            <i class="fa-solid fa-shield-halved text-[#1b53ad] text-xs"></i>
+            <span>Transacción segura y habilitada para acreditación oficial ante la Secretaría de Hacienda.</span>
+          </div>
+
+        </div>
+
+        <!-- Footer: Botones Cancelar e "Ir a pagar" -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+          <button 
+            type="button" 
+            (click)="cerrarModalPago()"
+            class="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+            Cancelar
+          </button>
+
+          <button 
+            type="button" 
+            (click)="ejecutarPagoSimulado()"
+            class="px-5 py-2.5 bg-[#1b53ad] hover:bg-[#154189] text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center gap-2 border-none">
+            <i class="fa-solid fa-arrow-right"></i>
+            <span>Ir a Pagar</span>
+          </button>
+        </div>
+      }
+
+      <!-- FASE 2: LOADER DE SIMULACIÓN (SIN IR A OTRA VISTA) -->
+      @if (fasePago() === 'procesando') {
+        <div class="p-8 text-center space-y-6">
+          <div class="relative w-20 h-20 mx-auto flex items-center justify-center">
+            <div class="absolute inset-0 rounded-full border-4 border-blue-100 animate-pulse"></div>
+            <div class="w-16 h-16 rounded-full border-4 border-[#1b53ad] border-t-transparent animate-spin"></div>
+            <i class="fa-solid fa-credit-card text-[#1b53ad] text-xl absolute"></i>
+          </div>
+
+          <div class="space-y-2">
+            <h3 class="text-base font-black text-slate-900 m-0">Procesando Pago en Línea</h3>
+            <p class="text-xs text-[#1b53ad] font-semibold m-0 transition-all duration-300">
+              {{ textoLoaderPago() }}
+            </p>
+            <p class="text-[11px] text-slate-400 m-0">
+              Simulando pasarela de pagos oficial PSE &middot; Gobernación del Cauca
+            </p>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 text-left text-xs space-y-1 max-w-sm mx-auto">
+            <div class="flex justify-between">
+              <span class="text-slate-500">Formulario:</span>
+              <span class="font-mono font-bold text-slate-700">{{ dec.consecutivo }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Valor a debitar:</span>
+              <span class="font-mono font-bold text-[#1b53ad]">${{ dec.totalAPagar | number:'1.0-0' }} COP</span>
+            </div>
+          </div>
+
+          <div class="text-[10.5px] text-slate-400 italic">
+            Por favor espere un momento, no cierre esta ventana...
+          </div>
+        </div>
+      }
+
+      <!-- FASE 3: CONFIRMACIÓN EXITOSA -->
+      @if (fasePago() === 'exito') {
+        <div class="p-8 text-center space-y-5 animate-fadeIn">
+          <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl shadow-xs">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+
+          <div class="space-y-1">
+            <h3 class="text-base font-black text-slate-900 m-0">¡Pago Exitoso y Acreditado!</h3>
+            <p class="text-xs text-emerald-700 font-semibold m-0">
+              La liquidación ha sido cancelada exitosamente ante la Secretaría de Hacienda.
+            </p>
+          </div>
+
+          <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-left text-xs space-y-2 max-w-sm mx-auto">
+            <div class="flex justify-between">
+              <span class="text-emerald-800 font-medium">N° Formulario:</span>
+              <span class="font-mono font-bold text-slate-800">{{ dec.consecutivo }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-emerald-800 font-medium">Comprobante de Recaudo:</span>
+              <span class="font-mono font-bold text-emerald-700">{{ reciboGenerado() }}</span>
+            </div>
+            <div class="flex justify-between border-t border-emerald-200/60 pt-2">
+              <span class="text-emerald-900 font-bold">Total Pagado:</span>
+              <span class="font-mono font-black text-emerald-800">${{ dec.totalAPagar | number:'1.0-0' }} COP</span>
+            </div>
+          </div>
+
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-bold">
+            <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i>
+            <span>Actualizando estado a Pagado...</span>
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL: RADICACIÓN DE NUEVA GUÍA SANITARIA ICA (PORTAL CONTRIBUYENTE)      -->
+<!-- ========================================================================= -->
+@if (modalRadicarGuiaAbierto()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col my-auto max-h-[92vh]">
+      
+      <!-- FASE 1: FORMULARIO DE RADICACIÓN -->
+      @if (!radicadoResultado()) {
+        <!-- Header -->
+        <div class="px-6 py-4 bg-emerald-700 text-white flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-lg">
+              <i class="fa-solid fa-file-circle-plus"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-black m-0 leading-tight">Radicación de Guía Sanitaria ICA</h2>
+              <span class="text-[11px] text-emerald-100 font-medium">
+                {{ contribuyenteInfo()?.razonSocial || 'Portal de Autogestión PBA' }} &middot; Vigencia 2026
+              </span>
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="cerrarModalRadicarGuia()" 
+            class="text-white/80 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition border-none bg-transparent cursor-pointer"
+            title="Cerrar">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Body con scroll -->
+        <div class="p-6 space-y-5 overflow-y-auto text-xs">
+          
+          @if (errorRadicacion()) {
+            <div class="p-3 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 flex items-center gap-2">
+              <i class="fa-solid fa-circle-exclamation text-rose-500"></i>
+              <span>{{ errorRadicacion() }}</span>
+            </div>
+          }
+
+          <!-- SECCIÓN 1: GUÍA SANITARIA ICA (BÚSQUEDA / INGRESO) -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-800 flex items-center gap-1.5 uppercase text-[11px] tracking-wide">
+                <i class="fa-solid fa-barcode text-emerald-600"></i>
+                1. Identificación de la Guía Sanitaria ICA (SIGMA)
+              </span>
+              <span class="text-[10px] text-slate-400 font-mono">Formato GSMI</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2">
+              <div class="relative flex-1">
+                <input 
+                  type="text" 
+                  [(ngModel)]="formRadicacion.numeroGuiaIca" 
+                  name="numeroGuiaIcaModal" 
+                  placeholder="Ej. GSMI-2026-004521"
+                  class="w-full pl-3 pr-3 py-2.5 bg-white border border-slate-300 rounded-xl font-mono font-bold text-slate-800 text-xs placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none uppercase"
+                />
+              </div>
+              <button 
+                type="button"
+                (click)="consultarGuiaEnIca()"
+                [disabled]="buscandoIcaModal()"
+                class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-bold rounded-xl text-xs transition cursor-pointer border-none shadow-xs flex items-center justify-center gap-1.5 shrink-0"
+              >
+                @if (buscandoIcaModal()) {
+                  <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                  <span>Consultando...</span>
+                } @else {
+                  <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                  <span>Importar de SIGMA</span>
+                }
+              </button>
+            </div>
+
+            @if (mensajeIcaModal(); as m) {
+              <div 
+                class="p-2.5 rounded-lg text-[11px] flex items-center gap-2"
+                [class.bg-emerald-50]="m.tipo === 'success'"
+                [class.text-emerald-800]="m.tipo === 'success'"
+                [class.border]="m.tipo === 'success'"
+                [class.border-emerald-200]="m.tipo === 'success'"
+                [class.bg-amber-50]="m.tipo === 'error'"
+                [class.text-amber-800]="m.tipo === 'error'"
+                [class.border-amber-200]="m.tipo === 'error'"
+              >
+                <i class="fa-solid" [class.fa-check]="m.tipo === 'success'" [class.fa-circle-info]="m.tipo === 'error'"></i>
+                <span>{{ m.texto }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- SECCIÓN 2: ANEXO DIGITAL DE LA GUÍA (ALMACENAMIENTO FTP DE LA EMPRESA) -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="block font-bold text-slate-700 text-xs">
+                2. Anexo Digital de la Guía ICA (Soporte FTP) <span class="text-rose-500">*</span>
+              </label>
+              <span class="text-[10px] text-slate-400 font-mono">
+                /DEGUELLO/EMPRESAS/{{ contribuyenteInfo()?.nit }}/2026/GUIAS_ICA
+              </span>
+            </div>
+
+            @if (!formRadicacion.rutaArchivoGuiaIca && !archivoGuiaSeleccionado()) {
+              <label class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-50/60 hover:bg-emerald-50/30 transition group">
+                <i class="fa-solid fa-cloud-arrow-up text-slate-400 group-hover:text-emerald-600 text-2xl mb-1.5 transition"></i>
+                <span class="text-xs font-bold text-slate-700 group-hover:text-emerald-700">Seleccionar o arrastrar la Guía Sanitaria ICA</span>
+                <span class="text-[10.5px] text-slate-400 mt-0.5">Formatos: PDF, JPG, PNG &middot; Máximo 15MB</span>
+                <input 
+                  type="file" 
+                  accept=".pdf,image/png,image/jpeg" 
+                  (change)="onArchivoGuiaSeleccionado($event)"
+                  class="hidden" 
+                />
+              </label>
+            } @else {
+              <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 truncate">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                    <i class="fa-solid fa-file-pdf text-sm"></i>
+                  </div>
+                  <div class="truncate">
+                    <span class="font-bold text-emerald-950 block truncate text-xs">{{ formRadicacion.nombreArchivoGuiaIca || archivoGuiaSeleccionado()?.name }}</span>
+                    <span class="text-[10.5px] text-emerald-700 font-mono block">
+                      @if (subiendoGuiaFtp()) {
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Subiendo al FTP de la empresa...
+                      } @else {
+                        Almacenado en FTP: {{ formRadicacion.rutaArchivoGuiaIca || 'Cargado en servidor institucional' }}
+                      }
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  (click)="eliminarArchivoGuia()"
+                  class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-100/50 rounded-lg transition border-none bg-transparent cursor-pointer shrink-0"
+                  title="Quitar archivo"
+                >
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- SECCIÓN 3: DATOS DEL GANADO Y PROCEDENCIA DE LOS ANIMALES -->
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+            <div class="border-b border-slate-200 pb-2">
+              <span class="font-bold text-slate-800 flex items-center gap-1.5 uppercase text-[11px] tracking-wide">
+                <i class="fa-solid fa-cow text-emerald-600"></i>
+                3. Datos del Ganado y Procedencia de los Animales
+              </span>
+              <p class="text-[10.5px] text-slate-500 m-0 mt-0.5 leading-relaxed">
+                La procedencia corresponde al origen del ganado según la Guía ICA (finca, predio o municipio de partida), no a la ubicación de la planta de beneficio.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1">
+                  Cantidad de Semovientes (Bovinos) <span class="text-rose-500">*</span>
+                </label>
+                <input 
+                  type="number"
+                  min="1"
+                  [ngModel]="baseGravableRadicacion()"
+                  (ngModelChange)="baseGravableRadicacion.set($event)"
+                  name="cabezasModal"
+                  placeholder="Ej. 25"
+                  class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-bold font-mono text-slate-800 text-xs focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none"
+                />
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1">
+                  Especie de Ganado Mayor
+                </label>
+                <select 
+                  [(ngModel)]="formRadicacion.especie"
+                  name="especieModal"
+                  class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl font-semibold text-slate-800 text-xs focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none"
+                >
+                  <option value="Bovino Macho Ceba">Bovino Macho Ceba</option>
+                  <option value="Bovino Hembra">Bovino Hembra</option>
+                  <option value="Bovino Ternero">Bovino Ternero</option>
+                  <option value="Bufalino">Bufalino</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1">
+                  Municipio de Procedencia del Ganado <span class="text-[10px] text-slate-400 font-normal">(Origen)</span>
+                </label>
+                <select 
+                  [(ngModel)]="formRadicacion.municipioProcedenciaGanado"
+                  name="municipioProcedenciaModal"
+                  class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none"
+                >
+                  <option value="">-- Seleccionar municipio de origen (opcional) --</option>
+                  @for (m of municipiosCauca; track m) {
+                    <option [value]="m">{{ m }}</option>
+                  }
+                  <option value="OTRO">Otro Municipio / Departamento</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-bold text-slate-700 text-xs mb-1">
+                  Predio / Finca de Origen <span class="text-[10px] text-slate-400 font-normal">(Opcional)</span>
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formRadicacion.predioOrigen"
+                  name="predioOrigenModal"
+                  placeholder="Nombre de finca o predio..."
+                  class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-slate-800 text-xs focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 outline-none"
+                />
+              </div>
+            </div>
+
+            <!-- Resumen de Destino vs Origen -->
+            <div class="mt-2 p-2.5 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-600 gap-2">
+              <div class="flex items-center gap-1.5">
+                <i class="fa-solid fa-location-arrow text-emerald-600"></i>
+                <span><strong>Origen de los animales:</strong> {{ formRadicacion.predioOrigen || formRadicacion.municipioProcedenciaGanado || 'Según Guía Sanitaria ICA' }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 border-t sm:border-t-0 sm:border-l border-slate-200 pt-1 sm:pt-0 sm:pl-3">
+                <i class="fa-solid fa-building text-[#1b53ad]"></i>
+                <span><strong>Planta de sacrificio:</strong> {{ contribuyenteInfo()?.razonSocial || 'Planta Beneficio' }} ({{ contribuyenteInfo()?.municipio }})</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 4: LIQUIDACIÓN FINANCIERA EN VIVO -->
+          <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2">
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Tarifa Oficial 2026:</span>
+              <span class="font-mono font-bold text-slate-800">${{ tarifaRadicacion() | number:'1.0-0' }} COP / Cabeza</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>Valor Bruto ({{ baseGravableRadicacion() || 0 }} Cabezas):</span>
+              <span class="font-mono font-bold text-slate-800">${{ valorBrutoRadicacion() | number:'1.0-0' }} COP</span>
+            </div>
+            <div class="flex items-center justify-between text-slate-600">
+              <span>10% Dispersión Municipal (Ley):</span>
+              <span class="font-mono font-bold text-indigo-700">${{ dispersionMpalRadicacion() | number:'1.0-0' }} COP</span>
+            </div>
+            <div class="border-t border-emerald-200/80 pt-2 flex items-center justify-between">
+              <div>
+                <span class="text-[10px] font-black uppercase text-emerald-900 block">Total a Liquidar</span>
+                <span class="text-[10.5px] text-emerald-700">Pasa a cola de revisión oficial</span>
+              </div>
+              <span class="font-mono font-black text-lg text-emerald-800">
+                ${{ totalRadicacion() | number:'1.0-0' }} COP
+              </span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
+          <button 
+            type="button" 
+            (click)="cerrarModalRadicarGuia()"
+            [disabled]="radicandoGuia()"
+            class="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+            Cancelar
+          </button>
+
+          <button 
+            type="button" 
+            (click)="confirmarRadicacionGuia()"
+            [disabled]="radicandoGuia() || subiendoGuiaFtp()"
+            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center gap-2 border-none">
+            @if (radicandoGuia()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Radicando expediente...</span>
+            } @else {
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>Radicar Guía para Aprobación</span>
+            }
+          </button>
+        </div>
+      }
+
+      <!-- FASE 2: ÉXITO DE RADICACIÓN -->
+      @if (radicadoResultado(); as res) {
+        <div class="p-8 text-center space-y-5 animate-fadeIn">
+          <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto text-3xl shadow-xs">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+
+          <div class="space-y-1">
+            <h3 class="text-base font-black text-slate-900 m-0">¡Guía Radicada Exitosamente!</h3>
+            <p class="text-xs text-slate-500 m-0 max-w-md mx-auto">
+              Su expediente ingresó oficialmente al sistema tributario de la Gobernación del Cauca.
+            </p>
+          </div>
+
+          <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-left text-xs space-y-2 max-w-md mx-auto">
+            <div class="flex justify-between">
+              <span class="text-emerald-800 font-medium">N° de Radicado Oficial:</span>
+              <span class="font-mono font-black text-emerald-900">{{ res.radicado }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-emerald-800 font-medium">Turno en Cola de Revisión:</span>
+              <span class="font-mono font-bold text-blue-700">Turno #{{ res.turno }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-emerald-800 font-medium">Formulario Generado:</span>
+              <span class="font-mono font-bold text-slate-800">{{ res.consecutivo }}</span>
+            </div>
+            <div class="border-t border-emerald-200/80 pt-2 text-[11px] text-emerald-800 leading-relaxed">
+              <i class="fa-solid fa-circle-info mr-1 text-emerald-600"></i>
+              La Dirección de Rentas cotejará el anexo digital de la guía ICA. Una vez aprobada, el estado cambiará a <strong>Pendiente de Pago</strong> para habilitar su cancelación en línea.
+            </div>
+          </div>
+
+          <button 
+            type="button"
+            (click)="cerrarModalRadicarGuia()"
+            class="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs transition cursor-pointer border-none shadow-xs"
+          >
+            Volver a Mis Liquidaciones
+          </button>
+        </div>
+      }
+
+    </div>
+  </div>
+}
+
+<!-- ========================================================================= -->
+<!-- MODAL: RELIQUIDACIÓN POR VENCIMIENTO (ART. 634 E.T.) EN EL PORTAL         -->
+<!-- ========================================================================= -->
+@if (declaracionParaReliquidar(); as dec) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+      <div class="px-6 py-4 bg-indigo-700 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+          <div>
+            <h2 class="text-sm font-black m-0">Reliquidación por Vencimiento</h2>
+            <span class="text-[11px] text-indigo-200 font-medium">Art. 634 Estatuto Tributario</span>
+          </div>
+        </div>
+        <button type="button" (click)="cerrarModalReliquidar()" class="text-white/80 hover:text-white border-none bg-transparent cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-3 text-xs">
+        <p class="text-slate-600 m-0 leading-relaxed">
+          Se emitirá una nueva liquidación actualizada para el formulario <strong class="font-mono text-indigo-700">{{ dec.consecutivo }}</strong> con cálculo de intereses moratorios vigentes y nuevo plazo de 5 días hábiles.
+        </p>
+
+        <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+          <div class="flex justify-between">
+            <span class="text-slate-500">Cabezas:</span>
+            <span class="font-bold text-slate-800">{{ dec.baseGravable }} Bovinos</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-500">Impuesto Base:</span>
+            <span class="font-mono font-bold text-slate-800">${{ dec.subtotal | number:'1.0-0' }} COP</span>
+          </div>
+          <div class="flex justify-between text-rose-600">
+            <span>Interés Mora (aprox.):</span>
+            <span class="font-mono font-bold">+${{ (dec.subtotal * 0.05) | number:'1.0-0' }} COP</span>
+          </div>
+          <div class="flex justify-between border-t border-slate-200 pt-1.5 font-bold">
+            <span>Nuevo Total Estimado:</span>
+            <span class="font-mono font-black text-indigo-700">${{ (dec.subtotal * 1.05) | number:'1.0-0' }} COP</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button type="button" (click)="cerrarModalReliquidar()" class="px-4 py-2 bg-white text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          (click)="confirmarReliquidacion()"
+          [disabled]="reliquidando()"
+          class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-black rounded-xl text-xs transition cursor-pointer border-none flex items-center gap-1.5">
+          @if (reliquidando()) {
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Reliquidando...</span>
+          } @else {
+            <i class="fa-solid fa-check"></i>
+            <span>Confirmar Reliquidación</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

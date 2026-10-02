@@ -185,6 +185,16 @@
           class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
           Reliquidados
         </button>
+
+        <button 
+          (click)="filtroEstado.set('RECHAZADA')"
+          [class.bg-rose-600]="filtroEstado() === 'RECHAZADA'"
+          [class.text-white]="filtroEstado() === 'RECHAZADA'"
+          [class.bg-white]="filtroEstado() !== 'RECHAZADA'"
+          [class.text-slate-600]="filtroEstado() !== 'RECHAZADA'"
+          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
+          Rechazadas ({{ totalRechazadas() }})
+        </button>
       </div>
 
     </div>
@@ -215,13 +225,13 @@
                 </span>
                 <span *ngIf="!d.numeroRadicado" class="text-[10px] text-slate-400 font-mono">{{ d.numeroGuiaIca }}</span>
                 
-                <a *ngIf="d.rutaArchivoGuiaIca" 
-                   [href]="obtenerUrlDescarga(d.rutaArchivoGuiaIca)" 
-                   target="_blank" 
-                   title="Ver Anexo Soporte Guía ICA Oficial" 
-                   class="text-[11px] text-emerald-600 hover:text-emerald-800 transition">
+                <button *ngIf="d.rutaArchivoGuiaIca" 
+                   type="button"
+                   (click)="abrirPreviewSoporte(d.rutaArchivoGuiaIca, d.nombreArchivoGuiaIca)" 
+                   title="Previsualizar Anexo Soporte Guía ICA Oficial" 
+                   class="text-[11px] text-emerald-600 hover:text-emerald-800 transition bg-transparent border-none p-0 cursor-pointer">
                   <i class="fa-solid fa-file-medical"></i>
-                </a>
+                </button>
                 <a *ngIf="d.rutaArchivoLiquidacionPdf" 
                    [href]="obtenerUrlDescarga(d.rutaArchivoLiquidacionPdf)" 
                    target="_blank" 
@@ -265,14 +275,23 @@
                       'bg-amber-100 text-amber-800': d.estadoPago === 'PENDIENTE',
                       'bg-rose-100 text-rose-800': d.estadoPago === 'VENCIDO',
                       'bg-slate-100 text-slate-600 border border-slate-300': d.estadoPago === 'RELIQUIDADA',
-                      'bg-purple-100 text-purple-800': d.estadoPago === 'CORREGIDA'
+                      'bg-purple-100 text-purple-800': d.estadoPago === 'CORREGIDA',
+                      'bg-rose-50 text-rose-700 border border-rose-300': d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA'
                     }">
                 <i *ngIf="d.estadoPago === 'RADICADA'" class="fa-solid fa-hourglass-half mr-1 text-[10px]"></i>
                 <i *ngIf="d.estadoPago === 'PAGADO'" class="fa-solid fa-circle-check mr-1 text-[10px]"></i>
                 <i *ngIf="d.estadoPago === 'VENCIDO'" class="fa-solid fa-triangle-exclamation mr-1 text-[10px]"></i>
                 <i *ngIf="d.estadoPago === 'RELIQUIDADA'" class="fa-solid fa-ban mr-1 text-[10px]"></i>
+                <i *ngIf="d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA'" class="fa-solid fa-circle-xmark mr-1 text-[10px]"></i>
 
                 {{ d.estadoPago }} {{ d.estadoPago === 'RADICADA' && d.turnoRevision ? '(Turno #' + d.turnoRevision + ')' : '' }}
+              </span>
+
+              <!-- Motivo del Rechazo si aplica -->
+              <span *ngIf="(d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA') && d.observacionAnulacion" 
+                    [title]="'Motivo oficial del rechazo: ' + d.observacionAnulacion"
+                    class="block text-[10px] text-rose-600 font-semibold mt-0.5 truncate max-w-[140px] mx-auto cursor-help">
+                <i class="fa-solid fa-circle-exclamation text-[9px] mr-0.5"></i>{{ d.observacionAnulacion }}
               </span>
 
               <!-- Aclaración Estado RELIQUIDADA: Registro histórico sustituido -->
@@ -323,6 +342,17 @@
                   title="Consultar comprobante de recaudo bancario y estado de acreditación">
                   <i class="fa-solid fa-receipt"></i>
                   <span>Ver Recaudo</span>
+                </button>
+
+                <!-- Previsualizar soporte FTP directo si fue adjuntado -->
+                <button 
+                  *ngIf="d.estadoPago === 'PAGADO' && d.rutaArchivoPago"
+                  type="button"
+                  (click)="abrirPreviewSoporte(d.rutaArchivoPago, d.nombreArchivoPago || 'Comprobante_Pago.pdf')"
+                  class="px-2 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-300 transition cursor-pointer flex items-center space-x-1"
+                  [title]="'Previsualizar soporte de pago FTP: ' + (d.nombreArchivoPago || 'Comprobante.pdf')">
+                  <i class="fa-solid fa-file-invoice"></i>
+                  <span>Soporte</span>
                 </button>
 
                 <!-- 4. Para VENCIDAS: Botón RELIQUIDAR -->
@@ -385,12 +415,31 @@
       <!-- Modal Body -->
       <div class="p-6 overflow-y-auto space-y-4 text-xs">
         
-        <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 flex items-start gap-2.5">
+        <!-- Banner de Validación Oficial o Modo Edición -->
+        <div *ngIf="!modoEdicionRevision()" class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 flex items-start gap-2.5">
           <i class="fa-solid fa-user-shield text-blue-600 text-sm mt-0.5"></i>
           <div>
             <strong class="block">Validación de Funcionario Público:</strong>
-            Verifique la concordancia entre la cantidad de cabezas declaradas, el destino de la planta de beneficio y el soporte oficial de la Guía Sanitaria ICA antes de autorizar la emisión para pago.
+            Verifique la concordancia entre la cantidad de cabezas declaradas, la procedencia y el soporte oficial de la Guía Sanitaria ICA. Si detecta inconsistencias, puede modificar los valores o rechazar la radicación.
           </div>
+        </div>
+
+        <!-- Banner Modo Edición Activo -->
+        <div *ngIf="modoEdicionRevision()" class="p-3 bg-amber-50 border-2 border-amber-300 rounded-xl text-amber-950 flex items-center justify-between gap-3 animate-pulse">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-bold shrink-0">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div>
+              <strong class="block text-xs text-amber-900">Modo de Edición y Ajuste Oficial Activo</strong>
+              <span class="text-[11px] text-amber-800">Modifique la cantidad de cabezas o el N° de Guía ICA. La liquidación tributaria se recalculará automáticamente.</span>
+            </div>
+          </div>
+          <button type="button" 
+                  (click)="cancelarEdicionRevision()" 
+                  class="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg font-bold text-xs cursor-pointer shrink-0 transition">
+            Descartar
+          </button>
         </div>
 
         <!-- Fila 1: Datos del Contribuyente -->
@@ -416,59 +465,105 @@
           </div>
         </div>
 
-        <!-- Fila 2: Guía Sanitaria ICA y Soporte -->
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <span class="text-[10px] font-black uppercase text-slate-400 block mb-2">2. Datos Sanitarios & Soporte ICA</span>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <!-- Fila 2: Guía Sanitaria ICA y Soporte (Con soporte de edición en caliente) -->
+        <div class="p-4 rounded-xl border transition-all"
+             [ngClass]="modoEdicionRevision() ? 'bg-amber-50/40 border-amber-300 ring-2 ring-amber-200' : 'bg-slate-50 border-slate-200'">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-black uppercase"
+                  [ngClass]="modoEdicionRevision() ? 'text-amber-800' : 'text-slate-400'">
+              2. Datos Sanitarios & Soporte ICA {{ modoEdicionRevision() ? '(Campos Editables)' : '' }}
+            </span>
+            <span *ngIf="modoEdicionRevision()" class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+              Editable
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
             <div>
               <span class="text-slate-500 font-medium">N° Guía Sanitaria ICA:</span>
-              <p class="font-bold text-emerald-700 m-0 font-mono text-sm">{{ dec.numeroGuiaIca || 'G-2026-CAUCA-9182' }}</p>
+              @if (!modoEdicionRevision()) {
+                <p class="font-bold text-emerald-700 m-0 font-mono text-sm">{{ dec.numeroGuiaIca || 'Sin Guía' }}</p>
+              } @else {
+                <input type="text" 
+                       [ngModel]="editGuiaRevision()" 
+                       (ngModelChange)="editGuiaRevision.set($event)"
+                       class="w-full mt-1 px-2.5 py-1.5 border border-amber-400 bg-white rounded-lg font-mono font-bold text-xs text-slate-800 uppercase focus:ring-2 focus:ring-amber-500" 
+                       placeholder="Ej: GSMI-2026-004521" />
+              }
             </div>
+
             <div>
               <span class="text-slate-500 font-medium">Semovientes Bovinos:</span>
-              <p class="font-black text-[#1b53ad] m-0 text-sm font-mono">{{ dec.baseGravable }} Cabezas</p>
+              @if (!modoEdicionRevision()) {
+                <p class="font-black text-[#1b53ad] m-0 text-sm font-mono">{{ dec.baseGravable }} Cabezas</p>
+              } @else {
+                <div class="flex items-center gap-1.5 mt-1">
+                  <input type="number" 
+                         min="1" 
+                         [ngModel]="editCabezasRevision()" 
+                         (ngModelChange)="editCabezasRevision.set($event)"
+                         class="w-full px-2.5 py-1.5 border-2 border-amber-500 bg-white rounded-lg font-mono font-black text-sm text-[#1b53ad] focus:ring-2 focus:ring-amber-500" />
+                  <span class="text-xs font-bold text-slate-500 shrink-0">Cabezas</span>
+                </div>
+              }
             </div>
+
             <div>
               <span class="text-slate-500 font-medium">Vigencia ICA:</span>
-              <p class="font-semibold text-slate-700 m-0">{{ dec.fechaVencimientoGuia || 'Vigente' }}</p>
+              <p class="font-semibold text-slate-700 m-0 mt-1">{{ dec.fechaVencimientoGuia || 'Vigente' }}</p>
             </div>
           </div>
 
           <!-- Botón de Cotejo de Soporte -->
-          <div class="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
-            <span class="text-slate-600 font-medium">Archivo Soporte de la Guía:</span>
-            <a *ngIf="dec.rutaArchivoGuiaIca" 
-               [href]="obtenerUrlDescarga(dec.rutaArchivoGuiaIca)" 
-               target="_blank"
-               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-xs no-underline cursor-pointer">
-              <i class="fa-solid fa-file-pdf"></i>
-              <span>Abrir Soporte Guía ICA Adjunto</span>
-            </a>
-            <span *ngIf="!dec.rutaArchivoGuiaIca" class="text-slate-400 italic">
-              Sin documento adjunto digitalizado
-            </span>
+          <div class="mt-3 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-slate-700 font-bold text-xs block">Archivo Soporte de la Guía ICA:</span>
+              <span class="text-[11px] text-slate-500 font-mono">{{ dec.nombreArchivoGuiaIca || 'Documento_Guia_Sanitaria.pdf' }}</span>
+            </div>
+            <div>
+              <button *ngIf="dec.rutaArchivoGuiaIca" 
+                      type="button"
+                      (click)="abrirPreviewSoporte(dec.rutaArchivoGuiaIca, dec.nombreArchivoGuiaIca)" 
+                      class="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg font-bold text-xs shadow-sm border-none cursor-pointer transition">
+                <i class="fa-solid fa-eye"></i>
+                <span>Abrir Soporte Guía ICA (Vista Previa)</span>
+              </button>
+              <span *ngIf="!dec.rutaArchivoGuiaIca" class="text-slate-400 italic text-xs">
+                Sin documento adjunto digitalizado
+              </span>
+            </div>
           </div>
         </div>
 
-        <!-- Fila 3: Liquidación Tributaria Calculada -->
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-          <span class="text-[10px] font-black uppercase text-slate-400 block mb-2">3. Liquidación Tributaria Oficial</span>
+        <!-- Fila 3: Liquidación Tributaria Calculada (Recalculo dinámico en edición) -->
+        <div class="p-4 rounded-xl border transition-all"
+             [ngClass]="modoEdicionRevision() ? 'bg-amber-50/30 border-amber-200' : 'bg-slate-50 border-slate-200'">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-black uppercase text-slate-400 block">3. Liquidación Tributaria Oficial</span>
+            <span *ngIf="modoEdicionRevision()" class="text-[10px] text-amber-700 font-mono font-bold">
+              Recalculado: {{ calculoEdicionRevision().baseGravable }} cabezas
+            </span>
+          </div>
+
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
             <div class="p-2 bg-white rounded-lg border border-slate-200">
               <span class="text-slate-400 text-[10px] block">Tarifa 2026</span>
-              <span class="font-bold text-slate-800 font-mono">${{ dec.tarifa | number:'1.0-0' }}</span>
+              <span class="font-bold text-slate-800 font-mono">${{ (modoEdicionRevision() ? calculoEdicionRevision().tarifa : dec.tarifa) | number:'1.0-0' }}</span>
             </div>
             <div class="p-2 bg-white rounded-lg border border-slate-200">
               <span class="text-slate-400 text-[10px] block">Valor Bruto</span>
-              <span class="font-bold text-slate-800 font-mono">${{ dec.valorBruto | number:'1.0-0' }}</span>
+              <span class="font-bold text-slate-800 font-mono">${{ (modoEdicionRevision() ? calculoEdicionRevision().valorBruto : dec.valorBruto) | number:'1.0-0' }}</span>
             </div>
             <div class="p-2 bg-white rounded-lg border border-slate-200">
               <span class="text-slate-400 text-[10px] block">10% Dispersión Mpal.</span>
-              <span class="font-bold text-indigo-700 font-mono">${{ dec.participacionMunicipios | number:'1.0-0' }}</span>
+              <span class="font-bold text-indigo-700 font-mono">${{ (modoEdicionRevision() ? calculoEdicionRevision().participacionMunicipios : dec.participacionMunicipios) | number:'1.0-0' }}</span>
             </div>
-            <div class="p-2 bg-blue-100/60 rounded-lg border border-blue-200">
-              <span class="text-blue-900 text-[10px] font-bold block">Total a Recaudar</span>
-              <span class="font-black text-[#1b53ad] font-mono">${{ dec.totalAPagar | number:'1.0-0' }}</span>
+            <div class="p-2 rounded-lg border"
+                 [ngClass]="modoEdicionRevision() ? 'bg-amber-100/70 border-amber-300' : 'bg-blue-100/60 border-blue-200'">
+              <span class="text-[10px] font-bold block"
+                    [ngClass]="modoEdicionRevision() ? 'text-amber-900' : 'text-blue-900'">Total a Recaudar</span>
+              <span class="font-black font-mono"
+                    [ngClass]="modoEdicionRevision() ? 'text-amber-900' : 'text-[#1b53ad]'">${{ (modoEdicionRevision() ? calculoEdicionRevision().totalAPagar : dec.totalAPagar) | number:'1.0-0' }}</span>
             </div>
           </div>
         </div>
@@ -476,32 +571,106 @@
         <!-- Fila 4: Observaciones del Funcionario -->
         <div>
           <label class="block text-slate-700 font-bold mb-1">
-            Concepto / Observaciones de Aprobación del Funcionario:
+            <span *ngIf="!modoEdicionRevision()">Concepto / Observaciones del Funcionario:</span>
+            <span *ngIf="modoEdicionRevision()" class="text-amber-800 font-bold">Justificación del Ajuste Oficial de Información:</span>
           </label>
           <textarea 
             [ngModel]="observacionesRevision()"
             (ngModelChange)="observacionesRevision.set($event)"
             rows="2"
             class="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-blue-600 transition"
-            placeholder="Ingrese el concepto de verificación o novedades técnicas..."></textarea>
+            [placeholder]="modoEdicionRevision() ? 'Explique por qué se ajustaron los datos (ej: Cotejo con soporte Guía ICA corregido)...' : 'Ingrese el concepto de verificación o novedades técnicas...'"></textarea>
         </div>
 
       </div>
 
-      <!-- Modal Footer -->
-      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
-        <button 
-          (click)="cerrarRevision()" 
-          class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
-          Cancelar
-        </button>
+      <!-- Modal Footer con Opciones de MODIFICAR, RECHAZAR o APROBAR -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        
+        <!-- Estado Normal de Revisión -->
+        <ng-container *ngIf="!modoEdicionRevision()">
+          <button 
+            type="button"
+            (click)="cerrarRevision()" 
+            class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+            Cancelar
+          </button>
 
-        <button 
-          (click)="confirmarAprobacion()" 
-          class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-2 border-none">
-          <i class="fa-solid fa-circle-check"></i>
-          <span>Aprobar y Habilitar para Pago</span>
-        </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 1. Botón RECHAZAR -->
+            <button 
+              type="button"
+              (click)="rechazarRadicacion()" 
+              [disabled]="procesandoRevision()"
+              class="px-3.5 py-2 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-300 hover:border-rose-600 font-bold rounded-xl text-xs transition cursor-pointer flex items-center space-x-1.5 disabled:opacity-50">
+              <i class="fa-solid fa-circle-xmark"></i>
+              <span>Rechazar Radicación</span>
+            </button>
+
+            <!-- 2. Botón MODIFICAR -->
+            <button 
+              type="button"
+              (click)="activarEdicionRevision()" 
+              [disabled]="procesandoRevision()"
+              class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-300 hover:border-indigo-600 font-bold rounded-xl text-xs transition cursor-pointer flex items-center space-x-1.5 disabled:opacity-50">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>Modificar Datos</span>
+            </button>
+
+            <!-- 3. Botón APROBAR -->
+            <button 
+              type="button"
+              (click)="confirmarAprobacion()" 
+              [disabled]="procesandoRevision()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-1.5 border-none disabled:opacity-50">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>Aprobar y Habilitar para Pago</span>
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- Estado en MODO EDICIÓN -->
+        <ng-container *ngIf="modoEdicionRevision()">
+          <button 
+            type="button"
+            (click)="cancelarEdicionRevision()" 
+            class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+            Descartar Cambios
+          </button>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Abrir en liquidador completo si se requiere cambiar representante, fecha, etc. -->
+            <button 
+              type="button"
+              (click)="irALiquidadorAvanzado(dec)" 
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs cursor-pointer border border-slate-300 flex items-center space-x-1" 
+              title="Abrir en el módulo de liquidación completa">
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              <span class="hidden sm:inline">Edición Completa</span>
+            </button>
+
+            <!-- Guardar ajuste sin aprobar aún -->
+            <button 
+              type="button"
+              (click)="guardarEdicionRevision(false)" 
+              [disabled]="procesandoRevision()"
+              class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer border-none flex items-center space-x-1.5 shadow-sm disabled:opacity-50">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Guardar Ajuste</span>
+            </button>
+
+            <!-- Guardar ajuste y APROBAR inmediatamente -->
+            <button 
+              type="button"
+              (click)="guardarEdicionRevision(true)" 
+              [disabled]="procesandoRevision()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs transition cursor-pointer border-none flex items-center space-x-1.5 shadow-md disabled:opacity-50">
+              <i class="fa-solid fa-check-double"></i>
+              <span>Guardar y Aprobar para Pago</span>
+            </button>
+          </div>
+        </ng-container>
+
       </div>
 
     </div>
@@ -588,11 +757,65 @@
           <div>
             <label class="block text-slate-700 font-bold mb-1">N° Comprobante / Pin de Consignación:</label>
             <input 
-              type="text"
+              type="text" 
               [ngModel]="numeroComprobante()"
               (ngModelChange)="numeroComprobante.set($event)"
               placeholder="Ej: REC-BAN-849102"
               class="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 font-mono font-bold focus:ring-2 focus:ring-emerald-600 transition" />
+          </div>
+
+          <!-- CAMPO ADJUNTO: COMPROBANTE DE PAGO BANCARIO EN FTP -->
+          <div class="pt-1">
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-slate-700 font-bold">
+                Comprobante / Soporte de Consignación Bancaria:
+              </label>
+              <span class="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-server text-[9px]"></i> Almacenamiento FTP por Contribuyente
+              </span>
+            </div>
+
+            @if (!archivoComprobanteSeleccionado()) {
+              <label class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-50/60 hover:bg-emerald-50/30 transition group">
+                <i class="fa-solid fa-cloud-arrow-up text-slate-400 group-hover:text-emerald-600 text-lg mb-1 transition"></i>
+                <span class="text-xs font-bold text-slate-700 group-hover:text-emerald-700">Seleccionar Comprobante de Pago</span>
+                <span class="text-[10.5px] text-slate-400 mt-0.5">PDF, PNG, JPG (Máx. 10MB) &middot; Carpeta: /DEGUELLO/EMPRESAS/{{ dec.nit }}/{{ dec.anioGravable }}/SOPORTES_PAGO</span>
+                <input 
+                  type="file" 
+                  accept=".pdf,image/png,image/jpeg" 
+                  (change)="onArchivoComprobanteSeleccionado($event)"
+                  class="hidden" 
+                />
+              </label>
+            } @else {
+              <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 truncate">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                    <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
+                  </div>
+                  <div class="truncate">
+                    <span class="font-bold text-emerald-950 block truncate text-xs">{{ archivoComprobanteSeleccionado()?.name }}</span>
+                    <span class="text-[10.5px] text-emerald-700 font-mono block">
+                      {{ (archivoComprobanteSeleccionado()?.size || 0) / 1024 | number:'1.0-1' }} KB &middot; Guardando en FTP: /DEGUELLO/EMPRESAS/{{ dec.nit }}/{{ dec.anioGravable }}/SOPORTES_PAGO
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  (click)="eliminarArchivoComprobante()"
+                  class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-100/50 rounded-lg transition border-none bg-transparent cursor-pointer shrink-0"
+                  title="Quitar archivo"
+                >
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
+            }
+
+            @if (errorArchivoComprobante()) {
+              <p class="text-rose-600 text-[11px] mt-1 m-0 flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation text-xs"></i> {{ errorArchivoComprobante() }}
+              </p>
+            }
           </div>
         </div>
 
@@ -602,15 +825,22 @@
       <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
         <button 
           (click)="cerrarPagoBancario()" 
-          class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+          [disabled]="subiendoComprobanteFtp()"
+          class="px-4 py-2 bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
           Cancelar
         </button>
 
         <button 
           (click)="confirmarPagoBancario()" 
-          class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-2 border-none">
-          <i class="fa-solid fa-check-double"></i>
-          <span>Confirmar Recaudo en BD</span>
+          [disabled]="subiendoComprobanteFtp()"
+          class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-2 border-none">
+          @if (subiendoComprobanteFtp()) {
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Subiendo a FTP del Contribuyente...</span>
+          } @else {
+            <i class="fa-solid fa-check-double"></i>
+            <span>Confirmar Recaudo en BD</span>
+          }
         </button>
       </div>
 
@@ -657,6 +887,27 @@
           <span class="text-slate-900 font-extrabold text-sm">Valor Pagado:</span>
           <span class="font-mono font-black text-base text-emerald-700">$ {{ dec.totalAPagar | number:'1.0-0' }} COP</span>
         </div>
+
+        @if (dec.rutaArchivoPago) {
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between gap-2 mt-2">
+            <div class="flex items-center gap-2 truncate">
+              <i class="fa-solid fa-file-invoice text-blue-600 text-base"></i>
+              <div class="truncate">
+                <span class="font-bold text-blue-900 block truncate">{{ dec.nombreArchivoPago || 'Comprobante_Pago.pdf' }}</span>
+                <span class="text-[10px] text-blue-600 font-mono">Almacenado en FTP del contribuyente (NIT: {{ dec.nit }})</span>
+              </div>
+            </div>
+            <button 
+              type="button"
+              (click)="abrirPreviewSoporte(dec.rutaArchivoPago, dec.nombreArchivoPago || 'Comprobante_Pago.pdf')"
+              class="px-2.5 py-1.5 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold rounded-lg text-xs cursor-pointer border-none flex items-center gap-1.5 shrink-0 transition"
+              title="Previsualizar comprobante bancario"
+            >
+              <i class="fa-solid fa-eye text-xs"></i>
+              <span>Ver Soporte</span>
+            </button>
+          </div>
+        }
       </div>
 
       <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
@@ -682,5 +933,113 @@
     [declaracion]="dec"
     (cerrar)="cerrarFacturaModal()">
   </app-factura-modal>
+
+  <!-- ============================================================ -->
+  <!-- MODAL DE PREVISUALIZACIÓN DE SOPORTES DOCUMENTALES (SIN DESCARGA) -->
+  <!-- ============================================================ -->
+  <div *ngIf="previewSoporteVisible()" 
+       class="fixed inset-0 z-[80] bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4"
+       role="dialog" 
+       aria-modal="true" 
+       (click)="cerrarPreviewSoporte()">
+       
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden border border-slate-200"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Encabezado del Visor -->
+      <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div class="flex items-center space-x-3 truncate">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0">
+            <i [class]="previewSoporteEsPdf() ? 'fa-solid fa-file-pdf' : 'fa-solid fa-file-image'"></i>
+          </div>
+          <div class="truncate">
+            <div class="flex items-center space-x-2">
+              <h3 class="text-sm font-bold text-white m-0 truncate">{{ previewSoporteNombre() }}</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 shrink-0">
+                Vista Previa Oficial
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 m-0 truncate">
+              Expediente Digital Tributario · Gobernación del Cauca (Visualización directa sin descarga)
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0">
+          <!-- Abrir en pestaña nueva opcional -->
+          <a *ngIf="previewSoporteUrlRaw()" 
+             [href]="previewSoporteUrlRaw()" 
+             target="_blank" 
+             class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold no-underline flex items-center gap-1.5 transition"
+             title="Abrir en pestaña nueva">
+            <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+            <span class="hidden sm:inline">Pestaña Nueva</span>
+          </a>
+
+          <!-- Botón Cerrar -->
+          <button (click)="cerrarPreviewSoporte()" 
+                  type="button"
+                  class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition border-none cursor-pointer"
+                  title="Cerrar visor">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cuerpo del Visor con el Iframe o Imagen -->
+      <div class="flex-1 bg-slate-100 relative overflow-hidden flex items-center justify-center">
+        @if (previewSoporteUrl()) {
+          @if (previewSoporteEsPdf()) {
+            <iframe 
+              [src]="previewSoporteUrl()" 
+              class="w-full h-full border-0 bg-slate-200" 
+              title="Vista previa del soporte digital">
+            </iframe>
+          } @else {
+            <div class="w-full h-full p-4 overflow-auto flex items-center justify-center">
+              <img 
+                [src]="previewSoporteUrl()" 
+                class="max-w-full max-h-full object-contain rounded-lg shadow-md border border-slate-300 bg-white" 
+                alt="Documento soporte adjunto">
+            </div>
+          }
+        } @else {
+          <div class="p-8 text-center text-slate-400">
+            <i class="fa-solid fa-circle-exclamation text-3xl mb-2 block"></i>
+            <p class="text-sm font-semibold m-0">No se pudo cargar la vista previa del documento.</p>
+          </div>
+        }
+      </div>
+
+      <!-- Pie del Visor con confirmación de cotejo -->
+      <div class="px-5 py-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center space-x-2 text-xs text-slate-600">
+          <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+          <span>
+            Verifique número de semovientes, precinto sanitario, vigencia y procedencia antes de autorizar.
+          </span>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <!-- Botón volver al modal de revisión -->
+          <button (click)="cerrarPreviewSoporte()" 
+                  type="button"
+                  class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer border border-slate-300">
+            Volver a la Revisión
+          </button>
+
+          <!-- Si el funcionario está revisando una radicación, permitir aprobar directamente desde el visor -->
+          <button *ngIf="declaracionParaRevision()" 
+                  (click)="cerrarPreviewSoporte(); confirmarAprobacion()" 
+                  type="button"
+                  class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition cursor-pointer border-none flex items-center space-x-1.5 shadow-sm">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Soporte Verificado: Aprobar y Habilitar para Pago</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
 </div>

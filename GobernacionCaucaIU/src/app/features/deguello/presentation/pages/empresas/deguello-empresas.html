@@ -1,0 +1,628 @@
+<div class="space-y-6 max-w-7xl mx-auto pb-12 font-sans">
+
+  <!-- BANNER / TOAST DE NOTIFICACIÓN -->
+  @if (mensajeNotificacion(); as msg) {
+    <div 
+      class="fixed bottom-6 right-6 z-50 p-4 rounded-2xl shadow-xl flex items-center space-x-3 transition-all animate-bounce"
+      [ngClass]="msg.tipo === 'success' ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'">
+      <i class="fa-solid" [ngClass]="msg.tipo === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'"></i>
+      <span class="text-xs sm:text-sm font-bold">{{ msg.texto }}</span>
+    </div>
+  }
+
+  <!-- HEADER INSTITUCIONAL -->
+  <header class="bg-white rounded-2xl shadow-xs border border-slate-200 p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="flex items-center space-x-4">
+      <div class="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-[#1b53ad] flex items-center justify-center text-xl shadow-xs shrink-0">
+        <i class="fa-solid fa-industry"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight m-0">
+            Censo de Empresas & Plantas de Beneficio Animal
+          </h1>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-900 border border-blue-200">
+            Rentas Cauca
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 mt-1 m-0">
+          Administración y control tributario de Frigoríficos, Plantas de Beneficio (PBA) y Matarifes autorizados en el departamento del Cauca.
+        </p>
+      </div>
+    </div>
+
+    <!-- BOTÓN DE ACCIÓN PRINCIPAL -->
+    <div class="flex items-center gap-3">
+      <button 
+        type="button"
+        (click)="abrirModalNueva()"
+        class="inline-flex items-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs cursor-pointer border-none">
+        <i class="fa-solid fa-plus"></i>
+        <span>Registrar Nueva Empresa / Planta</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- TARJETAS DE INDICADORES / KPIS -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <!-- 1. Total Empresas -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Total Empresas</span>
+        <span class="text-2xl font-black text-slate-800 font-mono mt-1 block">{{ totalEmpresas() }}</span>
+        <span class="text-[10px] text-slate-500 font-medium">Registradas en el censo</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center text-base">
+        <i class="fa-solid fa-building"></i>
+      </div>
+    </div>
+
+    <!-- 2. Activas -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Plantas Activas</span>
+        <span class="text-2xl font-black text-emerald-600 font-mono mt-1 block">{{ totalActivas() }}</span>
+        <span class="text-[10px] text-emerald-700 font-semibold">Operando y habilitadas</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center text-base">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+    </div>
+
+    <!-- 3. Frigoríficos Regionales -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Frigoríficos Reg.</span>
+        <span class="text-2xl font-black text-indigo-600 font-mono mt-1 block">{{ totalFrigorificos() }}</span>
+        <span class="text-[10px] text-indigo-700 font-semibold">Cobertura departamental</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center text-base">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+    </div>
+
+    <!-- 4. Capacidad Diaria -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+      <div>
+        <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Capacidad Diaria</span>
+        <span class="text-2xl font-black text-[#1b53ad] font-mono mt-1 block">{{ totalCapacidadDiaria() | number:'1.0-0' }}</span>
+        <span class="text-[10px] text-slate-500 font-medium">Cabezas / Día Cauca</span>
+      </div>
+      <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#1b53ad] border border-blue-100 flex items-center justify-center text-base">
+        <i class="fa-solid fa-cow"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA DE BÚSQUEDA Y FILTROS -->
+  <div class="bg-white rounded-2xl shadow-xs border border-slate-200 p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+    <!-- Buscador -->
+    <div class="relative w-full md:w-96">
+      <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+      <input 
+        type="text"
+        [ngModel]="busqueda()"
+        (ngModelChange)="busqueda.set($event)"
+        placeholder="Buscar por NIT, Razón Social, Municipio, INVIMA..."
+        class="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#1b53ad]" />
+    </div>
+
+    <!-- Filtros Estado & Tipo -->
+    <div class="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
+      <!-- Filtro Estado -->
+      <div class="flex items-center p-1 bg-slate-100 rounded-xl space-x-1 text-xs">
+        <button 
+          type="button"
+          (click)="filtroEstado.set('TODAS')"
+          [class.bg-white]="filtroEstado() === 'TODAS'"
+          [class.shadow-xs]="filtroEstado() === 'TODAS'"
+          [class.font-bold]="filtroEstado() === 'TODAS'"
+          [class.text-[#1b53ad]]="filtroEstado() === 'TODAS'"
+          class="px-3 py-1 rounded-lg text-slate-600 transition cursor-pointer">
+          Todas
+        </button>
+        <button 
+          type="button"
+          (click)="filtroEstado.set('ACTIVAS')"
+          [class.bg-white]="filtroEstado() === 'ACTIVAS'"
+          [class.shadow-xs]="filtroEstado() === 'ACTIVAS'"
+          [class.font-bold]="filtroEstado() === 'ACTIVAS'"
+          [class.text-emerald-700]]="filtroEstado() === 'ACTIVAS'"
+          class="px-3 py-1 rounded-lg text-slate-600 transition cursor-pointer">
+          Activas
+        </button>
+        <button 
+          type="button"
+          (click)="filtroEstado.set('INACTIVAS')"
+          [class.bg-white]="filtroEstado() === 'INACTIVAS'"
+          [class.shadow-xs]="filtroEstado() === 'INACTIVAS'"
+          [class.font-bold]="filtroEstado() === 'INACTIVAS'"
+          [class.text-rose-700]]="filtroEstado() === 'INACTIVAS'"
+          class="px-3 py-1 rounded-lg text-slate-600 transition cursor-pointer">
+          Inactivas
+        </button>
+      </div>
+
+      <!-- Recargar -->
+      <button 
+        type="button"
+        (click)="cargarPlantas()"
+        class="p-2 rounded-xl border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition cursor-pointer"
+        title="Actualizar catálogo">
+        <i class="fa-solid fa-rotate-right text-xs" [class.fa-spin]="cargando()"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLA DE EMPRESAS Y PLANTAS -->
+  <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-xs">
+        <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+          <tr>
+            <th class="px-5 py-3.5">Empresa / Razón Social</th>
+            <th class="px-4 py-3.5">NIT & Verificación</th>
+            <th class="px-4 py-3.5">Municipio & Dirección</th>
+            <th class="px-4 py-3.5">Código INVIMA</th>
+            <th class="px-4 py-3.5 text-center">Capacidad</th>
+            <th class="px-4 py-3.5">Representante Legal</th>
+            <th class="px-4 py-3.5 text-center">Estado</th>
+            <th class="px-5 py-3.5 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 text-slate-700">
+          @if (cargando()) {
+            <tr>
+              <td colspan="8" class="text-center py-12 text-slate-400">
+                <i class="fa-solid fa-spinner fa-spin text-xl text-[#1b53ad] block mb-2"></i>
+                <span>Cargando empresas y plantas de beneficio...</span>
+              </td>
+            </tr>
+          } @else if (plantasFiltradas().length === 0) {
+            <tr>
+              <td colspan="8" class="text-center py-12 text-slate-400">
+                <i class="fa-solid fa-folder-open text-2xl text-slate-300 block mb-2"></i>
+                <p class="font-bold text-slate-600 m-0">No se encontraron empresas con el criterio de búsqueda</p>
+                <span class="text-xs text-slate-400">Utilice el botón "Registrar Nueva Empresa / Planta" para agregarla</span>
+              </td>
+            </tr>
+          } @else {
+            @for (p of plantasFiltradas(); track p.idPlanta || p.nit || p.nombre) {
+              <tr class="hover:bg-slate-50/70 transition">
+                <!-- 1. Empresa / Razón Social -->
+                <td class="px-5 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0 font-bold">
+                      <i class="fa-solid {{ p.esFrigorificoRegional ? 'fa-building-shield text-indigo-600' : 'fa-industry text-slate-600' }}"></i>
+                    </div>
+                    <div>
+                      <span class="font-extrabold text-slate-900 block text-sm leading-snug">
+                        {{ p.nombre }}
+                      </span>
+                      <div class="flex items-center gap-1.5 mt-0.5">
+                        @if (p.esFrigorificoRegional) {
+                          <span class="px-1.5 py-0.2 rounded text-[9.5px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            Frigorífico Regional
+                          </span>
+                        } @else {
+                          <span class="px-1.5 py-0.2 rounded text-[9.5px] font-medium bg-slate-100 text-slate-600">
+                            Planta Local
+                          </span>
+                        }
+                        @if (p.emailOficial) {
+                          <span class="text-[10px] text-slate-400">&middot; {{ p.emailOficial }}</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- 2. NIT -->
+                <td class="px-4 py-4 font-mono font-bold text-slate-800">
+                  <span>{{ p.nit || 'SIN NIT' }}</span>
+                </td>
+
+                <!-- 3. Municipio & Dirección -->
+                <td class="px-4 py-4">
+                  <span class="font-bold text-slate-800 block">{{ p.municipio }}</span>
+                  <span class="text-[11px] text-slate-500 block truncate max-w-xs">{{ p.direccion || 'Vía Principal' }}</span>
+                </td>
+
+                <!-- 4. Código INVIMA -->
+                <td class="px-4 py-4">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-bold text-[11px]">
+                    <i class="fa-solid fa-stamp text-[10px]"></i>
+                    {{ p.codigoInvima || 'INV-PBA' }}
+                  </span>
+                </td>
+
+                <!-- 5. Capacidad Diaria -->
+                <td class="px-4 py-4 text-center">
+                  <span class="font-bold font-mono text-slate-800 text-sm">
+                    {{ p.capacidadDiariaCabezas || 50 }}
+                  </span>
+                  <span class="text-[10px] text-slate-400 block">cab./día</span>
+                </td>
+
+                <!-- 6. Representante Legal -->
+                <td class="px-4 py-4">
+                  <span class="font-semibold text-slate-800 block">{{ p.representanteLegal || 'REPRESENTANTE REGISTRADO' }}</span>
+                  @if (p.docRepresentante) {
+                    <span class="text-[10px] font-mono text-slate-400 block">CC: {{ p.docRepresentante }}</span>
+                  }
+                  @if (p.telefono) {
+                    <span class="text-[10px] text-slate-500 block">Tel: {{ p.telefono }}</span>
+                  }
+                </td>
+
+                <!-- 7. Estado -->
+                <td class="px-4 py-4 text-center">
+                  @if (p.esActiva) {
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Activa
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-600"></span> Inactiva
+                    </span>
+                  }
+                </td>
+
+                <!-- 8. Acciones -->
+                <td class="px-5 py-4 text-right">
+                  <div class="flex items-center justify-end gap-1.5">
+                    <!-- Ver Credenciales / Clave Portal -->
+                    <button 
+                      type="button"
+                      (click)="abrirModalClave(p)"
+                      class="w-7 h-7 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 flex items-center justify-center transition cursor-pointer"
+                      title="Ver credenciales de acceso al portal ciudadano">
+                      <i class="fa-solid fa-key text-xs"></i>
+                    </button>
+
+                    <!-- Editar -->
+                    <button 
+                      type="button"
+                      (click)="abrirModalEditar(p)"
+                      class="w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#1b53ad] border border-blue-200 flex items-center justify-center transition cursor-pointer"
+                      title="Editar información de la empresa">
+                      <i class="fa-solid fa-pen text-xs"></i>
+                    </button>
+
+                    <!-- Toggle Activar/Inactivar -->
+                    <button 
+                      type="button"
+                      (click)="toggleEstado(p)"
+                      class="w-7 h-7 rounded-lg flex items-center justify-center transition cursor-pointer border"
+                      [ngClass]="p.esActiva ? 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-rose-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'"
+                      [title]="p.esActiva ? 'Inactivar empresa' : 'Habilitar empresa'">
+                      <i class="fa-solid {{ p.esActiva ? 'fa-ban' : 'fa-check' }} text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer tabla -->
+    <div class="p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+      <span>Mostrando {{ plantasFiltradas().length }} de {{ totalEmpresas() }} empresas registradas</span>
+      <span class="font-mono text-[11px]">Base de Datos Oficial &middot; Rentas del Cauca</span>
+    </div>
+  </div>
+
+  <!-- =================================================================== -->
+  <!-- MODAL: REGISTRAR / EDITAR EMPRESA O PLANTA                          -->
+  <!-- =================================================================== -->
+  @if (modalAbierto()) {
+    <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+      <div class="bg-white rounded-3xl max-w-3xl w-full border border-slate-200 shadow-2xl overflow-hidden my-8 animate-fadeIn">
+        
+        <!-- Header Modal -->
+        <div class="px-6 py-4.5 bg-slate-900 text-white flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-white">
+              <i class="fa-solid {{ formEmpresa.idPlanta ? 'fa-pen-to-square' : 'fa-building-circle-check' }}"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-black m-0 uppercase tracking-wide">
+                {{ formEmpresa.idPlanta ? 'Actualizar Datos de la Empresa' : 'Registrar Nueva Empresa / Planta de Beneficio' }}
+              </h2>
+              <span class="text-[11px] text-slate-400">
+                Registro directo en Base de Datos SQL Server &middot; Rentas Departamentales
+              </span>
+            </div>
+          </div>
+          <button 
+            type="button"
+            (click)="cerrarModal()"
+            class="text-slate-400 hover:text-white transition cursor-pointer text-lg">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Body Formulario -->
+        <form (ngSubmit)="guardarEmpresa()" class="p-6 space-y-5">
+          
+          <!-- SECCIÓN 1: IDENTIFICACIÓN FISCAL -->
+          <div>
+            <h3 class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <i class="fa-solid fa-id-card"></i> Identificación Fiscal & Razón Social
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+              <div class="md:col-span-8">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Razón Social / Nombre de la Planta <span class="text-rose-500">*</span>
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formEmpresa.nombre"
+                  name="nombre"
+                  placeholder="Ej: FRIGORÍFICO CENTRAL DEL CAUCA S.A.S."
+                  required
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-900 uppercase focus:bg-white focus:ring-2 focus:ring-[#1b53ad]" />
+              </div>
+
+              <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  NIT <span class="text-rose-500">*</span>
+                </label>
+                <div class="flex items-center gap-2">
+                  <input 
+                    type="text"
+                    [(ngModel)]="formEmpresa.nit"
+                    name="nit"
+                    placeholder="Ej: 900823411"
+                    required
+                    class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-900 focus:bg-white focus:ring-2 focus:ring-[#1b53ad]" />
+                  <span class="text-xs font-mono font-bold text-slate-400">- 9</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 2: UBICACIÓN Y CONTACTO -->
+          <div class="pt-3 border-t border-slate-100">
+            <h3 class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <i class="fa-solid fa-location-dot"></i> Ubicación y Contacto Oficial
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+              <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Municipio de Operación <span class="text-rose-500">*</span>
+                </label>
+                <select 
+                  [(ngModel)]="formEmpresa.municipio"
+                  name="municipio"
+                  required
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:bg-white">
+                  @for (m of municipiosCauca; track m) {
+                    <option [value]="m">{{ m }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="md:col-span-8">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Dirección de la Planta / Instalación
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formEmpresa.direccion"
+                  name="direccion"
+                  placeholder="Ej: Vía Principal Km 4 Sector Matadero"
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 uppercase focus:bg-white" />
+              </div>
+
+              <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Teléfono Fijo / Celular
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formEmpresa.telefono"
+                  name="telefono"
+                  placeholder="Ej: (602) 8234500"
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white" />
+              </div>
+
+              <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Correo Electrónico Oficial
+                </label>
+                <input 
+                  type="email"
+                  [(ngModel)]="formEmpresa.emailOficial"
+                  name="emailOficial"
+                  placeholder="Ej: tributario@empresa.com"
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-800 focus:bg-white" />
+              </div>
+
+              <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center justify-between">
+                  <span>Clave Portal Contribuyente</span>
+                  <span class="text-[10px] text-amber-700 font-bold">Acceso Web</span>
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formEmpresa.claveAcceso"
+                  name="claveAcceso"
+                  placeholder="Ej: 123456"
+                  class="w-full px-3.5 py-2 bg-amber-50/60 border border-amber-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-amber-950 focus:bg-white" />
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 3: REPRESENTACIÓN LEGAL & PARÁMETROS SANITARIOS -->
+          <div class="pt-3 border-t border-slate-100">
+            <h3 class="text-xs font-bold text-[#1b53ad] uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+              <i class="fa-solid fa-stamp"></i> Representación Legal & Capacidad INVIMA
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+              <div class="md:col-span-6">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Representante Legal
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formEmpresa.representanteLegal"
+                  name="representanteLegal"
+                  placeholder="Ej: Carlos Alberto Gómez"
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm uppercase text-slate-800 focus:bg-white" />
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Cédula / Documento
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formEmpresa.docRepresentante"
+                  name="docRepresentante"
+                  placeholder="Ej: 1061748291"
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono text-slate-800 focus:bg-white" />
+              </div>
+
+              <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Código Sanitario INVIMA
+                </label>
+                <input 
+                  type="text"
+                  [(ngModel)]="formEmpresa.codigoInvima"
+                  name="codigoInvima"
+                  placeholder="Ej: PBA-PO-01"
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-800 uppercase focus:bg-white" />
+              </div>
+
+              <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  Capacidad Diaria (Cabezas / Día)
+                </label>
+                <input 
+                  type="number"
+                  [(ngModel)]="formEmpresa.capacidadDiariaCabezas"
+                  name="capacidadDiariaCabezas"
+                  min="1"
+                  class="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm font-mono font-bold text-slate-800 focus:bg-white" />
+              </div>
+
+              <div class="md:col-span-4 flex items-center pt-5">
+                <label class="inline-flex items-center cursor-pointer gap-2">
+                  <input 
+                    type="checkbox"
+                    [(ngModel)]="formEmpresa.esFrigorificoRegional"
+                    name="esFrigorificoRegional"
+                    class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500" />
+                  <span class="text-xs font-bold text-slate-700">¿Es Frigorífico Regional?</span>
+                </label>
+              </div>
+
+              <div class="md:col-span-4 flex items-center pt-5">
+                <label class="inline-flex items-center cursor-pointer gap-2">
+                  <input 
+                    type="checkbox"
+                    [(ngModel)]="formEmpresa.esActiva"
+                    name="esActiva"
+                    class="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500" />
+                  <span class="text-xs font-bold text-slate-700">Empresa Activa / Habilitada</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOOTER MODAL BOTONES -->
+          <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+            <button 
+              type="button"
+              (click)="cerrarModal()"
+              class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-600 hover:bg-slate-100 font-bold text-xs sm:text-sm transition cursor-pointer">
+              Cancelar
+            </button>
+            <button 
+              type="submit"
+              [disabled]="guardando()"
+              class="inline-flex items-center gap-2 bg-[#1b53ad] hover:bg-[#154189] text-white px-6 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition shadow-xs cursor-pointer border-none disabled:opacity-50">
+              @if (guardando()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Guardando en BD...</span>
+              } @else {
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span>Guardar Empresa en Base de Datos</span>
+              }
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  }
+
+  <!-- =================================================================== -->
+  <!-- MODAL: VER CREDENCIALES DE ACCESO AL PORTAL                         -->
+  <!-- =================================================================== -->
+  @if (modalClaveAbierto(); as p) {
+    @if (plantaSeleccionada(); as planta) {
+      <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden animate-fadeIn">
+          <div class="p-5 bg-amber-500 text-white flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+              <i class="fa-solid fa-key text-lg"></i>
+              <h2 class="text-sm font-black m-0 uppercase tracking-wide">Credenciales del Portal</h2>
+            </div>
+            <button 
+              type="button"
+              (click)="cerrarModalClave()"
+              class="text-white hover:text-amber-100 cursor-pointer text-lg">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <p class="text-xs text-slate-600 leading-relaxed m-0">
+              Estas son las credenciales para que la empresa <strong>{{ planta.nombre }}</strong> ingrese al Portal Ciudadano de Degüello:
+            </p>
+
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2.5 font-mono text-xs">
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400 font-sans text-[11px] font-bold uppercase">NIT (Usuario):</span>
+                <span class="font-bold text-slate-900">{{ planta.nit || 'Sin registrar' }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-slate-400 font-sans text-[11px] font-bold uppercase">Clave de Acceso:</span>
+                <span class="font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">{{ planta.claveAcceso || '123456' }}</span>
+              </div>
+              <div class="flex items-center justify-between border-t border-slate-200 pt-2">
+                <span class="text-slate-400 font-sans text-[11px] font-bold uppercase">Municipio:</span>
+                <span class="font-bold text-slate-700 font-sans">{{ planta.municipio }}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+              <button 
+                type="button"
+                (click)="copiarCredenciales(planta)"
+                class="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1b53ad] hover:bg-[#154189] text-white rounded-xl text-xs font-bold transition cursor-pointer border-none shadow-xs">
+                <i class="fa-solid fa-copy"></i>
+                <span>Copiar Datos</span>
+              </button>
+              <button 
+                type="button"
+                (click)="cerrarModalClave()"
+                class="px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-100 rounded-xl text-xs font-bold transition cursor-pointer">
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+</div>

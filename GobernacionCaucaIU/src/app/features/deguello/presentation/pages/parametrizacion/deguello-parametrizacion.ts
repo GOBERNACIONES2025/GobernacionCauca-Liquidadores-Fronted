@@ -103,24 +103,42 @@ export class DeguelloParametrizacionComponent implements OnInit {
   guardarNuevaPba(): void {
     if (!this.nuevaPba.nombre) return;
 
-    const nueva: PlantaBeneficio = {
-      id: `pba-${Date.now()}`,
+    const nuevaData: Partial<PlantaBeneficio> = {
       codigoInvima: this.nuevaPba.codigoInvima || 'INV-PBA-GEN',
       nombre: this.nuevaPba.nombre.toUpperCase(),
       municipio: this.nuevaPba.municipio || 'POPAYÁN',
-      direccion: this.nuevaPba.direccion || 'Vía Principal',
+      direccion: this.nuevaPba.direccion || 'VÍA PRINCIPAL',
       capacidadDiariaCabezas: Number(this.nuevaPba.capacidadDiariaCabezas) || 50,
       esActiva: this.nuevaPba.esActiva ?? true,
       telefono: this.nuevaPba.telefono || '(602) 8000000',
     };
 
-    this.plantas.update((list) => [...list, nueva]);
-    this.cerrarModalPba();
+    this.deguelloService.guardarPlantaBeneficio(nuevaData).subscribe((res) => {
+      if (res.success && res.data) {
+        this.plantas.update((list) => [...list, res.data!]);
+      } else {
+        const fallback: PlantaBeneficio = {
+          id: `pba-${Date.now()}`,
+          codigoInvima: nuevaData.codigoInvima!,
+          nombre: nuevaData.nombre!,
+          municipio: nuevaData.municipio!,
+          direccion: nuevaData.direccion!,
+          capacidadDiariaCabezas: nuevaData.capacidadDiariaCabezas!,
+          esActiva: nuevaData.esActiva!,
+          telefono: nuevaData.telefono!,
+        };
+        this.plantas.update((list) => [...list, fallback]);
+      }
+      this.cerrarModalPba();
+    });
   }
 
   toggleEstadoPlanta(p: PlantaBeneficio): void {
-    this.plantas.update((list) =>
-      list.map((item) => (item.id === p.id ? { ...item, esActiva: !item.esActiva } : item))
-    );
+    const nuevoEstado = !p.esActiva;
+    this.deguelloService.guardarPlantaBeneficio({ ...p, esActiva: nuevoEstado }).subscribe(() => {
+      this.plantas.update((list) =>
+        list.map((item) => (item.id === p.id ? { ...item, esActiva: nuevoEstado } : item))
+      );
+    });
   }
 }
