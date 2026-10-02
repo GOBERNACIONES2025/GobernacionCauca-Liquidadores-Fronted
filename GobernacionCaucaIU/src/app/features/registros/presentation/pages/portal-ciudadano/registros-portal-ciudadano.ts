@@ -1,7 +1,6 @@
-import { Component, signal, computed, inject, ViewChild } from '@angular/core';
+import { Component, signal, computed, inject, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { 
   ConsultaCiudadanaSharedComponent, 
   ConsultaSubmitPayload,
@@ -22,14 +21,19 @@ import { DataMaskingUtil } from '../../../../../shared/utils/data-masking.util';
 @Component({
   selector: 'app-registros-portal-ciudadano',
   standalone: true,
-  imports: [CommonModule, RouterLink, ConsultaCiudadanaSharedComponent],
+  imports: [
+    CommonModule, 
+    RouterLink, 
+    ConsultaCiudadanaSharedComponent
+  ],
   templateUrl: './registros-portal-ciudadano.html',
 })
-export class RegistrosPortalCiudadanoComponent {
+export class RegistrosPortalCiudadanoComponent implements OnInit {
   @ViewChild(ConsultaCiudadanaSharedComponent) sharedComponent?: ConsultaCiudadanaSharedComponent;
 
   private registrosConsultaApi = inject(RegistrosConsultaApiService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   readonly isConsulted = signal<boolean>(false);
   readonly isLoading = signal<boolean>(false);
@@ -70,7 +74,7 @@ export class RegistrosPortalCiudadanoComponent {
 
   readonly liquidacionVigente = computed<LiquidacionDocumentoDto | null>(() => {
     const liqs = this.todasLasLiquidaciones();
-    return liqs.find(l => l.esVigente) || liqs[0] || null;
+    return liqs.find(l => l.esVigente) || (liqs.length > 0 ? liqs[0] : null);
   });
 
   readonly totalLiquidado = computed<number>(() => {
@@ -135,11 +139,60 @@ export class RegistrosPortalCiudadanoComponent {
     );
   });
 
-  readonly puedePagar = computed<boolean>(() => {
-    if (this.estaPagado()) return false;
-    if (this.estaVencido()) return false;
-    return this.todasLasLiquidaciones().length > 0;
-  });
+  ngOnInit(): void {
+    const qp = this.route.snapshot.queryParamMap;
+    const rad = qp.get('radicado');
+    const doc = qp.get('doc');
+
+    // Auto-consulta si venimos redirigidos con parámetros
+    if (rad && doc) {
+      this.ejecutarConsulta(rad, doc, 1);
+    }
+  }
+
+  ejecutarConsulta(radNum: string, docNum: string, tipoDocId: number = 1): void {
+    const cleanRad = radNum.trim();
+    const cleanDoc = docNum.trim();
+
+    this.isLoading.set(true);
+    this.criterioBusqueda.set({
+      doc: cleanDoc,
+      radicado: cleanRad,
+      tipoDoc: tipoDocId
+    });
+
+    const request: ConsultaRadicadoRequest = {
+      numeroRadicado: cleanRad,
+      tipoDocumentoInterviniente: tipoDocId,
+      numeroDocumentoInterviniente: cleanDoc
+    };
+
+    this.registrosConsultaApi.consultarRadicado(request).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        this.sharedComponent?.setLoading(false);
+
+        if (!res || !res.success || !res.data) {
+          this.sharedComponent?.setErrorMessage(res?.message || 'No se encontró información con el radicado e identificación ingresados.');
+          return;
+        }
+
+        this.consultaData.set(res.data);
+        this.isConsulted.set(true);
+        this.tabActivo.set('resumen');
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        this.sharedComponent?.setLoading(false);
+        this.sharedComponent?.setErrorMessage(this.obtenerMensajeErrorAmigable(err));
+      }
+    });
+  }
+
+  alConsultar(payload: ConsultaSubmitPayload): void {
+    const tipoDocId = Number(payload.tipoDocumento) || 1;
+    this.ejecutarConsulta(payload.secondaryValue, payload.numeroDocumento, tipoDocId);
+  }
 
   toggleProteccionDatos(): void {
     this.datosProtegidos.set(!this.datosProtegidos());
@@ -175,51 +228,9 @@ export class RegistrosPortalCiudadanoComponent {
     return this.datosProtegidos() ? DataMaskingUtil.maskDireccion(dir) : dir;
   }
 
-  alConsultar(payload: ConsultaSubmitPayload): void {
-    const tipoDocId = Number(payload.tipoDocumento) || 1;
-    const docNum = payload.numeroDocumento.trim();
-    const radNum = payload.secondaryValue.trim();
-
-    this.isLoading.set(true);
-    this.criterioBusqueda.set({
-      doc: docNum,
-      radicado: radNum,
-      tipoDoc: tipoDocId
-    });
-
-    const request: ConsultaRadicadoRequest = {
-      numeroRadicado: radNum,
-      tipoDocumentoInterviniente: tipoDocId,
-      numeroDocumentoInterviniente: docNum
-    };
-
-    this.registrosConsultaApi.consultarRadicado(request).subscribe({
-      next: (res) => {
-        this.isLoading.set(false);
-        this.sharedComponent?.setLoading(false);
-
-        if (!res || !res.success || !res.data) {
-          this.sharedComponent?.setErrorMessage(res?.message || 'No se encontró información con el radicado e identificación ingresados.');
-          return;
-        }
-
-        this.consultaData.set(res.data);
-        this.isConsulted.set(true);
-        this.tabActivo.set('resumen');
-      },
-      error: (err) => {
-        this.isLoading.set(false);
-        this.sharedComponent?.setLoading(false);
-        this.sharedComponent?.setErrorMessage(this.obtenerMensajeErrorAmigable(err));
-      }
-    });
-  }
-
   private obtenerMensajeErrorAmigable(err: any): string {
-    // Si el backend devolvió un mensaje de negocio limpio
     if (err?.error && typeof err.error === 'object' && typeof err.error.message === 'string' && err.error.message.trim() !== '') {
       const msg = err.error.message.trim();
-      // Asegurarse de que no contenga URLs técnicas
       if (!msg.includes('http://') && !msg.includes('https://') && !msg.includes('localhost:')) {
         return msg;
       }
@@ -229,7 +240,6 @@ export class RegistrosPortalCiudadanoComponent {
       return err.error.trim();
     }
 
-    // Manejo por código de estado HTTP
     const status = err?.status;
     if (status === 404) {
       return 'No se encontró ningún radicado asociado a los datos ingresados. Por favor verifique el número de radicado y su número de documento.';
