@@ -1,0 +1,128 @@
+<!-- Autor: Juan Sebastián Montaño Pérez -->
+<!-- Fecha: 01/10/2026 -->
+<!-- Módulo: Portal Ciudadano / Detalle Pago -->
+<!-- Descripción: Modal de confirmación de pago conectada al servicio oficial sin valores quemados. -->
+
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn" role="dialog" aria-modal="true" aria-labelledby="modal-confirmar-pago-title">
+  <div class="w-full max-w-4xl bg-white rounded-lg shadow-2xl overflow-hidden animate-scale-up border border-slate-200/80">
+    
+    <div class="px-6 py-3.5 bg-[#001c68] text-white flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-shield-halved text-sm text-blue-200"></i>
+        <h2 id="modal-confirmar-pago-title" class="text-sm sm:text-base font-bold text-white m-0 tracking-wide">
+          Confirmar pago de liquidación oficial
+        </h2>
+      </div>
+      <button 
+        type="button" 
+        (click)="cerrarModal()" 
+        [disabled]="cargando()"
+        class="text-white/80 hover:text-white disabled:opacity-50 cursor-pointer bg-transparent border-none p-1 leading-none text-base transition-colors"
+        aria-label="Cerrar modal"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="p-6 sm:p-8 space-y-6 bg-white">
+      @if (errorMensaje()) {
+        <div class="p-3.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2.5">
+          <i class="fa-solid fa-circle-exclamation text-red-500 mt-0.5 text-sm shrink-0"></i>
+          <div class="flex-1">
+            <span class="font-bold block">No fue posible iniciar el proceso de pago</span>
+            <span>{{ errorMensaje() }}</span>
+          </div>
+        </div>
+      }
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm border-collapse">
+          <thead>
+            <tr class="border-b border-slate-200 text-slate-700 font-bold text-xs sm:text-sm bg-slate-50">
+              <th class="py-3 px-4 font-bold text-slate-700 w-1/4">Placa</th>
+              <th class="py-3 px-4 font-bold text-slate-700 w-1/4">
+                <span>Cantidad de vigencias</span>
+              </th>
+              <th class="py-3 px-4 font-bold text-slate-700 w-1/4">
+                <span>Vigencia</span>
+              </th>
+              <th class="py-3 px-4 font-bold text-slate-700 text-right w-1/4">
+                <span>Total a pagar</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-slate-100 text-slate-600 text-xs sm:text-sm">
+              <td class="py-4 px-4 font-bold">
+                <span class="inline-flex items-center px-2.5 py-1 rounded bg-amber-400 text-slate-900 border border-amber-500 font-extrabold font-mono tracking-wider text-xs shadow-2xs">
+                  {{ placaEfectiva || '---' }}
+                </span>
+              </td>
+              <td class="py-4 px-4 font-normal text-slate-700">
+                1 vigencia
+              </td>
+              <td class="py-4 px-4 font-bold text-slate-800 font-mono">
+                {{ liquidacion?.vigencia }}
+              </td>
+              <td class="py-4 px-4 text-right font-extrabold text-slate-900 font-mono text-base">
+                ${{ (liquidacion?.valor | number:'1.0-0') || '0' }} COP
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-4 rounded-lg bg-slate-50 border border-slate-200/80 space-y-2 text-xs text-slate-600">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-file-invoice text-[#0f4984]"></i>
+            <span>Documento oficial: <strong class="text-slate-900 font-mono">{{ liquidacion?.detalle }}</strong></span>
+          </div>
+          @if (propietario?.nombre) {
+            <div class="flex items-center gap-1.5 text-slate-500 text-[11px]">
+              <i class="fa-solid fa-user-check text-emerald-600"></i>
+              <span>Titular: <strong class="text-slate-800">{{ propietario?.nombre }}</strong> ({{ propietario?.documento }})</span>
+            </div>
+          }
+        </div>
+        <div class="flex items-center justify-between pt-2 border-t border-slate-200/60">
+          <span class="font-medium text-slate-600">Total a debitar en pasarela PSE:</span>
+          <span class="font-extrabold text-[#0f4984] font-mono text-lg">${{ (liquidacion?.valor | number:'1.0-0') || '0' }} COP</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        <span class="text-[11px] text-slate-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-lock text-[10px] text-emerald-600"></i>
+          Transacción cifrada y protegida por la Gobernación del Cauca
+        </span>
+
+        <div class="flex items-center gap-3">
+          <button 
+            type="button" 
+            (click)="cerrarModal()" 
+            [disabled]="cargando()"
+            class="px-6 py-2 rounded-md border border-[#001c68] text-[#001c68] hover:bg-slate-50 disabled:opacity-50 font-bold text-sm transition-colors cursor-pointer bg-white"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            (click)="confirmarPago()" 
+            [disabled]="cargando()"
+            class="px-6 py-2 rounded-md bg-[#001c68] hover:bg-[#001550] disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold text-sm shadow-sm transition-colors cursor-pointer border-none inline-flex items-center gap-2"
+          >
+            @if (cargando()) {
+              <i class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+              <span>Conectando con la pasarela...</span>
+            } @else {
+              <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+              <span>Ir a pagar</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

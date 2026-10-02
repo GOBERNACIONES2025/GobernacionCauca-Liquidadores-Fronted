@@ -1,0 +1,230 @@
+@if (facade.isConciliacionModalOpen()) {
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+  <div
+    class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden animate-scale-up"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-conciliacion-title"
+  >
+    <header class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400">
+          <i class="fa-solid fa-scale-balanced text-lg"></i>
+        </div>
+        <div>
+          <h2 id="modal-conciliacion-title" class="text-base font-black tracking-tight text-white m-0">
+            Conciliación Bancaria Asobancaria
+          </h2>
+          <p class="text-xs text-slate-300 m-0">
+            Cotejo de preliquidaciones congeladas contra extractos y fechas de recaudo bancario.
+          </p>
+        </div>
+      </div>
+
+      <button
+        (click)="facade.cerrarConciliacionModal()"
+        type="button"
+        class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+        title="Cerrar conciliador"
+      >
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </header>
+
+    <div class="p-6 overflow-y-auto space-y-5 flex-1 bg-slate-50/70 text-xs">
+      <div class="p-3 bg-amber-50/80 border border-amber-200/90 rounded-xl text-amber-950 flex items-start gap-3">
+        <i class="fa-solid fa-circle-info text-base text-amber-600 mt-0.5 shrink-0"></i>
+        <div class="space-y-0.5">
+          <p class="font-bold text-xs m-0">¿Cómo funciona la conciliación?</p>
+          <p class="text-[11.5px] text-slate-700 m-0 leading-relaxed">
+            Dado que los extractos bancarios (Asobancaria 2001) tardan de <strong>3 a 4 días</strong> en recibirse, el sistema le permite consultar exactamente el valor congelado que regía en la <strong>fecha en que el ciudadano pagó</strong>, omitiendo los intereses generados en días posteriores.
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 p-1 bg-slate-200/80 rounded-lg">
+        <button
+          (click)="cambiarModo('conciliacion-fecha')"
+          type="button"
+          [class]="'flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer border-none ' + (modoBusqueda === 'conciliacion-fecha' ? 'bg-white text-slate-900 shadow-2xs' : 'bg-transparent text-slate-600 hover:text-slate-900')"
+        >
+          <i class="fa-solid fa-calendar-check mr-1.5 text-blue-700"></i>
+          Por Liquidación y Fecha de Pago
+        </button>
+
+        <button
+          (click)="cambiarModo('referencia-directa')"
+          type="button"
+          [class]="'flex-1 py-1.5 px-3 rounded-md text-xs font-bold transition-all cursor-pointer border-none ' + (modoBusqueda === 'referencia-directa' ? 'bg-white text-slate-900 shadow-2xs' : 'bg-transparent text-slate-600 hover:text-slate-900')"
+        >
+          <i class="fa-solid fa-barcode mr-1.5 text-blue-700"></i>
+          Por Referencia Bancaria Directa
+        </button>
+      </div>
+
+      @if (modoBusqueda === 'conciliacion-fecha') {
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <label for="num-liq-input" class="block font-bold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
+                N° de Liquidación Oficial:
+              </label>
+              <div class="relative">
+                <input
+                  id="num-liq-input"
+                  type="text"
+                  [ngModel]="facade.conciliacionNumeroLiquidacion()"
+                  (ngModelChange)="facade.conciliacionNumeroLiquidacion.set($event)"
+                  placeholder="Ej: LIQ-2026-00045"
+                  class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none uppercase font-mono"
+                />
+                <i class="fa-solid fa-hashtag absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
+              </div>
+            </div>
+
+            <div>
+              <label for="fecha-pago-input" class="block font-bold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
+                Fecha del Pago Bancario (Asobancaria):
+              </label>
+              <div class="relative">
+                <input
+                  id="fecha-pago-input"
+                  type="date"
+                  [ngModel]="facade.conciliacionFechaPago()"
+                  (ngModelChange)="facade.conciliacionFechaPago.set($event)"
+                  class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                />
+                <i class="fa-solid fa-calendar-day absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button
+              (click)="onEjecutarConciliacion()"
+              [disabled]="facade.loadingConciliacion() || !facade.conciliacionNumeroLiquidacion().trim() || !facade.conciliacionFechaPago().trim()"
+              type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-vehiculos-action-success hover:bg-[#5f972f] disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs shadow-md transition-all cursor-pointer border-none"
+            >
+              @if (facade.loadingConciliacion()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Consultando Registro Bancario...
+              } @else {
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Recuperar Snapshot al Pago
+              }
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-4">
+          <div>
+            <label for="ref-directa-input" class="block font-bold text-slate-700 mb-1 text-[11px] uppercase tracking-wider">
+              Referencia de Pago Online o Código de Barras:
+            </label>
+            <div class="relative">
+              <input
+                id="ref-directa-input"
+                type="text"
+                [(ngModel)]="referenciaDirectaInput"
+                placeholder="Pegar referencia del banco / Asobancaria (ej: 4157709998000...)"
+                class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none font-mono"
+              />
+              <i class="fa-solid fa-barcode absolute left-2.5 top-2.5 text-xs text-slate-400"></i>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button
+              (click)="onConsultarReferencia()"
+              [disabled]="facade.loadingBusquedaRapida() || !referenciaDirectaInput.trim()"
+              type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs shadow-md transition-all cursor-pointer border-none"
+            >
+              @if (facade.loadingBusquedaRapida()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                Buscando...
+              } @else {
+                <i class="fa-solid fa-magnifying-glass"></i>
+                Buscar por Referencia
+              }
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (facade.conciliacionError(); as err) {
+        <div class="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-2.5">
+          <i class="fa-solid fa-circle-exclamation text-base text-red-600 mt-0.5 shrink-0"></i>
+          <div>
+            <span class="font-bold block">No fue posible conciliar la transacción</span>
+            <span class="text-[11.5px] text-red-700">{{ err }}</span>
+          </div>
+        </div>
+      }
+
+      @if (facade.conciliacionResultado(); as res) {
+        <div class="bg-white border-2 border-emerald-500/80 rounded-xl p-4 shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="font-bold text-emerald-900 text-xs uppercase tracking-wider">
+                Preliquidación Congelada Válida para Conciliación
+              </span>
+            </div>
+            <span class="font-mono text-[11px] text-slate-500">
+              Snapshot ID #{{ res.idLiquidacionSnapshots }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase">Placa</span>
+              <span class="co-plate text-xs py-0.5 font-bold">{{ res.placa }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase">Vigencia</span>
+              <span class="font-bold text-slate-800">{{ res.vigenciaAnio }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase">Mora Congelada</span>
+              <span class="font-bold text-slate-800">{{ res.diasMoraAlEmitir }} días</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px] uppercase">Estado Actual</span>
+              <span class="font-bold text-blue-900">{{ res.estadoPago }}</span>
+            </div>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-lg flex items-center justify-between border border-slate-200">
+            <div>
+              <span class="text-[10.5px] text-slate-500 block">Total Exacto a Conciliar:</span>
+              <span class="text-xl font-black text-emerald-700 font-mono">
+                ${{ res.valorTotalPagar | number:'1.0-0' }}
+              </span>
+            </div>
+
+            <button
+              (click)="verDetalleCompleto(res.idLiquidacionSnapshots)"
+              type="button"
+              class="px-3 py-1.5 bg-blue-900 hover:bg-blue-950 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer shadow-2xs border-none"
+            >
+              <i class="fa-solid fa-eye mr-1"></i>Ver Desglose Completo
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <footer class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-end shrink-0">
+      <button
+        (click)="facade.cerrarConciliacionModal()"
+        type="button"
+        class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition-colors cursor-pointer border-none"
+      >
+        Cerrar Herramienta
+      </button>
+    </footer>
+  </div>
+</div>
+}
