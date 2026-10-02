@@ -1,5 +1,6 @@
 import { Component, signal, computed, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { 
   ConsultaCiudadanaSharedComponent, 
@@ -11,6 +12,7 @@ import {
   ConsultaRadicadoRequest,
   DocumentoRadicadoDto,
   LiquidacionDocumentoDto,
+  VencimientoLiquidacionDto,
   ActoDocumentoDto,
   HistorialRadicadoDto
 } from '../../../domain/models/Consultas/consulta-radicado.model';
@@ -66,6 +68,11 @@ export class RegistrosPortalCiudadanoComponent {
     return liqs;
   });
 
+  readonly liquidacionVigente = computed<LiquidacionDocumentoDto | null>(() => {
+    const liqs = this.todasLasLiquidaciones();
+    return liqs.find(l => l.esVigente) || liqs[0] || null;
+  });
+
   readonly totalLiquidado = computed<number>(() => {
     return this.todasLasLiquidaciones().reduce((acc, curr) => acc + (Number(curr.valorTotal) || 0), 0);
   });
@@ -75,15 +82,63 @@ export class RegistrosPortalCiudadanoComponent {
   });
 
   readonly estaPagado = computed<boolean>(() => {
+    // 1. Verificar si las liquidaciones asociadas están en estado Pagada
+    const liqs = this.todasLasLiquidaciones();
+    if (liqs.length > 0) {
+      const algunaLiqPagada = liqs.some(l => {
+        const nom = (l.estadoLiquidacionNombre || '').toUpperCase();
+        return nom.includes('PAG') || nom.includes('CANCEL') || nom.includes('PAZ');
+      });
+      if (algunaLiqPagada) {
+        return true;
+      }
+    }
+
+    // 2. Verificar si el objeto Pago indica que está acreditado o pagado
     const p = this.pago();
-    if (p && p.estadoPagoCodigo && p.estadoPagoCodigo.toUpperCase().includes('PAG')) {
-      return true;
+    if (p) {
+      const cod = (p.estadoPagoCodigo || '').toUpperCase();
+      const nom = (p.estadoPagoNombre || '').toUpperCase();
+      if (
+        cod.includes('PAG') || cod.includes('APR') || cod.includes('EXITOS') ||
+        nom.includes('PAG') || nom.includes('APR') || nom.includes('EXITOS')
+      ) {
+        return true;
+      }
     }
+
+    // 3. Verificar si la Solicitud general tiene estado de pagada / completada / paz y salvo
     const sol = this.solicitud();
-    if (sol && sol.estadoSolicitudCodigo && sol.estadoSolicitudCodigo.toUpperCase().includes('PAG')) {
-      return true;
+    if (sol) {
+      const cod = (sol.estadoSolicitudCodigo || '').toUpperCase();
+      const nom = (sol.estadoSolicitudNombre || '').toUpperCase();
+      if (
+        cod.includes('PAG') || cod.includes('COMPLET') || cod.includes('FINALIZ') || cod.includes('PAZ') ||
+        nom.includes('PAG') || nom.includes('COMPLET') || nom.includes('FINALIZ') || nom.includes('PAZ')
+      ) {
+        return true;
+      }
     }
+
     return false;
+  });
+
+  readonly estaVencido = computed<boolean>(() => {
+    if (this.estaPagado()) return false;
+    const liqs = this.todasLasLiquidaciones();
+    if (liqs.length === 0) return false;
+    return liqs.some(l => 
+      l.vencimiento?.estaVencida === true || 
+      (l.vencimiento?.semaforo || '').toUpperCase() === 'VENCIDA' ||
+      (l.vencimiento?.diasRestantes !== undefined && l.vencimiento.diasRestantes < 0) ||
+      (l.estadoLiquidacionNombre || '').toUpperCase().includes('VENCID')
+    );
+  });
+
+  readonly puedePagar = computed<boolean>(() => {
+    if (this.estaPagado()) return false;
+    if (this.estaVencido()) return false;
+    return this.todasLasLiquidaciones().length > 0;
   });
 
   toggleProteccionDatos(): void {
@@ -190,6 +245,10 @@ export class RegistrosPortalCiudadanoComponent {
     }
 
     return 'No se encontró ningún radicado con los datos suministrados. Por favor verifique el número de radicado y su documento.';
+  }
+
+  getDiasAbs(dias?: number | null): number {
+    return Math.abs(dias || 0);
   }
 
   setTab(tab: 'resumen' | 'actos' | 'liquidaciones' | 'historial'): void {

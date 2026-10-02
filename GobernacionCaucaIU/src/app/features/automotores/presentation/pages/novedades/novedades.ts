@@ -115,7 +115,11 @@ export class NovedadesPage implements OnInit {
   cambiarEstado(idOrItem: any, nuevoEstado: EstadoNovedad, observaciones?: string): void {
     this.facade.cambiarEstado(idOrItem, nuevoEstado, observaciones).subscribe(res => {
       if (res.success) {
-        this.mostrarToast('Estado Actualizado', `La novedad ha sido marcada como ${nuevoEstado}.`, 'success');
+        const titulo = nuevoEstado === 'APROBADO' ? 'Novedad Aprobada y Aplicada' : 'Estado Actualizado';
+        const desc = nuevoEstado === 'APROBADO' 
+          ? 'La novedad fue aprobada y los cambios del automotor se actualizaron automáticamente.' 
+          : `La novedad ha sido marcada como ${nuevoEstado}.`;
+        this.mostrarToast(titulo, desc, 'success');
       } else {
         this.mostrarToast('Error', res.message || 'Error al actualizar el estado.', 'error');
       }
