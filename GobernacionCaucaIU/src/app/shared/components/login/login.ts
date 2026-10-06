@@ -1,9 +1,10 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AuthStateService } from '../../../core/auth/auth-state.service';
+import { AuthNavigationDispatcher } from '../../../core/auth/services/auth-navigation-dispatcher.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
@@ -16,7 +17,9 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private authState = inject(AuthStateService);
+  private authNavigation = inject(AuthNavigationDispatcher);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private toastService = inject(ToastService);
 
   loginForm: FormGroup = this.fb.group({
@@ -49,12 +52,20 @@ export class LoginComponent {
     this.errorMessage.set(null);
 
     const { usuario, clave } = this.loginForm.value;
+    const returnUrl = this.route.snapshot.queryParams['returnUrl'] || null;
 
     this.authService.login({ usuario, clave }).subscribe({
       next: (res) => {
         this.isLoading.set(false);
         this.toastService.success(`¡Bienvenido, ${res.usuario?.nombre || usuario}!`);
-        this.router.navigate(['/']);
+        this.authNavigation.navigatePostLogin(
+          {
+            user: res.usuario,
+            modulo: res.modulo,
+            apiUrl: res.apiUrl,
+          },
+          returnUrl
+        );
       },
       error: () => {
         // Fallback con credenciales quemadas para pruebas locales y desarrollo
@@ -73,9 +84,16 @@ export class LoginComponent {
 
         this.authState.setSession(mockUser, 'AUTOMOTORES');
         this.toastService.success(`¡Bienvenido, ${displayName}! (Sesión iniciada)`);
-        this.router.navigate(['/']);
+        this.authNavigation.navigatePostLogin(
+          {
+            user: mockUser,
+            modulo: 'AUTOMOTORES',
+          },
+          returnUrl
+        );
       },
     });
   }
 }
+
 

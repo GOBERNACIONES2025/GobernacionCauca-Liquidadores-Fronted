@@ -64,6 +64,21 @@ export const automotoresRoutes: Routes = [
         pathMatch: 'full'
       },
       {
+        path: 'certificados',
+        redirectTo: 'liquidaciones',
+        pathMatch: 'full'
+      },
+      {
+        path: 'auditoria',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'reglas-tributarias',
+        redirectTo: 'configuracion',
+        pathMatch: 'full'
+      },
+      {
         path: 'valores-estatales',
         component: ValoresEstatalesPage
       },

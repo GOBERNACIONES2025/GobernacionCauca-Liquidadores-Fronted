@@ -52,6 +52,26 @@ export const registrosRoutes: Routes = [
         loadComponent: () => import('../../shared/dashboard/components/tax-dashboard/tax-dashboard').then(m => m.TaxDashboardComponent)
       },
       {
+        path: 'gobernacion/dashboard',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'gobernacion',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'entidades/solicitudes',
+        redirectTo: 'solicitudes',
+        pathMatch: 'full'
+      },
+      {
+        path: 'entidades',
+        redirectTo: 'solicitudes',
+        pathMatch: 'full'
+      },
+      {
         path: 'solicitudes',
         loadComponent: () => import('./presentation/pages/registros/solicitudes-list/solicitudes-list').then(m => m.SolicitudesListComponent)
       },
