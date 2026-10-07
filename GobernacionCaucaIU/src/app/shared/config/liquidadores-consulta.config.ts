@@ -82,8 +82,8 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
     iconBadgeColor: 'bg-blue-50 text-[#0f4984] border-blue-100',
     quickExamples: [
-      { label: 'Radicado Liquidado 1', tipoDocId: 1, doc: '12345678', secondary: 'RAD-2026-4410', tag: 'Notaría 1' },
-      { label: 'Radicado Liquidado 2', tipoDocId: 1, doc: '11223344', secondary: 'RAD-2026-5512', tag: 'Notaría 2' }
+      { label: 'Radicado Liquidado 1', tipoDocId: 1, doc: '11111222', secondary: 'RAD-111112223', tag: 'Notaría 1' },
+      { label: 'Radicado Liquidado 2', tipoDocId: 1, doc: '123456', secondary: 'SANTIAGO-123', tag: 'Notaría 2' }
     ]
   },
   deguello: {

@@ -1,8 +1,8 @@
 import { Component, inject, computed, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { RegistrosAuthStateService } from '../../../../core/auth/registros-auth-state.service';
-import { RegistrosAuthService } from '../../../../core/auth/registros-auth.service';
+import { AuthOrchestratorService } from '../../../../../../core/auth/services/auth-orchestrator.service';
 import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
@@ -14,8 +14,7 @@ import { BreadcrumbComponent } from '../../../../../../shared/components/breadcr
 })
 export class GobernacionTopbarComponent {
   private authState = inject(RegistrosAuthStateService);
-  private authService = inject(RegistrosAuthService);
-  private router = inject(Router);
+  private orchestrator = inject(AuthOrchestratorService);
 
   readonly toggleSidebar = output<void>();
   readonly isProfileMenuOpen = signal(false);
@@ -50,7 +49,6 @@ export class GobernacionTopbarComponent {
   });
 
   logout() {
-    this.authService.logout();
-    this.router.navigate(['/registros/gobernacion/login']);
+    this.orchestrator.logout('gobernacion');
   }
 }

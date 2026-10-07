@@ -1,6 +1,6 @@
 <div class="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
-  <!-- Header Card: Módulo Facturación -->
+  <!-- Header Card: Módulo Facturación y Control de Recaudo -->
   <div class="bg-white rounded-2xl p-6 shadow-xs border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div class="flex items-center space-x-4">
       <div class="w-12 h-12 rounded-xl bg-blue-50 text-[#1b53ad] border border-blue-200 flex items-center justify-center text-2xl shadow-xs">
@@ -9,16 +9,16 @@
       <div>
         <div class="flex items-center space-x-2">
           <span class="text-[11px] uppercase tracking-wider font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
-            Módulo de Facturación & Declaraciones
+            Panel de Gestión Tributaria & Control de Recaudo
           </span>
           <span class="text-xs text-slate-400">·</span>
-          <span class="text-xs text-slate-500 font-medium">Formularios Únicos Oficiales</span>
+          <span class="text-xs text-slate-500 font-medium">Gobernación del Cauca</span>
         </div>
         <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-0.5">
-          Facturación y Formularios Únicos de Degüello
+          Auditoría de Declaraciones y Facturación de Degüello
         </h1>
         <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Control de recaudos, expedición de formularios con código de barras GS1-128 e impresión en formato oficial A4.
+          Revisión técnica de radicaciones, cotejo de soportes sanitarios ICA, registro de recaudos bancarios y expedición de formularios oficiales GS1-128.
         </p>
       </div>
     </div>
@@ -26,15 +26,36 @@
     <div>
       <button 
         (click)="irANuevaLiquidacion()"
-        class="px-4 py-2 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center space-x-2 cursor-pointer">
+        class="px-4 py-2 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center space-x-2 cursor-pointer border-none">
         <i class="fa-solid fa-plus"></i>
         <span>Nueva Liquidación</span>
       </button>
     </div>
   </div>
 
+  <!-- Mensaje de Acción / Notificación -->
+  <div *ngIf="mensajeAccion() as msg" 
+       class="p-3.5 rounded-2xl text-xs sm:text-sm font-semibold flex items-center justify-between shadow-xs transition"
+       [ngClass]="{
+         'bg-emerald-50 border border-emerald-300 text-emerald-950': msg.tipo === 'success',
+         'bg-blue-50 border border-blue-300 text-blue-950': msg.tipo === 'info',
+         'bg-rose-50 border border-rose-300 text-rose-950': msg.tipo === 'error'
+       }">
+    <div class="flex items-center space-x-2">
+      <i class="fa-solid" [ngClass]="{
+        'fa-circle-check text-emerald-600 text-base': msg.tipo === 'success',
+        'fa-circle-info text-blue-600 text-base': msg.tipo === 'info',
+        'fa-triangle-exclamation text-rose-600 text-base': msg.tipo === 'error'
+      }"></i>
+      <span>{{ msg.texto }}</span>
+    </div>
+    <button (click)="mensajeAccion.set(null)" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer bg-transparent border-none">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
   <!-- Tarjetas KPI -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-4">
       <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center text-xl shrink-0">
         <i class="fa-solid fa-sack-dollar"></i>
@@ -59,6 +80,19 @@
       </div>
     </div>
 
+    <!-- KPI: Por Aprobar (Cola Gobernación) -->
+    <div class="bg-white p-5 rounded-2xl border border-blue-200 shadow-xs flex items-center space-x-4">
+      <div class="w-11 h-11 rounded-xl bg-blue-100 text-blue-800 border border-blue-300 flex items-center justify-center text-xl shrink-0">
+        <i class="fa-solid fa-hourglass-half"></i>
+      </div>
+      <div>
+        <span class="text-xs text-blue-700 font-bold uppercase">En Cola de Revisión</span>
+        <div class="text-xl font-black text-blue-900 font-mono">
+          {{ totalRadicadas() }} Por Aprobar
+        </div>
+      </div>
+    </div>
+
     <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-4">
       <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center text-xl shrink-0">
         <i class="fa-solid fa-clock"></i>
@@ -76,39 +110,40 @@
   <div class="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden">
     
     <!-- Filtros de la Tabla -->
-    <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50">
+    <div class="p-4 border-b border-slate-100 flex flex-col lg:flex-row items-center justify-between gap-3 bg-slate-50/50">
       
       <!-- Búsqueda rápida -->
-      <div class="relative w-full sm:w-80">
+      <div class="relative w-full lg:w-80">
         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
         <input 
           type="text"
           [ngModel]="filtroTexto()"
           (ngModelChange)="filtroTexto.set($event)"
-          placeholder="Buscar por N° Formulario, NIT o Matarife..."
+          placeholder="Buscar por N° Formulario, Radicado o NIT..."
           class="w-full pl-9 pr-3.5 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-blue-600 transition" />
       </div>
 
       <!-- Filtro por Estado -->
-      <div class="flex items-center space-x-1.5 self-stretch sm:self-auto overflow-x-auto text-xs">
+      <div class="flex items-center space-x-1.5 self-stretch lg:self-auto overflow-x-auto text-xs pb-1 sm:pb-0">
         <button 
           (click)="filtroEstado.set('TODOS')"
           [class.bg-[#1b53ad]]="filtroEstado() === 'TODOS'"
           [class.text-white]="filtroEstado() === 'TODOS'"
           [class.bg-white]="filtroEstado() !== 'TODOS'"
           [class.text-slate-600]="filtroEstado() !== 'TODOS'"
-          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer">
+          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
           Todos ({{ listaDeclaraciones().length }})
         </button>
 
         <button 
-          (click)="filtroEstado.set('PAGADO')"
-          [class.bg-emerald-600]="filtroEstado() === 'PAGADO'"
-          [class.text-white]="filtroEstado() === 'PAGADO'"
-          [class.bg-white]="filtroEstado() !== 'PAGADO'"
-          [class.text-slate-600]="filtroEstado() !== 'PAGADO'"
-          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer">
-          Pagados
+          (click)="filtroEstado.set('RADICADA')"
+          [class.bg-blue-600]="filtroEstado() === 'RADICADA'"
+          [class.text-white]="filtroEstado() === 'RADICADA'"
+          [class.bg-white]="filtroEstado() !== 'RADICADA'"
+          [class.text-blue-700]="filtroEstado() !== 'RADICADA'"
+          class="px-3 py-1.5 rounded-lg border border-blue-200 font-bold transition cursor-pointer flex items-center space-x-1 shrink-0">
+          <i class="fa-solid fa-hourglass-half text-[10px]"></i>
+          <span>Por Revisar ({{ totalRadicadas() }})</span>
         </button>
 
         <button 
@@ -117,8 +152,18 @@
           [class.text-white]="filtroEstado() === 'PENDIENTE'"
           [class.bg-white]="filtroEstado() !== 'PENDIENTE'"
           [class.text-slate-600]="filtroEstado() !== 'PENDIENTE'"
-          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer">
-          Pendientes
+          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
+          Pendientes ({{ totalPendientes() }})
+        </button>
+
+        <button 
+          (click)="filtroEstado.set('PAGADO')"
+          [class.bg-emerald-600]="filtroEstado() === 'PAGADO'"
+          [class.text-white]="filtroEstado() === 'PAGADO'"
+          [class.bg-white]="filtroEstado() !== 'PAGADO'"
+          [class.text-slate-600]="filtroEstado() !== 'PAGADO'"
+          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
+          Pagados
         </button>
 
         <button 
@@ -127,8 +172,28 @@
           [class.text-white]="filtroEstado() === 'VENCIDO'"
           [class.bg-white]="filtroEstado() !== 'VENCIDO'"
           [class.text-slate-600]="filtroEstado() !== 'VENCIDO'"
-          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer">
+          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
           Vencidos
+        </button>
+
+        <button 
+          (click)="filtroEstado.set('RELIQUIDADA')"
+          [class.bg-purple-600]="filtroEstado() === 'RELIQUIDADA'"
+          [class.text-white]="filtroEstado() === 'RELIQUIDADA'"
+          [class.bg-white]="filtroEstado() !== 'RELIQUIDADA'"
+          [class.text-slate-600]="filtroEstado() !== 'RELIQUIDADA'"
+          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
+          Reliquidados
+        </button>
+
+        <button 
+          (click)="filtroEstado.set('RECHAZADA')"
+          [class.bg-rose-600]="filtroEstado() === 'RECHAZADA'"
+          [class.text-white]="filtroEstado() === 'RECHAZADA'"
+          [class.bg-white]="filtroEstado() !== 'RECHAZADA'"
+          [class.text-slate-600]="filtroEstado() !== 'RECHAZADA'"
+          class="px-3 py-1.5 rounded-lg border border-slate-200 font-medium transition cursor-pointer shrink-0">
+          Rechazadas ({{ totalRechazadas() }})
         </button>
       </div>
 
@@ -139,22 +204,42 @@
       <table class="w-full text-left text-xs text-slate-700">
         <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-200">
           <tr>
-            <th class="px-4 py-3">Formulario N°</th>
+            <th class="px-4 py-3">Formulario / Radicado</th>
             <th class="px-4 py-3">Contribuyente / Razón Social</th>
             <th class="px-4 py-3">Municipio / PBA</th>
             <th class="px-4 py-3 text-center">Cabezas</th>
             <th class="px-4 py-3 text-right">Total Liquidado</th>
-            <th class="px-4 py-3 text-center">Estado</th>
-            <th class="px-4 py-3 text-right">Acciones</th>
+            <th class="px-4 py-3 text-center">Estado Oficial</th>
+            <th class="px-4 py-3 text-right">Acciones de Gestión</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
           <tr *ngFor="let d of declaracionesFiltradas()" class="hover:bg-slate-50/80 transition">
             
-            <!-- Consecutivo -->
+            <!-- Consecutivo & Radicado -->
             <td class="px-4 py-3">
               <span class="font-mono font-bold text-[#1b53ad] block">{{ d.consecutivo }}</span>
-              <span class="text-[10px] text-slate-400 font-mono">{{ d.numeroGuiaIca }}</span>
+              <div class="flex items-center space-x-1.5 mt-0.5">
+                <span *ngIf="d.numeroRadicado" class="text-[10px] text-blue-700 bg-blue-50 px-1 rounded font-mono font-bold">
+                  {{ d.numeroRadicado }}
+                </span>
+                <span *ngIf="!d.numeroRadicado" class="text-[10px] text-slate-400 font-mono">{{ d.numeroGuiaIca }}</span>
+                
+                <button *ngIf="d.rutaArchivoGuiaIca" 
+                   type="button"
+                   (click)="abrirPreviewSoporte(d.rutaArchivoGuiaIca, d.nombreArchivoGuiaIca)" 
+                   title="Previsualizar Anexo Soporte Guía ICA Oficial" 
+                   class="text-[11px] text-emerald-600 hover:text-emerald-800 transition bg-transparent border-none p-0 cursor-pointer">
+                  <i class="fa-solid fa-file-medical"></i>
+                </button>
+                <a *ngIf="d.rutaArchivoLiquidacionPdf" 
+                   [href]="obtenerUrlDescarga(d.rutaArchivoLiquidacionPdf)" 
+                   target="_blank" 
+                   title="Ver Formulario Oficial de Liquidación" 
+                   class="text-[11px] text-blue-600 hover:text-blue-800 transition">
+                  <i class="fa-solid fa-file-invoice-dollar"></i>
+                </a>
+              </div>
             </td>
 
             <!-- Contribuyente -->
@@ -185,34 +270,105 @@
             <td class="px-4 py-3 text-center">
               <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold"
                     [ngClass]="{
+                      'bg-blue-100 text-blue-800 border border-blue-200': d.estadoPago === 'RADICADA',
                       'bg-emerald-100 text-emerald-800': d.estadoPago === 'PAGADO',
                       'bg-amber-100 text-amber-800': d.estadoPago === 'PENDIENTE',
                       'bg-rose-100 text-rose-800': d.estadoPago === 'VENCIDO',
-                      'bg-purple-100 text-purple-800': d.estadoPago === 'CORREGIDA'
+                      'bg-slate-100 text-slate-600 border border-slate-300': d.estadoPago === 'RELIQUIDADA',
+                      'bg-purple-100 text-purple-800': d.estadoPago === 'CORREGIDA',
+                      'bg-rose-50 text-rose-700 border border-rose-300': d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA'
                     }">
-                {{ d.estadoPago }}
+                <i *ngIf="d.estadoPago === 'RADICADA'" class="fa-solid fa-hourglass-half mr-1 text-[10px]"></i>
+                <i *ngIf="d.estadoPago === 'PAGADO'" class="fa-solid fa-circle-check mr-1 text-[10px]"></i>
+                <i *ngIf="d.estadoPago === 'VENCIDO'" class="fa-solid fa-triangle-exclamation mr-1 text-[10px]"></i>
+                <i *ngIf="d.estadoPago === 'RELIQUIDADA'" class="fa-solid fa-ban mr-1 text-[10px]"></i>
+                <i *ngIf="d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA'" class="fa-solid fa-circle-xmark mr-1 text-[10px]"></i>
+
+                {{ d.estadoPago }} {{ d.estadoPago === 'RADICADA' && d.turnoRevision ? '(Turno #' + d.turnoRevision + ')' : '' }}
               </span>
-              <span *ngIf="d.esCorreccion" class="block text-[10px] text-amber-700 font-medium mt-0.5">
+
+              <!-- Motivo del Rechazo si aplica -->
+              <span *ngIf="(d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA') && d.observacionAnulacion" 
+                    [title]="'Motivo oficial del rechazo: ' + d.observacionAnulacion"
+                    class="block text-[10px] text-rose-600 font-semibold mt-0.5 truncate max-w-[140px] mx-auto cursor-help">
+                <i class="fa-solid fa-circle-exclamation text-[9px] mr-0.5"></i>{{ d.observacionAnulacion }}
+              </span>
+
+              <!-- Aclaración Estado RELIQUIDADA: Registro histórico sustituido -->
+              <span *ngIf="d.estadoPago === 'RELIQUIDADA'" class="block text-[10px] text-slate-400 font-semibold mt-0.5">
+                (Sustituida / Inactiva)
+              </span>
+              
+              <!-- Si es la nueva Reliquidación vigente que sustituyó a la anterior -->
+              <span *ngIf="d.esReliquidacion && d.declaracionReliquidada" class="block text-[10px] text-purple-700 font-bold mt-0.5">
+                Reliquida Factura Vencida: {{ d.declaracionReliquidada }}
+              </span>
+
+              <!-- Si es corrección formal -->
+              <span *ngIf="d.esCorreccion && d.declaracionCorregida" class="block text-[10px] text-amber-700 font-medium mt-0.5">
                 Corrige: {{ d.declaracionCorregida }}
               </span>
             </td>
 
-            <!-- Acciones -->
+            <!-- Acciones de Gestión -->
             <td class="px-4 py-3 text-right">
               <div class="flex items-center justify-end space-x-1.5">
 
+                <!-- 1. Para RADICADAS: Botón REVISAR Y VALIDAR (Abre modal oficial con soporte ICA, no es aprobación a ciegas) -->
+                <button 
+                  *ngIf="d.estadoPago === 'RADICADA'"
+                  (click)="abrirRevision(d)"
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition cursor-pointer shadow-xs flex items-center space-x-1 border-none"
+                  title="Abrir expediente de radicación, cotejar soporte ICA y emitir concepto de aprobación">
+                  <i class="fa-solid fa-clipboard-check"></i>
+                  <span>Revisar y Validar</span>
+                </button>
+
+                <!-- 2. Para PENDIENTES: Botón REGISTRAR PAGO BANCARIO (Ventanilla / Taquilla) -->
+                <button 
+                  *ngIf="d.estadoPago === 'PENDIENTE'"
+                  (click)="abrirPagoBancario(d)"
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white transition cursor-pointer shadow-xs flex items-center space-x-1 border-none"
+                  title="Registrar comprobante de consignación o transferencia bancaria en tesorería">
+                  <i class="fa-solid fa-building-columns"></i>
+                  <span>Registrar Pago</span>
+                </button>
+
+                <!-- 3. Para PAGADOS: Botón VER CONSTANCIA DE RECAUDO -->
+                <button 
+                  *ngIf="d.estadoPago === 'PAGADO'"
+                  (click)="abrirComprobantePago(d)"
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-300 transition cursor-pointer flex items-center space-x-1"
+                  title="Consultar comprobante de recaudo bancario y estado de acreditación">
+                  <i class="fa-solid fa-receipt"></i>
+                  <span>Ver Recaudo</span>
+                </button>
+
+                <!-- Previsualizar soporte FTP directo si fue adjuntado -->
+                <button 
+                  *ngIf="d.estadoPago === 'PAGADO' && d.rutaArchivoPago"
+                  type="button"
+                  (click)="abrirPreviewSoporte(d.rutaArchivoPago, d.nombreArchivoPago || 'Comprobante_Pago.pdf')"
+                  class="px-2 py-1 text-xs font-bold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-300 transition cursor-pointer flex items-center space-x-1"
+                  [title]="'Previsualizar soporte de pago FTP: ' + (d.nombreArchivoPago || 'Comprobante.pdf')">
+                  <i class="fa-solid fa-file-invoice"></i>
+                  <span>Soporte</span>
+                </button>
+
+                <!-- 4. Para VENCIDAS: Botón RELIQUIDAR -->
                 <button 
                   *ngIf="d.estadoPago === 'VENCIDO'"
                   (click)="reliquidar(d)"
-                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-600 hover:text-white border border-amber-300 transition cursor-pointer shadow-xs"
-                  title="Reliquidar / Generar Declaración de Corrección en Mora">
-                  <i class="fa-solid fa-arrows-rotate mr-1"></i> Reliquidar
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-indigo-50 text-indigo-800 hover:bg-indigo-600 hover:text-white border border-indigo-300 transition cursor-pointer shadow-xs"
+                  title="Reliquidar factura vencida por mora e intereses moratorios">
+                  <i class="fa-solid fa-clock-rotate-left mr-1"></i> Reliquidar
                 </button>
 
+                <!-- 5. Siempre disponible: Ver Formulario Oficial PDF GS1-128 -->
                 <button 
                   (click)="abrirFacturaModal(d)"
-                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-blue-50 text-[#1b53ad] hover:bg-[#1b53ad] hover:text-white border border-blue-200 transition cursor-pointer"
-                  title="Ver Formulario Único Oficial PDF">
+                  class="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 text-slate-700 hover:bg-[#1b53ad] hover:text-white border border-slate-300 transition cursor-pointer"
+                  title="Ver Formulario Único Oficial PDF con código de barras GS1-128">
                   <i class="fa-solid fa-print mr-1"></i> Formulario PDF
                 </button>
 
@@ -233,11 +389,657 @@
 
   </div>
 
-  <!-- Modal Visor Factura -->
+  <!-- ========================================================================= -->
+  <!-- MODAL 1: REVISIÓN Y VALIDACIÓN OFICIAL DE RADICACIÓN (FUNCIONARIO GOBERNACIÓN) -->
+  <!-- ========================================================================= -->
+  <div *ngIf="declaracionParaRevision() as dec" 
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-[#1b53ad] text-white flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-clipboard-check"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-extrabold tracking-tight m-0">Revisión Oficial de Radicación</h2>
+            <p class="text-xs text-blue-100 m-0">Expediente {{ dec.numeroRadicado || ('RAD-' + dec.consecutivo) }} &middot; Turno de Atención #{{ dec.turnoRevision || 1 }}</p>
+          </div>
+        </div>
+        <button (click)="cerrarRevision()" class="text-white/80 hover:text-white text-lg bg-transparent border-none cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 overflow-y-auto space-y-4 text-xs">
+        
+        <!-- Banner de Validación Oficial o Modo Edición -->
+        <div *ngIf="!modoEdicionRevision()" class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900 flex items-start gap-2.5">
+          <i class="fa-solid fa-user-shield text-blue-600 text-sm mt-0.5"></i>
+          <div>
+            <strong class="block">Validación de Funcionario Público:</strong>
+            Verifique la concordancia entre la cantidad de cabezas declaradas, la procedencia y el soporte oficial de la Guía Sanitaria ICA. Si detecta inconsistencias, puede modificar los valores o rechazar la radicación.
+          </div>
+        </div>
+
+        <!-- Banner Modo Edición Activo -->
+        <div *ngIf="modoEdicionRevision()" class="p-3 bg-amber-50 border-2 border-amber-300 rounded-xl text-amber-950 flex items-center justify-between gap-3 animate-pulse">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-amber-200 text-amber-900 flex items-center justify-center text-sm font-bold shrink-0">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div>
+              <strong class="block text-xs text-amber-900">Modo de Edición y Ajuste Oficial Activo</strong>
+              <span class="text-[11px] text-amber-800">Modifique la cantidad de cabezas o el N° de Guía ICA. La liquidación tributaria se recalculará automáticamente.</span>
+            </div>
+          </div>
+          <button type="button" 
+                  (click)="cancelarEdicionRevision()" 
+                  class="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg font-bold text-xs cursor-pointer shrink-0 transition">
+            Descartar
+          </button>
+        </div>
+
+        <!-- Fila 1: Datos del Contribuyente -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <span class="text-[10px] font-black uppercase text-slate-400 block mb-2">1. Sujeto Pasivo / Declarante</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <span class="text-slate-500 font-medium">Razón Social:</span>
+              <p class="font-bold text-slate-900 text-sm m-0">{{ dec.razonSocial }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500 font-medium">Identificación Tributaria:</span>
+              <p class="font-bold text-slate-900 m-0 font-mono">NIT: {{ dec.nit }}-{{ dec.dv }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500 font-medium">Municipio de Sacrificio:</span>
+              <p class="font-semibold text-slate-800 m-0">{{ dec.municipio }}</p>
+            </div>
+            <div>
+              <span class="text-slate-500 font-medium">Planta de Beneficio Autorizada:</span>
+              <p class="font-semibold text-slate-800 m-0">{{ dec.plantaBeneficio }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila 2: Guía Sanitaria ICA y Soporte (Con soporte de edición en caliente) -->
+        <div class="p-4 rounded-xl border transition-all"
+             [ngClass]="modoEdicionRevision() ? 'bg-amber-50/40 border-amber-300 ring-2 ring-amber-200' : 'bg-slate-50 border-slate-200'">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-black uppercase"
+                  [ngClass]="modoEdicionRevision() ? 'text-amber-800' : 'text-slate-400'">
+              2. Datos Sanitarios & Soporte ICA {{ modoEdicionRevision() ? '(Campos Editables)' : '' }}
+            </span>
+            <span *ngIf="modoEdicionRevision()" class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+              Editable
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+            <div>
+              <span class="text-slate-500 font-medium">N° Guía Sanitaria ICA:</span>
+              @if (!modoEdicionRevision()) {
+                <p class="font-bold text-emerald-700 m-0 font-mono text-sm">{{ dec.numeroGuiaIca || 'Sin Guía' }}</p>
+              } @else {
+                <input type="text" 
+                       [ngModel]="editGuiaRevision()" 
+                       (ngModelChange)="editGuiaRevision.set($event)"
+                       class="w-full mt-1 px-2.5 py-1.5 border border-amber-400 bg-white rounded-lg font-mono font-bold text-xs text-slate-800 uppercase focus:ring-2 focus:ring-amber-500" 
+                       placeholder="Ej: GSMI-2026-004521" />
+              }
+            </div>
+
+            <div>
+              <span class="text-slate-500 font-medium">Semovientes Bovinos:</span>
+              @if (!modoEdicionRevision()) {
+                <p class="font-black text-[#1b53ad] m-0 text-sm font-mono">{{ dec.baseGravable }} Cabezas</p>
+              } @else {
+                <div class="flex items-center gap-1.5 mt-1">
+                  <input type="number" 
+                         min="1" 
+                         [ngModel]="editCabezasRevision()" 
+                         (ngModelChange)="editCabezasRevision.set($event)"
+                         class="w-full px-2.5 py-1.5 border-2 border-amber-500 bg-white rounded-lg font-mono font-black text-sm text-[#1b53ad] focus:ring-2 focus:ring-amber-500" />
+                  <span class="text-xs font-bold text-slate-500 shrink-0">Cabezas</span>
+                </div>
+              }
+            </div>
+
+            <div>
+              <span class="text-slate-500 font-medium">Vigencia ICA:</span>
+              <p class="font-semibold text-slate-700 m-0 mt-1">{{ dec.fechaVencimientoGuia || 'Vigente' }}</p>
+            </div>
+          </div>
+
+          <!-- Botón de Cotejo de Soporte -->
+          <div class="mt-3 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-slate-700 font-bold text-xs block">Archivo Soporte de la Guía ICA:</span>
+              <span class="text-[11px] text-slate-500 font-mono">{{ dec.nombreArchivoGuiaIca || 'Documento_Guia_Sanitaria.pdf' }}</span>
+            </div>
+            <div>
+              <button *ngIf="dec.rutaArchivoGuiaIca" 
+                      type="button"
+                      (click)="abrirPreviewSoporte(dec.rutaArchivoGuiaIca, dec.nombreArchivoGuiaIca)" 
+                      class="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg font-bold text-xs shadow-sm border-none cursor-pointer transition">
+                <i class="fa-solid fa-eye"></i>
+                <span>Abrir Soporte Guía ICA (Vista Previa)</span>
+              </button>
+              <span *ngIf="!dec.rutaArchivoGuiaIca" class="text-slate-400 italic text-xs">
+                Sin documento adjunto digitalizado
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila 3: Liquidación Tributaria Calculada (Recalculo dinámico en edición) -->
+        <div class="p-4 rounded-xl border transition-all"
+             [ngClass]="modoEdicionRevision() ? 'bg-amber-50/30 border-amber-200' : 'bg-slate-50 border-slate-200'">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-black uppercase text-slate-400 block">3. Liquidación Tributaria Oficial</span>
+            <span *ngIf="modoEdicionRevision()" class="text-[10px] text-amber-700 font-mono font-bold">
+              Recalculado: {{ calculoEdicionRevision().baseGravable }} cabezas
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+            <div class="p-2 bg-white rounded-lg border border-slate-200">
+              <span class="text-slate-400 text-[10px] block">Tarifa 2026</span>
+              <span class="font-bold text-slate-800 font-mono">${{ (modoEdicionRevision() ? calculoEdicionRevision().tarifa : dec.tarifa) | number:'1.0-0' }}</span>
+            </div>
+            <div class="p-2 bg-white rounded-lg border border-slate-200">
+              <span class="text-slate-400 text-[10px] block">Valor Bruto</span>
+              <span class="font-bold text-slate-800 font-mono">${{ (modoEdicionRevision() ? calculoEdicionRevision().valorBruto : dec.valorBruto) | number:'1.0-0' }}</span>
+            </div>
+            <div class="p-2 bg-white rounded-lg border border-slate-200">
+              <span class="text-slate-400 text-[10px] block">10% Dispersión Mpal.</span>
+              <span class="font-bold text-indigo-700 font-mono">${{ (modoEdicionRevision() ? calculoEdicionRevision().participacionMunicipios : dec.participacionMunicipios) | number:'1.0-0' }}</span>
+            </div>
+            <div class="p-2 rounded-lg border"
+                 [ngClass]="modoEdicionRevision() ? 'bg-amber-100/70 border-amber-300' : 'bg-blue-100/60 border-blue-200'">
+              <span class="text-[10px] font-bold block"
+                    [ngClass]="modoEdicionRevision() ? 'text-amber-900' : 'text-blue-900'">Total a Recaudar</span>
+              <span class="font-black font-mono"
+                    [ngClass]="modoEdicionRevision() ? 'text-amber-900' : 'text-[#1b53ad]'">${{ (modoEdicionRevision() ? calculoEdicionRevision().totalAPagar : dec.totalAPagar) | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fila 4: Observaciones del Funcionario -->
+        <div>
+          <label class="block text-slate-700 font-bold mb-1">
+            <span *ngIf="!modoEdicionRevision()">Concepto / Observaciones del Funcionario:</span>
+            <span *ngIf="modoEdicionRevision()" class="text-amber-800 font-bold">Justificación del Ajuste Oficial de Información:</span>
+          </label>
+          <textarea 
+            [ngModel]="observacionesRevision()"
+            (ngModelChange)="observacionesRevision.set($event)"
+            rows="2"
+            class="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-blue-600 transition"
+            [placeholder]="modoEdicionRevision() ? 'Explique por qué se ajustaron los datos (ej: Cotejo con soporte Guía ICA corregido)...' : 'Ingrese el concepto de verificación o novedades técnicas...'"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer con Opciones de MODIFICAR, RECHAZAR o APROBAR -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+        
+        <!-- Estado Normal de Revisión -->
+        <ng-container *ngIf="!modoEdicionRevision()">
+          <button 
+            type="button"
+            (click)="cerrarRevision()" 
+            class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+            Cancelar
+          </button>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 1. Botón RECHAZAR -->
+            <button 
+              type="button"
+              (click)="rechazarRadicacion()" 
+              [disabled]="procesandoRevision()"
+              class="px-3.5 py-2 bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-300 hover:border-rose-600 font-bold rounded-xl text-xs transition cursor-pointer flex items-center space-x-1.5 disabled:opacity-50">
+              <i class="fa-solid fa-circle-xmark"></i>
+              <span>Rechazar Radicación</span>
+            </button>
+
+            <!-- 2. Botón MODIFICAR -->
+            <button 
+              type="button"
+              (click)="activarEdicionRevision()" 
+              [disabled]="procesandoRevision()"
+              class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white border border-indigo-300 hover:border-indigo-600 font-bold rounded-xl text-xs transition cursor-pointer flex items-center space-x-1.5 disabled:opacity-50">
+              <i class="fa-solid fa-pen-to-square"></i>
+              <span>Modificar Datos</span>
+            </button>
+
+            <!-- 3. Botón APROBAR -->
+            <button 
+              type="button"
+              (click)="confirmarAprobacion()" 
+              [disabled]="procesandoRevision()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-1.5 border-none disabled:opacity-50">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>Aprobar y Habilitar para Pago</span>
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- Estado en MODO EDICIÓN -->
+        <ng-container *ngIf="modoEdicionRevision()">
+          <button 
+            type="button"
+            (click)="cancelarEdicionRevision()" 
+            class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+            Descartar Cambios
+          </button>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Abrir en liquidador completo si se requiere cambiar representante, fecha, etc. -->
+            <button 
+              type="button"
+              (click)="irALiquidadorAvanzado(dec)" 
+              class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-xs cursor-pointer border border-slate-300 flex items-center space-x-1" 
+              title="Abrir en el módulo de liquidación completa">
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              <span class="hidden sm:inline">Edición Completa</span>
+            </button>
+
+            <!-- Guardar ajuste sin aprobar aún -->
+            <button 
+              type="button"
+              (click)="guardarEdicionRevision(false)" 
+              [disabled]="procesandoRevision()"
+              class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition cursor-pointer border-none flex items-center space-x-1.5 shadow-sm disabled:opacity-50">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Guardar Ajuste</span>
+            </button>
+
+            <!-- Guardar ajuste y APROBAR inmediatamente -->
+            <button 
+              type="button"
+              (click)="guardarEdicionRevision(true)" 
+              [disabled]="procesandoRevision()"
+              class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs transition cursor-pointer border-none flex items-center space-x-1.5 shadow-md disabled:opacity-50">
+              <i class="fa-solid fa-check-double"></i>
+              <span>Guardar y Aprobar para Pago</span>
+            </button>
+          </div>
+        </ng-container>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 2: REGISTRO DE PAGO BANCARIO / VENTANILLA (FUNCIONARIO / RECAUDO)   -->
+  <!-- ========================================================================= -->
+  <div *ngIf="declaracionParaPagoBancario() as dec" 
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 bg-emerald-700 text-white flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-xl">
+            <i class="fa-solid fa-building-columns"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-extrabold tracking-tight m-0">Registro de Pago Bancario</h2>
+            <p class="text-xs text-emerald-100 m-0">Liquidación N° {{ dec.consecutivo }} &middot; Recaudo en Ventanilla</p>
+          </div>
+        </div>
+        <button (click)="cerrarPagoBancario()" class="text-white/80 hover:text-white text-lg bg-transparent border-none cursor-pointer">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 text-xs">
+        
+        <!-- Tarjeta Resumen -->
+        <div class="bg-emerald-50/70 p-4 rounded-xl border border-emerald-200 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-emerald-800 font-bold uppercase block">Total Liquidado a Recaudar</span>
+            <span class="text-xl font-black text-emerald-950 font-mono mt-0.5 block">
+              $ {{ dec.totalAPagar | number:'1.0-0' }} COP
+            </span>
+            <span class="text-[11px] text-emerald-700 block truncate max-w-xs">{{ dec.razonSocial }}</span>
+          </div>
+          <span class="px-2.5 py-1 rounded-full bg-emerald-200 text-emerald-900 font-bold text-[10px]">
+            {{ dec.baseGravable }} Cabezas
+          </span>
+        </div>
+
+        <!-- Formulario de Recaudo -->
+        <div class="space-y-3">
+          <div>
+            <label class="block text-slate-700 font-bold mb-1">Entidad Bancaria Recaudadora:</label>
+            <select 
+              [ngModel]="bancoSeleccionado()"
+              (ngModelChange)="bancoSeleccionado.set($event)"
+              class="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-600 transition">
+              <option value="Banco de Occidente - Cta Recaudadora Deptal #072-84192-3">Banco de Occidente - Cta Cte #072-84192-3</option>
+              <option value="Banco Agrario de Colombia - Cta Recaudos Cauca #301-9210-4">Banco Agrario de Colombia - Cta Recaudos</option>
+              <option value="Bancolombia - Convenio Recaudo Impuesto Degüello #49821">Bancolombia - Convenio Recaudo #49821</option>
+              <option value="Banco Davivienda - Recaudo Gobernación del Cauca">Banco Davivienda - Recaudo Gobernación</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-slate-700 font-bold mb-1">Canal de Pago:</label>
+              <select 
+                [ngModel]="canalPago()"
+                (ngModelChange)="canalPago.set($event)"
+                class="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-600 transition">
+                <option value="Ventanilla / Taquilla Bancaria">Ventanilla / Taquilla Bancaria</option>
+                <option value="Corresponsal Bancario Autorizado">Corresponsal Bancario</option>
+                <option value="Transferencia ACH / Interbancaria">Transferencia ACH</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-700 font-bold mb-1">Fecha de Transacción:</label>
+              <input 
+                type="date"
+                [ngModel]="fechaPagoBancario()"
+                (ngModelChange)="fechaPagoBancario.set($event)"
+                class="w-full p-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:ring-2 focus:ring-emerald-600 transition" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-slate-700 font-bold mb-1">N° Comprobante / Pin de Consignación:</label>
+            <input 
+              type="text" 
+              [ngModel]="numeroComprobante()"
+              (ngModelChange)="numeroComprobante.set($event)"
+              placeholder="Ej: REC-BAN-849102"
+              class="w-full p-2.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 font-mono font-bold focus:ring-2 focus:ring-emerald-600 transition" />
+          </div>
+
+          <!-- CAMPO ADJUNTO: COMPROBANTE DE PAGO BANCARIO EN FTP -->
+          <div class="pt-1">
+            <div class="flex items-center justify-between mb-1">
+              <label class="block text-slate-700 font-bold">
+                Comprobante / Soporte de Consignación Bancaria:
+              </label>
+              <span class="text-[10px] text-emerald-700 font-bold flex items-center gap-1">
+                <i class="fa-solid fa-server text-[9px]"></i> Almacenamiento FTP por Contribuyente
+              </span>
+            </div>
+
+            @if (!archivoComprobanteSeleccionado()) {
+              <label class="border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-xl p-3.5 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-50/60 hover:bg-emerald-50/30 transition group">
+                <i class="fa-solid fa-cloud-arrow-up text-slate-400 group-hover:text-emerald-600 text-lg mb-1 transition"></i>
+                <span class="text-xs font-bold text-slate-700 group-hover:text-emerald-700">Seleccionar Comprobante de Pago</span>
+                <span class="text-[10.5px] text-slate-400 mt-0.5">PDF, PNG, JPG (Máx. 10MB) &middot; Carpeta: /DEGUELLO/EMPRESAS/{{ dec.nit }}/{{ dec.anioGravable }}/SOPORTES_PAGO</span>
+                <input 
+                  type="file" 
+                  accept=".pdf,image/png,image/jpeg" 
+                  (change)="onArchivoComprobanteSeleccionado($event)"
+                  class="hidden" 
+                />
+              </label>
+            } @else {
+              <div class="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 truncate">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
+                    <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
+                  </div>
+                  <div class="truncate">
+                    <span class="font-bold text-emerald-950 block truncate text-xs">{{ archivoComprobanteSeleccionado()?.name }}</span>
+                    <span class="text-[10.5px] text-emerald-700 font-mono block">
+                      {{ (archivoComprobanteSeleccionado()?.size || 0) / 1024 | number:'1.0-1' }} KB &middot; Guardando en FTP: /DEGUELLO/EMPRESAS/{{ dec.nit }}/{{ dec.anioGravable }}/SOPORTES_PAGO
+                    </span>
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  (click)="eliminarArchivoComprobante()"
+                  class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-100/50 rounded-lg transition border-none bg-transparent cursor-pointer shrink-0"
+                  title="Quitar archivo"
+                >
+                  <i class="fa-solid fa-trash-can text-xs"></i>
+                </button>
+              </div>
+            }
+
+            @if (errorArchivoComprobante()) {
+              <p class="text-rose-600 text-[11px] mt-1 m-0 flex items-center gap-1">
+                <i class="fa-solid fa-circle-exclamation text-xs"></i> {{ errorArchivoComprobante() }}
+              </p>
+            }
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button 
+          (click)="cerrarPagoBancario()" 
+          [disabled]="subiendoComprobanteFtp()"
+          class="px-4 py-2 bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+          Cancelar
+        </button>
+
+        <button 
+          (click)="confirmarPagoBancario()" 
+          [disabled]="subiendoComprobanteFtp()"
+          class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center space-x-2 border-none">
+          @if (subiendoComprobanteFtp()) {
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>Subiendo a FTP del Contribuyente...</span>
+          } @else {
+            <i class="fa-solid fa-check-double"></i>
+            <span>Confirmar Recaudo en BD</span>
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL 3: CONSTANCIA DE RECAUDO / COMPROBANTE BANCARIO (DECLARACIÓN PAGADA)-->
+  <!-- ========================================================================= -->
+  <div *ngIf="declaracionParaComprobante() as dec" 
+       class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
+      
+      <div class="p-6 bg-emerald-600 text-white text-center">
+        <div class="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto text-2xl mb-2">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h2 class="text-lg font-black m-0">Constancia de Pago y Recaudo</h2>
+        <p class="text-xs text-emerald-100 m-0 mt-0.5">Paz y Salvo Acreditado para Faenado Bovino</p>
+      </div>
+
+      <div class="p-6 space-y-3 text-xs">
+        <div class="flex justify-between border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">N° Formulario:</span>
+          <span class="font-mono font-bold text-[#1b53ad]">{{ dec.consecutivo }}</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">Contribuyente:</span>
+          <span class="font-bold text-slate-800 truncate max-w-[200px]">{{ dec.razonSocial }}</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">NIT:</span>
+          <span class="font-mono font-bold text-slate-700">{{ dec.nit }}-{{ dec.dv }}</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">N° Comprobante / Recibo:</span>
+          <span class="font-mono font-bold text-emerald-700">{{ dec.reciboBancario || 'REC-OCC-748921' }}</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-100 pb-2">
+          <span class="text-slate-500 font-medium">Cabezas Beneficiadas:</span>
+          <span class="font-bold text-slate-800">{{ dec.baseGravable }} Semovientes</span>
+        </div>
+        <div class="flex justify-between pt-1">
+          <span class="text-slate-900 font-extrabold text-sm">Valor Pagado:</span>
+          <span class="font-mono font-black text-base text-emerald-700">$ {{ dec.totalAPagar | number:'1.0-0' }} COP</span>
+        </div>
+
+        @if (dec.rutaArchivoPago) {
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between gap-2 mt-2">
+            <div class="flex items-center gap-2 truncate">
+              <i class="fa-solid fa-file-invoice text-blue-600 text-base"></i>
+              <div class="truncate">
+                <span class="font-bold text-blue-900 block truncate">{{ dec.nombreArchivoPago || 'Comprobante_Pago.pdf' }}</span>
+                <span class="text-[10px] text-blue-600 font-mono">Almacenado en FTP del contribuyente (NIT: {{ dec.nit }})</span>
+              </div>
+            </div>
+            <button 
+              type="button"
+              (click)="abrirPreviewSoporte(dec.rutaArchivoPago, dec.nombreArchivoPago || 'Comprobante_Pago.pdf')"
+              class="px-2.5 py-1.5 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold rounded-lg text-xs cursor-pointer border-none flex items-center gap-1.5 shrink-0 transition"
+              title="Previsualizar comprobante bancario"
+            >
+              <i class="fa-solid fa-eye text-xs"></i>
+              <span>Ver Soporte</span>
+            </button>
+          </div>
+        }
+      </div>
+
+      <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button 
+          (click)="cerrarComprobantePago()" 
+          class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer">
+          Cerrar
+        </button>
+        <button 
+          (click)="cerrarComprobantePago(); abrirFacturaModal(dec)" 
+          class="px-4 py-2 bg-[#1b53ad] hover:bg-[#154189] text-white font-bold rounded-xl text-xs cursor-pointer border-none flex items-center space-x-1.5">
+          <i class="fa-solid fa-print"></i>
+          <span>Ver Formulario Oficial</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Visor Factura / Formulario Oficial GS1-128 -->
   <app-factura-modal 
     *ngIf="declaracionParaModal() as dec"
     [declaracion]="dec"
     (cerrar)="cerrarFacturaModal()">
   </app-factura-modal>
+
+  <!-- ============================================================ -->
+  <!-- MODAL DE PREVISUALIZACIÓN DE SOPORTES DOCUMENTALES (SIN DESCARGA) -->
+  <!-- ============================================================ -->
+  <div *ngIf="previewSoporteVisible()" 
+       class="fixed inset-0 z-[80] bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4"
+       role="dialog" 
+       aria-modal="true" 
+       (click)="cerrarPreviewSoporte()">
+       
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden border border-slate-200"
+         (click)="$event.stopPropagation()">
+      
+      <!-- Encabezado del Visor -->
+      <div class="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div class="flex items-center space-x-3 truncate">
+          <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg shrink-0">
+            <i [class]="previewSoporteEsPdf() ? 'fa-solid fa-file-pdf' : 'fa-solid fa-file-image'"></i>
+          </div>
+          <div class="truncate">
+            <div class="flex items-center space-x-2">
+              <h3 class="text-sm font-bold text-white m-0 truncate">{{ previewSoporteNombre() }}</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-800 shrink-0">
+                Vista Previa Oficial
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 m-0 truncate">
+              Expediente Digital Tributario · Gobernación del Cauca (Visualización directa sin descarga)
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0">
+          <!-- Abrir en pestaña nueva opcional -->
+          <a *ngIf="previewSoporteUrlRaw()" 
+             [href]="previewSoporteUrlRaw()" 
+             target="_blank" 
+             class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold no-underline flex items-center gap-1.5 transition"
+             title="Abrir en pestaña nueva">
+            <i class="fa-solid fa-arrow-up-right-from-square text-[11px]"></i>
+            <span class="hidden sm:inline">Pestaña Nueva</span>
+          </a>
+
+          <!-- Botón Cerrar -->
+          <button (click)="cerrarPreviewSoporte()" 
+                  type="button"
+                  class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition border-none cursor-pointer"
+                  title="Cerrar visor">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Cuerpo del Visor con el Iframe o Imagen -->
+      <div class="flex-1 bg-slate-100 relative overflow-hidden flex items-center justify-center">
+        @if (previewSoporteUrl()) {
+          @if (previewSoporteEsPdf()) {
+            <iframe 
+              [src]="previewSoporteUrl()" 
+              class="w-full h-full border-0 bg-slate-200" 
+              title="Vista previa del soporte digital">
+            </iframe>
+          } @else {
+            <div class="w-full h-full p-4 overflow-auto flex items-center justify-center">
+              <img 
+                [src]="previewSoporteUrl()" 
+                class="max-w-full max-h-full object-contain rounded-lg shadow-md border border-slate-300 bg-white" 
+                alt="Documento soporte adjunto">
+            </div>
+          }
+        } @else {
+          <div class="p-8 text-center text-slate-400">
+            <i class="fa-solid fa-circle-exclamation text-3xl mb-2 block"></i>
+            <p class="text-sm font-semibold m-0">No se pudo cargar la vista previa del documento.</p>
+          </div>
+        }
+      </div>
+
+      <!-- Pie del Visor con confirmación de cotejo -->
+      <div class="px-5 py-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+        <div class="flex items-center space-x-2 text-xs text-slate-600">
+          <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+          <span>
+            Verifique número de semovientes, precinto sanitario, vigencia y procedencia antes de autorizar.
+          </span>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <!-- Botón volver al modal de revisión -->
+          <button (click)="cerrarPreviewSoporte()" 
+                  type="button"
+                  class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer border border-slate-300">
+            Volver a la Revisión
+          </button>
+
+          <!-- Si el funcionario está revisando una radicación, permitir aprobar directamente desde el visor -->
+          <button *ngIf="declaracionParaRevision()" 
+                  (click)="cerrarPreviewSoporte(); confirmarAprobacion()" 
+                  type="button"
+                  class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition cursor-pointer border-none flex items-center space-x-1.5 shadow-sm">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Soporte Verificado: Aprobar y Habilitar para Pago</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
 </div>

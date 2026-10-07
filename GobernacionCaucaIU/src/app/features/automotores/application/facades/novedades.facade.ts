@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { NovedadesCatalogosFacade } from './novedades/novedades-catalogos.facade';
 import { NovedadesBusquedaFacade, NovedadHistoricoItem } from './novedades/novedades-busqueda.facade';
 import { NovedadesOperacionesFacade, TipoNovedadVehiculo, RadicarResultado } from './novedades/novedades-operaciones.facade';
@@ -134,7 +134,19 @@ export class NovedadesFacade {
   }
 
   cambiarEstado(idOrItem: any, nuevoEstado: EstadoNovedad, observaciones?: string): Observable<any> {
-    return this.busqueda.cambiarEstado(idOrItem, nuevoEstado, observaciones);
+    return this.busqueda.cambiarEstado(idOrItem, nuevoEstado, observaciones).pipe(
+      map(res => {
+        if (res.success && nuevoEstado === 'APROBADO' && res.placa) {
+          // Al aprobar, refrescar el vehículo desde la API y sincronizar los formularios con los datos mutados
+          this.busqueda.refrescarVehiculo(res.placa).subscribe(vehiculoActualizado => {
+            if (vehiculoActualizado) {
+              this.operaciones.autocompletarFormularios(vehiculoActualizado);
+            }
+          });
+        }
+        return res;
+      })
+    );
   }
 
   radicarNovedad(): Observable<RadicarResultado> {

@@ -1,0 +1,258 @@
+@if (facade.isDetalleModalOpen()) {
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
+  <div
+    class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-scale-up"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-detalle-title"
+  >
+    <header class="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-400/40 flex items-center justify-center text-blue-300">
+          <i class="fa-solid fa-file-invoice text-lg"></i>
+        </div>
+        <div>
+          <h2 id="modal-detalle-title" class="text-base font-black tracking-tight text-white m-0">
+            Detalle de Preliquidación Congelada (Snapshot)
+          </h2>
+          <p class="text-xs text-slate-300 m-0">
+            Comprobante inmutable de emisión para recaudo y conciliación bancaria.
+          </p>
+        </div>
+      </div>
+
+      <button
+        (click)="facade.cerrarDetalle()"
+        type="button"
+        class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+        title="Cerrar detalle"
+      >
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+    </header>
+
+    <div class="p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/60 text-xs">
+      @if (facade.loadingDetalle()) {
+        <div class="py-16 text-center text-slate-500">
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-blue-700 mb-3 block"></i>
+          <span class="font-semibold text-sm">Recuperando preliquidación congelada desde base de datos...</span>
+        </div>
+      } @else if (facade.detalleError(); as err) {
+        <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-center gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-lg text-red-600 shrink-0"></i>
+          <div>
+            <div class="font-bold">No fue posible cargar el snapshot</div>
+            <div class="text-xs text-red-700">{{ err }}</div>
+          </div>
+        </div>
+      } @else if (facade.selectedSnapshot(); as item) {
+        <div class="bg-white border border-slate-200/90 rounded-xl p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <span class="co-plate text-sm px-3 py-1 font-bold">{{ item.placa }}</span>
+            <div>
+              <div class="font-mono text-xs font-bold text-slate-900">
+                Liquidación Oficial: <span class="text-blue-900">{{ item.numeroLiquidacion }}</span>
+              </div>
+              <div class="text-[11px] text-slate-500">
+                Vigencia Fiscal: <strong class="text-slate-800">{{ item.vigenciaAnio }}</strong> |
+                Snapshot ID: <span class="font-mono text-slate-700">#{{ item.idLiquidacionSnapshots }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            @if (item.estadoPago === 'PAGADO') {
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                <i class="fa-solid fa-circle-check text-[10px]"></i> PAGADO Y CONCILIADO
+              </span>
+            } @else if (item.esVencido) {
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+                <i class="fa-solid fa-clock text-[10px]"></i> FACTURA EXPIRADA
+              </span>
+            } @else {
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                <i class="fa-solid fa-hourglass-half text-[10px]"></i> PENDIENTE DE RECAUDO
+              </span>
+            }
+          </div>
+        </div>
+
+        <div class="p-3.5 bg-blue-50/70 border border-blue-200/80 rounded-xl text-blue-950 flex items-start gap-3">
+          <i class="fa-solid fa-shield-halved text-base text-blue-700 mt-0.5 shrink-0"></i>
+          <div class="space-y-0.5">
+            <p class="font-bold text-xs m-0">Inmutabilidad de Valores por Cálculo Diario</p>
+            <p class="text-[11.5px] text-slate-600 m-0">
+              Esta captura fue congelada el <strong>{{ item.fechaEmisionSnapshot }}</strong>. Los intereses y sanciones se liquidaron con <strong>{{ item.diasMoraAlEmitir }} días de mora</strong> a la fecha de emisión. La fecha límite de pago para este valor es el <strong>{{ item.fechaVencimientoFactura }}</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-2.5">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2 text-slate-800 font-bold text-xs">
+              <i class="fa-solid fa-car text-slate-500"></i>
+              <span>Especificaciones del Automotor</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-[11.5px]">
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">Marca / Línea:</span>
+                <span class="font-bold text-slate-800">{{ item.marcaLinea || 'No registrada' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">Modelo:</span>
+                <span class="font-bold text-slate-800">{{ item.modelo || 'N/A' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">Clase de Vehículo:</span>
+                <span class="font-medium text-slate-700">{{ item.claseVehiculo || 'No especificada' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">Tipo / Servicio:</span>
+                <span class="font-medium text-slate-700">{{ item.tipoVehiculo || item.servicioVehiculo || 'Particular' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">N° de Motor:</span>
+                <span class="font-mono text-slate-700 text-[11px]">{{ item.numeroMotor || 'N/D' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">N° de Chasis / VIN:</span>
+                <span class="font-mono text-slate-700 text-[11px]">{{ item.numeroChasis || 'N/D' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs space-y-2.5">
+            <div class="flex items-center gap-2 border-b border-slate-100 pb-2 text-slate-800 font-bold text-xs">
+              <i class="fa-solid fa-user-tie text-slate-500"></i>
+              <span>Titular y Referencia Bancaria</span>
+            </div>
+            <div class="space-y-2 text-[11.5px]">
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">Propietario / Contribuyente:</span>
+                <span class="font-bold text-slate-900">{{ item.propietarioNombreCompleto || 'Contribuyente No Registrado' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block text-[10.5px]">Identificación (CC / NIT):</span>
+                <span class="font-mono font-semibold text-slate-800">{{ item.propietarioIdentificacion || 'Sin documento' }}</span>
+              </div>
+              <div class="pt-1 border-t border-slate-100">
+                <span class="text-slate-400 block text-[10.5px]">Referencia de Pago (Asobancaria / Barras):</span>
+                <div class="flex items-center gap-2 mt-1">
+                  <span class="font-mono font-bold text-blue-900 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200 text-xs">
+                    {{ item.referenciaPagoOnline || 'Sin referencia generada' }}
+                  </span>
+                  @if (item.referenciaPagoOnline) {
+                    <button
+                      (click)="copiarReferencia(item.referenciaPagoOnline)"
+                      type="button"
+                      class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded text-[11px] font-bold cursor-pointer transition-colors shadow-2xs"
+                      title="Copiar referencia al portapapeles"
+                    >
+                      <i class="fa-solid fa-copy text-slate-500 mr-1"></i>Copiar
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+          <div class="px-4 py-2.5 bg-slate-100/80 border-b border-slate-200 flex items-center justify-between">
+            <span class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-list-ol text-slate-500"></i>
+              Desglose Estructurado de Conceptos Tributarios
+            </span>
+            <span class="text-[10.5px] text-slate-500">
+              Valores congelados para emisión
+            </span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-600 font-bold border-b border-slate-200 text-[10.5px] uppercase">
+                  <th class="py-2.5 px-4 w-24">Código</th>
+                  <th class="py-2.5 px-4">Concepto Liquidado</th>
+                  <th class="py-2.5 px-4 text-right w-36">Valor Congelado</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @if (item.conceptos && item.conceptos.length > 0) {
+                  @for (c of item.conceptos; track c.codigo) {
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                      <td class="py-2 px-4 font-mono text-slate-600">{{ c.codigo }}</td>
+                      <td class="py-2 px-4 font-medium text-slate-800">{{ c.nombre }}</td>
+                      <td class="py-2 px-4 text-right font-mono font-semibold text-slate-900">
+                        ${{ c.valor | number:'1.0-0' }}
+                      </td>
+                    </tr>
+                  }
+                } @else {
+                  <tr>
+                    <td class="py-2 px-4 font-mono text-slate-600">IMP-BASE</td>
+                    <td class="py-2 px-4 font-medium text-slate-800">Impuesto Vehicular Principal</td>
+                    <td class="py-2 px-4 text-right font-mono font-semibold text-slate-900">
+                      ${{ item.valorImpuestoPrincipal | number:'1.0-0' }}
+                    </td>
+                  </tr>
+                  @if (item.valorInteresesMora > 0) {
+                    <tr>
+                      <td class="py-2 px-4 font-mono text-amber-700">INT-MORA</td>
+                      <td class="py-2 px-4 font-medium text-amber-900">Intereses Moratorios Congelados</td>
+                      <td class="py-2 px-4 text-right font-mono font-semibold text-amber-900">
+                        ${{ item.valorInteresesMora | number:'1.0-0' }}
+                      </td>
+                    </tr>
+                  }
+                  @if (item.valorDescuentoProntoPago > 0) {
+                    <tr>
+                      <td class="py-2 px-4 font-mono text-emerald-700">DESC-PRONTO</td>
+                      <td class="py-2 px-4 font-medium text-emerald-900">Descuento de Pronto Pago Aplicado</td>
+                      <td class="py-2 px-4 text-right font-mono font-semibold text-emerald-700">
+                        -${{ item.valorDescuentoProntoPago | number:'1.0-0' }}
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="p-4 bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-800">
+            <div class="text-[11px] text-slate-400 space-y-0.5">
+              <div>Fecha de Emisión: <strong class="text-slate-200">{{ item.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}</strong></div>
+              <div>Vence Factura: <strong class="text-slate-200">{{ item.fechaVencimientoFactura | date:'dd/MM/yyyy' }}</strong></div>
+            </div>
+
+            <div class="text-right">
+              <span class="text-[10.5px] uppercase tracking-wider text-slate-400 block">Total a Pagar Congelado</span>
+              <span class="text-2xl font-black text-emerald-400 font-mono tracking-tight">
+                ${{ item.valorTotalPagar | number:'1.0-0' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <footer class="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0">
+      <div class="text-[11px] text-slate-400">
+        @if (facade.copiadoExitoso(); as msg) {
+          <span class="text-emerald-700 font-bold flex items-center gap-1">
+            <i class="fa-solid fa-circle-check"></i> {{ msg }}
+          </span>
+        }
+      </div>
+
+      <button
+        (click)="facade.cerrarDetalle()"
+        type="button"
+        class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition-colors cursor-pointer border-none"
+      >
+        Cerrar
+      </button>
+    </footer>
+  </div>
+</div>
+}

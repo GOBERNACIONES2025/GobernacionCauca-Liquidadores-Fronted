@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
 import {
@@ -15,6 +16,7 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     BreadcrumbComponent,
     LiquidacionesSimulacionModalComponent,
     LiquidacionesMasivaModalComponent,

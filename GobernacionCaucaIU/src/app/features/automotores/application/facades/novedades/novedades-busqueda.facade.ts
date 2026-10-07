@@ -178,6 +178,23 @@ export class NovedadesBusquedaFacade {
     return est === 'RADICADO' || est === 'EN_REVISION' || est === 'RADICADA';
   }
 
+  refrescarVehiculo(placa: string): Observable<VehiculoItemDto | null> {
+    const rawPlaca = placa.trim().toUpperCase();
+    if (!rawPlaca) return of(null);
+
+    return this.vehiculosApi.getVehiculos({ page: 1, pageSize: 10, buscar: rawPlaca }).pipe(
+      map(res => {
+        const items: VehiculoItemDto[] = res?.data?.items || (res as any)?.items || [];
+        const encontrado = items.find((v: VehiculoItemDto) => v.placa?.toUpperCase() === rawPlaca) || items[0] || null;
+        if (encontrado) {
+          this.vehiculo.set(encontrado);
+        }
+        return encontrado;
+      }),
+      catchError(() => of(null))
+    );
+  }
+
   cambiarEstado(idOrItem: any, nuevoEstado: EstadoNovedad, observaciones?: string): Observable<any> {
     const rawId = typeof idOrItem === 'number' ? idOrItem : (idOrItem?.rawId || idOrItem?.id);
     const numId = Number(rawId);
@@ -200,13 +217,37 @@ export class NovedadesBusquedaFacade {
     }).pipe(
       map(res => {
         this.accionLoading.set(null);
+
+        // 1. Actualización optimista reactiva en la lista del historial
+        this.historialNovedades.update(list =>
+          list.map(item =>
+            item.rawId === numId || item.id === String(numId)
+              ? { ...item, estado: nuevoEstado }
+              : item
+          )
+        );
+
+        // 2. Si el modal de detalle está abierto, reflejar el nuevo estado
+        this.detalleModal.update(modal =>
+          modal && (modal.id === numId || modal.id === rawId)
+            ? { ...modal, estado: nuevoEstado as any }
+            : modal
+        );
+
+        // 3. Determinar la placa involucrada
+        const placaTarget = this.vehiculo()?.placa || novedadActual?.placa || '';
+
+        // 4. Refrescar historial desde backend
         if (this.vehiculo()) {
           this.cargarHistorialVehiculo(this.vehiculo()!.placa);
         } else {
           this.cargarHistorialGeneral();
         }
+
+        // 5. Refrescar KPIs
         this.cargarKpis();
-        return { success: true, data: res };
+
+        return { success: true, data: res, placa: placaTarget };
       }),
       catchError(err => {
         this.accionLoading.set(null);

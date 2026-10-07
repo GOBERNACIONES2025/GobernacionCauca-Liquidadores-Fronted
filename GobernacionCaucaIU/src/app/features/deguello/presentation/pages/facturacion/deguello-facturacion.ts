@@ -2,7 +2,9 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { DeguelloService } from '../../../infrastructure/services/deguello.service';
+import { DeguelloFtpService } from '../../../infrastructure/services/deguello-ftp.service';
 import { DeclaracionDeguelloData } from '../../../domain/models/deguello.model';
 import { FacturaModalComponent } from '../../components/factura-modal/factura-modal';
 
@@ -14,14 +16,53 @@ import { FacturaModalComponent } from '../../components/factura-modal/factura-mo
 })
 export class DeguelloFacturacionComponent implements OnInit {
   private deguelloService = inject(DeguelloService);
+  private deguelloFtpService = inject(DeguelloFtpService);
   private router = inject(Router);
+  private sanitizer = inject(DomSanitizer);
 
   readonly listaDeclaraciones = signal<DeclaracionDeguelloData[]>([]);
   readonly filtroTexto = signal<string>('');
-  readonly filtroEstado = signal<'TODOS' | 'PAGADO' | 'PENDIENTE' | 'VENCIDO'>('TODOS');
+  readonly filtroEstado = signal<'TODOS' | 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'VENCIDO' | 'RELIQUIDADA' | 'RECHAZADA'>('TODOS');
+  readonly mensajeAccion = signal<{ texto: string; tipo: 'success' | 'info' | 'error' } | null>(null);
 
-  // Modal para ver/imprimir la factura oficial
+  // Modal para ver/imprimir el formulario oficial
   readonly declaracionParaModal = signal<DeclaracionDeguelloData | null>(null);
+
+  // Modal de REVISIÓN DE RADICACIÓN (Funcionario)
+  readonly declaracionParaRevision = signal<DeclaracionDeguelloData | null>(null);
+  readonly observacionesRevision = signal<string>('Soporte ICA verificado y conforme. Cumple requisitos sanitarios y destinación a PBA autorizada.');
+  readonly modoEdicionRevision = signal<boolean>(false);
+  readonly editCabezasRevision = signal<number>(0);
+  readonly editGuiaRevision = signal<string>('');
+  readonly procesandoRevision = signal<boolean>(false);
+
+  // Cálculo tributario reactivo en vivo cuando el funcionario edita los datos en la revisión
+  readonly calculoEdicionRevision = computed(() => {
+    const cabezas = Number(this.editCabezasRevision()) || 0;
+    return this.deguelloService.calcularLiquidacion(cabezas, 49800);
+  });
+
+  // Modal de REGISTRO DE PAGO BANCARIO / VENTANILLA (Funcionario / Tesorería)
+  readonly declaracionParaPagoBancario = signal<DeclaracionDeguelloData | null>(null);
+  readonly bancoSeleccionado = signal<string>('Banco de Occidente - Cta Recaudadora Deptal #072-84192-3');
+  readonly canalPago = signal<string>('Ventanilla / Taquilla Bancaria');
+  readonly numeroComprobante = signal<string>('');
+  readonly fechaPagoBancario = signal<string>(new Date().toISOString().substring(0, 10));
+
+  // Soporte de Pago / Archivo FTP
+  readonly archivoComprobanteSeleccionado = signal<File | null>(null);
+  readonly subiendoComprobanteFtp = signal<boolean>(false);
+  readonly errorArchivoComprobante = signal<string | null>(null);
+
+  // Modal de VISUALIZACIÓN DE COMPROBANTE DE RECAUDO (Para declaraciones Pagadas)
+  readonly declaracionParaComprobante = signal<DeclaracionDeguelloData | null>(null);
+
+  // Modal de PREVISUALIZACIÓN DE SOPORTES (Guías ICA, Comprobantes de pago) - Sin descarga
+  readonly previewSoporteVisible = signal<boolean>(false);
+  readonly previewSoporteUrl = signal<SafeResourceUrl | null>(null);
+  readonly previewSoporteUrlRaw = signal<string>('');
+  readonly previewSoporteNombre = signal<string>('');
+  readonly previewSoporteEsPdf = signal<boolean>(true);
 
   // KPIs
   readonly totalRecaudado = computed(() => {
@@ -38,6 +79,14 @@ export class DeguelloFacturacionComponent implements OnInit {
     return this.listaDeclaraciones().filter((d) => d.estadoPago === 'PENDIENTE').length;
   });
 
+  readonly totalRadicadas = computed(() => {
+    return this.listaDeclaraciones().filter((d) => d.estadoPago === 'RADICADA').length;
+  });
+
+  readonly totalRechazadas = computed(() => {
+    return this.listaDeclaraciones().filter((d) => d.estadoPago === 'RECHAZADA' || d.estadoPago === 'ANULADA').length;
+  });
+
   // Lista Filtrada
   readonly declaracionesFiltradas = computed(() => {
     const texto = this.filtroTexto().toLowerCase().trim();
@@ -51,6 +100,7 @@ export class DeguelloFacturacionComponent implements OnInit {
         d.razonSocial.toLowerCase().includes(texto) ||
         d.nit.toLowerCase().includes(texto) ||
         (d.numeroGuiaIca || '').toLowerCase().includes(texto) ||
+        (d.numeroRadicado || '').toLowerCase().includes(texto) ||
         d.municipio.toLowerCase().includes(texto);
 
       return matchEstado && matchTexto;
@@ -67,6 +117,7 @@ export class DeguelloFacturacionComponent implements OnInit {
     });
   }
 
+  // --- MODAL FACTURA / FORMULARIO OFICIAL ---
   abrirFacturaModal(d: DeclaracionDeguelloData): void {
     this.declaracionParaModal.set(d);
   }
@@ -75,14 +126,299 @@ export class DeguelloFacturacionComponent implements OnInit {
     this.declaracionParaModal.set(null);
   }
 
-  pagarPse(d: DeclaracionDeguelloData): void {
-    const ok = this.deguelloService.marcarComoPagada(d.consecutivo);
-    if (ok) {
-      this.cargarDatos();
+  // --- MODAL DE REVISIÓN OFICIAL (FUNCIONARIO) ---
+  abrirRevision(d: DeclaracionDeguelloData): void {
+    this.modoEdicionRevision.set(false);
+    this.editCabezasRevision.set(d.baseGravable || 0);
+    this.editGuiaRevision.set(d.numeroGuiaIca || '');
+    this.procesandoRevision.set(false);
+    this.observacionesRevision.set('Soporte ICA verificado y conforme. Cumple requisitos sanitarios y destinación a PBA autorizada.');
+    this.declaracionParaRevision.set(d);
+  }
+
+  cerrarRevision(): void {
+    this.declaracionParaRevision.set(null);
+    this.modoEdicionRevision.set(false);
+    this.procesandoRevision.set(false);
+  }
+
+  activarEdicionRevision(): void {
+    const dec = this.declaracionParaRevision();
+    if (!dec) return;
+    this.editCabezasRevision.set(dec.baseGravable || 0);
+    this.editGuiaRevision.set(dec.numeroGuiaIca || '');
+    this.observacionesRevision.set('Ajuste de datos sanitarios y cabezas según cotejo con Guía ICA oficial.');
+    this.modoEdicionRevision.set(true);
+  }
+
+  cancelarEdicionRevision(): void {
+    const dec = this.declaracionParaRevision();
+    if (dec) {
+      this.editCabezasRevision.set(dec.baseGravable || 0);
+      this.editGuiaRevision.set(dec.numeroGuiaIca || '');
+    }
+    this.modoEdicionRevision.set(false);
+  }
+
+  guardarEdicionRevision(aprobarInmediatamente: boolean = false): void {
+    const dec = this.declaracionParaRevision();
+    if (!dec) return;
+
+    const cabezas = Number(this.editCabezasRevision());
+    if (!cabezas || cabezas <= 0) {
+      alert('Ingrese una cantidad válida de semovientes (mayor a 0).');
+      return;
+    }
+
+    this.procesandoRevision.set(true);
+    this.deguelloService.modificarLiquidacion(
+      dec.consecutivo,
+      cabezas,
+      this.editGuiaRevision().trim(),
+      this.observacionesRevision().trim(),
+      aprobarInmediatamente
+    ).subscribe({
+      next: (updated) => {
+        this.procesandoRevision.set(false);
+        this.modoEdicionRevision.set(false);
+        if (aprobarInmediatamente) {
+          this.cerrarRevision();
+          this.cargarDatos();
+          this.mensajeAccion.set({
+            texto: `✅ La declaración N° ${dec.consecutivo} fue AJUSTADA a ${cabezas} cabezas y APROBADA oficialmente para pago.`,
+            tipo: 'success'
+          });
+          setTimeout(() => this.mensajeAccion.set(null), 6000);
+        } else {
+          if (updated) {
+            this.declaracionParaRevision.set(updated);
+          }
+          this.cargarDatos();
+          this.mensajeAccion.set({
+            texto: `💾 Datos modificados y guardados para la radicación N° ${dec.consecutivo} (${cabezas} cabezas). Permanece en revisión.`,
+            tipo: 'info'
+          });
+          setTimeout(() => this.mensajeAccion.set(null), 4000);
+        }
+      },
+      error: () => {
+        this.procesandoRevision.set(false);
+        this.cargarDatos();
+      }
+    });
+  }
+
+  rechazarRadicacion(): void {
+    const dec = this.declaracionParaRevision();
+    if (!dec) return;
+
+    const obsActual = this.observacionesRevision().trim();
+    let motivoFinal = obsActual;
+
+    if (!motivoFinal || motivoFinal.startsWith('Soporte ICA verificado')) {
+      const nuevoMotivo = prompt(
+        `Indique el MOTIVO OFICIAL de RECHAZO para la radicación N° ${dec.consecutivo}:`,
+        'Inconsistencia en número de semovientes o Guía Sanitaria ICA adjunta no corresponde.'
+      );
+      if (nuevoMotivo === null) return;
+      if (!nuevoMotivo.trim()) {
+        alert('Debe especificar un motivo para rechazar la radicación.');
+        return;
+      }
+      motivoFinal = nuevoMotivo.trim();
+      this.observacionesRevision.set(motivoFinal);
+    }
+
+    this.procesandoRevision.set(true);
+    this.deguelloService.rechazarLiquidacion(dec.consecutivo, motivoFinal).subscribe({
+      next: () => {
+        this.procesandoRevision.set(false);
+        this.cerrarRevision();
+        this.cargarDatos();
+        this.mensajeAccion.set({
+          texto: `❌ La radicación N° ${dec.consecutivo} ha sido RECHAZADA. El contribuyente ha sido notificado con el motivo: "${motivoFinal}".`,
+          tipo: 'error'
+        });
+        setTimeout(() => this.mensajeAccion.set(null), 7000);
+      },
+      error: () => {
+        this.procesandoRevision.set(false);
+        this.cerrarRevision();
+        this.cargarDatos();
+      }
+    });
+  }
+
+  irALiquidadorAvanzado(d: DeclaracionDeguelloData): void {
+    this.cerrarRevision();
+    this.deguelloService.setDeclaracionEnEdicion(d);
+    this.router.navigate(['/deguello/liquidacion']);
+  }
+
+  confirmarAprobacion(): void {
+    const dec = this.declaracionParaRevision();
+    if (!dec) return;
+
+    this.procesandoRevision.set(true);
+    this.deguelloService.aprobarLiquidacion(dec.consecutivo).subscribe({
+      next: () => {
+        this.procesandoRevision.set(false);
+        this.cerrarRevision();
+        this.cargarDatos();
+        this.mensajeAccion.set({
+          texto: `✅ La declaración N° ${dec.consecutivo} ha sido APROBADA y VALIDADA oficialmente por la Gobernación del Cauca. Pasa a estado PENDIENTE y queda habilitada para pago.`,
+          tipo: 'success'
+        });
+        setTimeout(() => this.mensajeAccion.set(null), 6000);
+      },
+      error: () => {
+        this.procesandoRevision.set(false);
+        this.cerrarRevision();
+        this.cargarDatos();
+        this.mensajeAccion.set({
+          texto: `Declaración N° ${dec.consecutivo} procesada.`,
+          tipo: 'info'
+        });
+        setTimeout(() => this.mensajeAccion.set(null), 4000);
+      }
+    });
+  }
+
+  // --- MODAL REGISTRO DE PAGO BANCARIO ---
+  abrirPagoBancario(d: DeclaracionDeguelloData): void {
+    if (d.estadoPago === 'VENCIDO') {
+      this.mensajeAccion.set({
+        texto: `⚠️ La liquidación N° ${d.consecutivo} está VENCIDA. No es válida para pago directo; debe reliquidarse primero.`,
+        tipo: 'error'
+      });
+      return;
+    }
+    if (d.estadoPago === 'RELIQUIDADA') {
+      this.mensajeAccion.set({
+        texto: `ℹ️ La declaración N° ${d.consecutivo} se encuentra RELIQUIDADA (sustituida). No admite pago; debe consultar y cancelar la nueva factura emitida.`,
+        tipo: 'info'
+      });
+      return;
+    }
+
+    const radRandom = Math.floor(100000 + Math.random() * 900000);
+    this.numeroComprobante.set(`REC-BAN-${radRandom}`);
+    this.fechaPagoBancario.set(new Date().toISOString().substring(0, 10));
+    this.archivoComprobanteSeleccionado.set(null);
+    this.subiendoComprobanteFtp.set(false);
+    this.errorArchivoComprobante.set(null);
+    this.declaracionParaPagoBancario.set(d);
+  }
+
+  cerrarPagoBancario(): void {
+    this.declaracionParaPagoBancario.set(null);
+    this.archivoComprobanteSeleccionado.set(null);
+    this.subiendoComprobanteFtp.set(false);
+    this.errorArchivoComprobante.set(null);
+  }
+
+  onArchivoComprobanteSeleccionado(event: any): void {
+    const file = event?.target?.files?.[0];
+    if (!file) {
+      this.archivoComprobanteSeleccionado.set(null);
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      this.errorArchivoComprobante.set('El comprobante no debe superar los 10MB.');
+      this.archivoComprobanteSeleccionado.set(null);
+      return;
+    }
+
+    this.errorArchivoComprobante.set(null);
+    this.archivoComprobanteSeleccionado.set(file);
+  }
+
+  eliminarArchivoComprobante(): void {
+    this.archivoComprobanteSeleccionado.set(null);
+    this.errorArchivoComprobante.set(null);
+  }
+
+  confirmarPagoBancario(): void {
+    const dec = this.declaracionParaPagoBancario();
+    if (!dec) return;
+
+    const recibo = this.numeroComprobante().trim() || `REC-${Math.floor(100000 + Math.random() * 900000)}`;
+    const detalleRecibo = `${recibo} (${this.bancoSeleccionado().split(' - ')[0]} - ${this.canalPago()})`;
+    const file = this.archivoComprobanteSeleccionado();
+
+    // Si se adjuntó archivo, se sube por FTP directamente a la carpeta del mismo contribuyente:
+    // /DEGUELLO/EMPRESAS/{nitContribuyente}/{anio}/SOPORTES_PAGO
+    if (file) {
+      this.subiendoComprobanteFtp.set(true);
+      const nitContribuyente = (dec.nit || 'GENERAL').replace(/[^0-9a-zA-Z]/g, '');
+      const anio = dec.anioGravable || 2026;
+
+      this.deguelloFtpService.subirSoportePago(file, nitContribuyente, anio).subscribe({
+        next: (ftpRes) => {
+          this.subiendoComprobanteFtp.set(false);
+          const rutaFtp = ftpRes?.remoteFullPath || '';
+          const nombreFtp = ftpRes?.originalFileName || file.name;
+          this.ejecutarRegistroPago(dec, detalleRecibo, rutaFtp, nombreFtp);
+        },
+        error: (err) => {
+          console.warn('FTP no disponible o error al subir comprobante. Registrando pago con referencia.', err);
+          this.subiendoComprobanteFtp.set(false);
+          this.ejecutarRegistroPago(dec, detalleRecibo, '', file.name);
+        }
+      });
+    } else {
+      this.ejecutarRegistroPago(dec, detalleRecibo, '', '');
     }
   }
 
+  private ejecutarRegistroPago(
+    dec: DeclaracionDeguelloData, 
+    detalleRecibo: string, 
+    rutaFtp: string, 
+    nombreFtp: string
+  ): void {
+    this.deguelloService.marcarComoPagada(dec.consecutivo, detalleRecibo, rutaFtp, nombreFtp).subscribe({
+      next: (ok) => {
+        this.cerrarPagoBancario();
+        if (ok) {
+          this.cargarDatos();
+          this.mensajeAccion.set({
+            texto: `✅ Se registró exitosamente el recaudo bancario para el formulario N° ${dec.consecutivo} (Comprobante: ${detalleRecibo}${rutaFtp ? ' · Guardado en FTP del contribuyente' : ''}).`,
+            tipo: 'success'
+          });
+          setTimeout(() => this.mensajeAccion.set(null), 6000);
+        } else {
+          this.mensajeAccion.set({
+            texto: `No se pudo registrar el pago. Verifique que la liquidación esté aprobada y vigente.`,
+            tipo: 'error'
+          });
+        }
+      },
+      error: () => {
+        this.cerrarPagoBancario();
+        this.cargarDatos();
+      }
+    });
+  }
+
+  // --- COMPROBANTE DE RECAUDO (PAGADOS) ---
+  abrirComprobantePago(d: DeclaracionDeguelloData): void {
+    this.declaracionParaComprobante.set(d);
+  }
+
+  cerrarComprobantePago(): void {
+    this.declaracionParaComprobante.set(null);
+  }
+
   reliquidar(d: DeclaracionDeguelloData): void {
+    if (d.estadoPago === 'RELIQUIDADA') {
+      this.mensajeAccion.set({
+        texto: `Esta factura ya fue reliquidada con anterioridad (Sustituida).`,
+        tipo: 'info'
+      });
+      return;
+    }
     this.deguelloService.setDeclaracionEnEdicion(d);
     this.router.navigate(['/deguello/liquidacion']);
   }
@@ -90,5 +426,27 @@ export class DeguelloFacturacionComponent implements OnInit {
   irANuevaLiquidacion(): void {
     this.deguelloService.setDeclaracionEnEdicion(null);
     this.router.navigate(['/deguello/liquidacion']);
+  }
+
+  obtenerUrlDescarga(ruta?: string): string {
+    return ruta ? this.deguelloFtpService.obtenerUrlDescarga(ruta) : '#';
+  }
+
+  // --- PREVISUALIZACIÓN DE SOPORTES (ICA, COMPROBANTES) SIN DESCARGA ---
+  abrirPreviewSoporte(ruta?: string, nombreArchivo?: string): void {
+    if (!ruta) return;
+    const rawUrl = this.deguelloFtpService.obtenerUrlPreview(ruta);
+    this.previewSoporteUrlRaw.set(rawUrl);
+    this.previewSoporteUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl));
+    this.previewSoporteNombre.set(nombreArchivo || 'Soporte_Guia_ICA.pdf');
+    const esPdf = !nombreArchivo || nombreArchivo.toLowerCase().endsWith('.pdf') || ruta.toLowerCase().endsWith('.pdf');
+    this.previewSoporteEsPdf.set(esPdf);
+    this.previewSoporteVisible.set(true);
+  }
+
+  cerrarPreviewSoporte(): void {
+    this.previewSoporteVisible.set(false);
+    this.previewSoporteUrl.set(null);
+    this.previewSoporteUrlRaw.set('');
   }
 }

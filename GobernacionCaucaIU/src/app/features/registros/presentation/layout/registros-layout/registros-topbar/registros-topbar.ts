@@ -1,8 +1,8 @@
 import { Component, inject, computed, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { RegistrosAuthStateService } from '../../../../core/auth/registros-auth-state.service';
-import { RegistrosAuthService } from '../../../../core/auth/registros-auth.service';
+import { AuthOrchestratorService } from '../../../../../../core/auth/services/auth-orchestrator.service';
 import { BreadcrumbComponent } from '../../../../../../shared/components/breadcrumb/breadcrumb.component';
 import { BreadcrumbService } from '../../../../../../core/services/breadcrumb.service';
 
@@ -15,8 +15,7 @@ import { BreadcrumbService } from '../../../../../../core/services/breadcrumb.se
 })
 export class RegistrosTopbar {
   private authState = inject(RegistrosAuthStateService);
-  private authService = inject(RegistrosAuthService);
-  private router = inject(Router);
+  private orchestrator = inject(AuthOrchestratorService);
   public breadcrumbService = inject(BreadcrumbService);
 
   readonly toggleSidebar = output<void>();
@@ -49,7 +48,6 @@ export class RegistrosTopbar {
   });
 
   logout() {
-    this.authService.logout();
-    this.router.navigate(['/registros/gobernacion/login']);
+    this.orchestrator.logout('gobernacion');
   }
 }

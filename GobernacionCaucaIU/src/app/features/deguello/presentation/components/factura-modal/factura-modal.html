@@ -19,6 +19,13 @@
       <!-- Action Buttons -->
       <div class="flex items-center space-x-2">
         <button 
+          *ngIf="declaracion.rutaArchivoGuiaIca"
+          (click)="verGuiaIcaFtp()"
+          class="inline-flex items-center px-3 py-2 text-xs sm:text-sm font-semibold text-emerald-950 bg-emerald-100 hover:bg-emerald-200 rounded-lg shadow-xs transition cursor-pointer border border-emerald-300">
+          <i class="fa-solid fa-file-medical mr-1.5 text-emerald-700"></i>
+          Ver Anexo Guía ICA
+        </button>
+        <button 
           (click)="imprimir()"
           class="inline-flex items-center px-4 py-2 text-xs sm:text-sm font-semibold text-[#1b53ad] bg-white hover:bg-blue-50 rounded-lg shadow transition cursor-pointer">
           <i class="fa-solid fa-print mr-2"></i>

@@ -1,0 +1,1044 @@
+<div class="flex flex-col h-full bg-slate-50 overflow-y-auto">
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       HEADER DE PÁGINA: COBRO COACTIVO - FASE 2 (LIQUIDACIÓN OFICIAL DE AFORO)
+  ══════════════════════════════════════════════════════════════════════ -->
+  <div class="bg-white border-b border-slate-200 px-6 py-4 shrink-0 shadow-2xs">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div>
+        <div class="flex items-center gap-2 mb-0.5">
+          <i class="fa-solid fa-gavel text-blue-700 text-lg"></i>
+          <h1 class="text-base font-bold text-slate-800">Liquidaciones Oficiales de Aforo y Prescripción de Vigencias</h1>
+          <span class="px-2 py-0.5 rounded text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-200">
+            Fase 2: Cobro Coactivo
+          </span>
+        </div>
+        <p class="text-xs text-slate-500">
+          Determinación Oficial de Oficio · Ley 488/1998 Art. 147 · ETN Arts. 643 (Sanción 160%), 717 (Aforo), 720 (Recurso 2 meses), 817 (Prescripción) y 828
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2 flex-wrap">
+        <button
+          type="button"
+          (click)="onVerificarEjecutoria()"
+          class="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition cursor-pointer font-semibold shadow-xs flex items-center gap-1.5"
+          title="Verificar plazos de 2 meses de recurso vencidos para consolidar Títulos Ejecutivos"
+        >
+          <i class="fa-solid fa-stamp"></i>
+          <span>Consolidar Firmeza</span>
+        </button>
+
+        <select
+          class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium"
+          (change)="onFiltroVigencia($event)"
+        >
+          <option value="0">Todas las vigencias</option>
+          @for (anio of aniosDisponibles; track anio) {
+            <option [value]="anio">{{ anio }}</option>
+          }
+        </select>
+
+        <button
+          type="button"
+          (click)="onLimpiarFiltros()"
+          class="text-xs px-3 py-1.5 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition cursor-pointer font-medium"
+        >
+          <i class="fa-solid fa-filter-circle-xmark mr-1"></i>Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       INDICADORES ESTRATÉGICOS (KPIs)
+  ══════════════════════════════════════════════════════════════════════ -->
+  <div class="px-6 pt-4 shrink-0">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+
+      <!-- KPI 1: Aptos para Aforo -->
+      <div class="bg-white border border-amber-200 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-amber-800">1. Aptos para Aforo</span>
+          <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+        </div>
+        <div class="text-xl font-extrabold text-slate-800">
+          {{ facade.kpis()?.totalEmplazadosVencidosAptos || 0 | number }}
+        </div>
+        <p class="text-[10.5px] text-amber-700 mt-0.5">
+          Emplazamientos con plazo de 1 mes vencido
+        </p>
+      </div>
+
+      <!-- KPI 2: Liquidaciones Emitidas -->
+      <div class="bg-white border border-blue-200 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-blue-800">2. Actos de Aforo Emitidos</span>
+          <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-file-signature"></i>
+          </div>
+        </div>
+        <div class="text-xl font-extrabold text-slate-800">
+          {{ facade.kpis()?.totalLiquidacionesOficialesEmitidas || 0 | number }}
+        </div>
+        <p class="text-[10.5px] text-blue-700 mt-0.5">
+          Cartera Aforada: {{ facade.kpis()?.totalCarteraAforada || 0 | currency:'COP':'symbol-narrow':'1.0-0' }}
+        </p>
+      </div>
+
+      <!-- KPI 3: Títulos Ejecutivos en Firme -->
+      <div class="bg-white border border-emerald-200 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800">3. Títulos en Firme (Fase 3)</span>
+          <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-stamp"></i>
+          </div>
+        </div>
+        <div class="text-xl font-extrabold text-slate-800">
+          {{ facade.kpis()?.totalEnFirmeTitulosEjecutivos || 0 | number }}
+        </div>
+        <p class="text-[10.5px] text-emerald-700 mt-0.5">
+          Listo Mandamiento: {{ facade.kpis()?.totalEnFirmeCobroCoactivo || 0 | currency:'COP':'symbol-narrow':'1.0-0' }}
+        </p>
+      </div>
+
+      <!-- KPI 4: Prescritas / Pérdida Competencia -->
+      <div class="bg-white border border-rose-200 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-rose-800">4. Pérdida Competencia</span>
+          <div class="w-7 h-7 rounded-lg bg-rose-50 text-rose-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-ban"></i>
+          </div>
+        </div>
+        <div class="text-xl font-extrabold text-slate-800">
+          {{ facade.kpis()?.totalPrescritasPerdidaCompetencia || 0 | number }}
+        </div>
+        <p class="text-[10.5px] text-rose-700 mt-0.5">
+          Resoluciones de Prescripción (ETN 817)
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       PESTAÑAS OPERATIVAS (WORKFLOW DE LIQUIDACIÓN OFICIAL)
+  ══════════════════════════════════════════════ -->
+  <div class="bg-white border-b border-slate-200 px-6 pt-3 pb-0 mt-3 flex items-center gap-4 shrink-0 overflow-x-auto">
+    <!-- Pestaña 1: Aptos para Aforo -->
+    <button
+      type="button"
+      (click)="onSelectTab('aptos_aforo')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-amber-600]="facade.tabActivo() === 'aptos_aforo'"
+      [class.text-amber-800]="facade.tabActivo() === 'aptos_aforo'"
+      [class.border-transparent]="facade.tabActivo() !== 'aptos_aforo'"
+      [class.text-slate-500]="facade.tabActivo() !== 'aptos_aforo'"
+    >
+      <i class="fa-solid fa-clock-rotate-left text-amber-500"></i>
+      <span>1. Aptos para Aforo</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-100 text-amber-800">
+        {{ facade.kpis()?.totalEmplazadosVencidosAptos || 0 }}
+      </span>
+    </button>
+
+    <!-- Pestaña 2: Liquidaciones Emitidas -->
+    <button
+      type="button"
+      (click)="onSelectTab('emitidas')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-blue-600]="facade.tabActivo() === 'emitidas'"
+      [class.text-blue-900]="facade.tabActivo() === 'emitidas'"
+      [class.border-transparent]="facade.tabActivo() !== 'emitidas'"
+      [class.text-slate-500]="facade.tabActivo() !== 'emitidas'"
+    >
+      <i class="fa-solid fa-file-signature text-blue-600"></i>
+      <span>2. Liquidaciones Emitidas</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-100 text-blue-800">
+        {{ facade.kpis()?.totalLiquidacionesOficialesEmitidas || 0 }}
+      </span>
+    </button>
+
+    <!-- Pestaña 3: Títulos en Firme -->
+    <button
+      type="button"
+      (click)="onSelectTab('en_firme')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-emerald-600]="facade.tabActivo() === 'en_firme'"
+      [class.text-emerald-900]="facade.tabActivo() === 'en_firme'"
+      [class.border-transparent]="facade.tabActivo() !== 'en_firme'"
+      [class.text-slate-500]="facade.tabActivo() !== 'en_firme'"
+    >
+      <i class="fa-solid fa-stamp text-emerald-600"></i>
+      <span>3. Títulos Ejecutivos en Firme</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800">
+        {{ facade.kpis()?.totalEnFirmeTitulosEjecutivos || 0 }}
+      </span>
+    </button>
+
+    <!-- Pestaña 4: Prescritas / Pérdida Competencia -->
+    <button
+      type="button"
+      (click)="onSelectTab('prescritas')"
+      class="pb-3 px-2 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer whitespace-nowrap"
+      [class.border-rose-600]="facade.tabActivo() === 'prescritas'"
+      [class.text-rose-900]="facade.tabActivo() === 'prescritas'"
+      [class.border-transparent]="facade.tabActivo() !== 'prescritas'"
+      [class.text-slate-500]="facade.tabActivo() !== 'prescritas'"
+    >
+      <i class="fa-solid fa-ban text-rose-600"></i>
+      <span>4. Pérdida de Competencia (ETN 817)</span>
+      <span class="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-rose-100 text-rose-800">
+        {{ facade.kpis()?.totalPrescritasPerdidaCompetencia || 0 }}
+      </span>
+    </button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       CONTENIDO PRINCIPAL
+  ══════════════════════════════════════════════════════════════════════ -->
+  <div class="flex-1 px-6 py-4 space-y-4">
+
+    <!-- Banners informativos según pestaña -->
+    @if (facade.tabActivo() === 'aptos_aforo') {
+      <div class="bg-amber-50/90 border border-amber-200 rounded-xl px-4 py-3 flex items-start justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base mt-0.5 shrink-0"></i>
+          <div>
+            <p class="text-xs text-amber-900 leading-relaxed font-semibold">
+              Expedientes de Emplazamiento Previo con Término de Un (1) Mes Vencido sin Declaración (ETN Art. 717)
+            </p>
+            <p class="text-[11.5px] text-amber-800 mt-0.5">
+              Estos contribuyentes fueron debidamente notificados y feneció su plazo para presentar la declaración. Procede la expedición oficial del Acto de Liquidación de Aforo imponiendo la Sanción por No Declarar del 160% (ETN Art. 643).
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          (click)="abrirModalEmitirMasivo()"
+          class="shrink-0 text-xs px-3.5 py-2 rounded-lg bg-blue-700 hover:bg-blue-800 text-white font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+        >
+          <i class="fa-solid fa-layer-group"></i>
+          <span>Emitir Lote de Aforo</span>
+        </button>
+      </div>
+    } @else if (facade.tabActivo() === 'emitidas') {
+      <div class="bg-blue-50/90 border border-blue-200 rounded-xl px-4 py-3 flex items-start gap-3">
+        <i class="fa-solid fa-paper-plane text-blue-600 text-base mt-0.5 shrink-0"></i>
+        <div>
+          <p class="text-xs text-blue-950 leading-relaxed font-semibold">
+            Actos Administrativos de Aforo Expedidos · En Notificación Postal y Vía Gubernativa (ETN Arts. 565 y 720)
+          </p>
+          <p class="text-[11.5px] text-blue-800 mt-0.5">
+            Registre la guía de 4-72 y la fecha de entrega efectiva. A partir de la entrega corre el término de dos (2) meses para que el contribuyente interponga Recurso de Reconsideración. Si vence sin recurso, el acto cobra firmeza como Título Ejecutivo.
+          </p>
+        </div>
+      </div>
+    } @else if (facade.tabActivo() === 'en_firme') {
+      <div class="bg-emerald-50/90 border border-emerald-200 rounded-xl px-4 py-3 flex items-start gap-3">
+        <i class="fa-solid fa-stamp text-emerald-600 text-base mt-0.5 shrink-0"></i>
+        <div>
+          <p class="text-xs text-emerald-950 leading-relaxed font-semibold">
+            Títulos Ejecutivos en Firme · Habilitados para Mandamiento de Pago (Fase 3 de Cobro Coactivo)
+          </p>
+          <p class="text-[11.5px] text-emerald-800 mt-0.5">
+            Actos ejecutoriados de conformidad con el artículo 828 del Estatuto Tributario Nacional. Estos títulos prestan mérito ejecutivo coactivo directo sobre los bienes del deudor.
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="bg-rose-50/90 border border-rose-200 rounded-xl px-4 py-3 flex items-start gap-3">
+        <i class="fa-solid fa-ban text-rose-600 text-base mt-0.5 shrink-0"></i>
+        <div>
+          <p class="text-xs text-rose-950 leading-relaxed font-semibold">
+            Pérdida de Competencia y Extinción por Prescripción Quinquenal (ETN Arts. 717 y 817)
+          </p>
+          <p class="text-[11.5px] text-rose-800 mt-0.5">
+            Vigencias u obligaciones tributarias que superaron el término de 5 años legalmente extintivo. Se declaran mediante Resolución Motivada de la Administración Tributaria.
+          </p>
+        </div>
+      </div>
+    }
+
+    <!-- Barra de búsqueda y controles -->
+    <div class="bg-white border border-slate-200 rounded-xl p-3 flex flex-col md:flex-row md:items-center md:justify-between gap-3 shadow-2xs">
+      <div class="flex items-center gap-2 flex-1 max-w-md">
+        <div class="relative w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+          <input
+            type="text"
+            [(ngModel)]="textoBuscar"
+            (keydown)="onBuscarKeydown($event)"
+            placeholder="Buscar por placa, propietario o número de acto..."
+            class="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-slate-800"
+          />
+        </div>
+        <button
+          type="button"
+          (click)="onBuscar()"
+          class="text-xs px-3.5 py-1.5 rounded-lg bg-blue-900 text-white hover:bg-blue-800 transition font-bold shrink-0 cursor-pointer shadow-xs"
+        >
+          Buscar
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3 text-xs text-slate-500">
+        @if (facade.tabActivo() === 'aptos_aforo') {
+          <button
+            type="button"
+            (click)="seleccionarTodos()"
+            class="text-xs text-blue-700 hover:text-blue-900 font-semibold cursor-pointer"
+          >
+            <i class="fa-regular fa-square-check mr-1"></i>
+            {{ facade.selectedPlacas().length === facade.actos().length && facade.actos().length > 0 ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+          </button>
+          @if (facade.haySeleccion()) {
+            <span class="px-2 py-0.5 rounded font-bold bg-blue-100 text-blue-800 text-[11px]">
+              {{ facade.totalSeleccionados() }} seleccionados
+            </span>
+          }
+        }
+        <span class="font-medium">Total: {{ facade.totalCount() | number }} registros</span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         TABLA DE LIQUIDACIONES OFICIALES
+    ══════════════════════════════════════════════════════════════════ -->
+    <div class="bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden">
+      @if (facade.loading()) {
+        <div class="p-12 text-center text-slate-500">
+          <i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-600 mb-2"></i>
+          <p class="text-xs font-semibold">Cargando expedientes y liquidaciones oficiales...</p>
+        </div>
+      } @else if (facade.actos().length === 0) {
+        <div class="p-12 text-center text-slate-400">
+          <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300"></i>
+          <p class="text-xs font-semibold text-slate-600">No se encontraron liquidaciones oficiales en este estado.</p>
+          <p class="text-[11px] text-slate-400 mt-1">Verifique los filtros o seleccione otra pestaña operativa.</p>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[10.5px] border-b border-slate-200">
+              <tr>
+                @if (facade.tabActivo() === 'aptos_aforo') {
+                  <th class="py-3 px-3 w-8 text-center">
+                    <input
+                      type="checkbox"
+                      [checked]="facade.selectedPlacas().length === facade.actos().length && facade.actos().length > 0"
+                      (change)="seleccionarTodos()"
+                      class="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                    />
+                  </th>
+                }
+                <th class="py-3 px-3">Acto / Placa</th>
+                <th class="py-3 px-3">Propietario</th>
+                <th class="py-3 px-3">Vigencias</th>
+                <th class="py-3 px-3 text-right">Impuesto Base</th>
+                <th class="py-3 px-3 text-right">Sanción 160%</th>
+                <th class="py-3 px-3 text-right">Intereses</th>
+                <th class="py-3 px-3 text-right font-extrabold text-slate-900">Total Liquidación</th>
+                <th class="py-3 px-3 text-center">Estado / Términos</th>
+                <th class="py-3 px-3 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-800">
+              @for (acto of facade.actos(); track acto.id) {
+                <tr class="hover:bg-slate-50/80 transition" [class.bg-blue-50/40]="isDetalleExpandido(acto.id)">
+                  @if (facade.tabActivo() === 'aptos_aforo') {
+                    <td class="py-2.5 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        [checked]="isSeleccionado(acto.placa)"
+                        (change)="toggleSeleccion(acto.placa, acto.id)"
+                        class="rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      />
+                    </td>
+                  }
+
+                  <!-- Acto / Placa -->
+                  <td class="py-2.5 px-3">
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        (click)="toggleDetalle(acto.id)"
+                        class="text-slate-400 hover:text-blue-700 transition cursor-pointer p-0.5"
+                        title="Ver desglose por vigencia"
+                      >
+                        <i
+                          class="fa-solid fa-chevron-right text-[10px] transition-transform duration-200"
+                          [class.rotate-90]="isDetalleExpandido(acto.id)"
+                        ></i>
+                      </button>
+                      <div>
+                        <div class="flex items-center gap-1.5">
+                          <span class="font-extrabold text-blue-900 font-mono text-[12px] bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                            {{ acto.placa }}
+                          </span>
+                          @if (acto.numeroActo) {
+                            <span class="text-[10px] font-mono text-slate-500">
+                              #{{ acto.numeroActo }}
+                            </span>
+                          }
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-0.5">
+                          {{ acto.marcaLinea || 'Vehículo' }} {{ acto.modelo ? '· Mod. ' + acto.modelo : '' }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <!-- Propietario -->
+                  <td class="py-2.5 px-3">
+                    <div class="font-semibold text-slate-800 text-[11.5px] truncate max-w-[170px]" [title]="acto.propietarioNombre || 'Sin Propietario'">
+                      {{ acto.propietarioNombre || 'Propietario No Registrado' }}
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-mono">
+                      {{ acto.propietarioIdentificacion || '—' }}
+                    </div>
+                  </td>
+
+                  <!-- Vigencias -->
+                  <td class="py-2.5 px-3">
+                    <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                      {{ vigenciasStr(acto.vigenciasLista || acto.vigencias) }}
+                    </span>
+                  </td>
+
+                  <!-- Impuesto Base -->
+                  <td class="py-2.5 px-3 text-right font-medium text-slate-700">
+                    {{ acto.impuestoBase | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </td>
+
+                  <!-- Sanción 160% -->
+                  <td class="py-2.5 px-3 text-right font-medium text-amber-700">
+                    {{ acto.sancionNoDeclarar | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </td>
+
+                  <!-- Intereses -->
+                  <td class="py-2.5 px-3 text-right font-medium text-rose-700">
+                    {{ acto.interesesMora | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </td>
+
+                  <!-- Total Liquidación -->
+                  <td class="py-2.5 px-3 text-right font-black text-slate-900 text-[12.5px]">
+                    {{ acto.totalLiquidacionOficial | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </td>
+
+                  <!-- Estado / Términos -->
+                  <td class="py-2.5 px-3 text-center">
+                    <div class="flex flex-col items-center gap-1">
+                      <span class="px-2 py-0.5 rounded text-[10px] border font-bold" [class]="estadoActoBadge(acto.estadoActo)">
+                        {{ estadoActoLabel(acto.estadoActo) }}
+                      </span>
+                      @if (acto.numeroGuiaPostal) {
+                        <span class="text-[9.5px] font-mono text-slate-500" [title]="'Guía 4-72: ' + acto.numeroGuiaPostal">
+                          <i class="fa-solid fa-truck text-[9px] mr-0.5 text-blue-500"></i>{{ acto.numeroGuiaPostal }}
+                        </span>
+                      }
+                      @if (acto.diasRestantesRecurso !== null && acto.diasRestantesRecurso !== undefined && !acto.enFirmeTituloEjecutivo) {
+                        <span class="text-[9.5px] font-semibold text-amber-700">
+                          {{ acto.diasRestantesRecurso > 0 ? acto.diasRestantesRecurso + ' días para recurso' : 'Término Vencido' }}
+                        </span>
+                      }
+                    </div>
+                  </td>
+
+                  <!-- Acciones -->
+                  <td class="py-2.5 px-3 text-right">
+                    <div class="flex items-center justify-end gap-1.5">
+                      <!-- Si es apto para aforo: Botón Emitir Aforo -->
+                      @if (facade.tabActivo() === 'aptos_aforo') {
+                        <button
+                          type="button"
+                          (click)="abrirModalEmitir(acto)"
+                          class="px-2.5 py-1 rounded-md bg-blue-900 text-white hover:bg-blue-800 text-[11px] font-bold transition cursor-pointer shadow-2xs flex items-center gap-1"
+                          title="Emitir Resolución Oficial de Aforo (ETN Art. 717)"
+                        >
+                          <i class="fa-solid fa-gavel"></i>
+                          <span>Emitir Aforo</span>
+                        </button>
+                      }
+
+                      <!-- Si ya está emitida: Trazabilidad Postal -->
+                      @if (acto.id > 0 && !acto.esPrescrito) {
+                        <button
+                          type="button"
+                          (click)="abrirModalPostal(acto)"
+                          class="p-1.5 rounded-md border border-slate-200 text-slate-600 hover:text-blue-900 hover:bg-slate-100 transition cursor-pointer"
+                          title="Registrar o actualizar guía postal 4-72"
+                        >
+                          <i class="fa-solid fa-envelope-open-text"></i>
+                        </button>
+                      }
+
+                      <!-- Previsualizar Acto Administrativo en HTML -->
+                      @if (acto.id > 0) {
+                        <button
+                          type="button"
+                          (click)="abrirPreviewHtml(acto)"
+                          class="p-1.5 rounded-md border border-slate-200 text-slate-600 hover:text-indigo-900 hover:bg-slate-100 transition cursor-pointer"
+                          title="Ver borrador o resolución oficial"
+                        >
+                          <i class="fa-solid fa-eye"></i>
+                        </button>
+                      }
+
+                      <!-- Descargar PDF Oficial -->
+                      @if (acto.id > 0 && !acto.esPrescrito) {
+                        <button
+                          type="button"
+                          (click)="descargarResolucionPdf(acto)"
+                          class="p-1.5 rounded-md border border-slate-200 text-slate-600 hover:text-rose-700 hover:bg-slate-100 transition cursor-pointer"
+                          title="Descargar Resolución Oficial en PDF"
+                        >
+                          <i class="fa-solid fa-file-pdf"></i>
+                        </button>
+                      }
+
+                      <!-- Pérdida de Competencia / Prescripción (ETN 817) -->
+                      @if (!acto.esPrescrito) {
+                        <button
+                          type="button"
+                          (click)="abrirModalPrescribir(acto)"
+                          class="p-1.5 rounded-md border border-slate-200 text-slate-500 hover:text-rose-700 hover:bg-rose-50 transition cursor-pointer"
+                          title="Declarar Pérdida de Competencia / Prescripción Quinquenal (ETN Art. 817)"
+                        >
+                          <i class="fa-solid fa-ban"></i>
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          (click)="descargarPrescripcionPdf(acto)"
+                          class="p-1.5 rounded-md border border-rose-200 text-rose-700 hover:bg-rose-100 transition cursor-pointer font-bold"
+                          title="Descargar Resolución de Prescripción en PDF"
+                        >
+                          <i class="fa-solid fa-file-pdf mr-0.5"></i>
+                          <span class="text-[10px]">Res. Prescripción</span>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Fila Acordeón Expandida: Desglose Anualizado de Vigencias -->
+                @if (isDetalleExpandido(acto.id)) {
+                  <tr class="bg-blue-50/30">
+                    <td [attr.colspan]="facade.tabActivo() === 'aptos_aforo' ? 10 : 9" class="p-3 pl-8">
+                      <div class="bg-white border border-blue-200/80 rounded-lg p-3 shadow-2xs">
+                        <div class="flex items-center justify-between mb-2">
+                          <h4 class="text-[11.5px] font-bold text-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-table-list text-blue-700"></i>
+                            <span>Desglose Anualizado por Vigencia Fiscal · Expediente Placa {{ acto.placa }}</span>
+                          </h4>
+                          @if (acto.numeroActoEmplazamiento) {
+                            <span class="text-[10px] text-slate-500 font-mono">
+                              Emplazamiento Previo: {{ acto.numeroActoEmplazamiento }}
+                            </span>
+                          }
+                        </div>
+
+                        @if (acto.detalles && acto.detalles.length > 0) {
+                          <table class="w-full text-left text-[11px] border border-slate-200 rounded">
+                            <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200">
+                              <tr>
+                                <th class="py-1.5 px-2">Vigencia</th>
+                                <th class="py-1.5 px-2 text-right">Avalúo</th>
+                                <th class="py-1.5 px-2 text-center">Tarifa</th>
+                                <th class="py-1.5 px-2 text-right">Impuesto Base</th>
+                                <th class="py-1.5 px-2 text-right text-amber-700">Sanción No Declarar (160%)</th>
+                                <th class="py-1.5 px-2 text-right text-rose-700">Intereses Mora</th>
+                                <th class="py-1.5 px-2 text-right font-bold text-slate-900">Total Vigencia</th>
+                              </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                              @for (det of acto.detalles; track det.anio) {
+                                <tr class="hover:bg-slate-50/50">
+                                  <td class="py-1.5 px-2 font-bold font-mono text-blue-900">{{ det.anio }}</td>
+                                  <td class="py-1.5 px-2 text-right">{{ det.avaluo | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                                  <td class="py-1.5 px-2 text-center font-mono">{{ det.tarifa }}%</td>
+                                  <td class="py-1.5 px-2 text-right">{{ det.impuestoBase | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                                  <td class="py-1.5 px-2 text-right font-medium text-amber-700">{{ det.sancionNoDeclarar | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                                  <td class="py-1.5 px-2 text-right font-medium text-rose-700">{{ det.interesesMora | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                                  <td class="py-1.5 px-2 text-right font-black text-slate-900">{{ det.totalVigencia | currency:'COP':'symbol-narrow':'1.0-0' }}</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        } @else {
+                          <div class="py-2 text-center text-slate-400 text-xs">
+                            Desglose consolidado en el expediente principal.
+                          </div>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Paginador -->
+        <div class="px-4 py-3 bg-white border-t border-slate-200 flex items-center justify-between">
+          <span class="text-xs text-slate-500">
+            Página {{ facade.page() }} de {{ facade.totalPages() }}
+          </span>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="paginaAnterior()"
+              [disabled]="facade.page() <= 1"
+              class="px-2.5 py-1 rounded border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              <i class="fa-solid fa-chevron-left mr-1"></i>Anterior
+            </button>
+            <button
+              type="button"
+              (click)="paginaSiguiente()"
+              [disabled]="facade.page() >= facade.totalPages()"
+              class="px-2.5 py-1 rounded border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Siguiente<i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODAL 1: EMISIÓN INDIVIDUAL DE AFORO (ETN ART. 717)
+  ══════════════════════════════════════════════ -->
+  @if (facade.isModalEmitirOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-gavel"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold">Emitir Liquidación Oficial de Aforo</h3>
+              <p class="text-[11px] text-slate-300">Determinación Oficial de Oficio · ETN Art. 717</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalEmitir()" class="text-slate-400 hover:text-white transition cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-xs text-slate-700">
+          <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 font-medium">Placa:</span>
+              <span class="font-extrabold text-blue-900 font-mono text-sm">{{ facade.actoParaEmitir()?.placa }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 font-medium">Propietario:</span>
+              <span class="font-bold text-slate-800">{{ facade.actoParaEmitir()?.propietarioNombre || 'No Registrado' }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 font-medium">Vigencias Fiscales:</span>
+              <span class="font-bold text-slate-800">{{ vigenciasStr(facade.actoParaEmitir()?.vigenciasLista || facade.actoParaEmitir()?.vigencias || '') }}</span>
+            </div>
+            <div class="border-t border-blue-200/80 pt-2 flex items-center justify-between">
+              <span class="font-bold text-slate-700">Total Liquidación de Aforo:</span>
+              <span class="font-black text-slate-900 text-sm">
+                {{ facade.actoParaEmitir()?.totalLiquidacionOficial | currency:'COP':'symbol-narrow':'1.0-0' }}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Funcionario Responsable de Emisión</label>
+            <input
+              type="text"
+              [(ngModel)]="formResponsableEmision"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Observaciones y Consideraciones Jurídicas</label>
+            <textarea
+              rows="3"
+              [(ngModel)]="formObservacionesEmision"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            (click)="cerrarModalEmitir()"
+            class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarEmitir()"
+            [disabled]="facade.loadingEmitir()"
+            class="px-5 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          >
+            @if (facade.loadingEmitir()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Emitiendo...</span>
+            } @else {
+              <i class="fa-solid fa-stamp"></i>
+              <span>Confirmar y Radicar Aforo</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODAL 2: EMISIÓN MASIVA DE AFORO
+  ══════════════════════════════════════════════ -->
+  @if (facade.isModalEmitirMasivoOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+        <div class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold">Emisión Masiva de Liquidaciones de Aforo</h3>
+              <p class="text-[11px] text-blue-200">Determinación colectiva para omisos vencidos</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalEmitirMasivo()" class="text-blue-300 hover:text-white transition cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-xs text-slate-700">
+          <div class="bg-amber-50 border border-amber-200 rounded-xl p-3.5 flex items-start gap-2.5">
+            <i class="fa-solid fa-info-circle text-amber-600 mt-0.5"></i>
+            <p class="text-[11px] text-amber-900 leading-relaxed">
+              @if (facade.haySeleccion()) {
+                Se emitirá la Liquidación Oficial de Aforo para <strong>{{ facade.totalSeleccionados() }} vehículos seleccionados</strong>.
+              } @else {
+                Se emitirá la Liquidación Oficial de Aforo para <strong>todos los vehículos con emplazamiento vencido aptos</strong> (Total: {{ facade.kpis()?.totalEmplazadosVencidosAptos || 0 }}).
+              }
+            </p>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Filtrar por Vigencia Específica (Opcional)</label>
+            <select
+              [(ngModel)]="formVigenciaMasiva"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-400 focus:outline-none bg-white font-medium"
+            >
+              <option [value]="0">Todas las vigencias pendientes del expediente</option>
+              @for (anio of aniosDisponibles; track anio) {
+                <option [value]="anio">{{ anio }}</option>
+              }
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Dependencia / Funcionario Responsable</label>
+            <input
+              type="text"
+              [(ngModel)]="formResponsableMasivo"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            (click)="cerrarModalEmitirMasivo()"
+            class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarEmitirMasivo()"
+            [disabled]="facade.loadingEmitirMasivo()"
+            class="px-5 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          >
+            @if (facade.loadingEmitirMasivo()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Procesando Lote...</span>
+            } @else {
+              <i class="fa-solid fa-bolt"></i>
+              <span>Emitir Lote Oficial</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODAL 3: TRAZABILIDAD POSTAL 4-72 (ETN ART. 565)
+  ══════════════════════════════════════════════ -->
+  @if (facade.isModalPostalOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-truck-fast"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold">Trazabilidad Postal y Notificación</h3>
+              <p class="text-[11px] text-slate-300">Acto {{ facade.actoPostalActivo()?.numeroActo }} · Placa {{ facade.actoPostalActivo()?.placa }}</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalPostal()" class="text-slate-400 hover:text-white transition cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-xs text-slate-700">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">Empresa de Mensajería</label>
+              <input
+                type="text"
+                [(ngModel)]="formEmpresaEnvio"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">Número de Guía Postal</label>
+              <input
+                type="text"
+                [(ngModel)]="formNumeroGuia"
+                placeholder="Ej. YG098765432CO"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono font-bold focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">Fecha de Despacho Postal</label>
+              <input
+                type="date"
+                [(ngModel)]="formFechaEnvio"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block font-semibold mb-1 text-slate-700">
+                Fecha de Entrega Efectiva
+                <span class="text-[10px] text-indigo-700 font-bold block">(Inicia término de 2 meses ETN 720)</span>
+              </label>
+              <input
+                type="date"
+                [(ngModel)]="formFechaEntrega"
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold text-indigo-950 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Estado de Notificación Postal</label>
+            <select
+              [(ngModel)]="formEstadoPostal"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-400 focus:outline-none bg-white font-medium"
+            >
+              <option value="PENDIENTE_ENVIO">Pendiente de Envío</option>
+              <option value="EN_TRANSITO">En Tránsito Postal 4-72</option>
+              <option value="ENTREGADO">Entregado / Notificado Efectivamente</option>
+              <option value="DEVUELTO">Devuelto por Mensajería (Aviso Web ETN 568)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Observaciones del Reparto</label>
+            <textarea
+              rows="2"
+              [(ngModel)]="formObservacionesPostal"
+              placeholder="Anotaciones de planilla o acuse de recibo..."
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            (click)="cerrarModalPostal()"
+            class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="guardarPostal()"
+            [disabled]="facade.loadingPostal()"
+            class="px-5 py-2 rounded-lg bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          >
+            @if (facade.loadingPostal()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Guardando...</span>
+            } @else {
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Guardar Trazabilidad</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODAL 4: PÉRDIDA DE COMPETENCIA / PRESCRIPCIÓN (ETN ARTS. 717 Y 817)
+  ══════════════════════════════════════════════ -->
+  @if (facade.isModalPrescribirOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4 overflow-y-auto">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+        <div class="bg-rose-950 text-white px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-ban"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold">Declarar Pérdida de Competencia / Prescripción</h3>
+              <p class="text-[11px] text-rose-200">Extinción de la acción de cobro · ETN Art. 817</p>
+            </div>
+          </div>
+          <button (click)="cerrarModalPrescribir()" class="text-rose-300 hover:text-white transition cursor-pointer">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4 text-xs text-slate-700">
+          <div class="bg-rose-50 border border-rose-200 rounded-xl p-3.5 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 font-medium">Placa:</span>
+              <span class="font-extrabold text-rose-900 font-mono text-sm">{{ facade.actoPrescribirActivo()?.placa }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500 font-medium">Vigencias a Prescribir:</span>
+              <span class="font-bold text-slate-800">{{ vigenciasStr(facade.actoPrescribirActivo()?.vigenciasLista || facade.actoPrescribirActivo()?.vigencias || '') }}</span>
+            </div>
+            <p class="text-[11px] text-rose-800 mt-1 leading-relaxed">
+              La prescripción extintiva de 5 años opera de pleno derecho respecto de las vigencias fiscales que superaron el término de fiscalización sin interrupción legal.
+            </p>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Motivo de Prescripción</label>
+            <input
+              type="text"
+              [(ngModel)]="formMotivoPrescripcion"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-rose-400 focus:outline-none"
+            />
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Fundamento Normativo y Jurisprudencial</label>
+            <textarea
+              rows="2"
+              [(ngModel)]="formFundamentoNormativo"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-rose-400 focus:outline-none"
+            ></textarea>
+          </div>
+
+          <div>
+            <label class="block font-semibold mb-1 text-slate-700">Funcionario Competente Resolutor</label>
+            <input
+              type="text"
+              [(ngModel)]="formResponsablePrescripcion"
+              class="w-full border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-rose-400 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
+          <button
+            type="button"
+            (click)="cerrarModalPrescribir()"
+            class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            (click)="confirmarPrescribir()"
+            [disabled]="facade.loadingPrescribir()"
+            class="px-5 py-2 rounded-lg bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          >
+            @if (facade.loadingPrescribir()) {
+              <i class="fa-solid fa-circle-notch fa-spin"></i>
+              <span>Expidiendo Resolución...</span>
+            } @else {
+              <i class="fa-solid fa-stamp"></i>
+              <span>Expedir Resolución de Prescripción</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════════
+       MODAL 5: VISOR WEB Y PREVIEW DE RESOLUCIÓN (DOCUMENTO OFICIAL)
+  ══════════════════════════════════════════════ -->
+  @if (facade.isModalPreviewOpen()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-xs p-4 sm:p-6 overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full h-[90vh] flex flex-col border border-slate-300 overflow-hidden">
+        <!-- Header Visor -->
+        <div class="bg-slate-900 text-white px-6 py-3.5 flex items-center justify-between shrink-0">
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-file-lines text-blue-400 text-base"></i>
+            <div>
+              <h3 class="text-xs font-bold">{{ facade.previewTitulo() }}</h3>
+              <p class="text-[10.5px] text-slate-400">Visor de Acto Administrativo Oficial</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="imprimirPreviewHtml()"
+              class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+            >
+              <i class="fa-solid fa-print"></i>
+              <span>Imprimir</span>
+            </button>
+            <button
+              type="button"
+              (click)="cerrarPreviewHtml()"
+              class="text-slate-400 hover:text-white p-1.5 transition cursor-pointer"
+            >
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor del documento -->
+        <div class="flex-1 p-6 bg-slate-100 overflow-y-auto flex justify-center">
+          @if (facade.loadingPreview()) {
+            <div class="flex flex-col items-center justify-center h-full text-slate-500">
+              <i class="fa-solid fa-circle-notch fa-spin text-3xl text-blue-600 mb-3"></i>
+              <p class="text-xs font-bold">Cargando borrador y documento oficial...</p>
+            </div>
+          } @else {
+            <div
+              class="bg-white shadow-lg border border-slate-200 rounded-lg p-8 max-w-3xl w-full min-h-full"
+              [innerHTML]="getSafeHtml(facade.previewHtml())"
+            ></div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

@@ -47,6 +47,13 @@ export const deguelloRoutes: Routes = [
           ),
       },
       {
+        path: 'empresas',
+        loadComponent: () =>
+          import('./presentation/pages/empresas/deguello-empresas').then(
+            (m) => m.DeguelloEmpresasComponent
+          ),
+      },
+      {
         path: 'informes',
         loadComponent: () =>
           import('./presentation/pages/informes/deguello-informes').then(

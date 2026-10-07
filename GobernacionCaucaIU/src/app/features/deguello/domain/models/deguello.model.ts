@@ -4,7 +4,9 @@ export interface DeclaracionDeguelloData {
   periodoGravable: string;
   esInicial: boolean;
   esCorreccion: boolean;
+  esReliquidacion?: boolean;
   declaracionCorregida?: string;
+  declaracionReliquidada?: string;
   
   // Datos del Responsable
   razonSocial: string;
@@ -47,10 +49,21 @@ export interface DeclaracionDeguelloData {
   plantaBeneficio?: string;
   especie?: string;
   fechaVencimientoGuia?: string;
-  estadoPago: 'PAGADO' | 'PENDIENTE' | 'VENCIDO' | 'CORREGIDA';
+  estadoPago: 'RADICADA' | 'PENDIENTE' | 'PAGADO' | 'PAGADA' | 'VENCIDO' | 'VENCIDA' | 'CORREGIDA' | 'RELIQUIDADA' | 'ANULADA' | 'RECHAZADA';
   esIntegracionIca: boolean;
   reciboBancario?: string;
   consumida?: boolean;
+  rutaArchivoGuiaIca?: string;
+  nombreArchivoGuiaIca?: string;
+  rutaArchivoLiquidacionPdf?: string;
+  nombreArchivoLiquidacion?: string;
+  rutaArchivoPago?: string;
+  nombreArchivoPago?: string;
+  numeroRadicado?: string;
+  fechaRadicacion?: string;
+  turnoRevision?: number;
+  observacionAnulacion?: string;
+  fechaHoraAnulacion?: string;
 }
 
 export interface ConsultaGuiaRequest {
@@ -61,6 +74,7 @@ export interface ConsultaGuiaRequest {
 
 export interface PlantaBeneficio {
   id: string;
+  idPlanta?: number;
   codigoInvima: string;
   nombre: string;
   municipio: string;
@@ -68,6 +82,12 @@ export interface PlantaBeneficio {
   capacidadDiariaCabezas: number;
   esActiva: boolean;
   telefono: string;
+  nit?: string;
+  claveAcceso?: string;
+  emailOficial?: string;
+  representanteLegal?: string;
+  docRepresentante?: string;
+  esFrigorificoRegional?: boolean;
 }
 
 export interface ParametrosDeguello {
@@ -96,4 +116,22 @@ export interface InformePlantaBeneficio {
   capacidadDiaria: number;
   recaudoTotal: number;
   porcentajeOcupacion: number;
+}
+
+export interface ResponsableConsulta {
+  existe: boolean;
+  tipo: 'PLANTA' | 'HISTORICO_DECLARACIONES' | 'NO_REGISTRADO';
+  mensaje: string;
+  nit?: string;
+  dv?: string;
+  razonSocial?: string;
+  municipio?: string;
+  idMunicipio?: number;
+  direccion?: string;
+  telefono?: string;
+  email?: string;
+  representanteLegal?: string;
+  docRepresentante?: string;
+  codigoInvima?: string;
+  idPlanta?: number;
 }
