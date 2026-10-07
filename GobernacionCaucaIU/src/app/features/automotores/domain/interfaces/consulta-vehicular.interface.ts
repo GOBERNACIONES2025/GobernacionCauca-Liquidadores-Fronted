@@ -90,6 +90,7 @@ export interface HistorialConsultaDto {
 }
 
 export interface LiquidacionConsultaDto {
+  liquidacionId: number;
   vigencia: number;
   placa: string;
   detalle: string;
@@ -105,3 +106,29 @@ export interface ConsultaVehicularData {
   historial: HistorialConsultaDto[];
   liquidaciones: LiquidacionConsultaDto[];
 }
+
+export interface LiquidacionCiudadano {
+  id: string;
+  liquidacionId: number;    // ID numérico real de la BD — se envía al endpoint de pagos
+  vigencia: number;
+  placa: string;
+  detalle: string;
+  valor: number;
+  estado: string;
+  esPagada: boolean;
+}
+
+export interface PropietarioCiudadano {
+  id?: number;
+  nombre: string;
+  tipoDocumentoId: number;
+  tipoDocumentoNombre: string;
+  documento: string;
+  email: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  ciudad: string | null;
+  activo: boolean;
+  estaEnmascarado?: boolean;
+}
+

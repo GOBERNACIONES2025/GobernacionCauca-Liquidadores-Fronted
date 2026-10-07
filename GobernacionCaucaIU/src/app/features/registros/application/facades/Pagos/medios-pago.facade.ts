@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -19,6 +19,11 @@ export class MediosPagoFacade {
   // Signals
   readonly mediosPago = signal<MedioPago[]>([]);
   readonly totalMediosPago = signal<number>(0);
+
+  // Medios de pago manuales que exigen comprobante físico o digital (Banco Santander, Consignación, etc.)
+  readonly mediosPagoManuales = computed(() =>
+    this.mediosPago().filter(m => m.activo && m.requiereComprobante)
+  );
   
   // UI State
   readonly loading = signal<boolean>(false);

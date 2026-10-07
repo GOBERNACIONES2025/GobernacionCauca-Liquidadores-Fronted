@@ -179,6 +179,19 @@
               }
             </a>
 
+            <!-- Preliquidaciones y Pagos Snapshot -->
+            <a
+              routerLink="/automotores/liquidaciones-snapshots"
+              routerLinkActive="bg-blue-50/80 text-blue-900 font-semibold border-l-4 border-emerald-600"
+              class="flex items-center space-x-3 px-4 py-2.5 text-xs transition text-slate-600 hover:bg-slate-50 hover:text-slate-900 group border-l-4 border-transparent"
+              [title]="isSidebarOpen() || isSidebarHovered() ? '' : 'Relacionamiento de Pagos'"
+            >
+              <i class="fa-solid fa-scale-balanced text-sm shrink-0 w-5 text-center text-slate-500 group-hover:text-blue-900"></i>
+              @if (isSidebarOpen() || isSidebarHovered()) {
+                <span class="truncate">Relacionamiento de Pagos</span>
+              }
+            </a>
+
             <!-- Cobro Coactivo (Acordeón de Submódulos) -->
             <div class="space-y-0.5">
               <button

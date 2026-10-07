@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../../../core/services/toast.service';
 import { AuthStateService } from '../../../../../core/auth/auth-state.service';
-import { AuthService } from '../../../../../core/auth/auth.service';
+import { AuthOrchestratorService } from '../../../../../core/auth/services/auth-orchestrator.service';
 
 export interface TramiteItem {
   id: string;
@@ -25,7 +25,7 @@ export class Home {
   private router = inject(Router);
   private toastService = inject(ToastService);
   readonly authState = inject(AuthStateService);
-  private authService = inject(AuthService);
+  private orchestrator = inject(AuthOrchestratorService);
 
   tramites = signal<TramiteItem[]>([
     {
@@ -95,7 +95,7 @@ export class Home {
   }
 
   logout(): void {
-    this.authService.logout();
+    this.orchestrator.logout();
     this.toastService.info('Sesión cerrada correctamente.');
   }
 }

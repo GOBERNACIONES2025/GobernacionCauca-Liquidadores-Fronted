@@ -46,6 +46,13 @@ export interface ActoDocumentoDto {
   intervinientes: IntervinienteActoDto[];
 }
 
+export interface VencimientoLiquidacionDto {
+  fechaVencimiento: string;
+  diasRestantes: number;
+  estaVencida: boolean;
+  semaforo: 'VIGENTE' | 'POR_VENCER' | 'VENCIDA' | string;
+}
+
 export interface LiquidacionDocumentoDto {
   numeroLiquidacion: string;
   fechaLiquidacion: string;
@@ -53,6 +60,7 @@ export interface LiquidacionDocumentoDto {
   valorTotal: number;
   estadoLiquidacionNombre?: string | null;
   esVigente: boolean;
+  vencimiento?: VencimientoLiquidacionDto | null;
 }
 
 export interface DocumentoRadicadoDto {

@@ -71,7 +71,7 @@ function handleRegistros401(
 ) {
   // Determinar portal de destino antes de limpiar el estado
   const isEntidad = authState.isEntidad() || router.url.includes('/entidades');
-  const targetLoginRoute = isEntidad ? '/registros/entidades/login' : '/registros/gobernacion/login';
+  const currentUrl = router.url;
 
   if (!isRefreshing) {
     isRefreshing = true;
@@ -83,7 +83,13 @@ function handleRegistros401(
       tokenStorage.clearTokens();
       authState.clearSession();
       toast.warning('Su sesión ha expirado. Por favor ingrese sus credenciales nuevamente.');
-      router.navigate([targetLoginRoute]);
+      router.navigate(['/login'], {
+        queryParams: {
+          modulo: 'REGISTROS',
+          portal: isEntidad ? 'entidad' : 'gobernacion',
+          returnUrl: currentUrl
+        }
+      });
       return throwError(() => new Error('Sesión de Impuesto de Registro expirada'));
     }
 
@@ -106,7 +112,13 @@ function handleRegistros401(
         tokenStorage.clearTokens();
         authState.clearSession();
         toast.warning('Su sesión ha expirado. Por favor ingrese sus credenciales nuevamente.');
-        router.navigate([targetLoginRoute]);
+        router.navigate(['/login'], {
+          queryParams: {
+            modulo: 'REGISTROS',
+            portal: isEntidad ? 'entidad' : 'gobernacion',
+            returnUrl: currentUrl
+          }
+        });
         return throwError(() => err);
       })
     );
