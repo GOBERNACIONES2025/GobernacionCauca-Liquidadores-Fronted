@@ -1,12 +1,14 @@
 // Autor: Juan Sebastián Montaño Pérez
-// Fecha: 01/10/2026
+// Fecha: 08/10/2026
 // Módulo: Portal Ciudadano
-// Descripción: Controlador principal para consulta ciudadana vehicular y gestión de trámites y pagos.
+// Descripción: Controlador principal para consulta ciudadana vehicular, gestión de trámites, pagos y consulta unilateral del estado de transacciones.
 
 import { Component, signal, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { VehiculosApiService } from '../../../infrastructure/api/vehiculos-api.service';
+import { LiquidacionesApiService } from '../../../infrastructure/api/liquidaciones-api.service';
+import { PagosApiService, TransactionInfoResponse } from '../../../infrastructure/api/pagos-api.service';
 import { DataMaskingUtil } from '../../../../../shared/utils/data-masking.util';
 import { PortalCiudadanoDetallePago } from '../../components/portal-ciudadano';
 import { 
@@ -102,6 +104,8 @@ export class PortalCiudadano implements OnInit {
   @ViewChild(ConsultaCiudadanaSharedComponent) sharedComponent?: ConsultaCiudadanaSharedComponent;
 
   private vehiculosApi = inject(VehiculosApiService);
+  private liquidacionesApi = inject(LiquidacionesApiService);
+  private pagosApi = inject(PagosApiService);
   private router = inject(Router);
 
   readonly isConsulted = signal<boolean>(false);
@@ -111,8 +115,14 @@ export class PortalCiudadano implements OnInit {
   readonly datosProtegidos = signal<boolean>(true);
   readonly alertaDemoVisible = signal<boolean>(false);
 
-  // Modales
+  // Modales y acciones
   readonly liquidacionParaPagar = signal<LiquidacionCiudadano | null>(null);
+  readonly descargandoPdfId = signal<number | null>(null);
+
+  // Estado de consulta de transacción unilateral e independiente por liquidación
+  readonly consultandoEstadoId = signal<number | null>(null);
+  readonly estadosTransaccion = signal<Record<number, TransactionInfoResponse | null>>({});
+  readonly erroresConsultaEstado = signal<Record<number, string | null>>({});
 
   // Datos dinámicos del ciudadano provenientes exclusivamente de la API
   readonly ciudadano = signal<CiudadanoData | null>(null);
@@ -226,10 +236,6 @@ export class PortalCiudadano implements OnInit {
     });
   }
 
-  /**
-   * Limpia prefijos institucionales repetitivos como "SECRETARÍA DE MOVILIDAD DE",
-   * "INSPECCIÓN DE TRÁNSITO Y TRANSPORTE DE", etc., para conservar únicamente el municipio.
-   */
   private limpiarNombreOrganismoTransito(nombre?: string | null): string {
     if (!nombre) return '';
     let limpio = nombre.trim();
@@ -348,7 +354,6 @@ export class PortalCiudadano implements OnInit {
       });
     }
 
-    // Ordenar descendente (lo más reciente arriba)
     baseList.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
     return baseList.map((item) => {
@@ -405,11 +410,8 @@ export class PortalCiudadano implements OnInit {
     const rawHist = data.historial || [];
     const rawNov = data.novedades || [];
 
-    // Tipo de Documento Nombre
     const tipoDocOpc = TIPOS_DOCUMENTO_OPCIONES.find(t => t.id === (prop?.tipoDocumentoId || tipoDocId));
     const tipoDocStr = tipoDocOpc ? `${tipoDocOpc.nombre} (${tipoDocOpc.codigo})` : 'Cédula de Ciudadanía (CC)';
-
-    // 1. Extraer nombre del organismo de tránsito con fallback a todas las propiedades posibles
     let rawOrganismo: string | null | undefined = 
       veh?.organismoTransitoNombre ||
       veh?.organismoTransito ||
@@ -421,10 +423,8 @@ export class PortalCiudadano implements OnInit {
       veh?.municipioNombre ||
       veh?.municipioTransito;
 
-    // Organismo de tránsito / Municipio formateado limpiando prefijos
     const organismoTransitoLimpio = this.limpiarNombreOrganismoTransito(rawOrganismo);
 
-    // Mapear liquidaciones
     const liquidacionesMapped: LiquidacionCiudadano[] = rawLiqs.map((l, index) => {
       const valor = Number(l.valor) || 0;
       const estadoUpper = (l.estado || '').toUpperCase();
@@ -437,11 +437,11 @@ export class PortalCiudadano implements OnInit {
         detalle: l.detalle || `Vigencia ${l.vigencia}`,
         valor,
         estado: l.estado,
-        esPagada
+        esPagada,
+        numeroLiquidacion: l.numeroLiquidacion || null
       };
     });
 
-    // Calcular deuda total y estado general
     const deudasPendientes = liquidacionesMapped.filter(l => !l.esPagada && l.valor > 0);
     const totalDeuda = deudasPendientes.reduce((acc, curr) => acc + curr.valor, 0);
     const estadoGeneral: 'Al día' | 'Pendiente' = (deudasPendientes.length === 0 && totalDeuda === 0) ? 'Al día' : 'Pendiente';
@@ -540,6 +540,55 @@ export class PortalCiudadano implements OnInit {
     this.liquidacionParaPagar.set(liq);
   }
 
+  descargarFactura(liq: LiquidacionCiudadano): void {
+    if (!liq) return;
+
+    // Validación estricta con información real del vehículo y la liquidación oficial
+    const placa = (liq.placa || this.ciudadano()?.vehiculo?.placa || '').toUpperCase().trim();
+    if (!placa) {
+      alert('No se pudo identificar la placa del automotor para descargar la liquidación.');
+      return;
+    }
+
+    const vigencia = Number(liq.vigencia);
+    if (!vigencia || isNaN(vigencia) || vigencia <= 0) {
+      alert('La vigencia fiscal de la liquidación seleccionada es inválida.');
+      return;
+    }
+
+    if (this.descargandoPdfId() === liq.liquidacionId) return;
+
+    this.descargandoPdfId.set(liq.liquidacionId);
+
+    // El endpoint /liquidaciones/pdf recalcula a fecha de hoy, congela el LiquidacionSnapshot
+    // con fecha de vencimiento HOY (por intereses y sanciones) y genera el documento oficial
+    this.liquidacionesApi.descargarPdfBlob(placa, vigencia, false).subscribe({
+      next: (blob: Blob) => {
+        this.descargandoPdfId.set(null);
+        if (!blob || blob.size === 0) {
+          const directUrl = this.liquidacionesApi.construirPdfUrl(placa, vigencia, false, true);
+          window.open(directUrl, '_blank');
+          return;
+        }
+
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Liquidacion_Oficial_${placa}_${vigencia}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (err) => {
+        this.descargandoPdfId.set(null);
+        console.error('Descarga por blob falló, intentando enlace directo...', err);
+        const directUrl = this.liquidacionesApi.construirPdfUrl(placa, vigencia, false, true);
+        window.open(directUrl, '_blank');
+      }
+    });
+  }
+
   cerrarPago(): void {
     this.liquidacionParaPagar.set(null);
   }
@@ -552,10 +601,153 @@ export class PortalCiudadano implements OnInit {
     this.isConsulted.set(false);
     this.ciudadano.set(null);
     this.activeTab.set('inicio');
+    this.consultandoEstadoId.set(null);
+    this.estadosTransaccion.set({});
+    this.erroresConsultaEstado.set({});
   }
 
   salir(): void {
     this.router.navigate(['/']);
+  }
+
+  /**
+   * Extrae la referencia oficial o número de radicado de la liquidación sin inventar datos.
+   * Si ya viene en el campo numeroLiquidacion, lo retorna directamente;
+   * de lo contrario, extrae la referencia del texto de detalle (ej: 'Liq #LIQ-2026-KO86EE-00017 - 2026-10-08').
+   */
+  obtenerReferenciaLiquidacion(liq: LiquidacionCiudadano): string {
+    if (liq.numeroLiquidacion && liq.numeroLiquidacion.trim().length > 0) {
+      return liq.numeroLiquidacion.trim();
+    }
+
+    if (liq.detalle) {
+      const match = liq.detalle.match(/#([A-Za-z0-9_-]+)/);
+      if (match && match[1]) {
+        return match[1].trim();
+      }
+    }
+
+    return liq.detalle?.trim() || '';
+  }
+
+  /**
+   * Consulta unilateral e independientemente el estado de la transacción en la pasarela Fintech
+   * para una liquidación específica.
+   * Parámetros reales:
+   * - Factura: liq.liquidacionId (ID numérico en BD)
+   * - Referencia: radicado o número de liquidación oficial
+   * - IDTramite: 14 (Automotores)
+   */
+  consultarEstadoTransaccion(liq: LiquidacionCiudadano): void {
+    if (!liq || !liq.liquidacionId) return;
+
+    const liqId = liq.liquidacionId;
+    if (this.consultandoEstadoId() === liqId) return;
+
+    this.consultandoEstadoId.set(liqId);
+    this.erroresConsultaEstado.update(prev => ({ ...prev, [liqId]: null }));
+
+    const factura = liqId;
+    const referencia = this.obtenerReferenciaLiquidacion(liq);
+    const idTramite = 14;
+
+    this.pagosApi.consultarEstado(factura, referencia, idTramite).subscribe({
+      next: (res) => {
+        this.consultandoEstadoId.set(null);
+        const rawList = res?.result || (res as any)?.Result || [];
+        const transaccion = Array.isArray(rawList) && rawList.length > 0 ? rawList[0] : null;
+
+        this.estadosTransaccion.update(prev => ({
+          ...prev,
+          [liqId]: transaccion
+        }));
+
+        if (!transaccion) {
+          this.erroresConsultaEstado.update(prev => ({
+            ...prev,
+            [liqId]: 'Sin registro de transacción previa en pasarela'
+          }));
+        }
+      },
+      error: (err) => {
+        this.consultandoEstadoId.set(null);
+        const msg = err?.error?.message || err?.message || 'Error al consultar estado de la transacción';
+        this.erroresConsultaEstado.update(prev => ({
+          ...prev,
+          [liqId]: msg
+        }));
+      }
+    });
+  }
+
+  /**
+   * Retorna las propiedades visuales del badge según el estado de la transacción devuelto por la API.
+   */
+  getEstadoTransaccionBadge(liqId: number): { texto: string; clase: string; icono: string; esCargando: boolean } {
+    if (this.consultandoEstadoId() === liqId) {
+      return {
+        texto: 'Consultando...',
+        clase: 'bg-blue-50 text-blue-700 border-blue-200',
+        icono: 'fa-solid fa-arrows-rotate fa-spin text-blue-600',
+        esCargando: true
+      };
+    }
+
+    const tx = this.estadosTransaccion()[liqId];
+    if (!tx) {
+      const err = this.erroresConsultaEstado()[liqId];
+      if (err) {
+        return {
+          texto: 'Sin registro',
+          clase: 'bg-slate-100 text-slate-600 border-slate-200',
+          icono: 'fa-solid fa-circle-question text-slate-500',
+          esCargando: false
+        };
+      }
+      return {
+        texto: 'En proceso',
+        clase: 'bg-amber-50 text-amber-800 border-amber-200',
+        icono: 'fa-regular fa-clock text-amber-600',
+        esCargando: false
+      };
+    }
+
+    const desc = (tx.estado_Descripcion || tx.estadoDescripcion || tx.estado || '').toUpperCase();
+    const cod = (tx.estado || '').toUpperCase();
+
+    if (cod === 'A' || cod === 'OK' || desc.includes('APROBADA')) {
+      return {
+        texto: 'Aprobada',
+        clase: 'bg-emerald-50 text-emerald-700 border-emerald-300 font-bold',
+        icono: 'fa-solid fa-circle-check text-emerald-600',
+        esCargando: false
+      };
+    }
+
+    if (cod === 'R' || cod === 'F' || desc.includes('RECHAZADA') || desc.includes('FALLIDA')) {
+      return {
+        texto: 'Rechazada',
+        clase: 'bg-rose-50 text-rose-700 border-rose-300 font-bold',
+        icono: 'fa-solid fa-circle-xmark text-rose-600',
+        esCargando: false
+      };
+    }
+
+    if (cod === 'C' || cod === 'P' || desc.includes('COMENZADA') || desc.includes('PENDIENTE')) {
+      return {
+        texto: 'Pendiente',
+        clase: 'bg-amber-50 text-amber-800 border-amber-300 font-bold',
+        icono: 'fa-solid fa-hourglass-half text-amber-600',
+        esCargando: false
+      };
+    }
+
+    return {
+      texto: tx.estado_Descripcion || tx.estadoDescripcion || 'Registrada',
+      clase: 'bg-blue-50 text-[#0f4984] border-blue-200 font-bold',
+      icono: 'fa-solid fa-circle-info text-[#0f4984]',
+      esCargando: false
+    };
   }
 
   descargarCertificado(c: CertificadoCiudadano): void {
