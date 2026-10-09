@@ -10,6 +10,8 @@ import { ExencionesTributariasFacade } from '../../../../application/facades/exe
 import { VigenciasFiscalesFacade } from '../../../../application/facades/vigencias-fiscales.facade';
 import { NormasTributariasFacade } from '../../../../application/facades/normas-tributarias.facade';
 import { CalendariosTributariosFacade } from '../../../../application/facades/calendarios-tributarios.facade';
+import { OtrosValoresFacade } from '../../../../application/facades/otros-valores.facade';
+import { ConceptosTributariosFacade } from '../../../../application/facades/conceptos-tributarios.facade';
 
 export interface CatalogItem {
   name: string;
@@ -40,6 +42,8 @@ export class AutomotoresConfigSidebar {
   public vigenciasFacade = inject(VigenciasFiscalesFacade);
   public normasFacade = inject(NormasTributariasFacade);
   public calendariosFacade = inject(CalendariosTributariosFacade);
+  public otrosValoresFacade = inject(OtrosValoresFacade);
+  public conceptosFacade = inject(ConceptosTributariosFacade);
   private router = inject(Router);
 
   readonly closeSidebar = output<void>();
@@ -177,6 +181,11 @@ export class AutomotoresConfigSidebar {
       icon: 'coins',
       items: [
         {
+          name: 'Conceptos Tributarios',
+          route: '/automotores/configuracion/reglas-tributarias/conceptos',
+          count: this.conceptosFacade.totalConceptos()
+        },
+        {
           name: 'Vigencias Fiscales',
           route: '/automotores/configuracion/reglas-tributarias/vigencias',
           count: this.vigenciasFacade.totalVigencias()
@@ -200,6 +209,11 @@ export class AutomotoresConfigSidebar {
           name: 'Calendarios Tributarios',
           route: '/automotores/configuracion/reglas-tributarias/calendarios',
           count: this.calendariosFacade.totalCalendarios()
+        },
+        {
+          name: 'Otros Valores',
+          route: '/automotores/configuracion/reglas-tributarias/otros-valores',
+          count: this.otrosValoresFacade.totalOtrosValores()
         }
       ]
     },
