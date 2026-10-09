@@ -770,6 +770,17 @@
                           <i class="fa-solid fa-box-archive text-emerald-600"></i>
                           Cierre
                         </button>
+                        @if (omiso.diasRestantesTermino !== undefined && omiso.diasRestantesTermino <= 0) {
+                          <button
+                            (click)="irALiquidacionOficial(omiso)"
+                            type="button"
+                            class="inline-flex items-center gap-1 h-7 px-2.5 rounded-md text-[11px] font-bold text-white bg-purple-700 hover:bg-purple-800 border-none shadow-xs cursor-pointer transition"
+                            title="Término legal de 1 mes vencido. Trasladar a Liquidación Oficial de Aforo (Fase 2 ETN Art. 717)"
+                          >
+                            <i class="fa-solid fa-gavel text-amber-300"></i>
+                            Aforo / Liq. Oficial
+                          </button>
+                        }
                       } @else {
                         <button
                           (click)="previsualizarDossier(omiso.placa)"

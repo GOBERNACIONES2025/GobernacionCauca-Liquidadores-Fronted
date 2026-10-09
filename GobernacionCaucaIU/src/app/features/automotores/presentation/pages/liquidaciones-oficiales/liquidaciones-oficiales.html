@@ -475,17 +475,15 @@
                         </button>
                       }
 
-                      <!-- Previsualizar Acto Administrativo en HTML -->
-                      @if (acto.id > 0) {
-                        <button
-                          type="button"
-                          (click)="abrirPreviewHtml(acto)"
-                          class="p-1.5 rounded-md border border-slate-200 text-slate-600 hover:text-indigo-900 hover:bg-slate-100 transition cursor-pointer"
-                          title="Ver borrador o resolución oficial"
-                        >
-                          <i class="fa-solid fa-eye"></i>
-                        </button>
-                      }
+                      <!-- Previsualizar Acto Administrativo / Borrador de Aforo en HTML -->
+                      <button
+                        type="button"
+                        (click)="abrirPreviewHtml(acto)"
+                        class="p-1.5 rounded-md border border-slate-200 text-slate-600 hover:text-indigo-900 hover:bg-slate-100 transition cursor-pointer"
+                        [title]="acto.id > 0 ? 'Ver resolución oficial emitida' : 'Previsualizar borrador de resolución de aforo'"
+                      >
+                        <i class="fa-solid fa-eye text-blue-600"></i>
+                      </button>
 
                       <!-- Descargar PDF Oficial -->
                       @if (acto.id > 0 && !acto.esPrescrito) {
@@ -673,20 +671,33 @@
           </div>
         </div>
 
-        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-end gap-2.5">
-          <button
-            type="button"
-            (click)="cerrarModalEmitir()"
-            class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer"
-          >
-            Cancelar
-          </button>
-          <button
-            type="button"
-            (click)="confirmarEmitir()"
-            [disabled]="facade.loadingEmitir()"
-            class="px-5 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-          >
+        <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
+          @if (facade.actoParaEmitir()) {
+            <button
+              type="button"
+              (click)="abrirPreviewHtml(facade.actoParaEmitir()!)"
+              class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-eye text-blue-600"></i>
+              <span>Ver Borrador Oficial</span>
+            </button>
+          } @else {
+            <div></div>
+          }
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="cerrarModalEmitir()"
+              class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 text-xs font-semibold transition cursor-pointer"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              (click)="confirmarEmitir()"
+              [disabled]="facade.loadingEmitir()"
+              class="px-5 py-2 rounded-lg bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold transition shadow-xs cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+            >
             @if (facade.loadingEmitir()) {
               <i class="fa-solid fa-circle-notch fa-spin"></i>
               <span>Emitiendo...</span>
@@ -694,7 +705,8 @@
               <i class="fa-solid fa-stamp"></i>
               <span>Confirmar y Radicar Aforo</span>
             }
-          </button>
+            </button>
+          </div>
         </div>
       </div>
     </div>

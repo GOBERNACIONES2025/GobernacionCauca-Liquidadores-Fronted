@@ -86,6 +86,15 @@ export const automotoresRoutes: Routes = [
         loadComponent: () => import('./presentation/pages/liquidaciones-oficiales/liquidaciones-oficiales').then(m => m.LiquidacionesOficialesPage),
       },
       {
+        path: 'cobro-coactivo/ejecuciones',
+        loadComponent: () => import('./presentation/pages/ejecuciones-fiscales/ejecuciones-fiscales').then(m => m.EjecucionesFiscalesPage),
+      },
+      {
+        path: 'ejecuciones-fiscales',
+        redirectTo: 'cobro-coactivo/ejecuciones',
+        pathMatch: 'full'
+      },
+      {
         path: 'liquidaciones-oficiales',
         redirectTo: 'cobro-coactivo/aforo',
         pathMatch: 'full'

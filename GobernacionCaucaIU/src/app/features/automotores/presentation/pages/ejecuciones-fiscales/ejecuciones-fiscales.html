@@ -1,0 +1,839 @@
+<div class="p-6 bg-slate-50 min-h-screen">
+
+  <!-- ── ENCABEZADO PRINCIPAL ────────────────────────────────────────────────── -->
+  <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-rose-100 text-rose-800 uppercase tracking-wide">
+          Cobro Coactivo · Fase 3
+        </span>
+        <span class="text-xs text-slate-500 font-medium">ETN Arts. 823 - 843-2</span>
+      </div>
+      <h1 class="text-2xl font-bold text-slate-900 mt-1">Ejecuciones Fiscales y Medidas Cautelares</h1>
+      <p class="text-sm text-slate-600">
+        Gestión procesal de mandamientos de pago, notificaciones (4-72 y web), constancias de ejecutoria, embargos bancarios/automotores y autos de cierre.
+      </p>
+    </div>
+
+    <!-- Botones Superiores -->
+    <div class="flex items-center gap-3">
+      <button
+        (click)="facade.cargarExpedientes(); facade.cargarKpis()"
+        class="inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 transition-colors">
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Refrescar
+      </button>
+    </div>
+  </div>
+
+  <!-- ── KPI CARDS ───────────────────────────────────────────────────────────── -->
+  @if (facade.kpis(); as k) {
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+
+      <!-- Card 1: Sin Mandamiento -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Títulos sin Mandamiento</div>
+          <div class="text-xl font-bold text-slate-900">{{ k.titulosSinMandamiento | number }}</div>
+          <div class="text-[11px] text-amber-600 font-medium">Listos para librar mandamiento</div>
+        </div>
+      </div>
+
+      <!-- Card 2: Mandamientos en Trámite -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">En Trámite (15 días)</div>
+          <div class="text-xl font-bold text-slate-900">{{ k.mandamientosEnTramite | number }}</div>
+          <div class="text-[11px] text-blue-600 font-medium">Notificación y excepciones</div>
+        </div>
+      </div>
+
+      <!-- Card 3: Ejecutoriados -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Constancias Ejecutoria</div>
+          <div class="text-xl font-bold text-slate-900">{{ k.procesosEjecutoriados | number }}</div>
+          <div class="text-[11px] text-indigo-600 font-medium">Orden de seguir adelante</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Medidas Cautelares Activas -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Embargos Decretados</div>
+          <div class="text-xl font-bold text-slate-900">{{ k.medidasCautelaresActivas | number }}</div>
+          <div class="text-[11px] text-rose-600 font-medium">Bancos y Tránsito / Policía</div>
+        </div>
+      </div>
+
+      <!-- Card 5: Cartera Coactiva -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wider text-slate-500">Cartera en Ejecución</div>
+          <div class="text-lg font-bold text-slate-900">{{ k.totalCarteraCoactiva | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+          <div class="text-[11px] text-emerald-600 font-medium">Recaudado: {{ k.totalRecaudado | currency:'COP':'symbol-narrow':'1.0-0' }}</div>
+        </div>
+      </div>
+
+    </div>
+  }
+
+  <!-- ── PANEL PRINCIPAL ─────────────────────────────────────────────────────── -->
+  <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+
+    <!-- Pestañas Operativas -->
+    <div class="border-b border-slate-200 bg-slate-50/50 px-4 pt-3 flex flex-wrap gap-2">
+      
+      <button
+        (click)="onSelectTab('sin_mandamiento')"
+        [class.bg-white]="facade.tabActivo() === 'sin_mandamiento'"
+        [class.text-amber-800]="facade.tabActivo() === 'sin_mandamiento'"
+        [class.border-amber-500]="facade.tabActivo() === 'sin_mandamiento'"
+        [class.text-slate-600]="facade.tabActivo() !== 'sin_mandamiento'"
+        class="px-4 py-2.5 font-semibold text-xs rounded-t-lg border-b-2 border-transparent transition-all flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+        1. Títulos en Firme (Sin Mandamiento)
+        @if (facade.kpis(); as k) {
+          <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-800 font-bold">{{ k.titulosSinMandamiento }}</span>
+        }
+      </button>
+
+      <button
+        (click)="onSelectTab('en_tramite')"
+        [class.bg-white]="facade.tabActivo() === 'en_tramite'"
+        [class.text-blue-800]="facade.tabActivo() === 'en_tramite'"
+        [class.border-blue-500]="facade.tabActivo() === 'en_tramite'"
+        [class.text-slate-600]="facade.tabActivo() !== 'en_tramite'"
+        class="px-4 py-2.5 font-semibold text-xs rounded-t-lg border-b-2 border-transparent transition-all flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+        2. Mandamientos en Trámite / Notificación
+        @if (facade.kpis(); as k) {
+          <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-800 font-bold">{{ k.mandamientosEnTramite }}</span>
+        }
+      </button>
+
+      <button
+        (click)="onSelectTab('ejecutoriados_medidas')"
+        [class.bg-white]="facade.tabActivo() === 'ejecutoriados_medidas'"
+        [class.text-rose-800]="facade.tabActivo() === 'ejecutoriados_medidas'"
+        [class.border-rose-500]="facade.tabActivo() === 'ejecutoriados_medidas'"
+        [class.text-slate-600]="facade.tabActivo() !== 'ejecutoriados_medidas'"
+        class="px-4 py-2.5 font-semibold text-xs rounded-t-lg border-b-2 border-transparent transition-all flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+        3. Ejecutoriados & Medidas Cautelares (Embargos)
+        @if (facade.kpis(); as k) {
+          <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-rose-100 text-rose-800 font-bold">{{ k.procesosEjecutoriados }}</span>
+        }
+      </button>
+
+      <button
+        (click)="onSelectTab('terminados')"
+        [class.bg-white]="facade.tabActivo() === 'terminados'"
+        [class.text-emerald-800]="facade.tabActivo() === 'terminados'"
+        [class.border-emerald-500]="facade.tabActivo() === 'terminados'"
+        [class.text-slate-600]="facade.tabActivo() !== 'terminados'"
+        class="px-4 py-2.5 font-semibold text-xs rounded-t-lg border-b-2 border-transparent transition-all flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        4. Terminados y Archivados (Pago Total)
+        @if (facade.kpis(); as k) {
+          <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-100 text-emerald-800 font-bold">{{ k.procesosTerminados }}</span>
+        }
+      </button>
+
+    </div>
+
+    <!-- Barra de Filtros y Búsqueda -->
+    <div class="p-4 border-b border-slate-200 bg-white flex flex-col md:flex-row items-center justify-between gap-3">
+      <div class="relative w-full md:w-96">
+        <input
+          type="text"
+          [(ngModel)]="textoBuscar"
+          (keydown)="onBuscarKeydown($event)"
+          placeholder="Buscar por placa, cédula o expediente..."
+          class="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:bg-white transition-all uppercase" />
+        <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        @if (textoBuscar) {
+          <button (click)="onLimpiarBusqueda()" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        }
+      </div>
+
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <button
+          (click)="onBuscar()"
+          class="w-full md:w-auto px-4 py-2 text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2">
+          Buscar
+        </button>
+      </div>
+    </div>
+
+    <!-- ── TABLA DE EXPEDIENTES ──────────────────────────────────────────────── -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead class="bg-slate-100/75 border-b border-slate-200 text-slate-700 font-semibold uppercase tracking-wider">
+          <tr>
+            <th class="py-3 px-3 text-center w-8">#</th>
+            <th class="py-3 px-4">Expediente / Título</th>
+            <th class="py-3 px-3">Placa</th>
+            <th class="py-3 px-4">Deudor Ejecutado</th>
+            <th class="py-3 px-3">Vigencias</th>
+            <th class="py-3 px-3 text-right">Cuantía Coactiva</th>
+            <th class="py-3 px-3">Estado / Mandamiento</th>
+            <th class="py-3 px-3 text-center">Términos (15d)</th>
+            <th class="py-3 px-4 text-center">Acciones Procesales</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200 text-slate-800">
+          @if (facade.loading()) {
+            <tr>
+              <td colspan="9" class="py-12 text-center text-slate-500">
+                <div class="flex flex-col items-center justify-center gap-2">
+                  <div class="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+                  <span class="font-medium text-sm">Cargando expedientes coactivos...</span>
+                </div>
+              </td>
+            </tr>
+          } @else if (!facade.tieneExpedientes()) {
+            <tr>
+              <td colspan="9" class="py-12 text-center text-slate-500">
+                <div class="max-w-sm mx-auto flex flex-col items-center justify-center">
+                  <svg class="w-12 h-12 text-slate-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p class="font-semibold text-slate-700 text-sm">No hay expedientes en esta etapa</p>
+                  <p class="text-xs text-slate-500 mt-1">Los títulos ejecutivos en firme ingresan automáticamente desde la fase de Liquidación Oficial.</p>
+                </div>
+              </td>
+            </tr>
+          } @else {
+            @for (exp of facade.expedientes(); track exp.id) {
+              <tr class="hover:bg-slate-50/75 transition-colors">
+                
+                <!-- Acordeón expandir -->
+                <td class="py-3 px-3 text-center">
+                  <button
+                    (click)="facade.toggleExpand(exp.id)"
+                    class="text-slate-400 hover:text-slate-700 transition-colors p-1 rounded hover:bg-slate-200">
+                    <svg
+                      [class.rotate-90]="facade.expandedIds().includes(exp.id)"
+                      class="w-4 h-4 transition-transform duration-200"
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                </td>
+
+                <!-- Expediente / Título -->
+                <td class="py-3 px-4">
+                  <div class="font-bold text-slate-900 font-mono text-[11px]">{{ exp.numeroExpediente }}</div>
+                  <div class="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                    <span class="px-1.5 py-0.2 rounded bg-slate-100 text-slate-700 font-medium">Título: {{ exp.numeroTituloEjecutivo }}</span>
+                    <span>· {{ exp.fechaTituloEjecutivo }}</span>
+                  </div>
+                </td>
+
+                <!-- Placa -->
+                <td class="py-3 px-3">
+                  <span class="px-2 py-0.5 rounded font-mono font-bold bg-amber-100 text-amber-900 text-xs border border-amber-300">
+                    {{ exp.placa }}
+                  </span>
+                </td>
+
+                <!-- Deudor -->
+                <td class="py-3 px-4">
+                  <div class="font-semibold text-slate-900 text-xs truncate max-w-[200px]" [title]="exp.deudorNombreCompleto">
+                    {{ exp.deudorNombreCompleto }}
+                  </div>
+                  <div class="text-[11px] text-slate-500 font-mono">
+                    CC/NIT: {{ exp.deudorIdentificacion }}
+                  </div>
+                </td>
+
+                <!-- Vigencias -->
+                <td class="py-3 px-3">
+                  <span class="font-semibold text-slate-700">{{ exp.vigencias }}</span>
+                </td>
+
+                <!-- Cuantía Coactiva -->
+                <td class="py-3 px-3 text-right">
+                  <div class="font-bold text-slate-900 text-xs">
+                    {{ exp.totalDeuda | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </div>
+                  <div class="text-[10px] text-slate-500">
+                    Cap: {{ exp.totalCapital | currency:'COP':'symbol-narrow':'1.0-0' }} · Sanc: {{ exp.totalSancion | currency:'COP':'symbol-narrow':'1.0-0' }}
+                  </div>
+                </td>
+
+                <!-- Estado / Mandamiento -->
+                <td class="py-3 px-3">
+                  @if (exp.numeroMandamiento) {
+                    <div class="font-semibold text-slate-900 font-mono text-[11px] flex items-center gap-1 text-blue-700">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      {{ exp.numeroMandamiento }}
+                    </div>
+                  } @else {
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800">
+                      Sin Mandamiento
+                    </span>
+                  }
+                  <div class="mt-1">
+                    @switch (exp.estadoProceso) {
+                      @case ('TITULO_EN_FIRME') {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200">En Firme</span>
+                      }
+                      @case ('MANDAMIENTO_LIBRADO') {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200">Por Notificar</span>
+                      }
+                      @case ('NOTIFICADO_EN_TERMINOS') {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">En Términos (15d)</span>
+                      }
+                      @case ('EJECUTORIADO') {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-50 text-purple-700 border border-purple-200">Ejecutoriado (Art 836)</span>
+                      }
+                      @case ('MEDIDAS_CAUTELARES_ACTIVAS') {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200">Embargos Decretados</span>
+                      }
+                      @case ('TERMINADO_PAGO') {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">Pagado y Archivado</span>
+                      }
+                      @default {
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700">{{ exp.estadoProceso }}</span>
+                      }
+                    }
+                  </div>
+                </td>
+
+                <!-- Términos 15 días -->
+                <td class="py-3 px-3 text-center">
+                  @if (exp.fechaLimiteExcepciones) {
+                    @if (exp.diasRestantesTerminos !== null && exp.diasRestantesTerminos! > 0) {
+                      <div class="font-bold text-blue-700 text-xs">{{ exp.diasRestantesTerminos }} días</div>
+                      <div class="text-[10px] text-slate-500">Vence: {{ exp.fechaLimiteExcepciones }}</div>
+                    } @else {
+                      <div class="font-bold text-rose-700 text-xs">VENCIDO</div>
+                      <div class="text-[10px] text-slate-500">{{ exp.fechaLimiteExcepciones }}</div>
+                    }
+                  } @else {
+                    <span class="text-slate-400 text-[11px]">—</span>
+                  }
+                </td>
+
+                <!-- Acciones Procesales -->
+                <td class="py-3 px-4 text-center">
+                  <div class="flex items-center justify-center gap-1.5 flex-wrap">
+
+                    <!-- Acción 1: Librar Mandamiento -->
+                    @if (!exp.numeroMandamiento) {
+                      <button
+                        (click)="abrirMandamiento(exp)"
+                        class="px-2.5 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded shadow-sm transition-colors flex items-center gap-1"
+                        title="Librar Mandamiento de Pago (Art. 826 ETN)">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Librar Mandamiento
+                      </button>
+                    }
+
+                    <!-- Acción 2: Descargar PDF Mandamiento -->
+                    @if (exp.numeroMandamiento) {
+                      <button
+                        (click)="facade.descargarMandamientoPdf(exp.id)"
+                        class="p-1.5 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded border border-blue-200 transition-colors"
+                        title="Descargar Resolución de Mandamiento de Pago en PDF">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </button>
+                    }
+
+                    <!-- Acción 3: Notificar Mandamiento -->
+                    @if (exp.numeroMandamiento && exp.estadoProceso === 'MANDAMIENTO_LIBRADO') {
+                      <button
+                        (click)="abrirNotificacion(exp)"
+                        class="px-2.5 py-1 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded shadow-sm transition-colors flex items-center gap-1"
+                        title="Registrar Notificación Postal (4-72) o Aviso Web">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        Notificar
+                      </button>
+                    }
+
+                    <!-- Acción 4: Constancia Ejecutoria (Si vencieron 15 días o está notificado) -->
+                    @if (exp.estadoProceso === 'NOTIFICADO_EN_TERMINOS' && !exp.tieneConstanciaEjecutoria) {
+                      <button
+                        (click)="abrirConstancia(exp)"
+                        class="px-2.5 py-1 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded shadow-sm transition-colors flex items-center gap-1"
+                        title="Emitir Constancia de Ejecutoria (Art. 836 ETN)">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                        Constancia Ejecutoria
+                      </button>
+                    }
+
+                    <!-- Acción 5: Decretar Medidas Cautelares (Embargos) -->
+                    @if (exp.tieneConstanciaEjecutoria || exp.estadoProceso === 'EJECUTORIADO' || exp.estadoProceso === 'MEDIDAS_CAUTELARES_ACTIVAS') {
+                      <button
+                        (click)="abrirMedidas(exp)"
+                        class="px-2.5 py-1 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded shadow-sm transition-colors flex items-center gap-1"
+                        title="Decretar Embargo a Cuentas Bancarias o Vehículo (Tránsito)">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        Decretar Embargo
+                      </button>
+                    }
+
+                    <!-- Acción 6: Auto de Cierre por Pago -->
+                    @if (exp.estadoProceso !== 'TERMINADO_PAGO' && exp.estadoProceso !== 'ARCHIVADO') {
+                      <button
+                        (click)="abrirAutoCierre(exp)"
+                        class="p-1.5 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition-colors"
+                        title="Registrar Pago Total y Auto de Terminación / Cierre">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                    }
+
+                    <!-- Acción 7: Descargar Auto de Cierre si ya está terminado -->
+                    @if (exp.estadoProceso === 'TERMINADO_PAGO') {
+                      <button
+                        (click)="facade.descargarAutoCierrePdf(exp.id)"
+                        class="px-2 py-1 text-xs font-semibold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded border border-emerald-300 transition-colors flex items-center gap-1"
+                        title="Descargar Auto de Cierre y Archivo Definitivo">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Auto de Cierre
+                      </button>
+                    }
+
+                  </div>
+                </td>
+
+              </tr>
+
+              <!-- ── ACORDEÓN DETALLE: MEDIDAS CAUTELARES Y TRAZABILIDAD ── -->
+              @if (facade.expandedIds().includes(exp.id)) {
+                <tr class="bg-slate-50 border-b border-slate-200">
+                  <td colspan="9" class="p-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                      <!-- Columna 1: Medidas Cautelares (Embargos Decretados) -->
+                      <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                          <h4 class="font-bold text-slate-800 text-xs flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                            Medidas Cautelares Decretadas ({{ exp.medidasCautelares.length }})
+                          </h4>
+                          @if (exp.tieneConstanciaEjecutoria) {
+                            <button
+                              (click)="abrirMedidas(exp)"
+                              class="text-[11px] font-semibold text-rose-600 hover:text-rose-800">
+                              + Agregar Embargo
+                            </button>
+                          }
+                        </div>
+
+                        @if (exp.medidasCautelares.length === 0) {
+                          <p class="text-xs text-slate-400 italic text-center py-4">No se han decretado medidas cautelares aún para este expediente.</p>
+                        } @else {
+                          <div class="space-y-2">
+                            @for (med of exp.medidasCautelares; track med.id) {
+                              <div class="p-2.5 rounded-md border border-slate-100 bg-slate-50/70 flex items-center justify-between gap-2">
+                                <div>
+                                  <div class="font-bold text-slate-900 text-xs">{{ med.entidadDestino }}</div>
+                                  <div class="text-[10px] text-slate-500 font-mono">
+                                    Oficio: {{ med.numeroOficio }} · Res: {{ med.numeroResolucionEmbargo }} ({{ med.fechaResolucionEmbargo }})
+                                  </div>
+                                  <div class="text-[10px] text-slate-600 mt-0.5">
+                                    Límite: <span class="font-semibold">{{ med.limiteCuantiaEmbargo | currency:'COP':'symbol-narrow':'1.0-0' }}</span>
+                                    · Estado: <span class="font-semibold text-rose-700">{{ med.estadoMedida }}</span>
+                                  </div>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                  @if (med.tipoMedida === 'EMBARGO_BANCARIO') {
+                                    <button
+                                      (click)="facade.descargarEmbargoBancarioPdf(med.id)"
+                                      class="p-1 text-slate-600 hover:text-blue-700 bg-white rounded border border-slate-200"
+                                      title="Descargar Oficio Embargo Bancario">
+                                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                    </button>
+                                  } @else {
+                                    <button
+                                      (click)="facade.descargarEmbargoVehiculoPdf(exp.id)"
+                                      class="p-1 text-slate-600 hover:text-blue-700 bg-white rounded border border-slate-200"
+                                      title="Descargar Oficio Embargo Vehículo">
+                                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                    </button>
+                                  }
+                                  @if (med.estadoMedida !== 'LEVANTADA') {
+                                    <button
+                                      (click)="levantarMedida(med.id)"
+                                      class="px-2 py-0.5 text-[10px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200"
+                                      title="Levantar Medida (Desembargo)">
+                                      Desembargar
+                                    </button>
+                                  } @else {
+                                    <button
+                                      (click)="facade.descargarDesembargoPdf(med.id)"
+                                      class="p-1 text-emerald-700 bg-emerald-50 rounded border border-emerald-200"
+                                      title="Descargar Resolución de Desembargo">
+                                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                      </svg>
+                                    </button>
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Columna 2: Trazabilidad Legal de Eventos -->
+                      <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                        <div class="mb-3 border-b border-slate-100 pb-2">
+                          <h4 class="font-bold text-slate-800 text-xs flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                            Bitácora Procesal (Trazabilidad)
+                          </h4>
+                        </div>
+                        <div class="space-y-3 max-h-56 overflow-y-auto pr-2">
+                          @for (traz of exp.trazabilidades; track traz.id) {
+                            <div class="flex items-start gap-2 text-xs border-l-2 border-blue-400 pl-2.5 py-0.5">
+                              <div>
+                                <div class="font-semibold text-slate-800">{{ traz.descripcion }}</div>
+                                <div class="text-[10px] text-slate-400">
+                                  {{ traz.fechaActuacion | date:'dd/MM/yyyy HH:mm' }} · Por: {{ traz.usuario }}
+                                </div>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+
+                    </div>
+                  </td>
+                </tr>
+              }
+
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginador -->
+    <div class="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-600">
+      <div>
+        Mostrando <span class="font-bold text-slate-800">{{ facade.expedientes().length }}</span> de <span class="font-bold text-slate-800">{{ facade.totalCount() }}</span> expedientes
+      </div>
+      <div class="flex items-center gap-2">
+        <button
+          [disabled]="facade.page() <= 1"
+          (click)="facade.cambiarPagina(facade.page() - 1)"
+          class="px-3 py-1.5 rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+          Anterior
+        </button>
+        <span class="font-semibold">Página {{ facade.page() }} de {{ facade.totalPages() }}</span>
+        <button
+          [disabled]="facade.page() >= facade.totalPages()"
+          (click)="facade.cambiarPagina(facade.page() + 1)"
+          class="px-3 py-1.5 rounded border border-slate-300 bg-white hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+          Siguiente
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── MODAL 1: LIBRAR MANDAMIENTO DE PAGO ────────────────────────────────── -->
+  @if (facade.modalMandamientoAbierto(); as abierto) {
+    <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="px-6 py-4 bg-blue-700 text-white flex items-center justify-between">
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Librar Mandamiento de Pago (Art. 826 ETN)
+          </h3>
+          <button (click)="facade.modalMandamientoAbierto.set(false)" class="text-blue-200 hover:text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-4 text-xs">
+          @if (facade.expedienteSeleccionado(); as exp) {
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <div class="font-bold text-slate-800 text-sm">Placa: {{ exp.placa }} · Expediente: {{ exp.numeroExpediente }}</div>
+              <div class="text-slate-600 mt-1">Deudor: <span class="font-semibold">{{ exp.deudorNombreCompleto }}</span> ({{ exp.deudorIdentificacion }})</div>
+              <div class="text-slate-600">Cuantía a Mandar Pagar: <span class="font-bold text-blue-700">{{ exp.totalDeuda | currency:'COP':'symbol-narrow':'1.0-0' }}</span></div>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Abogado Ejecutor / Sustanciador Asignado</label>
+              <input type="text" [(ngModel)]="formAbogadoMandamiento" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Observaciones Procesales</label>
+              <textarea [(ngModel)]="formObservacionesMandamiento" rows="2" class="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-blue-500" placeholder="Anotaciones para el mandamiento..."></textarea>
+            </div>
+          }
+        </div>
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 text-xs">
+          <button (click)="facade.modalMandamientoAbierto.set(false)" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancelar</button>
+          <button (click)="confirmarMandamiento()" [disabled]="facade.submitting()" class="px-4 py-2 font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded disabled:opacity-50">
+            Librar y Expedir Resolución
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL 2: NOTIFICAR MANDAMIENTO DE PAGO ────────────────────────────── -->
+  @if (facade.modalNotificacionAbierto(); as abierto) {
+    <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="px-6 py-4 bg-indigo-700 text-white flex items-center justify-between">
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Registrar Notificación del Mandamiento
+          </h3>
+          <button (click)="facade.modalNotificacionAbierto.set(false)" class="text-indigo-200 hover:text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-3 text-xs max-h-[75vh] overflow-y-auto">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Medio de Notificación</label>
+            <select [(ngModel)]="formTipoNotificacion" class="w-full p-2 border border-slate-300 rounded">
+              <option value="CORREO_472">Correo Certificado (Servicios Postales Nacionales 4-72)</option>
+              <option value="AVISO_WEB">Aviso Subsidiario en Página Web (Art. 568 ETN)</option>
+              <option value="PERSONAL">Notificación Personal en Despacho</option>
+            </select>
+          </div>
+          @if (formTipoNotificacion === 'CORREO_472') {
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Número de Guía Postal</label>
+                <input type="text" [(ngModel)]="formNumeroGuia" placeholder="YG123456789CO" class="w-full p-2 border border-slate-300 rounded font-mono" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Empresa de Envío</label>
+                <input type="text" [(ngModel)]="formEmpresaEnvio" class="w-full p-2 border border-slate-300 rounded" />
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Fecha Envío Físico</label>
+                <input type="date" [(ngModel)]="formFechaEnvio" class="w-full p-2 border border-slate-300 rounded" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Fecha Entrega Efectiva</label>
+                <input type="date" [(ngModel)]="formFechaEntrega" class="w-full p-2 border border-slate-300 rounded" />
+              </div>
+            </div>
+          } @else {
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Fecha Fijación Aviso Web</label>
+                <input type="date" [(ngModel)]="formFechaPublicacionWeb" class="w-full p-2 border border-slate-300 rounded" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Fecha Desfijación (Inicia Término)</label>
+                <input type="date" [(ngModel)]="formFechaDesfijacionWeb" class="w-full p-2 border border-slate-300 rounded" />
+              </div>
+            </div>
+          }
+          <div class="bg-indigo-50 p-2.5 rounded border border-indigo-100 text-[11px] text-indigo-800">
+            <strong>Efecto legal:</strong> A partir del día hábil siguiente a la entrega/desfijación correrá el término perentorio de <strong>quince (15) días hábiles</strong> para cancelar la obligación o proponer excepciones (ETN Art. 826).
+          </div>
+        </div>
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 text-xs">
+          <button (click)="facade.modalNotificacionAbierto.set(false)" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancelar</button>
+          <button (click)="confirmarNotificacion()" [disabled]="facade.submitting()" class="px-4 py-2 font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded disabled:opacity-50">
+            Registrar Notificación
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL 3: CONSTANCIA DE EJECUTORIA ──────────────────────────────────── -->
+  @if (facade.modalConstanciaAbierto(); as abierto) {
+    <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="px-6 py-4 bg-purple-700 text-white flex items-center justify-between">
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+            Expedir Constancia de Ejecutoria (Art. 836 ETN)
+          </h3>
+          <button (click)="facade.modalConstanciaAbierto.set(false)" class="text-purple-200 hover:text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-3 text-xs">
+          @if (facade.expedienteSeleccionado(); as exp) {
+            <p class="text-slate-700">
+              Se va a certificar la firmeza procesal del <strong>Mandamiento de Pago Nº {{ exp.numeroMandamiento }}</strong> al haberse vencido los 15 días hábiles sin que el ejecutado haya cancelado ni propuesto excepciones.
+            </p>
+            <div class="bg-purple-50 p-3 rounded border border-purple-100 text-purple-900 font-semibold">
+              Orden de seguir adelante la ejecución forzosa y practicar medidas cautelares sobre bienes y cuentas.
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Observaciones</label>
+              <textarea [(ngModel)]="formObservacionesConstancia" rows="2" class="w-full p-2 border border-slate-300 rounded"></textarea>
+            </div>
+          }
+        </div>
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 text-xs">
+          <button (click)="facade.modalConstanciaAbierto.set(false)" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancelar</button>
+          <button (click)="confirmarConstancia()" [disabled]="facade.submitting()" class="px-4 py-2 font-semibold text-white bg-purple-600 hover:bg-purple-700 rounded disabled:opacity-50">
+            Emitir Constancia
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL 4: DECRETAR MEDIDAS CAUTELARES (EMBARGOS) ───────────────────── -->
+  @if (facade.modalMedidasAbierto(); as abierto) {
+    <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="px-6 py-4 bg-rose-700 text-white flex items-center justify-between">
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Decretar Medida Cautelar de Embargo
+          </h3>
+          <button (click)="facade.modalMedidasAbierto.set(false)" class="text-rose-200 hover:text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-3 text-xs max-h-[75vh] overflow-y-auto">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Tipo de Medida Cautelar</label>
+            <select [(ngModel)]="formTipoMedida" class="w-full p-2 border border-slate-300 rounded">
+              <option value="EMBARGO_BANCARIO">Embargo y Retención de Cuentas Bancarias (Art. 837 ETN)</option>
+              <option value="EMBARGO_VEHICULO">Embargo y Secuestro del Vehículo (Tránsito / Policía - Art. 839 ETN)</option>
+            </select>
+          </div>
+
+          @if (formTipoMedida === 'EMBARGO_BANCARIO') {
+            <div>
+              <label class="block font-semibold text-slate-700 mb-2">Entidades Bancarias Destino (Oficios)</label>
+              <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded border border-slate-200">
+                @for (banco of ['Bancolombia S.A.', 'Banco de Bogotá S.A.', 'Banco Davivienda S.A.', 'Banco BBVA Colombia S.A.', 'Banco Agrario de Colombia', 'Banco Popular S.A.', 'Banco de Occidente', 'Banco AV Villas']; track banco) {
+                  <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="bancosSeleccionados[banco]" class="rounded text-rose-600 focus:ring-rose-500" />
+                    <span class="text-[11px] text-slate-700">{{ banco }}</span>
+                  </label>
+                }
+              </div>
+            </div>
+          } @else {
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Organismo de Tránsito</label>
+              <input type="text" [(ngModel)]="formEntidadTransito" class="w-full p-2 border border-slate-300 rounded" />
+            </div>
+          }
+
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">Límite de la Cuantía del Embargo ($)</label>
+            <input type="number" [(ngModel)]="formLimiteCuantia" class="w-full p-2 border border-slate-300 rounded font-mono" />
+            <span class="text-[10px] text-slate-500">Legalmente hasta el 200% del monto total de la deuda coactiva.</span>
+          </div>
+        </div>
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 text-xs">
+          <button (click)="facade.modalMedidasAbierto.set(false)" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancelar</button>
+          <button (click)="confirmarMedidas()" [disabled]="facade.submitting()" class="px-4 py-2 font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded disabled:opacity-50">
+            Decretar Embargos y Generar Oficios
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL 5: AUTO DE TERMINACIÓN Y ARCHIVO DEFINITIVO ─────────────────── -->
+  @if (facade.modalAutoCierreAbierto(); as abierto) {
+    <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full overflow-hidden">
+        <div class="px-6 py-4 bg-emerald-700 text-white flex items-center justify-between">
+          <h3 class="font-bold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Auto de Terminación del Proceso y Cierre
+          </h3>
+          <button (click)="facade.modalAutoCierreAbierto.set(false)" class="text-emerald-200 hover:text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-3 text-xs">
+          @if (facade.expedienteSeleccionado(); as exp) {
+            <div class="bg-emerald-50 p-3 rounded border border-emerald-100 text-emerald-900">
+              Extinción de la obligación por pago total. Al emitirse el auto, se levantarán automáticamente los embargos decretados y se archivará el expediente.
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Fecha de Pago</label>
+                <input type="date" [(ngModel)]="formFechaPago" class="w-full p-2 border border-slate-300 rounded" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Nº Comprobante / Recibo</label>
+                <input type="text" [(ngModel)]="formNumeroReciboPago" placeholder="REC-123456" class="w-full p-2 border border-slate-300 rounded font-mono" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Valor Total Pagado ($)</label>
+              <input type="number" [(ngModel)]="formValorPagado" class="w-full p-2 border border-slate-300 rounded font-mono" />
+            </div>
+          }
+        </div>
+        <div class="px-6 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2 text-xs">
+          <button (click)="facade.modalAutoCierreAbierto.set(false)" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded">Cancelar</button>
+          <button (click)="confirmarAutoCierre()" [disabled]="facade.submitting()" class="px-4 py-2 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded disabled:opacity-50">
+            Emitir Auto de Cierre y Desembargar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

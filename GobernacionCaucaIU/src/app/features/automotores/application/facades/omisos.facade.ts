@@ -13,6 +13,7 @@ import {
   calcularNivelMora,
   SimulacionLiquidacion,
   SimularLiquidacionRequest,
+  VigenciaOmisoDetalle,
 } from '../../domain/models/liquidacion.model';
 
 export type TabOmisos = 'pendientes' | 'pendientes_envio' | 'notificados' | 'devueltos';
@@ -310,8 +311,8 @@ export class OmisosFacade {
               empresaEnvio: o.empresaEnvio ?? undefined,
               fechaEnvioPostal: o.fechaEnvioPostal ?? undefined,
               fechaEntregaNotificacion: o.fechaEntregaNotificacion ?? undefined,
-              estadoPostal: o.estadoPostal ?? (o.estadoEmplazamiento === 'NOTIFICADO' ? 'ENTREGADO' : 'PENDIENTE_ENVIO'),
-              responsableEnvio: o.responsableEnvio ?? 'Gestión Fiscalización 101',
+              estadoPostal: o.estadoPostal ?? (o.numeroActoEmplazamiento ? (o.estadoEmplazamiento === 'NOTIFICADO' ? 'ENTREGADO' : 'PENDIENTE_ENVIO') : undefined),
+              responsableEnvio: o.responsableEnvio ?? undefined,
               municipioDestino: o.municipioDestino ?? 'POPAYÁN - CAUCA',
             };
 
@@ -330,12 +331,11 @@ export class OmisosFacade {
             return baseItem;
           });
 
-          // Sembrado enriquecido de demostración para visualización inmediata de pestañas
-          const itemsConMuestra = this.enriquecerMuestraTrazabilidad(items);
-
-          this.omisos.set(itemsConMuestra);
-          this.totalCount.set(res.data.totalCount || itemsConMuestra.length);
-          this.totalPages.set(res.data.totalPages || Math.ceil((res.data.totalCount || itemsConMuestra.length) / this.pageSize()) || 1);
+          // Sembrado enriquecido de demostración DESACTIVADO: se usa la clasificación real del backend.
+          // Los vehículos se distribuyen en las pestañas según su estadoEmplazamiento real.
+          this.omisos.set(items);
+          this.totalCount.set(res.data.totalCount || items.length);
+          this.totalPages.set(res.data.totalPages || Math.ceil((res.data.totalCount || items.length) / this.pageSize()) || 1);
 
           this.kpis.set(this.calcularKpisLocales());
           this.loadingKpis.set(false);
@@ -585,12 +585,48 @@ export class OmisosFacade {
     }
   }
 
-  // ── Acordeón de vigencias ──────────────────────────────────────────────────
+  // Acordeón de vigencias ──────────────────────────────────────────────────
   toggleExpandirPlaca(placa: string): void {
     const expandidas = this.placasExpandidas();
+    const estaExpandiendo = !expandidas.includes(placa);
+
     this.placasExpandidas.set(
-      expandidas.includes(placa) ? expandidas.filter(p => p !== placa) : [...expandidas, placa]
+      estaExpandiendo
+        ? [...expandidas, placa]
+        : expandidas.filter(p => p !== placa)
     );
+
+    if (!estaExpandiendo) return;
+
+    // Cargar vigencias bajo demanda si no están disponibles
+    const omiso = this.omisos().find(o => o.placa === placa);
+    if (!omiso || (omiso.detalleVigencias && omiso.detalleVigencias.length > 0)) return;
+
+    const vigencias = omiso.vigenciasPendientes?.length ? omiso.vigenciasPendientes : undefined;
+
+    this.api.simular({ placa, vigencias })
+      .pipe(catchError(() => of(null)))
+      .subscribe(res => {
+        if (!res?.data?.vigencias?.length) return;
+
+        const detalle: VigenciaOmisoDetalle[] = res.data.vigencias.map(v => ({
+          anio:                    v.anio,
+          diasMora:                v.diasMora || 0,
+          impuestoBase:            v.valorImpuestoNominal || 0,
+          sancion:                 v.sancionExtemporaneidad || 0,
+          intereses:               v.interesesMora || 0,
+          totalDeuda:              v.totalVigencia || 0,
+          estadoEmplazamiento:     omiso.estadoEmplazamiento || 'SIN_NOTIFICAR',
+          numeroActoEmplazamiento: omiso.numeroActoEmplazamiento,
+          radicadoOficial:         omiso.radicadoOficial,
+          numeroGuiaPostal:        omiso.numeroGuiaPostal,
+          estadoPostal:            omiso.estadoPostal,
+        }));
+
+        this.omisos.update(lista =>
+          lista.map(o => o.placa === placa ? { ...o, detalleVigencias: detalle } : o)
+        );
+      });
   }
 
   expandirTodas(): void {
@@ -646,6 +682,10 @@ export class OmisosFacade {
         } else if (omiso) {
           this.simulacion.set(this.crearSimulacionFallback(omiso));
         }
+
+        if (!this.draftDossierHtml() && omiso) {
+          this.draftDossierHtml.set(this.generarHtmlActoEmplazamiento(this.simulacion(), omiso, vigencia));
+        }
       });
 
     // Consultar borrador oficial de proyecto de acto para revisión del funcionario
@@ -654,6 +694,10 @@ export class OmisosFacade {
       .subscribe(html => {
         if (html) {
           this.draftDossierHtml.set(html);
+        } else if (omiso) {
+          // Generar borrador membretado oficial inmediatamente con los datos locales/simulados
+          const fallbackDoc = this.generarHtmlActoEmplazamiento(this.simulacion(), omiso, vigencia);
+          this.draftDossierHtml.set(fallbackDoc);
         }
       });
   }
@@ -714,6 +758,7 @@ export class OmisosFacade {
       // Trasladar automáticamente al funcionario a la pestaña 'Pendientes de Envío'
       this.setTab('pendientes_envio');
       this.toast.success(`Acto ${nroActo} (Radicado RN ${radicado}) expedido exitosamente. Trasladado a 'Pendientes de Envío' para despacho y planilla.`);
+      this.cargarOmisos();
       this.cargarKpis();
     });
   }

@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { OmisosFacade, TabOmisos } from '../../../application/facades/omisos.facade';
 import {
@@ -20,6 +21,7 @@ import {
 export class OmisosEmplazamientoPage implements OnInit {
   readonly facade = inject(OmisosFacade);
   private sanitizer = inject(DomSanitizer);
+  private router = inject(Router);
 
   /** Texto de búsqueda ligado al input (two-way binding local antes de disparar la búsqueda) */
   textoBuscar = '';
@@ -208,6 +210,12 @@ export class OmisosEmplazamientoPage implements OnInit {
 
   descargarAutoCierre(omiso: VehiculoOmiso): void {
     this.facade.descargarAutoCierrePdf(omiso, 'PAGO_TOTAL');
+  }
+
+  irALiquidacionOficial(omiso: VehiculoOmiso): void {
+    this.router.navigate(['/automotores/cobro-coactivo/aforo'], {
+      queryParams: { placa: omiso.placa }
+    });
   }
 
   getSafeHtml(html: string | null | undefined): SafeHtml {
