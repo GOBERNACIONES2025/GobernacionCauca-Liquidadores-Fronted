@@ -87,7 +87,7 @@ export class EjecucionesFiscalesFacade {
       if (resp && resp.data) {
         this.expedientes.set(resp.data.items);
         this.totalCount.set(resp.data.totalCount);
-        this.totalPages.set(resp.data.totalPages);
+        this.totalPages.set(resp.data.totalPages ?? 1);
       } else {
         this.expedientes.set([]);
       }
