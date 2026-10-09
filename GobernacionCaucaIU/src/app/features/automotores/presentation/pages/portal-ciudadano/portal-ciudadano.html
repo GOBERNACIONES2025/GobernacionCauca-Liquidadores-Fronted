@@ -449,19 +449,60 @@
                             ${{ liq.valor | number:'1.0-0' }} COP
                           </td>
 
-                          <td class="py-3.5 px-4 text-center font-mono font-extrabold">
-                            <p>En proceso</p>
+                          <td class="py-3.5 px-6 text-center">
+                            @let badge = getEstadoTransaccionBadge(liq.liquidacionId);
+                            <div class="inline-flex items-center justify-center gap-2">
+                              <span 
+                                class="px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 border transition-all"
+                                [ngClass]="badge.clase"
+                                [title]="estadosTransaccion()[liq.liquidacionId]?.estado_Descripcion || badge.texto"
+                              >
+                                <i [ngClass]="badge.icono" class="text-[10px]"></i>
+                                <span>{{ badge.texto }}</span>
+                              </span>
+
+                              <button
+                                type="button"
+                                (click)="consultarEstadoTransaccion(liq)"
+                                [disabled]="consultandoEstadoId() === liq.liquidacionId"
+                                title="Consultar y actualizar estado de la transacción en la pasarela"
+                                class="w-7 h-7 rounded-lg bg-white hover:bg-[#0f4984] hover:text-white text-slate-500 flex items-center justify-center transition-all border border-slate-200 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                              >
+                                <i 
+                                  class="fa-solid fa-arrows-rotate text-[11px]" 
+                                  [ngClass]="{'fa-spin': consultandoEstadoId() === liq.liquidacionId}"
+                                ></i>
+                              </button>
+                            </div>
                           </td>
 
                           <td class="py-3.5 px-4 text-right">
                             @if (!liq.esPagada && liq.valor > 0) {
-                              <button 
-                                (click)="abrirPago(liq)" 
-                                type="button" 
-                                class="px-4 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer border-none"
-                              >
-                                Ir a pagar.
-                              </button>
+                              <div class="inline-flex items-center justify-end gap-2">
+                                <button 
+                                  (click)="descargarFactura(liq)" 
+                                  [disabled]="descargandoPdfId() === liq.liquidacionId"
+                                  type="button" 
+                                  title="Descargar liquidación oficial con código de barras para pago en banco"
+                                  class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0f4984] text-xs font-bold rounded-lg border border-slate-300 shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  @if (descargandoPdfId() === liq.liquidacionId) {
+                                    <i class="fa-solid fa-spinner fa-spin text-xs text-[#0f4984]"></i>
+                                    <span>Generando...</span>
+                                  } @else {
+                                    <i class="fa-solid fa-file-arrow-down text-xs text-rose-600"></i>
+                                    <span>Descargar</span>
+                                  }
+                                </button>
+
+                                <button 
+                                  (click)="abrirPago(liq)" 
+                                  type="button" 
+                                  class="px-4 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer border-none shrink-0"
+                                >
+                                  Ir a pagar.
+                                </button>
+                              </div>
                             } @else {
                               <span class="text-emerald-600 font-bold text-xs inline-flex items-center gap-1">
                                 <i class="fa-solid fa-check"></i> Al Día
@@ -487,7 +528,6 @@
         @if (activeTab() === 'historial') {
           <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
             
-            <!-- ENCABEZADO OFICIAL -->
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
               <div>
                 <h2 class="text-base font-extrabold text-slate-900 m-0">Historial de Trámites y Movimientos</h2>
@@ -499,23 +539,17 @@
               </span>
             </div>
 
-            <!-- CONTENEDOR LÍNEA DE TIEMPO CON CONECTORES Y NODOS CONCÉNTRICOS -->
             @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
               <div class="relative space-y-2 py-2">
                 
                 @for (ev of ciudadano()?.vehiculo?.historial; track $index) {
                   <div class="group relative flex items-center gap-3 sm:gap-4">
                     
-                    <!-- COLUMNA IZQUIERDA: LÍNEA DE TIEMPO CON NODO CIRCULAR CONCÉNTRICO -->
                     <div class="relative w-12 sm:w-16 h-16 shrink-0 select-none flex items-center justify-center">
                       <svg class="absolute inset-0 w-full h-full overflow-visible pointer-events-none" viewBox="0 0 64 64">
-                        <!-- Línea vertical continua gris de fondo -->
                         <line x1="24" y1="0" x2="24" y2="64" stroke="#cbd5e1" stroke-width="2" />
                         
-                        <!-- Pista azul institucional continua para la línea principal -->
                         <line x1="24" y1="0" x2="24" y2="64" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" stroke-opacity="0.85" />
-
-                        <!-- Curva o derivación conectora si la pista es secundaria -->
                         @if (ev.trackIndex === 1) {
                           <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#f59e0b" stroke-width="2" />
                         }
@@ -523,18 +557,15 @@
                           <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#10b981" stroke-width="2" />
                         }
 
-                        <!-- CÍRCULO NODO CONCÉNTRICO (ANILLO EXTERIOR E INTERIOR) -->
                         <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="8" fill="white" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" />
                         <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="3.5" [attr.fill]="ev.colorHex || '#0f4984'" />
                       </svg>
                     </div>
 
-                    <!-- TARJETA CONTENIDO DEL EVENTO EN ESTÉTICA OFICIAL DEL PORTAL -->
                     <div class="flex-1 bg-slate-50/80 group-hover:bg-blue-50/40 border border-slate-200/90 group-hover:border-blue-200 rounded-xl p-3.5 sm:p-4 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
                       
                       <div class="space-y-1 min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
-                          <!-- BADGE DE CATEGORÍA -->
                           <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold border shrink-0" [ngClass]="ev.badgeClass || 'bg-blue-100 text-[#0f4984] border-blue-200'">
                             {{ ev.categoriaNombre || 'Trámite' }}
                           </span>
@@ -544,7 +575,6 @@
                           </h3>
                         </div>
 
-                        <!-- USUARIO Y REGISTRO RESPONSABLE -->
                         @if (ev.usuario) {
                           <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
                             <i class="fa-solid fa-building-columns text-slate-400 text-[10px]"></i>
@@ -584,9 +614,6 @@
           </div>
         }
 
-        <!-- ======================================================== -->
-        <!-- PESTAÑA 3: LIQUIDACIONES                                 -->
-        <!-- ======================================================== -->
         @if (activeTab() === 'liquidaciones') {
           <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
             <div class="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -606,6 +633,7 @@
                       <th class="py-3 px-4">Detalle / Referencia</th>
                       <th class="py-3 px-4">Valor</th>
                       <th class="py-3 px-4">Estado</th>
+                      <th class="py-3 px-6 text-center">Estado de la transacción</th>
                       <th class="py-3 px-4 text-right">Acción</th>
                     </tr>
                   </thead>
@@ -624,11 +652,55 @@
                             {{ l.esPagada ? 'Satisfecho' : l.estado }}
                           </span>
                         </td>
+                        <td class="py-3.5 px-6 text-center">
+                          @let badgeL = getEstadoTransaccionBadge(l.liquidacionId);
+                          <div class="inline-flex items-center justify-center gap-2">
+                            <span 
+                              class="px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 border transition-all"
+                              [ngClass]="badgeL.clase"
+                              [title]="estadosTransaccion()[l.liquidacionId]?.estado_Descripcion || badgeL.texto"
+                            >
+                              <i [ngClass]="badgeL.icono" class="text-[10px]"></i>
+                              <span>{{ badgeL.texto }}</span>
+                            </span>
+
+                            <button
+                              type="button"
+                              (click)="consultarEstadoTransaccion(l)"
+                              [disabled]="consultandoEstadoId() === l.liquidacionId"
+                              title="Consultar y actualizar estado de la transacción en la pasarela"
+                              class="w-7 h-7 rounded-lg bg-white hover:bg-[#0f4984] hover:text-white text-slate-500 flex items-center justify-center transition-all border border-slate-200 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                            >
+                              <i 
+                                class="fa-solid fa-arrows-rotate text-[11px]" 
+                                [ngClass]="{'fa-spin': consultandoEstadoId() === l.liquidacionId}"
+                              ></i>
+                            </button>
+                          </div>
+                        </td>
                         <td class="py-3.5 px-4 text-right">
                           @if (!l.esPagada && l.valor > 0) {
-                            <button (click)="abrirPago(l)" class="px-3.5 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white font-bold rounded-lg cursor-pointer">
-                              Pagar PSE
-                            </button>
+                            <div class="inline-flex items-center justify-end gap-2">
+                              <button 
+                                (click)="descargarFactura(l)" 
+                                [disabled]="descargandoPdfId() === l.liquidacionId"
+                                type="button" 
+                                title="Descargar liquidación oficial con código de barras para pago en banco"
+                                class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0f4984] text-xs font-bold rounded-lg border border-slate-300 shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                @if (descargandoPdfId() === l.liquidacionId) {
+                                  <i class="fa-solid fa-spinner fa-spin text-xs text-[#0f4984]"></i>
+                                  <span>Generando...</span>
+                                } @else {
+                                  <i class="fa-solid fa-file-arrow-down text-xs text-rose-600"></i>
+                                  <span>Descargar</span>
+                                }
+                              </button>
+
+                              <button (click)="abrirPago(l)" class="px-3.5 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white font-bold rounded-lg cursor-pointer shrink-0">
+                                Pagar PSE
+                              </button>
+                            </div>
                           } @else {
                             <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>Pagado</span>
                           }

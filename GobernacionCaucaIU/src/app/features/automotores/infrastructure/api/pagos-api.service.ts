@@ -1,7 +1,7 @@
 // Autor: Juan Sebastián Montaño Pérez
-// Fecha: 01/10/2026
+// Fecha: 08/10/2026
 // Módulo: Pagos - Portal Ciudadano
-// Descripción: Servicio de infraestructura para iniciar y consultar transacciones en la pasarela de pagos.
+// Descripción: Servicio de infraestructura para iniciar pagos y consultar el estado de transacciones en la pasarela externa.
 
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -29,6 +29,22 @@ export interface TransactionResult {
   urlPagoEfectiva?: string;
 }
 
+export interface TransactionInfoResponse {
+  id_Transaccion?: number;
+  idTransaccion?: number;
+  estado?: string;
+  estado_Descripcion?: string;
+  estadoDescripcion?: string;
+  cus?: string;
+  factura?: number;
+  referencia?: string;
+  valorApagar?: number;
+  fecha_Creacion?: string;
+  fechaCreacion?: string;
+  fecha_Banco?: string;
+  fechaBanco?: string;
+}
+
 export interface PaymentApiResponse<T> {
   isSuccess?: boolean;
   IsSuccess?: boolean;
@@ -50,7 +66,46 @@ export class PagosApiService {
     return this.api.post<PaymentApiResponse<TransactionResult>>('/pagos/iniciar', request, {}, 'AUTOMOTORES');
   }
 
-  consultarEstado(referencia: string): Observable<PaymentApiResponse<any>> {
-    return this.api.get<PaymentApiResponse<any>>(`/pagos/estado/${encodeURIComponent(referencia)}`, {}, 'AUTOMOTORES');
+  consultarEstado(
+    factura?: number,
+    referencia?: string,
+    idTramite: number = 14
+  ): Observable<PaymentApiResponse<TransactionInfoResponse[]>> {
+    const params: Record<string, string | number> = {};
+    if (factura !== undefined && factura !== null) {
+      params['factura'] = factura;
+    }
+    if (referencia) {
+      params['referencia'] = referencia;
+    }
+    if (idTramite !== undefined && idTramite !== null) {
+      params['idTramite'] = idTramite;
+    }
+
+    return this.api.get<PaymentApiResponse<TransactionInfoResponse[]>>(
+      '/pagos/estado',
+      { params },
+      'AUTOMOTORES'
+    );
+  }
+
+  consultarEstadoPorReferencia(
+    referencia: string,
+    factura?: number,
+    idTramite: number = 14
+  ): Observable<PaymentApiResponse<TransactionInfoResponse[]>> {
+    const params: Record<string, string | number> = {};
+    if (factura !== undefined && factura !== null) {
+      params['factura'] = factura;
+    }
+    if (idTramite !== undefined && idTramite !== null) {
+      params['idTramite'] = idTramite;
+    }
+
+    return this.api.get<PaymentApiResponse<TransactionInfoResponse[]>>(
+      `/pagos/estado/${encodeURIComponent(referencia)}`,
+      { params },
+      'AUTOMOTORES'
+    );
   }
 }

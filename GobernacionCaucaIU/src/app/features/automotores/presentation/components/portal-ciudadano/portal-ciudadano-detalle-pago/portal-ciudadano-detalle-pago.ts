@@ -79,8 +79,12 @@ export class PortalCiudadanoDetallePago {
       },
       error: (err) => {
         this.cargando.set(false);
+        const serverMsg = err?.error?.message 
+          ?? err?.error?.Message 
+          ?? err?.error?.detail 
+          ?? err?.error?.title;
         this.errorMensaje.set(
-          err?.error?.message ?? err?.error?.Message ?? err?.message ?? 'Error de conexión con el servidor de pagos.'
+          serverMsg || 'No fue posible iniciar el proceso de pago. Verifique los datos o intente nuevamente.'
         );
       }
     });
