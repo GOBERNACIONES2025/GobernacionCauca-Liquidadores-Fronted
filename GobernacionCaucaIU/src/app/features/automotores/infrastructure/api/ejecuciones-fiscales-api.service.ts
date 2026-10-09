@@ -113,6 +113,6 @@ export class EjecucionesFiscalesApiService {
   }
 
   descargarDocumentoPdf(endpoint: string): Observable<Blob> {
-    return this.api.getBlob(endpoint, {}, 'AUTOMOTORES');
+    return this.api.get<Blob>(endpoint, { responseType: 'blob' as any }, 'AUTOMOTORES');
   }
 }

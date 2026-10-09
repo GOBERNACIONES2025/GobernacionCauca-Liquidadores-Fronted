@@ -10,7 +10,11 @@ import {
   ParametrosDeguello,
   InformeMunicipioRecaudo,
   InformePlantaBeneficio,
-  ResponsableConsulta 
+  ResponsableConsulta,
+  IniciarPagoDeguelloRequest,
+  PaymentApiResponse,
+  TransactionResult,
+  TransactionStatusResult
 } from '../../domain/models/deguello.model';
 
 @Injectable({
@@ -252,6 +256,29 @@ export class DeguelloService {
     ).pipe(
       map(res => !!(res?.success)),
       catchError(() => of(false))
+    );
+  }
+
+  /**
+   * Inicia la transacción bancaria en la pasarela corporativa Fintech oficial (PSE / Redeban)
+   * para el pago en línea de una declaración de degüello.
+   * Retorna la URL de la pasarela bancaria oficial para redirección segura del ciudadano.
+   */
+  iniciarPagoPasarela(request: IniciarPagoDeguelloRequest): Observable<PaymentApiResponse<TransactionResult>> {
+    return this.http.post<PaymentApiResponse<TransactionResult>>(
+      `${this.apiUrl}/pagos/iniciar`,
+      request
+    );
+  }
+
+  /**
+   * Consulta el estado bancario actual ante la pasarela corporativa Fintech.
+   * Si la transacción fue aprobada por la entidad bancaria, el backend realiza la
+   * conciliación automática de la declaración a estado PAGADO y dispersión TRANSFERIDO.
+   */
+  consultarEstadoPago(consecutivo: string): Observable<PaymentApiResponse<TransactionStatusResult>> {
+    return this.http.get<PaymentApiResponse<TransactionStatusResult>>(
+      `${this.apiUrl}/pagos/estado/${encodeURIComponent(consecutivo)}`
     );
   }
 

@@ -335,6 +335,51 @@
     <!-- CUERPO PRINCIPAL -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8 space-y-6 animate-fadeIn">
       
+      <!-- BANNER DE RETORNO BANCARIO DE PASARELA (PSE / FINTECH) -->
+      @if (feedbackRetornoBancario(); as fb) {
+        <div class="rounded-2xl p-4 md:p-5 border shadow-sm flex items-start justify-between gap-4 animate-fadeIn"
+             [ngClass]="{
+               'bg-emerald-50 border-emerald-300 text-emerald-900': fb.tipo === 'success',
+               'bg-amber-50 border-amber-300 text-amber-900': fb.tipo === 'warning',
+               'bg-rose-50 border-rose-300 text-rose-900': fb.tipo === 'error'
+             }">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0"
+                 [ngClass]="{
+                   'bg-emerald-200/80 text-emerald-800': fb.tipo === 'success',
+                   'bg-amber-200/80 text-amber-800': fb.tipo === 'warning',
+                   'bg-rose-200/80 text-rose-800': fb.tipo === 'error'
+                 }">
+              <i class="fa-solid" [ngClass]="{
+                'fa-circle-check': fb.tipo === 'success',
+                'fa-clock': fb.tipo === 'warning',
+                'fa-circle-xmark': fb.tipo === 'error'
+              }"></i>
+            </div>
+            <div class="space-y-1">
+              <h3 class="text-sm font-black m-0 leading-tight">{{ fb.titulo }}</h3>
+              <p class="text-xs leading-relaxed m-0">{{ fb.mensaje }}</p>
+              @if (fb.cus) {
+                <div class="inline-flex items-center gap-2 mt-1 px-2.5 py-1 rounded-lg bg-white/80 border border-slate-200 font-mono text-[11px] font-bold">
+                  <span class="text-slate-600">CUS / Referencia Pasarela:</span>
+                  <span class="text-[#1b53ad]">{{ fb.cus }}</span>
+                  @if (fb.banco) {
+                    <span class="text-slate-400">&middot; {{ fb.banco }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+          <button 
+            type="button" 
+            (click)="cerrarFeedbackRetorno()"
+            class="p-1.5 rounded-lg hover:bg-black/5 text-slate-500 hover:text-slate-800 transition cursor-pointer border-none bg-transparent"
+            title="Cerrar notificación">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+      }
+
       <!-- ENCABEZADO DE BÚSQUEDA Y CRITERIOS -->
       <div class="bg-white rounded-2xl p-5 md:p-6 border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="space-y-1">
@@ -990,30 +1035,95 @@
             </span>
           </div>
 
-          <!-- Mensaje Informativo de Pasarela / Simulación -->
-          <div class="flex items-center gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-[11px] text-slate-500">
+          <!-- Datos del Pagador para Recibo y Pasarela PSE -->
+          <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5 text-[#1b53ad]">
+                <i class="fa-solid fa-address-card text-xs"></i>
+                <span class="text-[11px] font-black uppercase tracking-wider">Datos para el Recaudo y Comprobante</span>
+              </div>
+              <span class="text-[10px] text-slate-400 font-semibold">Obligatorio</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="text-[10px] text-slate-500 font-bold uppercase block mb-1">
+                  Correo Electrónico <span class="text-rose-500">*</span>
+                </label>
+                <input 
+                  type="email" 
+                  [ngModel]="emailPago()" 
+                  (ngModelChange)="emailPago.set($event)"
+                  placeholder="ejemplo@correo.com"
+                  class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:border-[#1b53ad] focus:ring-1 focus:ring-[#1b53ad] outline-none transition" />
+              </div>
+
+              <div>
+                <label class="text-[10px] text-slate-500 font-bold uppercase block mb-1">
+                  Teléfono Móvil <span class="text-rose-500">*</span>
+                </label>
+                <input 
+                  type="tel" 
+                  [ngModel]="telefonoPago()" 
+                  (ngModelChange)="telefonoPago.set($event)"
+                  placeholder="3001234567"
+                  class="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:border-[#1b53ad] focus:ring-1 focus:ring-[#1b53ad] outline-none transition" />
+              </div>
+            </div>
+          </div>
+
+          @if (errorPagoReal()) {
+            <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2 animate-fadeIn">
+              <i class="fa-solid fa-triangle-exclamation text-rose-500 text-sm shrink-0"></i>
+              <span class="font-medium">{{ errorPagoReal() }}</span>
+            </div>
+          }
+
+          <!-- Mensaje Informativo de Pasarela Oficial -->
+          <div class="flex items-center gap-2 p-2.5 bg-blue-50/50 border border-blue-100 rounded-xl text-[11px] text-slate-600">
             <i class="fa-solid fa-shield-halved text-[#1b53ad] text-xs"></i>
-            <span>Transacción segura y habilitada para acreditación oficial ante la Secretaría de Hacienda.</span>
+            <span>Transacción conectada con la pasarela oficial Fintech &middot; PSE de la Secretaría de Hacienda del Cauca.</span>
           </div>
 
         </div>
 
-        <!-- Footer: Botones Cancelar e "Ir a pagar" -->
-        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <!-- Footer: Botones Cancelar, Simulación de Pruebas y Pago Real PSE -->
+        <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <button 
             type="button" 
             (click)="cerrarModalPago()"
-            class="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
+            [disabled]="procesandoPagoReal()"
+            class="w-full sm:w-auto px-4 py-2.5 bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs cursor-pointer transition">
             Cancelar
           </button>
 
-          <button 
-            type="button" 
-            (click)="ejecutarPagoSimulado()"
-            class="px-5 py-2.5 bg-[#1b53ad] hover:bg-[#154189] text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center gap-2 border-none">
-            <i class="fa-solid fa-arrow-right"></i>
-            <span>Ir a Pagar</span>
-          </button>
+          <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+            <!-- Opción Simulación Rápida (Sandbox interno sin salir del portal) -->
+            <button 
+              type="button" 
+              (click)="ejecutarPagoSimulado()"
+              [disabled]="procesandoPagoReal()"
+              title="Simular acreditación rápida para demostración sin salir del portal"
+              class="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 text-slate-700 font-bold rounded-xl text-xs transition cursor-pointer border-none flex items-center gap-1.5">
+              <i class="fa-solid fa-flask text-slate-500"></i>
+              <span>Simular Pago</span>
+            </button>
+
+            <!-- Opción Pasarela Oficial PSE / Banco (Flujo real de producción) -->
+            <button 
+              type="button" 
+              (click)="iniciarPagoPasarelaReal()"
+              [disabled]="!formularioPagoValido || procesandoPagoReal()"
+              class="px-5 py-2.5 bg-[#1b53ad] hover:bg-[#154189] disabled:opacity-50 disabled:cursor-not-allowed text-white font-black rounded-xl text-xs shadow-md transition cursor-pointer flex items-center gap-2 border-none">
+              @if (procesandoPagoReal()) {
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>Conectando Pasarela...</span>
+              } @else {
+                <i class="fa-solid fa-building-columns"></i>
+                <span>Ir a Pagar (PSE / Banco)</span>
+              }
+            </button>
+          </div>
         </div>
       }
 
