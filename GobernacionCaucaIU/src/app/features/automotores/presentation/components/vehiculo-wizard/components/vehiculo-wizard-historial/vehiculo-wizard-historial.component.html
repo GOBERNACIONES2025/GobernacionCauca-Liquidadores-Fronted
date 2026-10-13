@@ -1,0 +1,31 @@
+<div class="space-y-3.5">
+  <div>
+    <h3 class="text-[18px] font-extrabold text-[#1b53ad] tracking-tight m-0">Historial y Trazabilidad</h3>
+    <p class="text-[12px] text-slate-500 mt-1 leading-relaxed">
+      Registro de eventos, modificaciones y actuaciones oficiales sobre este expediente vehicular.
+    </p>
+  </div>
+
+  <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+    <div class="flex items-start gap-3 border-b border-slate-200 pb-3">
+      <div class="w-8 h-8 rounded-full bg-blue-100 text-[#1b53ad] flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+      </div>
+      <div>
+        <div class="text-[13px] font-bold text-slate-800">Matrícula Registrada</div>
+        <div class="text-[11.5px] text-slate-500">Expediente inicial cargado en el sistema tributario departamental.</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">Fecha: {{ fechaMatricula || 'Sin fecha' }}</div>
+      </div>
+    </div>
+
+    <div class="flex items-start gap-3">
+      <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+        <i class="fa-solid fa-user-check text-xs"></i>
+      </div>
+      <div>
+        <div class="text-[13px] font-bold text-slate-800">Propietario Activo</div>
+        <div class="text-[11.5px] text-slate-500">Asignación de responsabilidad tributaria al 100%.</div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,372 @@
+<div [formGroup]="form" class="space-y-4">
+
+  <!-- CHECKBOX SUPERIOR: INCLUIR PROPIETARIOS -->
+  <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs">
+    <label class="inline-flex items-center gap-2.5 cursor-pointer select-none text-[13px] font-bold text-slate-800">
+      <input 
+        formControlName="incluirPropietario" 
+        type="checkbox" 
+        class="w-4.5 h-4.5 rounded text-emerald-600 accent-emerald-600 cursor-pointer" />
+      <span>Incluir propietarios en este registro</span>
+    </label>
+  </div>
+
+  @if (form.get('incluirPropietario')?.value) {
+    <!-- TARJETA: DISTRIBUCIÓN DE PROPIEDAD -->
+    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide block">Distribución de propiedad</span>
+          <span class="text-[13.5px] font-extrabold text-slate-800">
+            Total Asignado: {{ calcularPorcentajeTotal() }}% / 100%
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          @if (calcularPorcentajeRestante() > 0) {
+            <span class="px-2.5 py-1 bg-amber-100 text-amber-800 font-bold text-[11px] rounded-md">
+              Falta {{ calcularPorcentajeRestante() }}%
+            </span>
+          }
+          <button 
+            type="button" 
+            (click)="agregarCopropietario.emit()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#009b4d] hover:bg-[#008743] text-white font-bold text-[12px] rounded-lg cursor-pointer border-none shadow-2xs transition-all active:scale-95">
+            <i class="fa-solid fa-plus text-[10px]"></i>
+            <span>Agregar Copropietario</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barra de progreso -->
+      <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+        <div 
+          class="h-full transition-all duration-300 rounded-full"
+          [class.bg-amber-500]="calcularPorcentajeTotal() < 100"
+          [class.bg-emerald-500]="calcularPorcentajeTotal() >= 100"
+          [style.width.%]="calcularPorcentajeTotal() > 100 ? 100 : calcularPorcentajeTotal()">
+        </div>
+      </div>
+
+      <!-- Aviso amarillo cuando falta % -->
+      @if (calcularPorcentajeRestante() > 0) {
+        <div class="p-3 bg-amber-50/90 border border-amber-300/80 rounded-xl text-[11px] text-amber-900 leading-relaxed shadow-2xs">
+          El porcentaje de propiedad debe sumar el 100%. Queda un <strong>{{ calcularPorcentajeRestante() }}%</strong> por asignar. Registre a los demás copropietarios para continuar.
+        </div>
+      }
+    </div>
+
+    <!-- LISTADO DE PROPIETARIOS / COPROPIETARIOS -->
+    <div formArrayName="propietarios" class="space-y-4">
+      @for (pGroup of propietariosArray.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
+          
+          <!-- Encabezado de la tarjeta -->
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100 flex-wrap gap-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-6 h-6 rounded-full bg-[#0d3b66] text-white flex items-center justify-center font-extrabold text-[11px]">
+                {{ i + 1 }}
+              </div>
+              <span class="font-extrabold text-[13.5px] text-slate-800">
+                {{ i === 0 ? 'Propietario Principal / Titular' : 'Copropietario ' + (i + 1) }}
+              </span>
+              @if (pGroup.get('esResponsablePrincipal')?.value) {
+                <span class="px-2 py-0.5 bg-blue-100 text-[#1b53ad] text-[10.5px] font-bold rounded-md">
+                  Responsable Principal
+                </span>
+              }
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-[12px] font-semibold text-slate-500">
+                Participación: {{ pGroup.get('porcentajePropiedad')?.value || 0 }}%
+              </span>
+              @if (i > 0) {
+                <button 
+                  type="button" 
+                  (click)="eliminarCopropietario.emit(i)"
+                  title="Eliminar copropietario"
+                  class="w-7 h-7 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center cursor-pointer border-none transition-colors">
+                  <i class="fa-regular fa-trash-can text-xs"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Mensaje de búsqueda de propietario si se encontró -->
+          @if (propietarioEncontradoMsgs[i]) {
+            <div class="p-2.5 rounded-xl text-[11.5px] font-medium bg-blue-50 text-blue-800 border border-blue-200">
+              {{ propietarioEncontradoMsgs[i] }}
+            </div>
+          }
+
+          <!-- FILA 1: BÚSQUEDA POR DOCUMENTO -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+              Búsqueda por documento<span class="text-rose-500 font-bold ml-0.5">*</span>
+            </label>
+            <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+              <div class="w-full sm:w-36 shrink-0">
+                <app-searchable-select
+                  formControlName="tipoDocumentoId"
+                  [items]="tiposDocumento"
+                  labelKey="codigo"
+                  valueKey="id"
+                  placeholder="Tipo..."
+                  [isInvalid]="hasError('tipoDocumentoId', i)">
+                </app-searchable-select>
+              </div>
+
+              <input 
+                formControlName="numeroDocumento"
+                (input)="onDocInput($event, i)"
+                (keydown.enter)="buscar.emit(i)"
+                type="text"
+                placeholder="Ej: 1035421980 (Solo numeros)"
+                [class.border-red-400]="hasError('numeroDocumento', i)"
+                class="flex-1 min-w-[160px] h-[40px] px-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
+
+              <button 
+                type="button" 
+                (click)="buscar.emit(i)"
+                [disabled]="buscandoIndex === i"
+                class="h-[40px] px-5 rounded-xl bg-[#184a8c] hover:bg-[#12396d] text-white text-[12.5px] font-bold flex items-center gap-1.5 cursor-pointer border-none shadow-2xs transition-all disabled:opacity-50 shrink-0">
+                @if (buscandoIndex === i) {
+                  <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+                  <span>Buscando...</span>
+                } @else {
+                  <span>Buscar</span>
+                }
+              </button>
+
+              <button 
+                type="button" 
+                (click)="limpiar.emit(i)"
+                class="h-[40px] px-3.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 text-[12px] font-semibold flex items-center gap-1 cursor-pointer transition-colors shrink-0">
+                <span>Limpiar</span>
+              </button>
+            </div>
+            @if (hasError('numeroDocumento', i)) { <span class="text-[11px] text-red-500 font-medium">{{ getError('numeroDocumento', i) }}</span> }
+          </div>
+
+          <!-- FILA 2: NATURALEZA JURÍDICA -->
+          <div class="flex flex-col gap-1.5 pt-0.5">
+            <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+              Naturaleza jurídica<span class="text-rose-500 font-bold ml-0.5">*</span>
+            </label>
+            <div class="flex items-center gap-6">
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none text-[12.5px] font-semibold text-slate-800">
+                <input 
+                  type="radio" 
+                  [value]="2" 
+                  formControlName="naturalezaJuridicaId"
+                  class="w-4 h-4 text-[#1b53ad] accent-[#1b53ad] cursor-pointer" />
+                <span>Persona Jurídica</span>
+              </label>
+              <label class="inline-flex items-center gap-2 cursor-pointer select-none text-[12.5px] font-semibold text-slate-800">
+                <input 
+                  type="radio" 
+                  [value]="1" 
+                  formControlName="naturalezaJuridicaId"
+                  class="w-4 h-4 text-emerald-600 accent-emerald-600 cursor-pointer" />
+                <span>Persona Natural</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- FILA 3: NOMBRE COMPLETO / RAZÓN SOCIAL -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+              {{ isNatural(i) ? 'Nombre completo' : 'Razón social' }}<span class="text-rose-500 font-bold ml-0.5">*</span>
+            </label>
+            <input 
+              formControlName="nombreRazonSocial"
+              type="text"
+              [placeholder]="isNatural(i) ? 'Primer nombre Primer apellido' : 'Razón social de la empresa'"
+              [class.border-red-400]="hasError('nombreRazonSocial', i)"
+              class="w-full h-[40px] px-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
+            @if (hasError('nombreRazonSocial', i)) { <span class="text-[11px] text-red-500 font-medium">{{ getError('nombreRazonSocial', i) }}</span> }
+          </div>
+
+          <!-- FILA 4: CORREO ELECTRÓNICO & TELÉFONO -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+                Correo electrónico
+              </label>
+              <input 
+                formControlName="correoElectronico"
+                type="email"
+                placeholder="correo@dominio.com"
+                [class.border-red-400]="hasError('correoElectronico', i)"
+                class="w-full h-[40px] px-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
+              @if (hasError('correoElectronico', i)) { <span class="text-[11px] text-red-500 font-medium">{{ getError('correoElectronico', i) }}</span> }
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+                Teléfono
+              </label>
+              <input 
+                formControlName="telefono"
+                type="tel"
+                placeholder="3001234567"
+                [class.border-red-400]="hasError('telefono', i)"
+                class="w-full h-[40px] px-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
+              @if (hasError('telefono', i)) { <span class="text-[11px] text-red-500 font-medium">{{ getError('telefono', i) }}</span> }
+            </div>
+          </div>
+
+          <!-- FILA 5: DIRECCIÓN -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+              Dirección
+            </label>
+            <input 
+              formControlName="direccion"
+              type="text"
+              placeholder="Calle, carrera, vereda..."
+              class="w-full h-[40px] px-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all" />
+          </div>
+
+          <!-- ── SUBSECCIÓN: DATOS DE VINCULACIÓN ── -->
+          <div class="pt-2 border-t border-slate-100 space-y-3">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide block">
+              Datos de vinculación
+            </span>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <!-- Tipo de vínculo -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+                  Tipo de vínculo<span class="text-rose-500 font-bold ml-0.5">*</span>
+                </label>
+                <app-searchable-select
+                  formControlName="tipoVinculoPersonaId"
+                  [items]="tiposVinculo"
+                  labelKey="nombre"
+                  valueKey="id"
+                  placeholder="Seleccione tipo de vínculo..."
+                  [isInvalid]="hasError('tipoVinculoPersonaId', i)">
+                </app-searchable-select>
+                @if (hasError('tipoVinculoPersonaId', i)) { <span class="text-[11px] text-red-500 font-medium">{{ getError('tipoVinculoPersonaId', i) }}</span> }
+              </div>
+
+              <!-- % Propiedad -->
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+                    % Propiedad<span class="text-rose-500 font-bold ml-0.5">*</span>
+                  </label>
+                  @if (calcularPorcentajeRestante() > 0) {
+                    <button 
+                      type="button" 
+                      (click)="asignarRestante.emit(i)"
+                      class="text-[11px] font-bold text-emerald-600 hover:text-emerald-800 underline cursor-pointer bg-transparent border-none">
+                      Asignar restante ({{ calcularPorcentajeRestante() }}%)
+                    </button>
+                  }
+                </div>
+                <input 
+                  formControlName="porcentajePropiedad"
+                  type="number"
+                  min="1"
+                  max="100"
+                  placeholder="50"
+                  [class.border-red-400]="hasError('porcentajePropiedad', i)"
+                  class="w-full h-[40px] px-3.5 bg-white border-2 border-emerald-500 rounded-xl text-[13px] font-extrabold text-slate-800 placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-emerald-200 transition-all" />
+                @if (hasError('porcentajePropiedad', i)) { <span class="text-[11px] text-red-500 font-medium">{{ getError('porcentajePropiedad', i) }}</span> }
+              </div>
+            </div>
+
+            <!-- Fecha de inicio & Responsable principal -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-center">
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[11.5px] font-bold text-slate-700 uppercase tracking-wide">
+                  Fecha de inicio<span class="text-rose-500 font-bold ml-0.5">*</span>
+                </label>
+                <input 
+                  formControlName="fechaInicio" 
+                  type="date"
+                  class="w-full h-[40px] px-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl text-[13px] text-slate-800 outline-none focus:bg-white focus:border-blue-500 transition-all" />
+              </div>
+
+              <div class="flex items-center pt-5">
+                <label class="inline-flex items-center gap-2 cursor-pointer select-none text-[12px] font-bold text-slate-700">
+                  <input 
+                    type="radio"
+                    [checked]="pGroup.get('esResponsablePrincipal')?.value"
+                    (click)="setResponsablePrincipal.emit(i)"
+                    class="w-4 h-4 text-emerald-600 accent-emerald-600 cursor-pointer" />
+                  <span>Designar como responsable principal</span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      }
+    </div>
+
+    <!-- BOTÓN: + AGREGAR OTRO COPROPIETARIO -->
+    @if (calcularPorcentajeRestante() > 0) {
+      <button 
+        type="button" 
+        (click)="agregarCopropietario.emit()"
+        class="w-full py-2.5 rounded-xl border-2 border-dashed border-emerald-500 bg-white hover:bg-emerald-50/70 text-[#009b4d] text-[13px] font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-2xs">
+        <i class="fa-solid fa-plus text-xs"></i>
+        <span>+ Agregar Otro Copropietario (Falta {{ calcularPorcentajeRestante() }}%)</span>
+      </button>
+    }
+
+    <!-- TARJETA: SOPORTE DOCUMENTAL DEL VEHÍCULO -->
+    <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3">
+      <div>
+        <h4 class="text-[13px] font-extrabold text-slate-800 m-0">Soporte Documental del Vehículo</h4>
+        <p class="text-[11px] text-slate-500 mt-0.5">
+          Comprobante de matrícula, factura de compra o acta de traspaso (.pdf, .jpg, .png)
+        </p>
+      </div>
+
+      <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+        <!-- Input de archivo oculto -->
+        <input 
+          id="file_input_comprobante" 
+          type="file" 
+          accept=".pdf,.png,.jpg,.jpeg" 
+          (change)="fileSelected.emit($event)" 
+          class="hidden" />
+
+        <!-- Caja visual del archivo seleccionado -->
+        <div class="flex-1 h-[40px] px-3.5 bg-[#f8fafc] border border-slate-200 rounded-xl flex items-center justify-between text-[12.5px] text-slate-700 gap-2 overflow-hidden">
+          <span class="truncate">
+            {{ selectedFile ? selectedFile.name : (archivoSubidoNombre || 'Ningún archivo seleccionado') }}
+          </span>
+          <button 
+            type="button" 
+            (click)="$any($event.target).closest('div').previousElementSibling.click()"
+            class="px-2.5 py-1 bg-slate-200 hover:bg-slate-300 rounded text-[11px] font-bold text-slate-700 cursor-pointer border-none shrink-0 transition-colors">
+            Seleccionar archivo
+          </button>
+        </div>
+
+        <!-- Botón Anexar -->
+        <button 
+          type="button" 
+          (click)="uploadDocument.emit()"
+          [disabled]="!selectedFile || subiendoArchivo"
+          class="h-[40px] px-5 rounded-xl border border-emerald-600 bg-white hover:bg-emerald-50 text-emerald-700 font-bold text-[12.5px] flex items-center gap-1.5 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs shrink-0">
+          @if (subiendoArchivo) {
+            <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+            <span>Subiendo...</span>
+          } @else {
+            <i class="fa-solid fa-arrow-down-to-bracket text-xs"></i>
+            <span>Anexar</span>
+          }
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

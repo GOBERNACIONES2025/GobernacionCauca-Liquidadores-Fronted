@@ -1,0 +1,27 @@
+<div class="shrink-0 px-6 sm:px-8 py-5 bg-white flex items-center justify-center gap-4">
+  
+  <!-- Botón Cancelar -->
+  <button 
+    (click)="cancelar.emit()" 
+    type="button"
+    class="h-[42px] px-8 rounded-full bg-[#e2e5e9] hover:bg-[#d5d9de] text-slate-700 text-[13.5px] font-bold flex items-center gap-2.5 cursor-pointer border-none transition-all active:scale-95 shadow-2xs">
+    <span>Cancelar</span>
+    <i class="fa-solid fa-xmark text-xs text-slate-500"></i>
+  </button>
+
+  <!-- Botón Continuar / Guardar Registro -->
+  <button 
+    (click)="siguiente.emit()" 
+    type="button" 
+    [disabled]="loading"
+    class="h-[42px] px-9 rounded-full bg-[#2b6cb0] hover:bg-[#235891] text-white text-[13.5px] font-bold flex items-center gap-2.5 cursor-pointer border-none shadow-sm transition-all active:scale-95 disabled:opacity-50">
+    @if (loading) {
+      <i class="fa-solid fa-spinner fa-spin text-xs"></i>
+      <span>Guardando...</span>
+    } @else {
+      <span>{{ isUltimoPaso ? 'Guardar registro' : 'Continuar' }}</span>
+      <i class="fa-solid text-xs" [class.fa-arrow-right]="!isUltimoPaso" [class.fa-check]="isUltimoPaso"></i>
+    }
+  </button>
+
+</div>

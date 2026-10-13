@@ -1,0 +1,115 @@
+<section class="grid grid-cols-1 xl:grid-cols-12 gap-4 mb-5">
+  
+  <!-- TARJETA 1: PARÁMETROS FISCALES -->
+  <div class="xl:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
+    <!-- Header de Tarjeta -->
+    <h2 class="text-[12px] font-extrabold text-[#1b53ad] tracking-wide uppercase mb-3.5">
+      PARÁMETROS FISCALES
+    </h2>
+
+    <!-- Contenedor de 3 Columnas de Parámetros -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4 items-center">
+      
+      <!-- Vigencia Fiscal -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100/90 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+          <i class="fa-regular fa-calendar-days text-[16px]"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[13px] text-slate-800 leading-tight">
+            Vigencia Fiscal <span class="font-extrabold text-slate-900">{{ kpis.vigenciaFiscal || 2026 }}</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-0.5 truncate">
+            {{ kpis.vigenciaEstado === 'ACTIVA' ? 'Activa' : (kpis.vigenciaEstado || 'Activa') }} • {{ kpis.vigenciaFecha || '01/01/2026' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Valor UVT -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100/90 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+          <i class="fa-solid fa-dollar-sign text-[16px]"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[13px] text-slate-800 leading-tight">
+            Valor UVT <span class="font-extrabold text-slate-900">${{ (kpis.valorUvt || 49799) | number }}</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-0.5 truncate" [title]="kpis.uvtNorma || 'Ord. 004-2026 — DIAN'">
+            {{ kpis.uvtNorma || 'Ord. 004-2026 — DIAN' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sanción Mínima -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100/90 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+          <i class="fa-solid fa-triangle-exclamation text-[16px]"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[13px] text-slate-800 leading-tight">
+            Sanción Mínima <span class="font-extrabold text-slate-900">${{ (kpis.sancionMinima || 497990) | number }}</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-0.5 truncate" [title]="kpis.sancionDescripcion || 'Extemporánea (10 UVTs)'">
+            {{ kpis.sancionDescripcion || 'Extemporánea (10 UVTs)' }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TARJETA 2: PARQUE AUTOMOTOR (DISEÑO EXACTO REFERENCIA) -->
+  <div class="xl:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-4 sm:p-5 shadow-2xs flex flex-col justify-between">
+    <!-- Header de Tarjeta -->
+    <h2 class="text-[12px] font-extrabold text-[#1b53ad] tracking-wide uppercase mb-3">
+      PARQUE AUTOMOTOR
+    </h2>
+
+    <div class="flex flex-col gap-3.5">
+      <!-- Fila 1: Título con Icono de Carro -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-slate-100/90 border border-slate-200/80 flex items-center justify-center text-slate-700 shrink-0">
+          <i class="fa-solid fa-car-side text-[16px]"></i>
+        </div>
+        <div class="text-[17px] sm:text-[18px] font-bold text-slate-900 leading-none">
+          Vehículos registrados <span class="font-extrabold">{{ ((kpis.totalVehiculos ?? 0) > 0 ? kpis.totalVehiculos : totalVehiculos) }}</span>
+        </div>
+      </div>
+
+      <!-- Fila 2: Botones de Estado con Borde y Color Exacto -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <!-- Activos (Borde Negro/Gris Oscuro) -->
+        <button
+          type="button"
+          (click)="onFiltrar('Activo')"
+          [class]="'px-4 py-1 rounded-[8px] text-[13px] transition-all cursor-pointer ' + 
+            (filtroEstado === 'Activo' 
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Activos <span class="font-bold ml-1">{{ kpis.totalVehiculosActivos || countActivos }}</span>
+        </button>
+
+        <!-- Pendientes (Rojo Coral Lleno) -->
+        <button
+          type="button"
+          (click)="abrirPendientes.emit()"
+          class="px-4 py-1 rounded-[8px] text-[13px] bg-[#df4251] hover:bg-[#cf3644] text-white font-normal transition-all shadow-2xs cursor-pointer border border-[#df4251] active:scale-95">
+          Pendientes <span class="font-bold ml-1">{{ kpis.totalPendientesAprobacion || 0 }}</span>
+        </button>
+
+        <!-- Inactivos (Borde Negro/Gris Oscuro) -->
+        <button
+          type="button"
+          (click)="onFiltrar('Inactivo')"
+          [class]="'px-4 py-1 rounded-[8px] text-[13px] transition-all cursor-pointer ' + 
+            (filtroEstado === 'Inactivo' 
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Inactivos <span class="font-bold ml-1">{{ kpis.totalVehiculosInactivos || countInactivos }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</section>

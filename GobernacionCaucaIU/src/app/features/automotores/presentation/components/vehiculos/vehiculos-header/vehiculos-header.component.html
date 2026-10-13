@@ -1,0 +1,64 @@
+<header class="mb-5">
+  <!-- BREADCRUMB -->
+  <nav aria-label="Breadcrumb" class="mb-2.5">
+    <ol class="flex items-center gap-1.5 text-[12px] text-slate-500">
+      <li>
+        <span class="hover:text-slate-800 transition-colors">Portal Único de Trámites y Servicios</span>
+      </li>
+      <li class="text-slate-400">/</li>
+      <li class="text-slate-700 font-medium">Consulta Vehicular</li>
+    </ol>
+  </nav>
+
+  <!-- TITULO Y ACCIONES DE CABECERA -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <!-- Título Principal -->
+    <h1 class="text-[21px] sm:text-[23px] font-extrabold text-[#0d3b66] tracking-tight m-0 leading-tight">
+      Módulo Vehículos — Expediente Vehicular
+    </h1>
+
+    <!-- Barra de Controles Rápidos Superior -->
+    <div class="flex flex-wrap items-center gap-3">
+      <!-- Input de Búsqueda Rápida Estilo Pill -->
+      <div class="relative flex items-center">
+        <input
+          type="text"
+          [value]="searchTexto"
+          (input)="onSearchInput($event)"
+          (keydown.enter)="onSearchEnter()"
+          placeholder="Buscar en esta página..."
+          class="h-[38px] w-56 sm:w-64 pl-4 pr-11 rounded-full border border-slate-200 bg-white text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-[#1e3a7b] focus:ring-2 focus:ring-blue-100 transition-all shadow-2xs"
+        />
+        <button
+          type="button"
+          (click)="onSearchEnter()"
+          title="Buscar"
+          class="absolute right-1 w-7 h-7 rounded-full bg-[#184a8c] hover:bg-[#12396d] text-white flex items-center justify-center transition-transform active:scale-95 cursor-pointer border-none shadow-2xs">
+          <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
+        </button>
+      </div>
+
+      <!-- Botón Naranja: Pendientes (Estilo Exacto de la Referencia) -->
+      <button
+        type="button"
+        (click)="abrirPendientes.emit()"
+        class="inline-flex items-center justify-center gap-2.5 h-[38px] px-4.5 rounded-full bg-[#e06500] hover:bg-[#c95a00] text-white text-[13.5px] transition-all shadow-2xs cursor-pointer border-none active:scale-95">
+        <div class="w-5 h-5 rounded-full border-white flex items-center justify-center shrink-0">
+          <i class="fa-regular fa-clock text-[20px] text-white"></i>
+        </div>
+        <span class="font-bold">Pendientes {{ pendientesCount }}</span>
+      </button>
+
+      <!-- Botón Verde: Registrar vehículo (Estilo Exacto de la Referencia) -->
+      <button
+        type="button"
+        (click)="abrirRegistro.emit()"
+        class="inline-flex items-center justify-center gap-2.5 h-[38px] px-4.5 rounded-full bg-[#0e9f4d] hover:bg-[#0c8842] text-white text-[13.5px] transition-all shadow-2xs cursor-pointer border-none active:scale-95">
+        <div class="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0 shadow-2xs">
+          <i class="fa-solid fa-plus text-[#0e9f4d] text-[10px] font-black"></i>
+        </div>
+        <span class="font-bold">Registrar vehículo</span>
+      </button>
+    </div>
+  </div>
+</header>
