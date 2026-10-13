@@ -4,3 +4,6 @@ export * from './vehiculos-auditoria-modal/vehiculos-auditoria-modal';
 export * from './vehiculos-inactivar-modal/vehiculos-inactivar-modal';
 export * from './vehiculos-runt-modal/vehiculos-runt-modal';
 export * from './vehiculos-liquidacion-modal/vehiculos-liquidacion-modal';
+export * from './vehiculos-header/vehiculos-header.component';
+export * from './vehiculos-kpi-cards/vehiculos-kpi-cards.component';
+export * from './vehiculos-table/vehiculos-table.component';

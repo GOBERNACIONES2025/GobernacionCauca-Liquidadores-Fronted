@@ -6,7 +6,8 @@ import {
   signal,
   Output,
   EventEmitter,
-  effect
+  effect,
+  untracked
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -22,11 +23,29 @@ import {
   CatalogoCiudad
 } from '../../../domain/models/vehiculo.model';
 import { VehiculosFtpFacade } from '../../../application/facades/vehiculos/vehiculos-ftp.facade';
+import {
+  VehiculoWizardStepperComponent,
+  VehiculoWizardDatosComponent,
+  VehiculoWizardPropietarioComponent,
+  VehiculoWizardHistorialComponent,
+  VehiculoWizardObservacionesComponent,
+  VehiculoWizardFooterComponent
+} from './components';
 
 @Component({
   selector: 'app-vehiculo-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    VehiculoWizardStepperComponent,
+    VehiculoWizardDatosComponent,
+    VehiculoWizardPropietarioComponent,
+    VehiculoWizardHistorialComponent,
+    VehiculoWizardObservacionesComponent,
+    VehiculoWizardFooterComponent
+  ],
   templateUrl: './vehiculo-wizard.html'
 })
 export class VehiculoWizardComponent implements OnInit, OnDestroy {
@@ -67,14 +86,16 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       const sel = this.facade.selectedVehiculo();
 
       if (isOpen) {
-        if (isNuevo) {
-          this.initForm();
-        } else if (sel) {
-          this.initForm();
-          this.poblarParaEdicion(sel);
-        }
+        untracked(() => {
+          if (isNuevo) {
+            this.initForm();
+          } else if (sel) {
+            this.initForm();
+            this.poblarParaEdicion(sel);
+          }
+        });
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Sincroniza selects reactivamente cuando los catalogos se actualicen
     effect(() => {
@@ -86,7 +107,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           this.form.get('servicio')?.setValue(normalized, { emitEvent: false });
         }
       }
-    });
+    }, { allowSignalWrites: true });
 
     effect(() => {
       const combs = this.facade.combustibles();
@@ -97,7 +118,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           this.form.get('combustible')?.setValue(normalized, { emitEvent: false });
         }
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   // ─── Getters para FormArray de Propietarios ──────────────────────────────

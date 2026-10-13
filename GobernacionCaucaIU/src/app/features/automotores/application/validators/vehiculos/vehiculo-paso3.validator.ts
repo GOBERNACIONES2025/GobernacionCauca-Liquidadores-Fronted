@@ -41,7 +41,7 @@ export class VehiculoPaso3Validator {
       errors.push({
         campo: 'observaciones',
         mensaje: `Las observaciones no pueden superar ${this.MAX_OBSERVACIONES} caracteres.`,
-        paso: 3
+        paso: 4
       });
     }
 

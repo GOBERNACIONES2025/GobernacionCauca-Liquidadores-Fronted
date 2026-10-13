@@ -300,67 +300,82 @@
     }
 
     <!-- TABLA DE HISTORIAL DE NOVEDADES RADICADAS -->
-    <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden shrink-0">
-      <div class="px-4 sm:px-5 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-slate-500 text-xs"></i>
-          <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">
-            Historial de Novedades Radicadas del Parque Automotor
-          </h3>
+    <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col overflow-hidden min-h-0 shrink-0">
+      
+      <!-- Barra superior / Header de tabla -->
+      <div class="p-3.5 sm:p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-2.5 items-start sm:items-center justify-between bg-white">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 text-[#1e3a7b] flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+          </div>
+          <div>
+            <h3 class="text-[13px] font-bold text-slate-900 m-0 leading-tight">
+              Historial de Novedades Radicadas del Parque Automotor
+            </h3>
+            <p class="text-[11.5px] text-slate-400 m-0 mt-0.5">
+              Trámites de cambio de servicio, traspasos, traslados y rematrículas procesadas
+            </p>
+          </div>
         </div>
-        <span class="text-[11px] text-slate-500 font-bold">
+
+        <div class="text-[12.5px] font-medium text-slate-500 whitespace-nowrap self-center">
           {{ historialNovedades().length }} registros
-        </span>
+        </div>
       </div>
 
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-xs border-collapse">
+      <div class="overflow-x-auto overflow-y-auto flex-1">
+        <table class="w-full border-collapse text-[13px] min-w-[880px]">
           <thead>
-            <tr class="border-b border-slate-200 bg-slate-100 text-slate-700 font-bold">
-              <th class="py-2.5 px-4">Radicado</th>
-              <th class="py-2.5 px-4">Fecha</th>
-              <th class="py-2.5 px-4">Placa</th>
-              <th class="py-2.5 px-4">Tipo Novedad</th>
-              <th class="py-2.5 px-4">Detalle / Justificación</th>
-              <th class="py-2.5 px-4">Soporte Anexo</th>
-              <th class="py-2.5 px-4">Responsable</th>
-              <th class="py-2.5 px-4 text-center">Estado</th>
-              <th class="py-2.5 px-4 text-center">Acciones</th>
+            <tr class="bg-[#2c3239] text-white">
+              <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide rounded-tl-xl whitespace-nowrap">Radicado</th>
+              <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Fecha</th>
+              <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Placa</th>
+              <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Tipo Novedad</th>
+              <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide">Detalle / Justificación</th>
+              <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Soporte Anexo</th>
+              <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Responsable</th>
+              <th class="py-3 px-5 text-center text-[12px] font-bold tracking-wide whitespace-nowrap">Estado</th>
+              <th class="py-3 px-5 text-center text-[12px] font-bold tracking-wide rounded-tr-xl whitespace-nowrap">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100">
+          <tbody>
             @if (historialNovedades().length === 0) {
               <tr>
-                <td colspan="9" class="py-8 text-center text-slate-400">
-                  <i class="fa-solid fa-folder-open text-2xl mb-1.5 block"></i>
-                  No se registran novedades radicadas para el criterio consultado.
+                <td colspan="9" class="py-14 text-center text-slate-400">
+                  <div class="flex flex-col items-center justify-center gap-2">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
+                      <i class="fa-solid fa-clock-rotate-left text-xl"></i>
+                    </div>
+                    <span class="text-[14px] font-bold text-slate-700">No se registran novedades</span>
+                    <span class="text-[12px] text-slate-400">No hay trámites radicados para el criterio consultado.</span>
+                  </div>
                 </td>
               </tr>
             } @else {
               @for (item of historialNovedades(); track item.id) {
-                <tr class="hover:bg-slate-50/80 transition">
-                  <td class="py-2.5 px-4 font-mono font-bold text-blue-900">{{ item.id }}</td>
-                  <td class="py-2.5 px-4 text-slate-700 whitespace-nowrap font-medium">{{ item.fecha }}</td>
-                  <td class="py-2.5 px-4">
-                    <span class="font-mono font-bold px-2 py-0.5 bg-amber-100 text-slate-900 rounded text-[11px] border border-amber-300">
+                <tr class="border-b border-slate-100/90 hover:bg-slate-50/90 transition-colors">
+                  <td class="py-3 px-5 font-mono font-bold text-slate-800 text-[12.5px] align-middle whitespace-nowrap">{{ item.id }}</td>
+                  <td class="py-3 px-5 text-slate-600 whitespace-nowrap font-medium text-xs align-middle">{{ item.fecha }}</td>
+                  <td class="py-3 px-5 align-middle whitespace-nowrap">
+                    <span class="inline-block bg-[#ffcf00] text-slate-900 font-extrabold text-[12px] tracking-wide px-2.5 py-0.5 rounded-sm shadow-2xs border border-amber-400/60 font-mono">
                       {{ item.placa }}
                     </span>
                   </td>
-                  <td class="py-2.5 px-4 font-bold text-slate-800 whitespace-nowrap">{{ item.tipoNovedad }}</td>
-                  <td class="py-2.5 px-4 text-slate-700 font-medium max-w-xs truncate" [title]="item.detalle">{{ item.detalle }}</td>
-                  <td class="py-2.5 px-4 whitespace-nowrap">
+                  <td class="py-3 px-5 font-bold text-slate-800 whitespace-nowrap text-[12.5px] align-middle">{{ item.tipoNovedad }}</td>
+                  <td class="py-3 px-5 text-slate-600 font-medium max-w-xs truncate text-xs align-middle" [title]="item.detalle">{{ item.detalle }}</td>
+                  <td class="py-3 px-5 whitespace-nowrap align-middle">
                     @if (item.anexo) {
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
-                        <i class="fa-solid fa-paperclip text-xs"></i>
+                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        <i class="fa-solid fa-paperclip text-[10px]"></i>
                         <span class="truncate max-w-[130px]" [title]="item.anexo">{{ item.anexo }}</span>
                       </span>
                     } @else {
                       <span class="text-slate-400 italic text-[11px]">Sin anexo</span>
                     }
                   </td>
-                  <td class="py-2.5 px-4 text-slate-600 whitespace-nowrap">{{ item.responsable }}</td>
-                  <td class="py-2.5 px-4 text-center whitespace-nowrap">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold"
+                  <td class="py-3 px-5 text-slate-600 whitespace-nowrap text-xs align-middle">{{ item.responsable }}</td>
+                  <td class="py-3 px-5 text-center whitespace-nowrap align-middle">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold"
                       [class.bg-emerald-50]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
                       [class.text-emerald-700]="item.estado === 'APROBADO' || item.estado === 'APROBADA' || item.estado === 'PROCESADA'"
                       [class.border]="true"
@@ -375,16 +390,16 @@
                       {{ item.estado }}
                     </span>
                   </td>
-                  <td class="py-2.5 px-4 text-center whitespace-nowrap">
-                    <div class="inline-flex items-center gap-1.5">
+                  <td class="py-3 px-5 text-center whitespace-nowrap align-middle">
+                    <div class="inline-flex items-center justify-center gap-1.5">
                       <!-- Botón Ver Detalle -->
                       <button
                         type="button"
                         (click)="verDetalle(item)"
-                        class="p-1.5 text-slate-600 hover:text-blue-900 hover:bg-blue-50 rounded border border-slate-200 transition cursor-pointer"
+                        class="w-7 h-7 rounded border border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer shadow-2xs"
                         title="Ver detalle de radicación y cambios"
                       >
-                        <i class="fa-solid fa-eye text-xs"></i>
+                        <i class="fa-regular fa-eye text-[12px]"></i>
                       </button>
 
                       <!-- Botones de Aprobación/Rechazo: solo si está en trámite pendiente -->
@@ -394,7 +409,7 @@
                           type="button"
                           (click)="cambiarEstado(item.rawId, 'APROBADO')"
                           [disabled]="accionLoading() === item.rawId"
-                          class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 rounded shadow-2xs transition cursor-pointer"
+                          class="h-7 px-2.5 rounded-lg bg-[#5ca528] hover:bg-[#509122] text-white text-[11px] font-bold flex items-center gap-1 cursor-pointer border-none transition-all active:scale-95 shadow-2xs"
                           title="Aprobar novedad y aplicar cambios automáticamente"
                         >
                           @if (accionLoading() === item.rawId) {
@@ -410,7 +425,7 @@
                           type="button"
                           (click)="cambiarEstado(item.rawId, 'RECHAZADO')"
                           [disabled]="accionLoading() === item.rawId"
-                          class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold text-white bg-rose-600 hover:bg-rose-700 disabled:opacity-50 rounded shadow-2xs transition cursor-pointer"
+                          class="h-7 px-2.5 rounded-lg border border-rose-200 bg-[#fff1f2] hover:bg-rose-100 text-rose-700 text-[11px] font-semibold flex items-center gap-1 cursor-pointer transition-all active:scale-95 shadow-2xs"
                           title="Rechazar novedad por inconsistencias"
                         >
                           @if (accionLoading() === item.rawId) {
@@ -421,7 +436,7 @@
                           <span>Rechazar</span>
                         </button>
                       } @else {
-                        <span class="text-[10.5px] text-slate-400 italic px-1 select-none">Trámite finalizado</span>
+                        <span class="text-[11px] text-slate-400 italic px-1 select-none">Finalizado</span>
                       }
                     </div>
                   </td>

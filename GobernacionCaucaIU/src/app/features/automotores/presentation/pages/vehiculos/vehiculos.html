@@ -1,301 +1,48 @@
-<main class="flex-1 overflow-y-auto px-3.5 sm:px-6 py-4 sm:py-5 min-w-0 bg-slate-50 relative h-full">
+<main class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-5 min-w-0 bg-[#f4f6f9] relative h-full">
   <div class="flex flex-col lg:flex-row gap-5 h-full min-h-0">
     <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
       
-      <!-- BREADCRUMB & HEADER -->
-      <div class="mb-4 sm:mb-5">
-        <app-breadcrumb theme="light" [showHomeIcon]="true" class="mb-2" />
+      <!-- COMPONENTE: CABECERA Y BÚSQUEDA RÁPIDA -->
+      <app-vehiculos-header
+        [pendientesCount]="facade.kpis().totalPendientesAprobacion || 0"
+        [searchTexto]="facade.filtroTexto()"
+        (searchChange)="onFiltroTextoChange($event)"
+        (searchEnter)="onSearchVehiculos($event)"
+        (abrirPendientes)="facade.abrirModalPendientes()"
+        (abrirRegistro)="onAbrirRegistro()"
+      />
 
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h1 class="text-[16px] sm:text-[17px] font-bold text-slate-900 m-0 leading-snug">Módulo Vehículos — Expediente Vehicular</h1>
-            <p class="text-[11.5px] sm:text-[12px] text-slate-400 mt-0.5">vehicular.Vehiculos · vehicular.Personas · vehicular.PropiedadVehiculo</p>
-          </div>
-          
-          <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <!-- BOTÓN PENDIENTES DE APROBACIÓN CON BADGE -->
-            <button (click)="facade.abrirModalPendientes()" type="button" class="relative inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-all bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100 shadow-sm">
-              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-              Pendientes
-              @if ((facade.kpis().totalPendientesAprobacion || 0) > 0) {
-                <span class="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-bold leading-none text-white bg-amber-600 rounded-full shadow-sm">
-                  {{ facade.kpis().totalPendientesAprobacion }}
-                </span>
-              }
-            </button>
+      <!-- COMPONENTE: TARJETAS DE PARÁMETROS FISCALES Y PARQUE AUTOMOTOR -->
+      <app-vehiculos-kpi-cards
+        [kpis]="facade.kpis()"
+        [totalVehiculos]="facade.totalVehiculos()"
+        [filtroEstado]="facade.filtroEstado()"
+        [countActivos]="countActivos()"
+        [countInactivos]="countInactivos()"
+        (filtrarPorEstado)="onFiltrarPorEstado($event)"
+        (abrirPendientes)="facade.abrirModalPendientes()"
+      />
 
-            <button (click)="onAbrirRegistro()" type="button" class="inline-flex items-center justify-center gap-1.5 h-[34px] px-3.5 rounded-md text-[13px] font-semibold cursor-pointer transition-colors bg-[#70b238] hover:bg-[#5f972f] text-white border-none shadow-sm">
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-              Registrar Vehículo
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- COMPONENTE: TABLA PRINCIPAL DE EXPEDIENTES VEHICULARES Y FILTROS -->
+      <app-vehiculos-table
+        [vehiculos]="facade.filteredVehiculos()"
+        [loading]="facade.loading()"
+        [totalRegistros]="facade.totalVehiculos()"
+        [paginaActual]="facade.paginaActual()"
+        [totalPaginas]="facade.totalPaginas()"
+        [filtroTexto]="facade.filtroTexto()"
+        [filtroEstado]="facade.filtroEstado()"
+        [filtroTipo]="facade.filtroTipo()"
+        (searchChange)="onFiltroTextoChange($event)"
+        (searchEnter)="onSearchVehiculos($event)"
+        (estadoChange)="facade.setFiltroEstado($event)"
+        (tipoChange)="facade.setFiltroTipo($event)"
+        (refrescar)="facade.refrescarDashboard()"
+        (seleccionarVehiculo)="onVerDetalleVehiculo($event)"
+        (editarVehiculo)="onEditarVehiculo($event)"
+        (cambiarPagina)="facade.cambiarPagina($event)"
+      />
 
-      <div class="bg-white border border-slate-200 rounded-lg shadow-sm flex-1 flex flex-col overflow-hidden min-h-0">
-        
-        <!-- Filter Header -->
-        <div class="p-3.5 border-b border-slate-200 flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center flex-wrap shrink-0">
-          <app-table-search
-            placeholder="Buscar placa, propietario, CC..."
-            [value]="facade.filtroTexto()"
-            [loading]="facade.loading()"
-            (search)="onSearchVehiculos($event)"
-            (clear)="onClearSearchVehiculos()"
-          ></app-table-search>
-
-          <div class="flex items-center gap-2 flex-wrap flex-1 sm:flex-none">
-            <select 
-              [ngModel]="facade.filtroEstado()" 
-              (ngModelChange)="facade.setFiltroEstado($event)"
-              class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b] flex-1 sm:flex-none">
-              <option value="Todos">Todos los estados</option>
-              <option value="Activo">Activo</option>
-              <option value="Inactivo">Inactivo</option>
-              <option value="Cancelada">Cancelada</option>
-              <option value="Trasladada">Trasladada</option>
-              <option value="Radicada">Radicada</option>
-            </select>
-
-            <select 
-              [ngModel]="facade.filtroTipo()" 
-              (ngModelChange)="facade.setFiltroTipo($event)"
-              class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b] flex-1 sm:flex-none">
-              <option value="Todos">Todos los tipos</option>
-              <option value="AUTOMOVILES">Automóviles</option>
-              <option value="CAMIONETAS">Camionetas</option>
-              <option value="CAMPEROS">Camperos</option>
-              <option value="MOTOCICLETAS">Motocicletas</option>
-              <option value="MOTOCARROS">Motocarros</option>
-              <option value="BUSES Y BUSETAS">Buses y Busetas</option>
-              <option value="CAMIONES">Camiones</option>
-              <option value="TRACTOCAMIONES">Tractocamiones</option>
-            </select>
-
-            <select 
-              [ngModel]="facade.filtroOrden()" 
-              (ngModelChange)="facade.setFiltroOrden($event)"
-              class="h-8 rounded-md border border-slate-200 px-2.5 text-[13px] text-slate-700 bg-white outline-none cursor-pointer focus:border-[#1e3a7b] flex-1 sm:flex-none"
-              title="Ordenar listado de vehículos">
-              <option value="recientes">Más recientes</option>
-              <option value="antiguos">Más antiguos</option>
-              <option value="alfa_asc">Alfabéticamente (A - Z)</option>
-              <option value="alfa_desc">Alfabéticamente (Z - A)</option>
-            </select>
-
-            <span class="tooltip-wrap inline-flex shrink-0">
-              <button 
-                type="button" 
-                (click)="facade.refrescarDashboard()"
-                [disabled]="facade.loading()"
-                class="inline-flex items-center justify-center h-[30px] px-2.5 rounded-md text-[12px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50">
-                @if (facade.loading()) {
-                  <svg class="animate-spin h-3.5 w-3.5 text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                } @else {
-                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                }
-              </button>
-              <span class="tooltip-box">Actualizar datos</span>
-            </span>
-          </div>
-
-          <div class="hidden md:block md:flex-1"></div>
-
-          <div class="flex items-center gap-2.5 ml-auto sm:ml-0 shrink-0">
-            <div class="text-[12px] text-slate-400 font-medium whitespace-nowrap">{{ facade.totalVehiculos() }} registros</div>
-          </div>
-        </div>
-
-        <!-- Table Container -->
-        <div class="overflow-x-auto overflow-y-auto flex-1">
-          <table class="w-full border-collapse text-[13px] min-w-[780px]">
-            <thead class="sticky top-0 z-10">
-              <tr>
-                <th class="bg-[#1e3a7b] py-2.5 px-4 text-left text-[10.5px] font-semibold text-white/90 tracking-wider uppercase whitespace-nowrap">Placa</th>
-                <th class="bg-[#1e3a7b] py-2.5 px-4 text-left text-[10.5px] font-semibold text-white/90 tracking-wider uppercase whitespace-nowrap">Ficha Técnica</th>
-                <th class="bg-[#1e3a7b] py-2.5 px-4 text-left text-[10.5px] font-semibold text-white/90 tracking-wider uppercase whitespace-nowrap">Propietario</th>
-                <th class="bg-[#1e3a7b] py-2.5 px-4 text-left text-[10.5px] font-semibold text-white/90 tracking-wider uppercase whitespace-nowrap">Exenciones</th>
-                <th class="bg-[#1e3a7b] py-2.5 px-4 text-left text-[10.5px] font-semibold text-white/90 tracking-wider uppercase whitespace-nowrap">Estado</th>
-                <th class="bg-[#1e3a7b] py-2.5 px-4 text-left text-[10.5px] font-semibold text-white/90 tracking-wider uppercase whitespace-nowrap">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              @if (facade.loading()) {
-                <tr>
-                  <td colspan="6" class="py-16 text-center">
-                    <div class="flex flex-col items-center justify-center gap-3">
-                      <div class="relative w-12 h-12 flex items-center justify-center">
-                        <div class="absolute inset-0 rounded-full border-[3px] border-[#1e3a7b1a] border-t-[#1e3a7b] animate-spin"></div>
-                        <svg width="20" height="20" class="text-[#1e3a7b] animate-pulse" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24">
-                          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.2 2 11.6 2 12v4c0 .6.4 1 1 1h2"></path>
-                          <circle cx="7" cy="17" r="2"></circle>
-                          <path d="M9 17h6"></path>
-                          <circle cx="17" cy="17" r="2"></circle>
-                        </svg>
-                      </div>
-                      <div>
-                        <p class="text-[14px] font-bold text-slate-800 m-0">Cargando parque automotor...</p>
-                        <p class="text-[12px] text-slate-400 mt-0.5 m-0">Obteniendo vehículos registrados de la base de datos</p>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              } @else if (facade.filteredVehiculos().length === 0) {
-                <tr>
-                  <td colspan="6" class="py-12 text-center text-slate-400">
-                    <div class="flex flex-col items-center justify-center gap-2">
-                      <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-1">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                        </svg>
-                      </div>
-                      <span class="text-[13.5px] font-bold text-slate-700">No se encontraron vehículos</span>
-                      <span class="text-[12px] text-slate-400">Intenta cambiar los filtros de búsqueda o registra un nuevo vehículo.</span>
-                    </div>
-                  </td>
-                </tr>
-              } @else {
-                @for (v of facade.filteredVehiculos(); track v.id) {
-                  <tr 
-                    (click)="facade.seleccionarVehiculo(v)"
-                    [class]="'border-b border-slate-100 cursor-pointer transition-colors ' + (v.seleccionado ? 'bg-blue-50/70 hover:bg-blue-50' : 'bg-white hover:bg-slate-50/80')">
-                    
-                    <!-- Placa -->
-                    <td class="py-3 px-4 align-middle whitespace-nowrap">
-                      <span class="co-plate">{{ v.placa }}</span>
-                      @if (v.seleccionado) {
-                        <div class="text-[9.5px] text-[#70b238] font-bold mt-1">● Seleccionado</div>
-                      }
-                    </td>
-
-                    <!-- Ficha Técnica -->
-                    <td class="py-3 px-4 align-middle">
-                      <div class="font-bold text-slate-900">{{ v.tituloFichaTecnica || (v.marca + ' ' + v.linea) }}</div>
-                      <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.subtituloFichaTecnica || (v.modelo + ' · ' + (v.cilindraje | number) + ' cc · ' + v.tipoCombustible + ' · ' + v.clase) }}</div>
-                    </td>
-
-                    <!-- Propietario -->
-                    <td class="py-3 px-4 align-middle">
-                      @if (v.propietarios && v.propietarios.length > 1) {
-                        <div>
-                          <div class="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                            <span>{{ v.propietarios[0].nombre }}</span>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
-                              {{ v.propietarios[0].porcentajePropiedad }}% Principal
-                            </span>
-                          </div>
-                          <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                            <span>{{ v.propietarios[0].tipoDocumento }} {{ v.propietarios[0].numeroDocumento }}</span>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                              +{{ v.propietarios.length - 1 }} copropietario{{ v.propietarios.length > 2 ? 's' : '' }} ({{ 100 - v.propietarios[0].porcentajePropiedad }}%)
-                            </span>
-                          </div>
-                        </div>
-                      } @else {
-                        <div class="font-bold text-slate-900">{{ v.propietarioNombre || v.propietario.nombre }}</div>
-                        <div class="text-[11.5px] text-slate-500 mt-0.5">{{ v.propietarioDocumento || (v.propietario.tipoDocumento + ' ' + v.propietario.numeroDocumento) }}</div>
-                      }
-                    </td>
-
-                    <!-- Exenciones -->
-                    <td class="py-3 px-4 align-middle whitespace-nowrap">
-                      @if (v.exencion) {
-                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838]">
-                          {{ v.exencion }}
-                        </span>
-                      } @else {
-                        <span class="text-[12px] text-slate-400 italic">Sin novedades</span>
-                      }
-                    </td>
-
-                    <!-- Estado -->
-                    <td class="py-3 px-4 align-middle whitespace-nowrap">
-                      @if (v.estadoMatricula === 'Matrícula Activa' || v.estadoMatricula === 'Activo') {
-                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-[#70b2381c] text-[#3d7518] border border-[#70b23838]">
-                          <span class="pulse-dot w-1.5 h-1.5 rounded-full bg-[#70b238] shrink-0"></span>
-                          Matrícula Activa
-                        </span>
-                      } @else {
-                        <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium bg-red-50 text-red-700 border border-red-200">
-                          Inactivo
-                        </span>
-                      }
-                    </td>
-
-                    <!-- Acciones -->
-                    <td class="py-3 px-4 align-middle whitespace-nowrap" (click)="$event.stopPropagation()">
-                      <div class="flex gap-1.5 items-center">
-                        <span class="tooltip-wrap inline-flex">
-                          <button (click)="facade.seleccionarVehiculo(v)" type="button" class="inline-flex items-center justify-center h-[26px] px-2 rounded-md text-[11px] font-semibold cursor-pointer bg-blue-50 text-[#1e3a7b] border border-[#1e3a7b] hover:bg-blue-100 transition-colors">
-                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                          </button>
-                          <span class="tooltip-box">Ver Expediente Tributario</span>
-                        </span>
-
-                        <span class="tooltip-wrap inline-flex">
-                          <button (click)="onEditarVehiculo(v)" type="button" class="inline-flex items-center justify-center h-[26px] px-2 rounded-md text-[11px] font-semibold cursor-pointer bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 transition-colors">
-                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                          </button>
-                          <span class="tooltip-box">Editar Expediente</span>
-                        </span>
-
-                        <div class="relative inline-block text-left">
-                          <button (click)="toggleMenu(v.id, $event)" type="button" class="h-[26px] w-[26px] rounded-md border border-slate-200 bg-white cursor-pointer flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors">
-                            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg>
-                          </button>
-
-                          @if (activeMenuVehiculoId() === v.id) {
-                            <div class="origin-top-right absolute right-0 mt-1 w-44 rounded-lg shadow-lg bg-white ring-1 ring-black/5 border border-slate-200 z-50 py-1 text-left fade-in">
-                              <button (click)="facade.abrirInactivar(v); cerrarMenu()" type="button" class="w-full text-left px-3 py-2 text-[12.5px] font-medium text-red-600 hover:bg-red-50 flex items-center gap-2">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
-                                Inactivar Vehículo
-                              </button>
-                            </div>
-                          }
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                }
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Table Footer / Pagination -->
-        <div class="p-2.5 px-4.5 border-t border-slate-200 flex flex-col sm:flex-row gap-2 justify-between items-center shrink-0 bg-white">
-          <span class="text-[12px] text-slate-500 font-medium">
-            @if (facade.totalPaginas() > 1) {
-              Página {{ facade.paginaActual() }} de {{ facade.totalPaginas() }} · {{ facade.totalVehiculos() }} registros
-            } @else {
-              Total: {{ facade.totalVehiculos() }} {{ facade.totalVehiculos() === 1 ? 'registro' : 'registros' }}
-            }
-          </span>
-          <div class="flex gap-1 items-center">
-            <button 
-              type="button"
-              (click)="facade.cambiarPagina(facade.paginaActual() - 1)"
-              [disabled]="facade.paginaActual() <= 1 || facade.loading() || facade.totalVehiculos() === 0"
-              class="h-7 px-2 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-50 flex items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
-            </button>
-            <span class="h-7 px-3 rounded-md bg-[#1e3a7b] text-white text-[12px] font-bold flex items-center">
-              {{ facade.paginaActual() }}
-            </span>
-            <button 
-              type="button"
-              (click)="facade.cambiarPagina(facade.paginaActual() + 1)"
-              [disabled]="facade.paginaActual() >= facade.totalPaginas() || facade.loading() || facade.totalVehiculos() === 0"
-              class="h-7 px-2 rounded-md border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-50 flex items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            </button>
-          </div>
-        </div>
-
-      </div>
     </div>
 
     <!-- PANEL LATERAL DE DETALLE / EXPEDIENTE -->
