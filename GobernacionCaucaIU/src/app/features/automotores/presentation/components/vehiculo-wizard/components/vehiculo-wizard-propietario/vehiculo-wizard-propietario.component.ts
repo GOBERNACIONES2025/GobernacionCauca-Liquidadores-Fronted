@@ -32,6 +32,12 @@ export class VehiculoWizardPropietarioComponent {
   @Output() fileSelected = new EventEmitter<Event>();
   @Output() uploadDocument = new EventEmitter<void>();
 
+  onSetPrincipal(index: number, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.setResponsablePrincipal.emit(index);
+  }
+
   get propietariosArray(): FormArray {
     return this.form.get('propietarios') as FormArray;
   }

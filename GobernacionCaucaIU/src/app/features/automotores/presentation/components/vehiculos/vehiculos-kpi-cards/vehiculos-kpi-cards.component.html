@@ -72,40 +72,73 @@
           <i class="fa-solid fa-car-side text-[16px]"></i>
         </div>
         <div class="text-[17px] sm:text-[18px] font-bold text-slate-900 leading-none">
-          Vehículos registrados <span class="font-extrabold">{{ ((kpis.totalVehiculos ?? 0) > 0 ? kpis.totalVehiculos : totalVehiculos) }}</span>
+          Vehículos registrados <span class="font-extrabold">{{ totalVehiculosRegistrados }}</span>
         </div>
       </div>
 
       <!-- Fila 2: Botones de Estado con Borde y Color Exacto -->
-      <div class="flex items-center gap-2 flex-wrap">
-        <!-- Activos (Borde Negro/Gris Oscuro) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        <!-- Activa (Id: 1 / ACTIVA) -->
         <button
           type="button"
-          (click)="onFiltrar('Activo')"
-          [class]="'px-4 py-1 rounded-[8px] text-[13px] transition-all cursor-pointer ' + 
-            (filtroEstado === 'Activo' 
+          (click)="onFiltrar('ACTIVA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('ACTIVA') || isEstadoActivo('Activo')
               ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
               : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
-          Activos <span class="font-bold ml-1">{{ kpis.totalVehiculosActivos || countActivos }}</span>
+          Activa <span class="font-bold ml-1">{{ getCount('ACTIVA') || kpis.totalVehiculosActivos || countActivos }}</span>
         </button>
 
-        <!-- Pendientes (Rojo Coral Lleno) -->
+        <!-- Pendientes (Abre Modal de Pendientes de Aprobación - Estilo normal blanco) -->
         <button
           type="button"
           (click)="abrirPendientes.emit()"
-          class="px-4 py-1 rounded-[8px] text-[13px] bg-[#df4251] hover:bg-[#cf3644] text-white font-normal transition-all shadow-2xs cursor-pointer border border-[#df4251] active:scale-95">
+          class="px-3.5 py-1 rounded-[8px] text-[12.5px] bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal transition-all shadow-2xs cursor-pointer active:scale-95">
           Pendientes <span class="font-bold ml-1">{{ kpis.totalPendientesAprobacion || 0 }}</span>
         </button>
 
-        <!-- Inactivos (Borde Negro/Gris Oscuro) -->
+        <!-- Trasladada (Id: 3 / TRASLADADA) -->
         <button
           type="button"
-          (click)="onFiltrar('Inactivo')"
-          [class]="'px-4 py-1 rounded-[8px] text-[13px] transition-all cursor-pointer ' + 
-            (filtroEstado === 'Inactivo' 
+          (click)="onFiltrar('TRASLADADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('TRASLADADA') 
               ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
               : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
-          Inactivos <span class="font-bold ml-1">{{ kpis.totalVehiculosInactivos || countInactivos }}</span>
+          Trasladada <span class="font-bold ml-1">{{ getCount('TRASLADADA') }}</span>
+        </button>
+
+        <!-- Hurtada (Id: 4 / HURTADA) -->
+        <button
+          type="button"
+          (click)="onFiltrar('HURTADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('HURTADA') 
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Hurtada <span class="font-bold ml-1">{{ getCount('HURTADA') }}</span>
+        </button>
+
+        <!-- Chatarrizada (Id: 5 / CHATARRIZADA) -->
+        <button
+          type="button"
+          (click)="onFiltrar('CHATARRIZADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('CHATARRIZADA') 
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Chatarrizada <span class="font-bold ml-1">{{ getCount('CHATARRIZADA') }}</span>
+        </button>
+
+        <!-- Cancelada (Id: 2 / CANCELADA) - Botón final en rojo coral -->
+        <button
+          type="button"
+          (click)="onFiltrar('CANCELADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('CANCELADA') 
+              ? 'bg-[#b82836] text-white font-bold shadow-2xs border border-[#b82836]' 
+              : 'bg-[#df4251] hover:bg-[#cf3644] text-white font-normal shadow-2xs border border-[#df4251] active:scale-95')">
+          Cancelada <span class="font-bold ml-1">{{ getCount('CANCELADA') }}</span>
         </button>
       </div>
 

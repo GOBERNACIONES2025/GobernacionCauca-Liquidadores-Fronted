@@ -68,8 +68,8 @@ export class VehiculoCompletoValidator {
     switch (paso) {
       case 1: return this.paso1.validar(fg);
       case 2: return this.paso2.validar(fg);
-      case 3: return buildResult([]); // Historial no contiene campos con validación requerida
-      case 4: return this.paso3.validar(fg);
+      case 3: return this.paso3.validar(fg); // Observaciones
+      case 4: return buildResult([]); // Historial es el último paso informativo
       default: return buildResult([]);
     }
   }

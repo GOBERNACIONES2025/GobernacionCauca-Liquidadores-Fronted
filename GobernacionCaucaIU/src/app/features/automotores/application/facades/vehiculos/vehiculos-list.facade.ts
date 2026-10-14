@@ -79,11 +79,17 @@ export class VehiculosListFacade {
         (v.tituloFichaTecnica && v.tituloFichaTecnica.toLowerCase().includes(texto));
 
       const vEstadoNorm = normalize(v.estadoMatricula);
+      const normFiltro = normalize(estado);
       const isActivo = v.estadoMatriculaId === 1 || v.estadoMatriculaId === 0 || (vEstadoNorm.includes('activ') && !vEstadoNorm.includes('inactiv'));
+      
       const matchEstado = estado === 'Todos' || 
-        (estado === 'Activo' && isActivo) ||
-        (estado === 'Inactivo' && !isActivo) ||
-        (vEstadoNorm === normalize(estado));
+        ((normFiltro === 'activo' || normFiltro === 'activa') && isActivo) ||
+        ((normFiltro === 'inactivo' || normFiltro === 'inactiva') && !isActivo) ||
+        (normFiltro === 'cancelada' && (v.estadoMatriculaId === 2 || vEstadoNorm.includes('cancelad'))) ||
+        (normFiltro === 'trasladada' && (v.estadoMatriculaId === 3 || vEstadoNorm.includes('trasladad'))) ||
+        (normFiltro === 'hurtada' && (v.estadoMatriculaId === 4 || vEstadoNorm.includes('hurtad'))) ||
+        (normFiltro === 'chatarrizada' && (v.estadoMatriculaId === 5 || vEstadoNorm.includes('chatarrizad'))) ||
+        (vEstadoNorm === normFiltro || vEstadoNorm.includes(normFiltro));
 
       const vClaseNorm = normalize(v.clase);
       const vTipoNorm = normalize(v.tipoVehiculo);
@@ -132,11 +138,28 @@ export class VehiculosListFacade {
 
     const size = pageSize ?? this.pageSize();
 
+    const estadoMapId: Record<string, number> = {
+      ACTIVA: 1,
+      ACTIVO: 1,
+      CANCELADA: 2,
+      CANCELADO: 2,
+      TRASLADADA: 3,
+      TRASLADADO: 3,
+      HURTADA: 4,
+      HURTADO: 4,
+      CHATARRIZADA: 5,
+      CHATARRIZADO: 5
+    };
+
+    const estadoNorm = (this.filtroEstado() || '').toUpperCase();
+    const estadoId = estadoMapId[estadoNorm];
+
     const filtros = {
       page,
       pageSize: size,
       buscar: this.filtroTexto().trim() || undefined,
-      estado: this.filtroEstado(),
+      estado: this.filtroEstado() !== 'Todos' ? this.filtroEstado() : undefined,
+      estadoMatriculaId: estadoId,
       tipoVehiculo: this.filtroTipo()
     };
 

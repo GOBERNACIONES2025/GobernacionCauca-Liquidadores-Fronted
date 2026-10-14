@@ -365,8 +365,10 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
   setResponsablePrincipal(index: number): void {
     this.propietariosArray.controls.forEach((control, i) => {
-      control.get('esResponsablePrincipal')?.setValue(i === index, { emitEvent: false });
+      control.get('esResponsablePrincipal')?.setValue(i === index);
+      control.get('esResponsablePrincipal')?.markAsDirty();
     });
+    this.form.updateValueAndValidity();
   }
 
   calcularPorcentajeTotal(): number {

@@ -7,13 +7,13 @@
   </div>
 
   <div class="flex flex-col gap-1.5 pt-1">
-    <label class="text-[12px] font-semibold text-slate-700">Observaciones del registro</label>
+    <label class="text-[12px] font-normal text-slate-700">Observaciones del registro</label>
     <textarea 
       formControlName="observaciones" 
       rows="6" 
       placeholder="Ingrese observaciones relevantes del expediente..."
       [class.border-red-400]="hasError('observaciones')"
-      class="w-full min-h-[140px] bg-[#f1f3f5] rounded-2xl border-none p-4 text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-blue-400/40 resize-none transition-all"></textarea>
+      class="w-full min-h-[140px] bg-[#f0f2f5] border border-slate-200 rounded-2xl p-4 text-[13px] text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-blue-400/40 resize-none transition-all"></textarea>
     <div class="flex justify-between text-[11px] text-slate-400 px-1">
       <span>Campo opcional</span>
       <span>{{ (form.get('observaciones')?.value?.length || 0) }} / 1000</span>

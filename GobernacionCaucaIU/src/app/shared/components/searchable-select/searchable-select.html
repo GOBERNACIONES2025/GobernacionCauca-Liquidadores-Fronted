@@ -6,13 +6,14 @@
     [attr.aria-expanded]="isOpen()"
     (keydown)="onTriggerKeyDown($event)"
     (click)="toggleDropdown()"
-    class="flex items-center justify-between w-full h-10 border rounded-lg px-3 py-2 bg-white cursor-pointer transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73]"
-    [class.border-slate-300]="!isInvalid"
+    class="flex items-center justify-between w-full h-10 border rounded-lg px-3 py-2 cursor-pointer transition-all shadow-xs focus:outline-none focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73]"
+    [class.border-slate-300]="!isInvalid && !customBg"
     [class.border-red-500]="isInvalid"
     [class.bg-slate-100]="disabled"
     [class.cursor-not-allowed]="disabled"
+    [ngClass]="customBg ? customBg : (disabled ? 'bg-slate-100' : 'bg-white')"
   >
-    <div class="flex-1 truncate select-none text-xs font-semibold text-slate-800" [class.text-slate-400]="!displayValue">
+    <div class="flex-1 truncate select-none text-xs font-normal text-slate-800" [class.text-slate-400]="!displayValue">
       {{ displayValue || placeholder }}
     </div>
     

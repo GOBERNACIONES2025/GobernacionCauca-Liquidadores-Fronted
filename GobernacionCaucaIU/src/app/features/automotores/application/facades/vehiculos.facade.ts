@@ -63,6 +63,7 @@ export class VehiculosFacade {
   // DELEGACIÓN DE SIGNALS (KPIs)
   // --------------------------------------------------------------------------
   readonly kpis = this.kpisFacade.kpis;
+  readonly countsPorEstado = this.kpisFacade.countsPorEstado;
 
   // --------------------------------------------------------------------------
   // DELEGACIÓN DE SIGNALS (Catálogos)

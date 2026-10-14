@@ -5,7 +5,7 @@
   <div class="absolute inset-0" (click)="facade.cerrarRegistro()"></div>
 
   <!-- TARJETA MODAL CENTRADA -->
-  <div class="relative z-10 w-full max-w-[620px] max-h-[92vh] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-900 border border-slate-200/80 animate-in fade-in zoom-in-95 duration-150">
+  <div class="relative z-10 w-full max-w-[620px] max-h-[92vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden text-slate-900 border border-slate-200/80 animate-in fade-in zoom-in-95 duration-150">
     
     <!-- BOTÓN CERRAR (ESQUINA SUPERIOR DERECHA) -->
     <button 
@@ -29,8 +29,8 @@
 
     <!-- CABECERA MODAL: TÍTULO EXPEDIENTE -->
     <div class="pt-6 pb-2 px-6 text-center shrink-0">
-      <h2 class="text-[19px] sm:text-[21px] font-extrabold text-[#1b53ad] tracking-tight m-0">
-        {{ facade.isNuevoRegistro() ? 'Expediente ' + (form.get('placa')?.value || 'Nuevo') : ('Expediente ' + (facade.selectedVehiculo()?.placa || '')) }}
+      <h2 class="text-[22px] sm:text-[24px] font-bold text-[#1b53ad] tracking-tight m-0">
+        {{ facade.isNuevoRegistro() ? 'Expediente ' + (form.get('placa')?.value?.toUpperCase() || 'Nuevo') : ('Expediente ' + (facade.selectedVehiculo()?.placa?.toUpperCase() || '')) }}
       </h2>
     </div>
 
@@ -86,18 +86,19 @@
             />
           }
 
-          <!-- PASO 3: HISTORIAL -->
-          @if (facade.activeTab() === 'Historial') {
-            <app-vehiculo-wizard-historial
-              [fechaMatricula]="form.get('fechaMatricula')?.value || ''"
-            />
-          }
-
-          <!-- PASO FINAL: OBSERVACIONES -->
+          <!-- PASO 3: OBSERVACIONES -->
           @if (facade.activeTab() === 'Observaciones') {
             <app-vehiculo-wizard-observaciones
               [form]="form"
               [erroresPaso]="erroresPaso()"
+            />
+          }
+
+          <!-- PASO 4: HISTORIAL (ÚLTIMO) -->
+          @if (facade.activeTab() === 'Historial') {
+            <app-vehiculo-wizard-historial
+              [fechaMatricula]="form.get('fechaMatricula')?.value || ''"
+              [placa]="form.get('placa')?.value || ''"
             />
           }
 

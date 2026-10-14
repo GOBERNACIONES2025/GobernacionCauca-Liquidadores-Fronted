@@ -19,6 +19,7 @@
         [filtroEstado]="facade.filtroEstado()"
         [countActivos]="countActivos()"
         [countInactivos]="countInactivos()"
+        [countsPorEstado]="facade.countsPorEstado()"
         (filtrarPorEstado)="onFiltrarPorEstado($event)"
         (abrirPendientes)="facade.abrirModalPendientes()"
       />

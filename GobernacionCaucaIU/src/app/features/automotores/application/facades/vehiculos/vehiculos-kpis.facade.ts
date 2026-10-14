@@ -1,6 +1,6 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, forkJoin } from 'rxjs';
 import { VehiculosApiService } from '../../../infrastructure/api/vehiculos-api.service';
 import { VehiculoKpis } from '../../../domain/models/vehiculo.model';
 
@@ -25,6 +25,14 @@ export class VehiculosKpisFacade {
     totalVehiculosActivos: 0,
     totalVehiculosInactivos: 0,
     totalPendientesAprobacion: 0
+  });
+
+  readonly countsPorEstado = signal<Record<string, number>>({
+    ACTIVA: 0,
+    CANCELADA: 0,
+    TRASLADADA: 0,
+    HURTADA: 0,
+    CHATARRIZADA: 0
   });
 
   cargarKpis(): void {
@@ -53,6 +61,39 @@ export class VehiculosKpisFacade {
           totalPendientesAprobacion: d.totalPendientesAprobacion ?? 0
         });
       }
+      this.cargarCountsPorEstado();
+    });
+  }
+
+  cargarCountsPorEstado(): void {
+    forkJoin({
+      ACTIVA: this.vehiculosApi.getVehiculos({ estado: 'ACTIVA', pageSize: 1 }).pipe(catchError(() => of(null))),
+      CANCELADA: this.vehiculosApi.getVehiculos({ estado: 'CANCELADA', pageSize: 1 }).pipe(catchError(() => of(null))),
+      TRASLADADA: this.vehiculosApi.getVehiculos({ estado: 'TRASLADADA', pageSize: 1 }).pipe(catchError(() => of(null))),
+      HURTADA: this.vehiculosApi.getVehiculos({ estado: 'HURTADA', pageSize: 1 }).pipe(catchError(() => of(null))),
+      CHATARRIZADA: this.vehiculosApi.getVehiculos({ estado: 'CHATARRIZADA', pageSize: 1 }).pipe(catchError(() => of(null)))
+    }).subscribe(results => {
+      const activa = results.ACTIVA?.data?.totalCount ?? this.kpis().totalVehiculosActivos ?? 0;
+      const cancelada = results.CANCELADA?.data?.totalCount ?? 0;
+      const trasladada = results.TRASLADADA?.data?.totalCount ?? 0;
+      const hurtada = results.HURTADA?.data?.totalCount ?? 0;
+      const chatarrizada = results.CHATARRIZADA?.data?.totalCount ?? 0;
+      const totalReal = activa + cancelada + trasladada + hurtada + chatarrizada;
+
+      this.countsPorEstado.set({
+        ACTIVA: activa,
+        CANCELADA: cancelada,
+        TRASLADADA: trasladada,
+        HURTADA: hurtada,
+        CHATARRIZADA: chatarrizada
+      });
+
+      this.kpis.update(k => ({
+        ...k,
+        totalVehiculos: totalReal > 0 ? totalReal : (k.totalVehiculos || 0),
+        totalVehiculosActivos: activa,
+        totalVehiculosInactivos: cancelada + trasladada + hurtada + chatarrizada
+      }));
     });
   }
 

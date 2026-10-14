@@ -27,8 +27,8 @@ export class VehiculosOperacionesFacade {
   readonly tabs = computed(() => [
     'Datos del Vehículo',
     'Propietarios',
-    'Historial',
-    'Observaciones'
+    'Observaciones',
+    'Historial'
   ]);
 
   // Modal de Consulta RUNT

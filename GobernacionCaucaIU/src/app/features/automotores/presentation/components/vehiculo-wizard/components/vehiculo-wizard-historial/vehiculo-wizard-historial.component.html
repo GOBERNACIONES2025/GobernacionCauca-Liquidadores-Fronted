@@ -1,31 +1,124 @@
-<div class="space-y-3.5">
+<div class="space-y-4 py-1">
+
+  <!-- CABECERA DE SECCIÓN -->
   <div>
-    <h3 class="text-[18px] font-extrabold text-[#1b53ad] tracking-tight m-0">Historial y Trazabilidad</h3>
-    <p class="text-[12px] text-slate-500 mt-1 leading-relaxed">
-      Registro de eventos, modificaciones y actuaciones oficiales sobre este expediente vehicular.
+    <h3 class="text-[17px] sm:text-[18px] font-bold text-[#1b53ad] tracking-normal m-0 leading-tight">
+      Historial de trámites y novedades
+    </h3>
+    <p class="text-[11.5px] sm:text-[12px] text-slate-500 mt-1 leading-normal m-0">
+      Registro cronológico de las modificaciones, pagos y eventos asociados a este expediente vehicular.
     </p>
   </div>
 
-  <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
-    <div class="flex items-start gap-3 border-b border-slate-200 pb-3">
-      <div class="w-8 h-8 rounded-full bg-blue-100 text-[#1b53ad] flex items-center justify-center shrink-0">
-        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
+  <!-- BARRA DE FILTROS Y ACCIÓN DESCARGAR -->
+  <div class="flex items-center gap-2 flex-wrap justify-between pt-1 pb-1">
+    
+    <!-- Filtros izquierda -->
+    <div class="flex items-center gap-2 flex-wrap">
+      
+      <!-- Dropdown Eventos > -->
+      <div class="relative">
+        <select
+          [value]="filtroEvento()"
+          (change)="onFiltroEventoChange($event)"
+          class="appearance-none h-[32px] pl-3.5 pr-7 rounded-full border border-slate-300 bg-white text-[12px] text-slate-700 outline-none cursor-pointer hover:border-slate-400 focus:border-[#1b53ad] transition-all shadow-2xs">
+          <option value="Todos">Eventos &gt;</option>
+          <option value="Traspaso">Traspaso</option>
+          <option value="Liquidación">Liquidación</option>
+          <option value="Técnica">Modificación Técnica</option>
+          <option value="Matrícula">Matrícula</option>
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400 text-[9px]">
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
       </div>
-      <div>
-        <div class="text-[13px] font-bold text-slate-800">Matrícula Registrada</div>
-        <div class="text-[11.5px] text-slate-500">Expediente inicial cargado en el sistema tributario departamental.</div>
-        <div class="text-[10px] text-slate-400 mt-0.5">Fecha: {{ fechaMatricula || 'Sin fecha' }}</div>
+
+      <!-- Dropdown Todos > -->
+      <div class="relative">
+        <select
+          [value]="filtroPeriodo()"
+          (change)="onFiltroPeriodoChange($event)"
+          class="appearance-none h-[32px] pl-3.5 pr-7 rounded-full border border-slate-300 bg-white text-[12px] text-slate-700 outline-none cursor-pointer hover:border-slate-400 focus:border-[#1b53ad] transition-all shadow-2xs">
+          <option value="Todos">Todos &gt;</option>
+          @for (a of aniosDisponibles(); track a) {
+            <option [value]="a">{{ a }}</option>
+          }
+        </select>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400 text-[9px]">
+          <i class="fa-solid fa-chevron-right"></i>
+        </div>
       </div>
+
+      <!-- Botón Sliders / Filtros -->
+      <button
+        type="button"
+        title="Filtros avanzados"
+        class="w-[32px] h-[32px] rounded-full border border-slate-300 bg-white hover:border-slate-400 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shadow-2xs">
+        <i class="fa-solid fa-sliders text-[11px]"></i>
+      </button>
+
     </div>
 
-    <div class="flex items-start gap-3">
-      <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-        <i class="fa-solid fa-user-check text-xs"></i>
-      </div>
-      <div>
-        <div class="text-[13px] font-bold text-slate-800">Propietario Activo</div>
-        <div class="text-[11.5px] text-slate-500">Asignación de responsabilidad tributaria al 100%.</div>
-      </div>
-    </div>
+    <!-- Botón Descargar a la derecha -->
+    <button
+      type="button"
+      (click)="descargarHistorial()"
+      class="inline-flex items-center gap-1.5 px-4 h-[32px] rounded-full bg-[#2f63ba] hover:bg-[#2552a1] text-white text-[12px] font-medium shadow-2xs transition-all active:scale-95 cursor-pointer ml-auto">
+      <span>Descargar</span>
+      <i class="fa-solid fa-arrow-down-to-bracket text-[11px]"></i>
+    </button>
+
   </div>
+
+  <!-- LÍNEA DE TIEMPO AGRUPADA POR MES -->
+  <div class="space-y-4 pt-1">
+    
+    @for (grupo of gruposFiltrados(); track grupo.mes) {
+      <div class="space-y-2">
+        
+        <!-- Header de Mes con Icono de Calendario -->
+        <div class="flex items-center gap-2 text-slate-700">
+          <i class="fa-regular fa-calendar text-slate-500 text-[14px]"></i>
+          <span class="font-bold text-[12.5px] text-slate-800">{{ grupo.mes }}</span>
+        </div>
+
+        <!-- Eventos de este mes -->
+        <div class="pl-2 space-y-3">
+          @for (ev of grupo.eventos; track ev.id) {
+            <div class="flex items-start gap-2.5">
+              <!-- Punto de color de estado -->
+              <span [class]="'w-2 h-2 rounded-full shrink-0 mt-1 ' + ev.dotClass"></span>
+
+              <!-- Bloque de contenido alineado -->
+              <div class="min-w-0">
+                <div class="text-[11.5px] text-slate-500 font-normal leading-tight">
+                  {{ ev.fechaHora }}
+                </div>
+                <div class="text-[12.5px] font-medium text-slate-800 leading-tight mt-0.5">
+                  {{ ev.titulo }}
+                </div>
+                @if (ev.detalle1) {
+                  <div class="text-[11px] text-slate-500 leading-tight mt-0.5">
+                    {{ ev.detalle1 }}
+                  </div>
+                }
+                @if (ev.detalle2) {
+                  <div class="text-[11px] text-slate-500 leading-tight mt-0.5">
+                    {{ ev.detalle2 }}
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+      </div>
+    } @empty {
+      <div class="text-center py-8 text-slate-400 text-xs">
+        No se encontraron eventos para los filtros seleccionados.
+      </div>
+    }
+
+  </div>
+
 </div>
