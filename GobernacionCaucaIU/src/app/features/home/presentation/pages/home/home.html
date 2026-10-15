@@ -1,12 +1,13 @@
-<div class="min-h-screen bg-white">
-  <!-- TOP NAVBAR / HEADER -->
-  <header class="w-full bg-white border-b border-slate-100 py-3.5 px-6 md:px-12 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+<div class="min-h-screen bg-[#ECEEF2] text-slate-800 flex flex-col pb-16">
+  
+  <!-- TOP INSTITUTIONAL NAVBAR -->
+  <header class="w-full bg-white border-b border-slate-200/80 py-3.5 px-6 sm:px-12 flex items-center justify-between sticky top-0 z-30 shadow-xs">
     <!-- LOGO GOBERNACIÓN DEL CAUCA -->
     <a routerLink="/" class="flex items-center group cursor-pointer" title="Gobernación del Cauca">
       <img
         src="/Logo_gov_cauca.png"
         alt="Gobernación del Cauca"
-        class="h-12 md:h-14 w-auto object-contain select-none transition-transform group-hover:scale-[1.02]"
+        class="h-10 sm:h-12 w-auto object-contain select-none transition-transform group-hover:scale-[1.02]"
       />
     </a>
 
@@ -50,109 +51,116 @@
     </div>
   </header>
 
-  <!-- HERO / PORTAL BANNER -->
-  <section class="px-4 sm:px-8 pt-0">
-    <div
-      class="relative overflow-hidden min-h-[300px] md:min-h-[380px] flex flex-col items-start justify-center px-8 sm:px-14 py-10 shadow-lg"
-      style="border-radius: 0 0 50% 50% / 0 0 80px 80px;"
-    >
-      <!-- Background Image -->
-      <img
-        src="/hero_banner.jpg"
-        alt="Portal Único de Trámites y Servicios"
-        class="absolute inset-0 w-full h-full object-cover object-center"
-      />
+  <!-- MAIN WRAPPER -->
+  <main class="w-full max-w-6xl mx-auto px-4 sm:px-8 pt-4">
 
-      <!-- Dark gradient overlay left-to-right -->
-      <div class="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/85 to-transparent pointer-events-none"></div>
+    <!-- HERO / COMPACT BANNER WITH SEMICIRCULAR CURVE -->
+    <section class="w-full">
+      <div
+        class="relative overflow-hidden min-h-[170px] sm:min-h-[195px] md:min-h-[215px] flex flex-col items-start justify-center px-8 sm:px-14 py-6 shadow-md rounded-t-2xl"
+        style="border-radius: 16px 16px 50% 50% / 16px 16px 45px 45px;"
+      >
+        <!-- Background Image -->
+        <img
+          src="/hero_banner.jpg"
+          alt="Portal Único de Trámites y Servicios"
+          class="absolute inset-0 w-full h-full object-cover object-center"
+        />
 
-      <!-- Banner Content -->
-      <div class="relative z-10 flex flex-col items-center text-center max-w-lg mx-auto">
-        <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-md leading-tight">
-          Portal Único de<br /> Trámites y Servicios
-        </h1>
-        <p class="mt-2 text-xs sm:text-sm text-slate-300 font-medium">
-          Gobernación del Cauca &middot; Sistema de Liquidadores
-        </p>
-      </div>
-    </div>
-  </section>
+        <!-- Dark gradient overlay left-to-right -->
+        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-900/85 to-slate-900/35 pointer-events-none"></div>
 
-  <!-- SECTION TITLE & SUBTITLE -->
-  <section class="max-w-3xl mx-auto px-4 pt-10 pb-6 text-center">
-    @if (authState.isAuthenticated()) {
-      <div class="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full mb-3">
-        <i class="fa-solid fa-shield-check"></i>
-        <span>Panel de Funcionarios Activo</span>
-      </div>
-      <h2 class="text-base sm:text-lg font-bold text-[#0f4984] tracking-tight">
-        Selecciona el liquidador para ingresar al panel de administración
-      </h2>
-      <p class="mt-1.5 text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
-        Acceso directo a gestión de parámetros, liquidaciones, valores estatales, reportes y configuración.
-      </p>
-    } @else {
-      <h2 class="text-base sm:text-lg font-bold text-[#1E56A0] tracking-tight">
-        Selecciona el trámite de tu interés
-      </h2>
-      <p class="mt-1.5 text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl mx-auto">
-        Para realizar liquidaciones, pagos y consultas ciudadanas. Si eres funcionario, pulsa <strong>Administrar</strong> en la esquina superior.
-      </p>
-    }
-  </section>
-
-  <!-- TAX PROCEDURES / CARDS GRID -->
-  <section class="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-8 sm:gap-y-10 gap-x-2">
-      @for (tramite of tramites(); track tramite.id; let idx = $index) {
-        <div
-          (click)="navigate(tramite)"
-          class="group relative flex flex-col justify-between p-6 rounded-2xl hover:bg-slate-50/90 transition-all duration-200 cursor-pointer lg:[&:not(:nth-child(4n))]:border-r lg:[&:not(:nth-child(4n))]:border-slate-200"
-        >
-          <div>
-            <!-- Icon & Optional Badge -->
-            <div class="flex items-start justify-between">
-              <div class="h-16 flex items-center">
-                <img
-                  [src]="tramite.icon"
-                  [alt]="tramite.title"
-                  class="max-h-14 w-auto object-contain transition-transform duration-200 group-hover:scale-105"
-                />
-              </div>
-              @if (tramite.isNew) {
-                <span class="bg-[#0066FF] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
-                  Nuevo
-                </span>
-              }
-            </div>
-
-            <!-- Title -->
-            <h3 class="font-bold text-slate-900 text-base mt-4 leading-snug group-hover:text-[#1E56A0] transition-colors">
-              {{ tramite.title }}
-            </h3>
-
-            <!-- Description -->
-            <p class="mt-1.5 text-xs text-slate-500 leading-relaxed min-h-[36px]">
-              {{ tramite.description }}
-            </p>
-          </div>
-
-          <!-- Bottom Link / Action -->
-          <div class="mt-6 flex items-center gap-2 text-[#1E56A0] group-hover:text-[#163e75] font-semibold text-xs transition-colors">
+        <!-- Banner Content -->
+        <div class="relative z-10 flex flex-col items-start text-left max-w-xl">
+          <h1 class="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight drop-shadow-md leading-tight">
+            Portal Único de<br />Trámites y Servicios
+          </h1>
+          
+          <!-- Badge Panel Ciudadano / Funcionarios Activo -->
+          <div class="mt-3">
             @if (authState.isAuthenticated()) {
-              <span>Administrar</span>
+              <span class="inline-flex items-center gap-1.5 bg-[#78A83B] text-white text-xs sm:text-sm font-bold px-3.5 py-1 rounded-md shadow-xs tracking-wide">
+                <i class="fa-solid fa-shield-check mr-0.5"></i>
+                Panel de Funcionarios Activo
+              </span>
             } @else {
-              <span>Consultar</span>
+              <span class="inline-flex items-center gap-1.5 bg-[#78A83B] text-white text-xs sm:text-sm font-bold px-3.5 py-1 rounded-md shadow-xs tracking-wide">
+                Panel Ciudadano Activo
+              </span>
             }
-            <div class="w-6 h-6 rounded-full bg-[#1E56A0] group-hover:bg-[#163e75] text-white flex items-center justify-center transition-transform duration-200 group-hover:translate-x-1 shadow-xs">
-              <i class="fa-solid fa-arrow-right text-[10px]"></i>
-            </div>
           </div>
         </div>
-      }
-    </div>
-  </section>
+      </div>
+    </section>
+
+    <!-- WELCOME & SUBTITLE SECTION DIRECTLY ON GRAY BACKGROUND -->
+    <section class="pt-8 pb-4 text-left px-2 sm:px-0">
+      <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+        ¡Bienvenido!
+      </h2>
+      <p class="text-sm sm:text-base font-bold text-slate-800 mt-1">
+        @if (authState.isAuthenticated()) {
+          Selecciona el liquidador para ingresar al panel de administración.
+        } @else {
+          Selecciona el trámite de tu interés.
+        }
+      </p>
+      <p class="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed">
+        @if (authState.isAuthenticated()) {
+          Acceso directo a gestión de parámetros, liquidaciones, valores estatales, reportes y configuración.
+        } @else {
+          Para realizar liquidaciones, pagos y consultas ciudadanas. Si eres funcionario, pulsa <strong>Administrar Sitio</strong> en la esquina superior.
+        }
+      </p>
+    </section>
+
+    <!-- TAX PROCEDURES / CARDS GRID DIRECTLY ON GRAY BACKGROUND -->
+    <section class="pt-2">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        @for (tramite of tramites(); track tramite.id; let idx = $index) {
+          <div
+            (click)="navigate(tramite)"
+            class="group relative flex flex-col justify-between p-6 bg-white rounded-2xl border border-slate-200/90 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 cursor-pointer min-h-[225px]"
+          >
+            <div>
+              <!-- Icon & Optional Badge -->
+              <div class="flex items-start justify-between">
+                <div class="w-13 h-13 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center p-2 group-hover:bg-blue-50/50 transition-colors">
+                  <img
+                    [src]="tramite.icon"
+                    [alt]="tramite.title"
+                    class="max-h-9 w-auto object-contain transition-transform duration-200 group-hover:scale-110"
+                  />
+                </div>
+                @if (tramite.isNew) {
+                  <span class="bg-[#0066FF] text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow-xs uppercase tracking-wider">
+                    Nuevo
+                  </span>
+                }
+              </div>
+
+              <!-- Title (Azul Institucional) -->
+              <h3 class="font-bold text-[#1b53ad] text-base mt-4 leading-snug group-hover:text-[#123f86] transition-colors">
+                {{ tramite.title }}
+              </h3>
+
+              <!-- Description -->
+              <p class="mt-1.5 text-xs text-slate-500 leading-relaxed min-h-[38px]">
+                {{ tramite.description }}
+              </p>
+            </div>
+
+            <!-- Bottom Link / Action -->
+            <div class="mt-5 flex items-center gap-2 text-[#1b53ad] group-hover:text-[#123f86] font-semibold text-xs transition-colors">
+              <span>{{ authState.isAuthenticated() ? 'Administrar' : 'Ingresar' }}</span>
+              <div class="w-6 h-6 rounded-full bg-[#1b53ad] group-hover:bg-[#123f86] text-white flex items-center justify-center transition-transform duration-200 group-hover:translate-x-1 shadow-xs">
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+  </main>
 </div>
-
-
-

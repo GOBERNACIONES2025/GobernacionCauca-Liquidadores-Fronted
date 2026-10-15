@@ -4,761 +4,899 @@
     (onConsultar)="alConsultar($event)"
   ></app-consulta-ciudadana-shared>
 } @else {
-  <div class="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col">
+  <div class="min-h-screen bg-[#F0F2F5] text-slate-800 font-sans flex flex-col pb-16">
     
-    <!-- TOP HEADER / NAVBAR -->
-    <header class="w-full bg-white border-b border-slate-200 py-3 px-4 md:px-8 flex items-center justify-between sticky top-0 z-30 shadow-xs">
-      <!-- Left: Logo & Title -->
-      <a routerLink="/" class="flex items-center space-x-3 cursor-pointer group" title="Ir al Inicio">
-        <img src="/Logo_gov_cauca.png" alt="Gobernación del Cauca" class="h-10 md:h-12 w-auto object-contain select-none" />
-        <div class="flex flex-col border-l border-slate-200 pl-3">
-          <span class="text-xs font-extrabold text-[#0f4984] tracking-tight leading-none uppercase">Portal Ciudadano</span>
-          <span class="text-[10px] text-slate-400 font-semibold leading-none mt-1">Impuesto Vehicular &middot; Cauca</span>
-        </div>
-      </a>
+    <!-- SUB-HEADER & NAVEGACIÓN -->
+    <header class="w-full max-w-7xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <!-- Breadcrumb Oficial -->
+      <div class="text-xs font-semibold text-slate-500 flex items-center gap-2">
+        <a routerLink="/" class="text-slate-400 hover:text-slate-600 transition-colors">Portal Único de Trámites y Servicios</a>
+        <i class="fa-solid fa-chevron-right text-[9px] text-slate-300"></i>
+        <span class="text-[#1E56A0] font-black">Consulta Vehicular</span>
+      </div>
 
-      <!-- Center: 4 Nav Tabs (Inicio, Historial, Liquidaciones, Certificados) -->
-      <nav class="hidden md:flex items-center space-x-2 bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
-        
-        <button 
-          (click)="cambiarTab('inicio')"
-          [class.bg-[#0f4984]]="activeTab() === 'inicio'"
-          [class.text-white]="activeTab() === 'inicio'"
-          [class.shadow-xs]="activeTab() === 'inicio'"
-          [class.text-slate-600]="activeTab() !== 'inicio'"
-          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
-          [class.hover:text-white]="activeTab() === 'inicio'"
-        >
-          <i class="fa-solid fa-house text-xs"></i>
-          <span>Inicio</span>
-        </button>
+      <!-- Barra de Navegación de Módulos & Botón Nueva Consulta -->
+      <div class="flex items-center gap-3 sm:gap-4 flex-wrap w-full sm:w-auto justify-between sm:justify-end">
+        <nav class="flex items-center gap-1 sm:gap-1.5 p-1 bg-white border border-slate-200/80 rounded-2xl shadow-2xs">
+          <button 
+            (click)="cambiarTab('inicio')"
+            [class]="activeTab() === 'inicio' ? 'bg-[#1E56A0] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-house text-[11px]"></i>
+            <span>Inicio</span>
+          </button>
 
-        <button 
-          (click)="cambiarTab('historial')"
-          [class.bg-[#0f4984]]="activeTab() === 'historial'"
-          [class.text-white]="activeTab() === 'historial'"
-          [class.shadow-xs]="activeTab() === 'historial'"
-          [class.text-slate-600]="activeTab() !== 'historial'"
-          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
-          [class.hover:text-white]="activeTab() === 'historial'"
-        >
-          <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-          <span>Historial</span>
-        </button>
+          <button 
+            (click)="cambiarTab('historial')"
+            [class]="activeTab() === 'historial' ? 'bg-[#1E56A0] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-timeline text-[11px]"></i>
+            <span>Historial</span>
+          </button>
 
-        <button 
-          (click)="cambiarTab('liquidaciones')"
-          [class.bg-[#0f4984]]="activeTab() === 'liquidaciones'"
-          [class.text-white]="activeTab() === 'liquidaciones'"
-          [class.shadow-xs]="activeTab() === 'liquidaciones'"
-          [class.text-slate-600]="activeTab() !== 'liquidaciones'"
-          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
-          [class.hover:text-white]="activeTab() === 'liquidaciones'"
-        >
-          <i class="fa-regular fa-credit-card text-xs"></i>
-          <span>Liquidaciones</span>
-        </button>
+          <button 
+            (click)="cambiarTab('liquidaciones')"
+            [class]="activeTab() === 'liquidaciones' ? 'bg-[#1E56A0] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-file-invoice-dollar text-[11px]"></i>
+            <span>Liquidaciones</span>
+          </button>
 
-        <button 
-          (click)="cambiarTab('certificados')"
-          [class.bg-[#0f4984]]="activeTab() === 'certificados'"
-          [class.text-white]="activeTab() === 'certificados'"
-          [class.shadow-xs]="activeTab() === 'certificados'"
-          [class.text-slate-600]="activeTab() !== 'certificados'"
-          class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition-all cursor-pointer hover:text-[#0f4984]"
-          [class.hover:text-white]="activeTab() === 'certificados'"
-        >
-          <i class="fa-regular fa-file-lines text-xs"></i>
-          <span>Certificados</span>
-        </button>
+          <button 
+            (click)="cambiarTab('certificados')"
+            [class]="activeTab() === 'certificados' ? 'bg-[#1E56A0] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/70'"
+            class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-certificate text-[11px]"></i>
+            <span>Certificados</span>
+          </button>
+        </nav>
 
-      </nav>
-
-      <!-- Right: Header Actions -->
-      <div class="flex items-center gap-2">
+        <!-- Botón Nueva Consulta -->
         <button 
           (click)="nuevaConsulta()" 
-          class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
-          title="Nueva Consulta"
+          class="inline-flex items-center gap-2 bg-white hover:bg-slate-50 border border-slate-200/90 text-slate-700 px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-2xs hover:shadow-xs cursor-pointer"
+          title="Realizar una nueva consulta"
         >
-          <i class="fa-solid fa-magnifying-glass text-xs text-slate-500"></i>
-          <span class="hidden sm:inline">Nueva Consulta</span>
-        </button>
-
-        <button 
-          (click)="salir()" 
-          class="inline-flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer"
-          title="Salir"
-        >
-          <i class="fa-solid fa-right-from-bracket text-xs"></i>
-          <span>Salir</span>
+          <i class="fa-solid fa-arrow-left text-[11px] text-slate-500"></i>
+          <span>Nueva consulta</span>
         </button>
       </div>
     </header>
 
-    <!-- MOBILE TABS NAVBAR -->
-    <div class="md:hidden bg-white border-b border-slate-200 p-2 flex justify-around text-xs font-bold">
-      <button (click)="cambiarTab('inicio')" [class.text-[#0f4984]]="activeTab() === 'inicio'" class="px-2 py-1">Inicio</button>
-      <button (click)="cambiarTab('historial')" [class.text-[#0f4984]]="activeTab() === 'historial'" class="px-2 py-1">Historial</button>
-      <button (click)="cambiarTab('liquidaciones')" [class.text-[#0f4984]]="activeTab() === 'liquidaciones'" class="px-2 py-1">Liquidaciones</button>
-      <button (click)="cambiarTab('certificados')" [class.text-[#0f4984]]="activeTab() === 'certificados'" class="px-2 py-1">Certificados</button>
-    </div>
-
-    <!-- MAIN CONTAINER -->
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
-
+    <!-- CONTENEDOR PRINCIPAL DE PESTAÑAS -->
+    <main class="w-full max-w-7xl mx-auto px-4 sm:px-8 flex-1 space-y-8">
       @if (ciudadano()) {
-
+        
         <!-- ======================================================== -->
-        <!-- PESTAÑA 1: INICIO (PROPUESTA BLANCA CON <HR> Y MUNICIPIO)  -->
+        <!-- PESTAÑA: INICIO                                          -->
         <!-- ======================================================== -->
         @if (activeTab() === 'inicio') {
-          <div class="space-y-6 animate-fadeIn">
+          <div class="space-y-8 animate-fadeIn">
             
-            <!-- TARJETA SUPERIOR: PLACA GRÁFICA Y RESUMEN TÉCNICO DE VEHÍCULO -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-              
-              <!-- Izquierda: Gráfico de Placa Amarilla Oficial -->
-              <div class="w-full md:w-auto flex justify-center">
-                <div class="relative w-64 sm:w-72 bg-[#FFD100] border-4 border-slate-950 rounded-2xl p-4 shadow-md text-slate-950 text-center select-none">
-                  <!-- Remaches superiores -->
-                  <div class="absolute top-2 left-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
-                  <div class="absolute top-2 right-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
+            <!-- SECCIÓN 1: INFORMACIÓN GENERAL -->
+            <div class="space-y-3">
+              <h2 class="text-xl sm:text-2xl font-black text-[#1E56A0] tracking-tight">
+                Información general
+              </h2>
+
+              <!-- Tarjeta contenedora blanca -->
+              <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                
+                <!-- GRID 2 COLUMNAS: RESUMEN VEHÍCULO & INFORMACIÓN DEL PROPIETARIO -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                   
-                  <!-- Placa Text -->
-                  <div class="font-mono font-black text-4xl sm:text-5xl tracking-widest leading-none pt-1">
-                    {{ ciudadano()?.vehiculo?.placa }}
-                  </div>
-                  
-                  <!-- Leyenda inferior (Municipio de Tránsito Formateado) -->
-                  <div class="text-[10px] sm:text-[11px] font-black tracking-widest uppercase mt-2 pt-1 border-t border-slate-950/40 text-slate-900 truncate">
-                    {{ ciudadano()?.vehiculo?.organismoTransitoNombre || 'No especificado' }}
-                  </div>
+                  <!-- COLUMNA 1: RESUMEN VEHÍCULO -->
+                  <div class="flex flex-col justify-between border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-white shadow-2xs">
+                    <div>
+                      <!-- Header con Título, Badge y Placa Oficial -->
+                      <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-4 mb-3">
+                        <div class="flex items-center gap-2.5">
+                          <h3 class="text-base font-extrabold text-slate-800 m-0">
+                            Resumen vehículo
+                          </h3>
+                          <span 
+                            class="px-2.5 py-0.5 rounded-md text-[11px] font-bold text-white shadow-xs"
+                            [ngClass]="ciudadano()?.vehiculo?.estadoGeneral === 'Al día' ? 'bg-emerald-500' : 'bg-[#e11d48]'"
+                          >
+                            {{ ciudadano()?.vehiculo?.estadoGeneral === 'Al día' ? 'Al día' : 'Pendiente' }}
+                          </span>
+                        </div>
 
-                  <!-- Remaches inferiores -->
-                  <div class="absolute bottom-2 left-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
-                  <div class="absolute bottom-2 right-4 w-3 h-3 rounded-full bg-slate-800 border border-slate-600 shadow-inner"></div>
-                </div>
-              </div>
+                        <!-- Gráfico de Placa Amarilla Colombiana -->
+                        <div class="relative w-36 sm:w-40 bg-[#FFD100] border-2 sm:border-[2.5px] border-slate-950 rounded-lg py-1 px-2 text-slate-950 text-center select-none shadow-xs shrink-0">
+                          <div class="absolute top-1 left-1.5 w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+                          <div class="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+                          
+                          <div class="font-mono font-black text-xl sm:text-2xl tracking-widest leading-none pt-0.5">
+                            {{ ciudadano()?.vehiculo?.placa }}
+                          </div>
+                          
+                          <div class="text-[8px] sm:text-[9px] font-black tracking-widest uppercase mt-0.5 pt-0.5 border-t border-slate-950/40 truncate text-slate-900">
+                            {{ ciudadano()?.vehiculo?.organismoTransitoNombre || 'Popayán' }}
+                          </div>
 
-              <!-- Derecha: RESUMEN DE VEHÍCULO -->
-              <div class="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 w-full">
-                <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
-                  <div class="flex items-center gap-2">
-                    <h2 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider m-0">RESUMEN DE VEHÍCULO</h2>
-                  </div>
+                          <div class="absolute bottom-1 left-1.5 w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+                          <div class="absolute bottom-1 right-1.5 w-1.5 h-1.5 rounded-full bg-slate-800"></div>
+                        </div>
+                      </div>
 
-                  <span 
-                    class="px-2.5 py-0.5 rounded-md text-[11px] font-bold border"
-                    [ngClass]="ciudadano()?.vehiculo?.estadoGeneral === 'Al día' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
-                  >
-                    <i class="fa-solid font-xs mr-1" [ngClass]="ciudadano()?.vehiculo?.estadoGeneral === 'Al día' ? 'fa-circle-check text-emerald-600' : 'fa-triangle-exclamation text-amber-600'"></i>
-                    {{ ciudadano()?.vehiculo?.estadoGeneral }}
-                  </span>
-                </div>
-
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Marca</span>
-                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.vehiculo?.marca }}</span>
-                  </div>
-
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Modelo / Línea</span>
-                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.vehiculo?.linea }}</span>
-                  </div>
-
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Año / Modelo</span>
-                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ ciudadano()?.vehiculo?.modelo }}</span>
-                  </div>
-
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Cilindraje</span>
-                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">
-                      {{ ciudadano()?.vehiculo?.cilindraje ? ciudadano()?.vehiculo?.cilindraje + ' cc' : '-' }}
-                    </span>
-                  </div>
-                </div>
-
-                <div class="mt-3 pt-3 border-t border-slate-200/70 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Clase / Tipo:</span>
-                    <span class="font-semibold text-slate-800 block text-xs">
-                      {{ ciudadano()?.vehiculo?.clase || ciudadano()?.vehiculo?.tipoVehiculo || '-' }}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Servicio / Combustible:</span>
-                    <span class="font-semibold text-slate-800 block text-xs">
-                      {{ ciudadano()?.vehiculo?.servicio || '-' }} &middot; {{ ciudadano()?.vehiculo?.combustible || '-' }}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Municipio / Tránsito:</span>
-                    <span class="font-semibold text-slate-800 block text-xs truncate">
-                      {{ ciudadano()?.vehiculo?.organismoTransitoNombre || 'No especificado' }}
-                    </span>
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-
-            <!-- SECCIÓN 1: INFORMACIÓN DEL PROPIETARIO (PROPUESTA BLANCA CON <HR>) -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
-              <!-- Encabezado Blanco -->
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-3.5">
-                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center text-base border border-blue-100 font-bold shrink-0">
-                    <i class="fa-solid fa-user-tie"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 m-0 leading-tight uppercase tracking-wide">INFORMACIÓN DEL PROPIETARIO</h3>
-                    <span class="text-[11.5px] text-slate-500 font-medium block mt-0.5">Datos registrados oficialmente ante la Gobernación del Cauca</span>
-                  </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2 shrink-0">
-                  <!-- BOTÓN DEMOSTRATIVO DE PROTECCIÓN DE DATOS (HABEAS DATA) -->
-                  <button 
-                    (click)="toggleProteccionDatos()" 
-                    type="button" 
-                    [title]="datosProtegidos() ? 'Hacer clic para revelar datos personales (Modo Demostrativo)' : 'Hacer clic para proteger datos'"
-                    [class]="'inline-flex items-center justify-center gap-1.5 h-[32px] px-3 rounded-lg text-xs font-bold cursor-pointer transition-all border shadow-2xs ' + 
-                             (datosProtegidos() 
-                               ? 'bg-blue-50 text-[#0f4984] border-blue-200 hover:bg-blue-100/80' 
-                               : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100')">
-                    @if (datosProtegidos()) {
-                      <i class="fa-solid fa-lock text-xs text-[#0f4984]"></i>
-                      <span>Datos Protegidos</span>
-                      <span class="text-[9px] uppercase tracking-wider bg-white/90 px-1.5 py-0.5 rounded font-bold text-[#0f4984] border border-blue-200">Ley 1581</span>
-                    } @else {
-                      <i class="fa-solid fa-lock-open text-xs text-amber-700"></i>
-                      <span>Datos Visibles</span>
-                      <span class="text-[9px] uppercase tracking-wider bg-amber-200 px-1.5 py-0.5 rounded font-bold text-amber-900 border border-amber-300">Demo</span>
-                    }
-                  </button>
-
-                  <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold shrink-0">
-                    <i class="fa-solid fa-shield-check text-emerald-600"></i>
-                    <span>{{ ciudadano()?.propietario?.activo ? 'Activo' : 'Inactivo' }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- ALERTA MODO DEMOSTRATIVO -->
-              @if (alertaDemoVisible()) {
-                <div class="mt-3.5 p-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start justify-between gap-3 text-amber-900 shadow-2xs animate-fadeIn">
-                  <div class="flex items-start gap-2.5">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-600 text-sm mt-0.5 shrink-0"></i>
-                    <div class="text-[12px] leading-relaxed">
-                      <span class="font-bold block text-amber-950">Modo Demostrativo Activo (Habeas Data):</span>
-                      Los datos personales del ciudadano se muestran temporalmente sin máscara. En la fase final de producción, revelar o modificar estos datos requerirá la confirmación de un código de seguridad (OTP) enviado vía correo electrónico institucional al titular registrado (Ley 1581 de 2012).
+                      <!-- Lista de Atributos Vehiculares -->
+                      <div class="divide-y divide-slate-100 text-xs">
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Marca</span>
+                          <span class="font-extrabold text-slate-900 text-right">{{ ciudadano()?.vehiculo?.marca || '-' }}</span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Modelo/Línea</span>
+                          <span class="font-extrabold text-slate-900 text-right">{{ ciudadano()?.vehiculo?.linea || '-' }}</span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Año/Modelo</span>
+                          <span class="font-extrabold text-slate-900 text-right">{{ ciudadano()?.vehiculo?.modelo || '-' }}</span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Cilindraje</span>
+                          <span class="font-extrabold text-slate-900 text-right">
+                            {{ ciudadano()?.vehiculo?.cilindraje ? ciudadano()!.vehiculo.cilindraje + ' cc' : '-' }}
+                          </span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Clase/Tipo:</span>
+                          <span class="font-extrabold text-slate-900 uppercase text-right">
+                            {{ ciudadano()?.vehiculo?.clase || ciudadano()?.vehiculo?.tipoVehiculo || '-' }}
+                          </span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Servicio/Combustible:</span>
+                          <span class="font-extrabold text-slate-900 text-right">
+                            {{ ciudadano()?.vehiculo?.servicio || '-' }} - {{ ciudadano()?.vehiculo?.combustible || '-' }}
+                          </span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Municipio/Tránsito:</span>
+                          <span class="font-extrabold text-slate-900 text-right truncate max-w-[200px]">
+                            {{ ciudadano()?.vehiculo?.organismoTransitoNombre || 'Popayán' }}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <button (click)="cerrarAlertaDemo()" type="button" class="text-amber-600 hover:text-amber-800 p-1 rounded hover:bg-amber-100 transition-colors cursor-pointer">
-                    <i class="fa-solid fa-xmark text-xs"></i>
-                  </button>
-                </div>
-              }
 
-              <!-- Divisor horizontal -->
-              <hr class="border-t border-slate-200/80 my-4" />
+                  <!-- COLUMNA 2: INFORMACIÓN DEL PROPIETARIO -->
+                  <div class="flex flex-col justify-between border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-white shadow-2xs">
+                    <div>
+                      <!-- Header Propietario -->
+                      <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-4 mb-3">
+                        <div>
+                          <h3 class="text-base font-extrabold text-slate-800 m-0">
+                            Información del propietario
+                          </h3>
+                          <span class="text-[11px] text-slate-500 font-medium block mt-0.5">
+                            Datos registrados oficialmente ante la Gobernación del Cauca
+                          </span>
+                        </div>
 
-              <!-- Card Body Content -->
-              <div class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Nombre Completo</span>
-                    <span class="font-extrabold text-slate-900 text-sm block mt-0.5">{{ getNombrePropietarioDisplay() }}</span>
+                        <!-- Badge Activo -->
+                        <span class="px-3 py-0.5 rounded-md text-[11px] font-bold text-white bg-[#00c9a7] shadow-xs shrink-0">
+                          {{ ciudadano()?.propietario?.activo ? 'Activo' : 'Activo' }}
+                        </span>
+                      </div>
+
+                      <!-- Lista de Atributos Propietario -->
+                      <div class="divide-y divide-slate-100 text-xs">
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Nombre</span>
+                          <span class="font-extrabold text-slate-900 text-right">{{ getNombrePropietarioDisplay() }}</span>
+                        </div>
+
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Documento</span>
+                          <span class="font-extrabold text-slate-900 text-right">
+                            {{ ciudadano()?.propietario?.tipoDocumentoNombre || 'Cédula de ciudadanía' }}
+                          </span>
+                        </div>
+
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Número</span>
+                          <div class="flex items-center gap-1.5 font-extrabold text-slate-900 font-mono">
+                            <span>{{ getDocumentoPropietarioDisplay() }}</span>
+                            <button 
+                              (click)="toggleProteccionDatos()" 
+                              type="button" 
+                              class="text-slate-500 hover:text-slate-800 cursor-pointer ml-1 p-0.5"
+                              title="Revelar/ocultar dato"
+                            >
+                              <i class="fa-regular" [ngClass]="datosProtegidos() ? 'fa-eye-slash text-slate-400' : 'fa-eye text-blue-600'"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Vínculo con el vehículo</span>
+                          <span class="font-extrabold text-slate-900 text-right">
+                            {{ ciudadano()?.relacion?.tipoVinculo || 'Propietario' }} ({{ ciudadano()?.relacion?.porcentaje || 100 }}%)
+                          </span>
+                        </div>
+
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Correo</span>
+                          <span class="font-extrabold text-slate-900 text-right font-mono">{{ getEmailPropietarioDisplay() }}</span>
+                        </div>
+
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Celular</span>
+                          <div class="flex items-center gap-1.5 font-extrabold text-slate-900 font-mono">
+                            <span>{{ getTelefonoPropietarioDisplay() }}</span>
+                            <button 
+                              (click)="toggleProteccionDatos()" 
+                              type="button" 
+                              class="text-slate-500 hover:text-slate-800 cursor-pointer ml-1 p-0.5"
+                              title="Revelar/ocultar dato"
+                            >
+                              <i class="fa-regular" [ngClass]="datosProtegidos() ? 'fa-eye-slash text-slate-400' : 'fa-eye text-blue-600'"></i>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div class="py-2 flex justify-between items-center">
+                          <span class="text-slate-700 font-bold">Dirección:</span>
+                          <div class="flex items-center gap-1.5 font-extrabold text-slate-900 text-right">
+                            <span class="truncate max-w-[180px] sm:max-w-[240px]">{{ getDireccionPropietarioDisplay() }}</span>
+                            <button 
+                              (click)="toggleProteccionDatos()" 
+                              type="button" 
+                              class="text-slate-500 hover:text-slate-800 cursor-pointer ml-1 p-0.5"
+                              title="Revelar/ocultar dato"
+                            >
+                              <i class="fa-regular" [ngClass]="datosProtegidos() ? 'fa-eye-slash text-slate-400' : 'fa-eye text-blue-600'"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Número de Documento</span>
-                    <span class="font-bold text-slate-800 text-sm block mt-0.5 font-mono inline-flex items-center gap-1.5">
-                      @if (datosProtegidos()) {
-                        <i class="fa-solid fa-lock text-[10px] text-slate-400"></i>
-                      }
-                      {{ getDocumentoPropietarioDisplay() }}
+                </div>
+
+                <!-- FILA INFERIOR: HISTORIAL DEL AUTOMÓVIL -->
+                <div class="border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-white shadow-2xs space-y-4">
+                  <!-- Header Historial -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div>
+                      <h3 class="text-base font-extrabold text-slate-800 m-0">
+                        Historial del automóvil
+                      </h3>
+                      <span class="text-[11.5px] text-slate-500 font-medium block mt-0.5">
+                        Registro cronológico de trámites y novedades vehiculares
+                      </span>
+                    </div>
+
+                    <!-- Botón Ver Historial Completo -->
+                    <button 
+                      (click)="cambiarTab('historial')" 
+                      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1a4b8c] hover:bg-[#12396e] text-white text-xs font-bold transition-colors cursor-pointer shadow-xs shrink-0"
+                    >
+                      <span>Ver historial completo</span>
+                      <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                    </button>
+                  </div>
+
+                  <!-- Badge Pill Timeline View -->
+                  <div class="pt-1">
+                    <span class="inline-block bg-[#2b2d30] text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-2xs">
+                      Timeline View &middot; Trámites Registrados
                     </span>
                   </div>
 
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Tipo de Documento</span>
-                    <span class="font-bold text-slate-800 text-sm block mt-0.5">{{ ciudadano()?.propietario?.tipoDocumentoNombre }}</span>
-                  </div>
+                  <!-- Eventos y Alertas de Gravámenes -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center text-xs pt-2">
+                    
+                    <!-- Evento principal -->
+                    @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
+                      <div class="flex items-start gap-3 p-3 bg-slate-50/80 rounded-xl border border-slate-200">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 text-[#1E56A0] flex items-center justify-center shrink-0 mt-0.5">
+                          <i class="fa-regular fa-calendar-check text-sm"></i>
+                        </div>
+                        <div>
+                          <span class="font-extrabold text-slate-900 text-xs block">
+                            {{ ciudadano()!.vehiculo.historial[0].accion }}
+                          </span>
+                          <span class="text-[11px] text-slate-500 font-mono block mt-0.5">
+                            {{ ciudadano()!.vehiculo.historial[0].fechaFormateada || (ciudadano()!.vehiculo.historial[0].fecha | date:'yyyy-MM-dd HH:mm') }}
+                          </span>
+                          @if (ciudadano()!.vehiculo.historial[0].usuario) {
+                            <span class="text-[11px] text-slate-400 block mt-0.5">
+                              Registrado por: {{ ciudadano()!.vehiculo.historial[0].usuario }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                    } @else {
+                      <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <i class="fa-regular fa-calendar text-slate-400 text-base mt-0.5"></i>
+                        <div>
+                          <span class="font-bold text-slate-800 text-xs block">Matrícula inicial</span>
+                          <span class="text-[11px] text-slate-500 font-mono block">Sin trámites registrados</span>
+                          <span class="text-[11px] text-slate-400 block">Registrado por: Secretaría de Tránsito</span>
+                        </div>
+                      </div>
+                    }
 
-                  <div>
-                    <span class="text-slate-400 font-bold uppercase text-[10px] block">Vínculo con el Vehículo</span>
-                    <span class="font-bold text-slate-800 text-sm block mt-0.5">
-                      {{ ciudadano()?.relacion?.tipoVinculo }} ({{ ciudadano()?.relacion?.porcentaje }}%)
-                    </span>
+                    <!-- Estado de Gravámenes y Embargos -->
+                    <div class="bg-[#dcfce7] border border-[#86efac] text-[#166534] rounded-xl p-3.5 flex items-center gap-2.5 shadow-2xs">
+                      <i class="fa-solid fa-circle-check text-emerald-600 text-base shrink-0"></i>
+                      <span class="text-xs font-semibold leading-tight">
+                        Estado de Gravámenes y Embargos: Sin novedades ni limitaciones registradas.
+                      </span>
+                    </div>
+
                   </div>
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div class="flex items-center gap-2 text-slate-600">
-                    <i class="fa-solid fa-envelope text-slate-400"></i>
-                    <span><strong class="text-slate-700">Email:</strong> <span class="font-mono">{{ getEmailPropietarioDisplay() }}</span></span>
-                  </div>
-                  <div class="flex items-center gap-2 text-slate-600">
-                    <i class="fa-solid fa-phone text-slate-400"></i>
-                    <span><strong class="text-slate-700">Teléfono:</strong> <span class="font-mono">{{ getTelefonoPropietarioDisplay() }}</span></span>
-                  </div>
-                  <div class="flex items-center gap-2 text-slate-600">
-                    <i class="fa-solid fa-location-dot text-slate-400"></i>
-                    <span><strong class="text-slate-700">Dirección:</strong> {{ getDireccionPropietarioDisplay() }}</span>
-                  </div>
-                </div>
               </div>
             </div>
 
-            <!-- SECCIÓN 2: HISTORIAL DEL AUTOMÓVIL (PROPUESTA BLANCA CON <HR>) -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
-              <!-- Encabezado Blanco -->
+            <!-- SECCIÓN 2: INFORMACIÓN DEUDAS VIGENTES -->
+            <div class="space-y-3">
+              <!-- Header Deudas Vigentes -->
               <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-3.5">
-                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center text-base border border-blue-100 font-bold shrink-0">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 m-0 leading-tight uppercase tracking-wide">HISTORIAL DEL AUTOMÓVIL</h3>
-                    <span class="text-[11.5px] text-slate-500 font-medium block mt-0.5">Registro cronológico de trámites y novedades vehiculares</span>
-                  </div>
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-black text-[#1E56A0] tracking-tight">
+                    Información deudas vigentes
+                  </h2>
+                  <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                    Estado de cuenta del impuesto vehicular y opciones de pago PSE
+                  </p>
                 </div>
 
+                <!-- Botón Ver Liquidaciones -->
                 <button 
-                  (click)="cambiarTab('historial')" 
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer shrink-0"
+                  (click)="cambiarTab('liquidaciones')" 
+                  class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[#1a4b8c] hover:bg-[#12396e] text-white text-xs font-bold transition-colors cursor-pointer shadow-xs shrink-0"
                 >
-                  <span>Ver Historial Completo</span>
-                  <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                  <span>Ver Liquidaciones</span>
+                  <i class="fa-solid fa-chevron-right text-[10px]"></i>
                 </button>
               </div>
 
-              <!-- Divisor horizontal -->
-              <hr class="border-t border-slate-200/80 my-4" />
+              <!-- Tabla de Deudas Vigentes con Cabecera Oscura -->
+              <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-2 sm:p-4">
+                @if (ciudadano()?.vehiculo?.liquidaciones && ciudadano()!.vehiculo.liquidaciones.length > 0) {
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr class="bg-[#2b2d30] text-white font-bold text-xs uppercase tracking-wider rounded-xl">
+                          <th class="py-3.5 px-5 rounded-l-xl">Vigencia</th>
+                          <th class="py-3.5 px-5">Detalle</th>
+                          <th class="py-3.5 px-5">Estado</th>
+                          <th class="py-3.5 px-5">Valor ($ COP)</th>
+                          <th class="py-3.5 px-6 text-center">Estado de la transacción</th>
+                          <th class="py-3.5 px-5 text-right rounded-r-xl">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        @for (liq of ciudadano()?.vehiculo?.liquidaciones; track liq.id) {
+                          <tr class="hover:bg-slate-50/80 transition-colors" [class.bg-emerald-50/50]="liq.esPagada">
+                            <td class="py-4 px-5 font-black text-slate-900 font-mono text-sm">
+                              {{ liq.vigencia }}
+                            </td>
 
-              <!-- Timeline View -->
-              <div class="space-y-4">
-                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block">Timeline View &middot; Trámites Registrados</span>
+                            <td class="py-4 px-5">
+                              <span class="font-bold text-slate-800 block text-xs leading-snug">
+                                {{ liq.detalle }}
+                              </span>
+                              <span class="text-[11px] text-slate-400 font-mono block mt-0.5">
+                                Placa: {{ liq.placa }}
+                              </span>
+                            </td>
 
-                @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    @for (ev of ciudadano()?.vehiculo?.historial; track $index) {
-                      <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl relative pl-4 border-l-4 border-l-[#0f4984]">
-                        <span class="font-extrabold text-slate-900 block text-xs">{{ ev.accion }}</span>
-                        <span class="text-[10.5px] text-slate-500 font-semibold block mt-0.5">
-                          <i class="fa-regular fa-calendar mr-1"></i>{{ ev.fecha | date:'yyyy-MM-dd HH:mm' }}
-                        </span>
-                        @if (ev.usuario) {
-                          <span class="text-[11px] text-slate-400 block mt-1 leading-snug">Registrado por: {{ ev.usuario }}</span>
+                            <td class="py-4 px-5">
+                              @if (liq.esPagada) {
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                  <i class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>
+                                  <span>Pagado</span>
+                                </span>
+                              } @else {
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs">
+                                  <i class="fa-regular fa-clock text-amber-700 text-xs"></i>
+                                  <span>{{ liq.estado || 'Liquidación Oficial Expedida' }}</span>
+                                </span>
+                              }
+                            </td>
+
+                            <td class="py-4 px-5 font-mono font-black text-slate-900 text-sm">
+                              ${{ (liq.esPagada ? 0 : liq.valor) | number:'1.0-0' }} COP
+                            </td>
+
+                            <td class="py-4 px-6 text-center">
+                              @let badge = getEstadoTransaccionBadge(liq.liquidacionId);
+                              <div class="inline-flex items-center justify-center gap-2">
+                                <span 
+                                  class="px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 border transition-all"
+                                  [ngClass]="badge.clase"
+                                  [title]="estadosTransaccion()[liq.liquidacionId]?.estado_Descripcion || badge.texto"
+                                >
+                                  <i [ngClass]="badge.icono" class="text-[10px]"></i>
+                                  <span>{{ badge.texto }}</span>
+                                </span>
+
+                                <button
+                                  type="button"
+                                  (click)="consultarEstadoTransaccion(liq)"
+                                  [disabled]="consultandoEstadoId() === liq.liquidacionId"
+                                  title="Consultar y actualizar estado de la transacción en la pasarela"
+                                  class="w-7 h-7 rounded-lg bg-white hover:bg-[#0f4984] hover:text-white text-slate-500 flex items-center justify-center transition-all border border-slate-200 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                >
+                                  <i 
+                                    class="fa-solid fa-arrows-rotate text-[11px]" 
+                                    [ngClass]="{'fa-spin': consultandoEstadoId() === liq.liquidacionId}"
+                                  ></i>
+                                </button>
+                              </div>
+                            </td>
+
+                            <td class="py-4 px-5 text-right">
+                              @if (!liq.esPagada && liq.valor > 0) {
+                                <div class="inline-flex items-center justify-end gap-2">
+                                  <button 
+                                    (click)="descargarFactura(liq)" 
+                                    [disabled]="descargandoPdfId() === liq.liquidacionId"
+                                    type="button" 
+                                    title="Descargar liquidación oficial en PDF para pago en banco"
+                                    class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0f4984] text-xs font-bold rounded-lg border border-slate-300 shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    @if (descargandoPdfId() === liq.liquidacionId) {
+                                      <i class="fa-solid fa-spinner fa-spin text-xs text-[#0f4984]"></i>
+                                      <span>Generando...</span>
+                                    } @else {
+                                      <i class="fa-solid fa-file-arrow-down text-xs text-rose-600"></i>
+                                      <span>Descargar</span>
+                                    }
+                                  </button>
+
+                                  <button 
+                                    (click)="abrirPago(liq)" 
+                                    type="button" 
+                                    class="inline-flex items-center gap-1.5 px-5 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-black rounded-full shadow-xs transition-all cursor-pointer border-none"
+                                  >
+                                    <span>Pagar</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                  </button>
+                                </div>
+                              } @else {
+                                <span class="inline-flex items-center gap-1 text-emerald-700 font-extrabold text-xs">
+                                  <span>AL DÍA</span>
+                                  <i class="fa-regular fa-circle-check text-emerald-600"></i>
+                                </span>
+                              }
+                            </td>
+                          </tr>
                         }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <div class="p-8 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500 text-center font-medium">
+                    No se registran liquidaciones emitidas para este automotor.
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ======================================================== -->
+        <!-- PESTAÑA: HISTORIAL                                        -->
+        <!-- ======================================================== -->
+        @if (activeTab() === 'historial') {
+          <div class="space-y-8 animate-fadeIn">
+            
+            <div class="space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-black text-[#1E56A0] tracking-tight">
+                    Historial de trámites y novedades
+                  </h2>
+                  <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                    Registro cronológico oficial de la hoja de vida del automotor con placa <strong class="font-mono text-slate-900 font-black">{{ ciudadano()?.vehiculo?.placa }}</strong>
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                  <span class="inline-block bg-[#2b2d30] text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-2xs">
+                    Timeline View &middot; Trámites Registrados
+                  </span>
+                </div>
+              </div>
+
+              <!-- Tarjeta contenedora blanca -->
+              <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                
+                <!-- Estado de Gravámenes y Embargos -->
+                <div class="bg-[#dcfce7] border border-[#86efac] text-[#166534] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                  <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-lg shrink-0"></i>
+                    <div>
+                      <span class="text-xs font-bold block">
+                        Estado de Gravámenes y Limitaciones a la Propiedad
+                      </span>
+                      <span class="text-[11.5px] text-emerald-800">
+                        Sin novedades, medidas cautelares ni limitaciones registradas ante la Secretaría de Tránsito y Transporte.
+                      </span>
+                    </div>
+                  </div>
+                  <span class="px-3 py-1 bg-emerald-600 text-white font-extrabold text-[11px] rounded-lg shadow-2xs shrink-0 self-start sm:self-auto">
+                    Libre de gravámenes
+                  </span>
+                </div>
+
+                <!-- CONTENEDOR LÍNEA DE TIEMPO CON CONECTORES SVG -->
+                @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
+                  <div class="relative space-y-3 py-2">
+                    
+                    @for (ev of ciudadano()?.vehiculo?.historial; track $index) {
+                      <div class="group relative flex items-center gap-3 sm:gap-4">
+                        
+                        <!-- LÍNEA DE TIEMPO CON NODO CIRCULAR CONCÉNTRICO -->
+                        <div class="relative w-12 sm:w-16 h-18 shrink-0 select-none flex items-center justify-center">
+                          <svg class="absolute inset-0 w-full h-full overflow-visible pointer-events-none" viewBox="0 0 64 64">
+                            <line x1="24" y1="0" x2="24" y2="64" stroke="#e2e8f0" stroke-width="2" />
+                            <line x1="24" y1="0" x2="24" y2="64" [attr.stroke]="ev.colorHex || '#1E56A0'" stroke-width="2.5" stroke-opacity="0.85" />
+
+                            @if (ev.trackIndex === 1) {
+                              <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#f59e0b" stroke-width="2.5" />
+                            }
+                            @if (ev.trackIndex === 2) {
+                              <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#10b981" stroke-width="2.5" />
+                            }
+
+                            <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="8" fill="white" [attr.stroke]="ev.colorHex || '#1E56A0'" stroke-width="2.5" />
+                            <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="3.5" [attr.fill]="ev.colorHex || '#1E56A0'" />
+                          </svg>
+                        </div>
+
+                        <!-- TARJETA CONTENIDO DEL EVENTO -->
+                        <div class="flex-1 border border-slate-200/80 rounded-2xl p-4 sm:p-5 bg-white group-hover:bg-slate-50/80 group-hover:border-slate-300 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                          
+                          <div class="space-y-1.5 min-w-0">
+                            <div class="flex items-center gap-2.5 flex-wrap">
+                              <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold shadow-2xs" [ngClass]="ev.badgeClass || 'bg-blue-100 text-[#1E56A0] border border-blue-200'">
+                                {{ ev.categoriaNombre || 'Trámite' }}
+                              </span>
+
+                              <h3 class="text-xs sm:text-sm font-extrabold text-slate-800 m-0 truncate group-hover:text-[#1E56A0] transition-colors">
+                                {{ ev.accion }}
+                              </h3>
+                            </div>
+
+                            @if (ev.usuario) {
+                              <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                                <i class="fa-solid fa-building-columns text-slate-400 text-[10.5px]"></i>
+                                <span>Registrado por: <strong class="text-slate-700">{{ ev.usuario }}</strong></span>
+                              </div>
+                            }
+                          </div>
+
+                          <div class="shrink-0 text-left sm:text-right">
+                            <div class="inline-flex items-center gap-2 bg-slate-50/90 px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+                              <span class="font-extrabold text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-regular fa-calendar-check text-[#1E56A0] text-xs"></i>
+                                {{ ev.fechaFormateada || ev.fecha }}
+                              </span>
+                              @if (ev.horaFormateada) {
+                                <span class="text-[10.5px] font-mono font-bold text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                  <i class="fa-regular fa-clock text-slate-400 mr-1"></i>
+                                  {{ ev.horaFormateada }}
+                                </span>
+                              }
+                            </div>
+                          </div>
+
+                        </div>
+
+                      </div>
+                    }
+
+                  </div>
+                } @else {
+                  <div class="p-8 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500 text-center font-medium">
+                    No registra trámites históricos en el sistema para este automotor.
+                  </div>
+                }
+
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ======================================================== -->
+        <!-- PESTAÑA: LIQUIDACIONES                                    -->
+        <!-- ======================================================== -->
+        @if (activeTab() === 'liquidaciones') {
+          <div class="space-y-8 animate-fadeIn">
+            
+            <div class="space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-black text-[#1E56A0] tracking-tight">
+                    Liquidaciones del impuesto vehicular
+                  </h2>
+                  <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                    Estado de cuenta del impuesto vehicular y opciones de pago seguro por PSE
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                  <span class="inline-block bg-[#2b2d30] text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-2xs">
+                    Vigencias Tributarias &middot; Portal Oficial
+                  </span>
+                </div>
+              </div>
+
+              <!-- Tabla de Deudas y Liquidaciones con Cabecera Oscura -->
+              <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden p-2 sm:p-4">
+                @if (ciudadano()?.vehiculo?.liquidaciones && ciudadano()!.vehiculo.liquidaciones.length > 0) {
+                  <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse">
+                      <thead>
+                        <tr class="bg-[#2b2d30] text-white font-bold text-xs uppercase tracking-wider rounded-xl">
+                          <th class="py-3.5 px-5 rounded-l-xl">Vigencia</th>
+                          <th class="py-3.5 px-5">Detalle</th>
+                          <th class="py-3.5 px-5">Estado</th>
+                          <th class="py-3.5 px-5">Valor ($ COP)</th>
+                          <th class="py-3.5 px-6 text-center">Estado de la transacción</th>
+                          <th class="py-3.5 px-5 text-right rounded-r-xl">Acción</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        @for (l of ciudadano()?.vehiculo?.liquidaciones; track l.id) {
+                          <tr class="hover:bg-slate-50/80 transition-colors" [class.bg-emerald-50/50]="l.esPagada">
+                            <td class="py-4 px-5 font-black text-slate-900 font-mono text-sm">
+                              {{ l.vigencia }}
+                            </td>
+
+                            <td class="py-4 px-5">
+                              <span class="font-bold text-slate-800 block text-xs leading-snug">
+                                {{ l.detalle }}
+                              </span>
+                              <span class="text-[11px] text-slate-400 font-mono block mt-0.5">
+                                Placa: {{ l.placa }}
+                              </span>
+                            </td>
+
+                            <td class="py-4 px-5">
+                              @if (l.esPagada) {
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                  <i class="fa-solid fa-circle-check text-emerald-600 text-xs"></i>
+                                  <span>Pagado</span>
+                                </span>
+                              } @else {
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-2xs">
+                                  <i class="fa-regular fa-clock text-amber-700 text-xs"></i>
+                                  <span>{{ l.estado || 'Liquidación Oficial Expedida' }}</span>
+                                </span>
+                              }
+                            </td>
+
+                            <td class="py-4 px-5 font-mono font-black text-slate-900 text-sm">
+                              ${{ (l.esPagada ? 0 : l.valor) | number:'1.0-0' }} COP
+                            </td>
+
+                            <td class="py-4 px-6 text-center">
+                              @let badgeL = getEstadoTransaccionBadge(l.liquidacionId);
+                              <div class="inline-flex items-center justify-center gap-2">
+                                <span 
+                                  class="px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 border transition-all"
+                                  [ngClass]="badgeL.clase"
+                                  [title]="estadosTransaccion()[l.liquidacionId]?.estado_Descripcion || badgeL.texto"
+                                >
+                                  <i [ngClass]="badgeL.icono" class="text-[10px]"></i>
+                                  <span>{{ badgeL.texto }}</span>
+                                </span>
+
+                                <button
+                                  type="button"
+                                  (click)="consultarEstadoTransaccion(l)"
+                                  [disabled]="consultandoEstadoId() === l.liquidacionId"
+                                  title="Consultar y actualizar estado de la transacción en la pasarela"
+                                  class="w-7 h-7 rounded-lg bg-white hover:bg-[#0f4984] hover:text-white text-slate-500 flex items-center justify-center transition-all border border-slate-200 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                                >
+                                  <i 
+                                    class="fa-solid fa-arrows-rotate text-[11px]" 
+                                    [ngClass]="{'fa-spin': consultandoEstadoId() === l.liquidacionId}"
+                                  ></i>
+                                </button>
+                              </div>
+                            </td>
+
+                            <td class="py-4 px-5 text-right">
+                              @if (!l.esPagada && l.valor > 0) {
+                                <div class="inline-flex items-center justify-end gap-2">
+                                  <button 
+                                    (click)="descargarFactura(l)" 
+                                    [disabled]="descargandoPdfId() === l.liquidacionId"
+                                    type="button" 
+                                    title="Descargar liquidación oficial con código de barras para pago en banco"
+                                    class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0f4984] text-xs font-bold rounded-lg border border-slate-300 shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    @if (descargandoPdfId() === l.liquidacionId) {
+                                      <i class="fa-solid fa-spinner fa-spin text-xs text-[#0f4984]"></i>
+                                      <span>Generando...</span>
+                                    } @else {
+                                      <i class="fa-solid fa-file-arrow-down text-xs text-rose-600"></i>
+                                      <span>Descargar</span>
+                                    }
+                                  </button>
+
+                                  <button 
+                                    (click)="abrirPago(l)" 
+                                    type="button" 
+                                    class="inline-flex items-center gap-1.5 px-5 py-2 bg-[#16a34a] hover:bg-[#15803d] text-white text-xs font-black rounded-full shadow-xs transition-all cursor-pointer border-none"
+                                  >
+                                    <span>Pagar</span>
+                                    <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                  </button>
+                                </div>
+                              } @else {
+                                <span class="inline-flex items-center gap-1 text-emerald-700 font-extrabold text-xs">
+                                  <span>AL DÍA</span>
+                                  <i class="fa-regular fa-circle-check text-emerald-600"></i>
+                                </span>
+                              }
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                } @else {
+                  <div class="p-8 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500 text-center font-medium">
+                    No se registran liquidaciones emitidas para este automotor.
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div>
+        }
+
+        <!-- ======================================================== -->
+        <!-- PESTAÑA: CERTIFICADOS                                     -->
+        <!-- ======================================================== -->
+        @if (activeTab() === 'certificados') {
+          <div class="space-y-8 animate-fadeIn">
+            
+            <div class="space-y-3">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h2 class="text-xl sm:text-2xl font-black text-[#1E56A0] tracking-tight">
+                    Certificados y paz y salvo oficiales
+                  </h2>
+                  <p class="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                    Descargue directamente los soportes y certificados oficiales en formato PDF para sus vigencias satisfechas
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                  <span class="inline-block bg-[#2b2d30] text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shadow-2xs">
+                    Documentos Oficiales &middot; Descarga Inmediata
+                  </span>
+                </div>
+              </div>
+
+              <!-- Tarjeta contenedora blanca -->
+              <div class="bg-white rounded-3xl border border-slate-200/80 p-6 sm:p-8 shadow-sm space-y-6">
+                
+                <!-- Banner Institucional de Validez Jurídica -->
+                <div class="bg-blue-50/80 border border-blue-200 text-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#1E56A0] text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <i class="fa-solid fa-shield-halved text-base"></i>
+                    </div>
+                    <div>
+                      <span class="text-xs font-black text-[#1E56A0] block">
+                        Validez Jurídica y Verificación Digital
+                      </span>
+                      <span class="text-[11.5px] text-slate-600 font-medium">
+                        Los certificados y paz y salvo emitidos cuentan con firma digital y código de verificación oficial ante la Gobernación del Cauca.
+                      </span>
+                    </div>
+                  </div>
+                  <span class="px-3 py-1 bg-white text-[#1E56A0] font-extrabold text-[11px] rounded-lg border border-blue-200 shadow-2xs shrink-0 self-start sm:self-auto">
+                    Firma Electrónica Válida
+                  </span>
+                </div>
+
+                <!-- Grid de Certificados -->
+                @if (ciudadano()?.certificados && ciudadano()!.certificados.length > 0) {
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+                    @for (c of ciudadano()?.certificados; track c.id) {
+                      <div class="border border-slate-200/80 rounded-2xl p-5 sm:p-6 bg-white shadow-2xs flex flex-col justify-between hover:border-slate-300 transition-all space-y-5">
+                        
+                        <div>
+                          <!-- Header Certificado -->
+                          <div class="flex items-start justify-between gap-3 border-b border-slate-100 pb-4 mb-3">
+                            <div class="flex items-center gap-3">
+                              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid fa-file-shield text-lg"></i>
+                              </div>
+                              <div>
+                                <h3 class="text-sm sm:text-base font-extrabold text-slate-800 m-0">
+                                  {{ c.tipo }}
+                                </h3>
+                                <span class="text-[11px] text-slate-500 font-medium block mt-0.5">
+                                  Vigencia fiscal: <strong class="font-mono text-slate-800">{{ c.vigencia }}</strong>
+                                </span>
+                              </div>
+                            </div>
+
+                            <!-- Badge Estado -->
+                            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold text-white bg-emerald-500 shadow-xs shrink-0">
+                              Emitido
+                            </span>
+                          </div>
+
+                          <!-- Lista de Atributos del Certificado -->
+                          <div class="divide-y divide-slate-100 text-xs">
+                            <div class="py-2.5 flex justify-between items-center">
+                              <span class="text-slate-700 font-bold">Placa asociada</span>
+                              <span class="font-mono font-black text-slate-900 text-right">{{ c.placa }}</span>
+                            </div>
+
+                            <div class="py-2.5 flex justify-between items-center">
+                              <span class="text-slate-700 font-bold">Código de verificación</span>
+                              <span class="font-mono font-black text-slate-900 text-right text-[11px] bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                {{ c.codigo }}
+                              </span>
+                            </div>
+
+                            <div class="py-2.5 flex justify-between items-center">
+                              <span class="text-slate-700 font-bold">Fecha de expedición</span>
+                              <span class="font-mono font-bold text-slate-700 text-right">{{ c.fecha }}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Botón de Descarga Oficial -->
+                        <div class="pt-2 border-t border-slate-100">
+                          <button 
+                            type="button" 
+                            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#1a4b8c] hover:bg-[#12396e] text-white text-xs font-bold transition-colors cursor-pointer shadow-xs"
+                          >
+                            <i class="fa-solid fa-download text-xs"></i>
+                            <span>Descargar Paz y Salvo Oficial (PDF)</span>
+                          </button>
+                        </div>
+
                       </div>
                     }
                   </div>
                 } @else {
-                  <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
-                    No se registran trámites históricos en el sistema para este automotor.
-                  </div>
-                }
-
-                <!-- Novedades / Gravámenes -->
-                <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                  @if (ciudadano()?.vehiculo?.novedades && ciudadano()!.vehiculo.novedades.length > 0) {
-                    <div class="flex items-center gap-2 text-amber-800 font-semibold bg-amber-50 px-3 py-1 rounded-lg border border-amber-200 w-full">
-                      <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
-                      <span>Registra novedades: {{ ciudadano()!.vehiculo.novedades.length }} novedad(es) activa(s).</span>
-                    </div>
-                  } @else {
-                    <div class="flex items-center gap-2 text-emerald-700 font-semibold bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-200 w-full">
-                      <i class="fa-solid fa-shield-halved text-emerald-600"></i>
-                      <span>Estado de Gravámenes y Embargos: Sin novedades ni limitaciones registradas.</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            </div>
-
-            <!-- SECCIÓN 3:  DEUDAS VIGENTES (PROPUESTA BLANCA CON <HR>) -->
-            <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-sm">
-              <!-- Encabezado Blanco -->
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div class="flex items-center gap-3.5">
-                  <div class="w-10 h-10 rounded-xl bg-blue-50 text-[#0f4984] flex items-center justify-center text-base border border-blue-100 font-bold shrink-0">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
-                  </div>
-                  <div>
-                    <h3 class="text-sm sm:text-base font-extrabold text-slate-900 m-0 leading-tight uppercase tracking-wide">INFORMACIÓN DEUDAS VIGENTES</h3>
-                    <span class="text-[11.5px] text-slate-500 font-medium block mt-0.5">Estado de cuenta del impuesto vehicular y opciones de pago PSE</span>
-                  </div>
-                </div>
-
-                <button 
-                  (click)="cambiarTab('liquidaciones')" 
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer shrink-0"
-                >
-                  <span>Ver Liquidaciones</span>
-                  <i class="fa-solid fa-arrow-right text-[10px]"></i>
-                </button>
-              </div>
-
-              <hr class="border-t border-slate-200/80 my-4" />
-
-              <!-- Summary Table -->
-              @if (ciudadano()?.vehiculo?.liquidaciones && ciudadano()!.vehiculo.liquidaciones.length > 0) {
-                <div class="overflow-x-auto">
-                  <table class="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px]">
-                        <th class="py-3 px-4">Vigencia</th>
-                        <th class="py-3 px-4">Detalle</th>
-                        <th class="py-3 px-4">Estado</th>
-                        <th class="py-3 px-4">Valor ($ COP)</th>
-                        <th class="py-3 px-6">Estado de la transacción</th>
-                        <th class="py-3 px-4 text-right">Acción</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                      @for (liq of ciudadano()?.vehiculo?.liquidaciones; track liq.id) {
-                        <tr class="hover:bg-slate-50 transition-colors">
-                          <td class="py-3.5 px-4 font-bold text-slate-900 font-mono">
-                            {{ liq.vigencia }}
-                          </td>
-
-                          <td class="py-3.5 px-4">
-                            <span class="font-semibold text-slate-800 block text-xs">{{ liq.detalle }}</span>
-                            <span class="text-[10px] text-slate-400 font-mono block">Placa: {{ liq.placa }}</span>
-                          </td>
-
-                          <td class="py-3.5 px-4">
-                            <span 
-                              class="px-2.5 py-0.5 rounded-md text-[11px] font-bold inline-flex items-center gap-1 border"
-                              [ngClass]="liq.esPagada ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
-                            >
-                              <i class="fa-solid text-[9px]" [ngClass]="liq.esPagada ? 'fa-circle-check text-emerald-600' : 'fa-clock text-amber-600'"></i>
-                              {{ liq.esPagada ? 'Satisfecho' : liq.estado }}
-                            </span>
-                          </td>
-
-                          <td class="py-3.5 px-4 font-mono font-extrabold text-slate-900 text-sm">
-                            ${{ liq.valor | number:'1.0-0' }} COP
-                          </td>
-
-                          <td class="py-3.5 px-6 text-center">
-                            @let badge = getEstadoTransaccionBadge(liq.liquidacionId);
-                            <div class="inline-flex items-center justify-center gap-2">
-                              <span 
-                                class="px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 border transition-all"
-                                [ngClass]="badge.clase"
-                                [title]="estadosTransaccion()[liq.liquidacionId]?.estado_Descripcion || badge.texto"
-                              >
-                                <i [ngClass]="badge.icono" class="text-[10px]"></i>
-                                <span>{{ badge.texto }}</span>
-                              </span>
-
-                              <button
-                                type="button"
-                                (click)="consultarEstadoTransaccion(liq)"
-                                [disabled]="consultandoEstadoId() === liq.liquidacionId"
-                                title="Consultar y actualizar estado de la transacción en la pasarela"
-                                class="w-7 h-7 rounded-lg bg-white hover:bg-[#0f4984] hover:text-white text-slate-500 flex items-center justify-center transition-all border border-slate-200 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                              >
-                                <i 
-                                  class="fa-solid fa-arrows-rotate text-[11px]" 
-                                  [ngClass]="{'fa-spin': consultandoEstadoId() === liq.liquidacionId}"
-                                ></i>
-                              </button>
-                            </div>
-                          </td>
-
-                          <td class="py-3.5 px-4 text-right">
-                            @if (!liq.esPagada && liq.valor > 0) {
-                              <div class="inline-flex items-center justify-end gap-2">
-                                <button 
-                                  (click)="descargarFactura(liq)" 
-                                  [disabled]="descargandoPdfId() === liq.liquidacionId"
-                                  type="button" 
-                                  title="Descargar liquidación oficial con código de barras para pago en banco"
-                                  class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0f4984] text-xs font-bold rounded-lg border border-slate-300 shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                  @if (descargandoPdfId() === liq.liquidacionId) {
-                                    <i class="fa-solid fa-spinner fa-spin text-xs text-[#0f4984]"></i>
-                                    <span>Generando...</span>
-                                  } @else {
-                                    <i class="fa-solid fa-file-arrow-down text-xs text-rose-600"></i>
-                                    <span>Descargar</span>
-                                  }
-                                </button>
-
-                                <button 
-                                  (click)="abrirPago(liq)" 
-                                  type="button" 
-                                  class="px-4 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer border-none shrink-0"
-                                >
-                                  Ir a pagar.
-                                </button>
-                              </div>
-                            } @else {
-                              <span class="text-emerald-600 font-bold text-xs inline-flex items-center gap-1">
-                                <i class="fa-solid fa-check"></i> Al Día
-                              </span>
-                            }
-                          </td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                </div>
-              } @else {
-                <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
-                  No se registran liquidaciones emitidas para este automotor.
-                </div>
-              }
-            </div>
-
-          </div>
-        }
-
-     
-        @if (activeTab() === 'historial') {
-          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
-            
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/80 pb-4">
-              <div>
-                <h2 class="text-base font-extrabold text-slate-900 m-0">Historial de Trámites y Movimientos</h2>
-                <p class="text-xs text-slate-500 mt-1 m-0">Registro cronológico oficial de la hoja de vida del automotor con placa <strong class="font-mono text-slate-800">{{ ciudadano()?.vehiculo?.placa }}</strong>.</p>
-              </div>
-              <span class="px-3 py-1 bg-blue-50 text-[#0f4984] font-bold text-xs rounded-lg border border-blue-100 flex items-center gap-1.5 shrink-0">
-                <i class="fa-solid fa-clock-rotate-left text-blue-600 text-xs"></i>
-                Línea de Tiempo Oficial
-              </span>
-            </div>
-
-            @if (ciudadano()?.vehiculo?.historial && ciudadano()!.vehiculo.historial.length > 0) {
-              <div class="relative space-y-2 py-2">
-                
-                @for (ev of ciudadano()?.vehiculo?.historial; track $index) {
-                  <div class="group relative flex items-center gap-3 sm:gap-4">
-                    
-                    <div class="relative w-12 sm:w-16 h-16 shrink-0 select-none flex items-center justify-center">
-                      <svg class="absolute inset-0 w-full h-full overflow-visible pointer-events-none" viewBox="0 0 64 64">
-                        <line x1="24" y1="0" x2="24" y2="64" stroke="#cbd5e1" stroke-width="2" />
-                        
-                        <line x1="24" y1="0" x2="24" y2="64" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" stroke-opacity="0.85" />
-                        @if (ev.trackIndex === 1) {
-                          <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#f59e0b" stroke-width="2" />
-                        }
-                        @if (ev.trackIndex === 2) {
-                          <path d="M 24 0 Q 24 32, 42 32" fill="none" stroke="#10b981" stroke-width="2" />
-                        }
-
-                        <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="8" fill="white" [attr.stroke]="ev.colorHex || '#0f4984'" stroke-width="2.5" />
-                        <circle [attr.cx]="ev.trackIndex === 0 ? 24 : 42" cy="32" r="3.5" [attr.fill]="ev.colorHex || '#0f4984'" />
-                      </svg>
-                    </div>
-
-                    <div class="flex-1 bg-slate-50/80 group-hover:bg-blue-50/40 border border-slate-200/90 group-hover:border-blue-200 rounded-xl p-3.5 sm:p-4 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-                      
-                      <div class="space-y-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <span class="px-2.5 py-0.5 rounded-full text-[10.5px] font-extrabold border shrink-0" [ngClass]="ev.badgeClass || 'bg-blue-100 text-[#0f4984] border-blue-200'">
-                            {{ ev.categoriaNombre || 'Trámite' }}
-                          </span>
-
-                          <h3 class="text-xs sm:text-sm font-extrabold text-slate-900 m-0 truncate group-hover:text-[#0f4984] transition-colors">
-                            {{ ev.accion }}
-                          </h3>
-                        </div>
-
-                        @if (ev.usuario) {
-                          <div class="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
-                            <i class="fa-solid fa-building-columns text-slate-400 text-[10px]"></i>
-                            <span>{{ ev.usuario }}</span>
-                          </div>
-                        }
-                      </div>
-
-                      <!-- FECHA Y HORA EN FORMATO ESPAÑOL ELEGANTE -->
-                      <div class="shrink-0 text-left sm:text-right">
-                        <div class="inline-flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-lg border border-slate-200/90 shadow-2xs">
-                          <span class="text-xs font-extrabold text-slate-800 flex items-center gap-1">
-                            <i class="fa-regular fa-calendar-check text-blue-600 text-xs"></i>
-                            {{ ev.fechaFormateada || ev.fecha }}
-                          </span>
-                          @if (ev.horaFormateada) {
-                            <span class="text-[10.5px] font-mono font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                              <i class="fa-regular fa-clock text-slate-400 mr-0.5"></i>
-                              {{ ev.horaFormateada }}
-                            </span>
-                          }
-                        </div>
-                      </div>
-
-                    </div>
-
+                  <div class="p-8 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-500 text-center space-y-2">
+                    <i class="fa-solid fa-file-circle-xmark text-3xl text-slate-400 block mb-1"></i>
+                    <p class="font-extrabold text-slate-800 text-sm m-0">No registra certificados o paz y salvo disponibles para descarga.</p>
+                    <p class="text-slate-500 text-xs m-0">Los certificados de paz y salvo se emiten automáticamente para las vigencias pagadas o cuando el vehículo se encuentra al día con sus obligaciones tributarias.</p>
                   </div>
                 }
 
               </div>
-            } @else {
-              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center font-medium">
-                No registra trámites históricos en el sistema.
-              </div>
-            }
-
-          </div>
-        }
-
-        @if (activeTab() === 'liquidaciones') {
-          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <h2 class="text-base font-bold text-slate-900 m-0">Liquidaciones Oficiales del Impuesto Vehicular</h2>
-                <p class="text-xs text-slate-500 mt-1 m-0">Consulte el estado de sus vigencias tributarias y realice el pago seguro por PSE.</p>
-              </div>
             </div>
 
-            @if (ciudadano()?.vehiculo?.liquidaciones && ciudadano()!.vehiculo.liquidaciones.length > 0) {
-              <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px]">
-                      <th class="py-3 px-4">Vigencia</th>
-                      <th class="py-3 px-4">Placa</th>
-                      <th class="py-3 px-4">Detalle / Referencia</th>
-                      <th class="py-3 px-4">Valor</th>
-                      <th class="py-3 px-4">Estado</th>
-                      <th class="py-3 px-6 text-center">Estado de la transacción</th>
-                      <th class="py-3 px-4 text-right">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    @for (l of ciudadano()?.vehiculo?.liquidaciones; track l.id) {
-                      <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="py-3.5 px-4 font-bold text-slate-800">{{ l.vigencia }}</td>
-                        <td class="py-3.5 px-4 font-mono font-semibold text-slate-600">{{ l.placa }}</td>
-                        <td class="py-3.5 px-4 text-slate-700">{{ l.detalle }}</td>
-                        <td class="py-3.5 px-4 font-mono font-extrabold text-slate-900">${{ l.valor | number:'1.0-0' }} COP</td>
-                        <td class="py-3.5 px-4">
-                          <span 
-                            class="px-2.5 py-0.5 rounded-full text-[11px] font-bold"
-                            [ngClass]="l.esPagada ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-800 border border-amber-200'"
-                          >
-                            {{ l.esPagada ? 'Satisfecho' : l.estado }}
-                          </span>
-                        </td>
-                        <td class="py-3.5 px-6 text-center">
-                          @let badgeL = getEstadoTransaccionBadge(l.liquidacionId);
-                          <div class="inline-flex items-center justify-center gap-2">
-                            <span 
-                              class="px-2.5 py-1 rounded-md text-[11px] font-bold inline-flex items-center gap-1.5 border transition-all"
-                              [ngClass]="badgeL.clase"
-                              [title]="estadosTransaccion()[l.liquidacionId]?.estado_Descripcion || badgeL.texto"
-                            >
-                              <i [ngClass]="badgeL.icono" class="text-[10px]"></i>
-                              <span>{{ badgeL.texto }}</span>
-                            </span>
-
-                            <button
-                              type="button"
-                              (click)="consultarEstadoTransaccion(l)"
-                              [disabled]="consultandoEstadoId() === l.liquidacionId"
-                              title="Consultar y actualizar estado de la transacción en la pasarela"
-                              class="w-7 h-7 rounded-lg bg-white hover:bg-[#0f4984] hover:text-white text-slate-500 flex items-center justify-center transition-all border border-slate-200 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                            >
-                              <i 
-                                class="fa-solid fa-arrows-rotate text-[11px]" 
-                                [ngClass]="{'fa-spin': consultandoEstadoId() === l.liquidacionId}"
-                              ></i>
-                            </button>
-                          </div>
-                        </td>
-                        <td class="py-3.5 px-4 text-right">
-                          @if (!l.esPagada && l.valor > 0) {
-                            <div class="inline-flex items-center justify-end gap-2">
-                              <button 
-                                (click)="descargarFactura(l)" 
-                                [disabled]="descargandoPdfId() === l.liquidacionId"
-                                type="button" 
-                                title="Descargar liquidación oficial con código de barras para pago en banco"
-                                class="px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 hover:text-[#0f4984] text-xs font-bold rounded-lg border border-slate-300 shadow-2xs transition-all cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                @if (descargandoPdfId() === l.liquidacionId) {
-                                  <i class="fa-solid fa-spinner fa-spin text-xs text-[#0f4984]"></i>
-                                  <span>Generando...</span>
-                                } @else {
-                                  <i class="fa-solid fa-file-arrow-down text-xs text-rose-600"></i>
-                                  <span>Descargar</span>
-                                }
-                              </button>
-
-                              <button (click)="abrirPago(l)" class="px-3.5 py-1.5 bg-[#0f4984] hover:bg-[#0c3c6d] text-white font-bold rounded-lg cursor-pointer shrink-0">
-                                Pagar PSE
-                              </button>
-                            </div>
-                          } @else {
-                            <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i>Pagado</span>
-                          }
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            } @else {
-              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center">
-                No registra liquidaciones en el sistema.
-              </div>
-            }
-          </div>
-        }
-
-        @if (activeTab() === 'certificados') {
-          <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6 animate-fadeIn">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-              <div>
-                <h2 class="text-base font-bold text-slate-900 m-0">Certificados y Paz y Salvo Oficiales</h2>
-                <p class="text-xs text-slate-500 mt-1 m-0">Descargue directamente los soportes en formato PDF para las vigencias satisfechas.</p>
-              </div>
-            </div>
-
-            @if (ciudadano()?.certificados && ciudadano()!.certificados.length > 0) {
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @for (c of ciudadano()?.certificados; track c.id) {
-                  <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                    <div>
-                      <h3 class="font-bold text-xs text-slate-900 m-0">{{ c.tipo }}</h3>
-                      <span class="text-[10px] text-slate-500 font-mono block mt-1">Código de Verificación: {{ c.codigo }}</span>
-                      <span class="text-[10px] text-slate-400 block mt-0.5">Fecha de Emisión: {{ c.fecha }}</span>
-                    </div>
-                    <button type="button" class="px-3.5 py-2 bg-[#0f4984] hover:bg-[#0c3c6d] text-white text-xs font-bold rounded-lg cursor-pointer flex items-center gap-1.5 shadow-2xs">
-                      <i class="fa-solid fa-download"></i>
-                      <span>Descargar PDF</span>
-                    </button>
-                  </div>
-                }
-              </div>
-            } @else {
-              <div class="p-8 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 text-center space-y-2">
-                <i class="fa-solid fa-file-circle-xmark text-2xl text-slate-400 block mb-1"></i>
-                <p class="font-semibold text-slate-700 m-0">No registra certificados o paz y salvo disponibles para descarga.</p>
-                <p class="text-slate-400 text-[11px] m-0">Los certificados de paz y salvo se emiten exclusivamente para las vigencias pagadas o cuando no registra deudas vigentes.</p>
-              </div>
-            }
           </div>
         }
 
       }
-
     </main>
   </div>
 }
 
+<!-- MODAL PASARELA DE PAGO -->
 @defer (when liquidacionParaPagar()) {
   @if (liquidacionParaPagar(); as liq) {
     <app-portal-ciudadano-detalle-pago
