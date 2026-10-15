@@ -45,19 +45,20 @@
       />
 
     </div>
-
-    <!-- PANEL LATERAL DE DETALLE / EXPEDIENTE -->
-    @if (facade.selectedVehiculo(); as sv) {
-      <app-vehiculos-expediente-panel
-        [vehiculo]="sv"
-        (cerrar)="facade.deseleccionarVehiculo()"
-        (editar)="onEditarVehiculo($event)"
-        (consultarRunt)="facade.abrirRunt($event)"
-        (inactivar)="facade.abrirInactivar($event)" />
-    }
-
   </div>
 </main>
+
+<!-- MODAL DE DETALLE / EXPEDIENTE VEHICULAR -->
+@if (facade.selectedVehiculo(); as sv) {
+  @if (!facade.isDrawerOpen()) {
+    <app-vehiculos-expediente-panel
+      [vehiculo]="sv"
+      (cerrar)="facade.deseleccionarVehiculo()"
+      (editar)="onEditarVehiculo($event)"
+      (consultarRunt)="facade.abrirRunt($event)"
+      (inactivar)="facade.abrirInactivar($event)" />
+  }
+}
 
 <!-- WIZARD MULTI-PASO REGISTRO / EDICIÓN -->
 <app-vehiculo-wizard (toastEmit)="onToast($event)" />

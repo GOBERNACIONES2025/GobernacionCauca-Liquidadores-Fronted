@@ -252,18 +252,24 @@ export class VehiculosFacade {
   }
 
   abrirRegistro(): void {
+    this.deseleccionarVehiculo();
     this.catalogos.cargarCatalogos();
     this.operaciones.abrirRegistro();
   }
 
-  abrirExpediente(v: VehiculoItem): void {
+  abrirEdicion(v: VehiculoItem): void {
     this.catalogos.cargarCatalogos();
     this.seleccionarVehiculo(v);
     this.operaciones.abrirExpediente();
   }
 
+  abrirExpediente(v: VehiculoItem): void {
+    this.abrirEdicion(v);
+  }
+
   cerrarRegistro(): void {
     this.operaciones.cerrarRegistro();
+    this.deseleccionarVehiculo();
   }
 
   setStep(stepNumber: number): void {

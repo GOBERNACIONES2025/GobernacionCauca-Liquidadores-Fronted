@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehiculoItem } from '../../../../domain/models/vehiculo.model';
 import { VehiculosFacade } from '../../../../application/facades/vehiculos.facade';
@@ -17,4 +17,9 @@ export class VehiculosExpedientePanelComponent {
   @Output() editar = new EventEmitter<VehiculoItem>();
   @Output() consultarRunt = new EventEmitter<string>();
   @Output() inactivar = new EventEmitter<VehiculoItem>();
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.cerrar.emit();
+  }
 }

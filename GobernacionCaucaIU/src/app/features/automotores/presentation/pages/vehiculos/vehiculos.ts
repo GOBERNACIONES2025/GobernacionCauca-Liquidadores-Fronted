@@ -94,11 +94,11 @@ export class Vehiculos implements OnInit, OnDestroy {
   }
 
   onVerDetalleVehiculo(v: VehiculoItem): void {
-    this.facade.abrirExpediente(v);
+    this.facade.seleccionarVehiculo(v);
   }
 
   onEditarVehiculo(v: VehiculoItem): void {
-    this.facade.abrirExpediente(v);
+    this.facade.abrirEdicion(v);
   }
 
   // ─── Control de Auditoría y Pendientes ────────────────────────────────────
