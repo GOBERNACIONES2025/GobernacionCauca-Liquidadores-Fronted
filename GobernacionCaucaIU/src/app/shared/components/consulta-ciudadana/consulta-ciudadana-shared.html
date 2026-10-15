@@ -196,29 +196,6 @@
 
       </form>
 
-      <!-- Accesos Rápidos de Prueba (Adaptativos) -->
-      @if (config().quickExamples.length > 0) {
-        <div class="px-6 pb-6 pt-2 bg-slate-50 border-t border-slate-100">
-          <span class="text-[10.5px] font-bold text-slate-400 uppercase tracking-wider block mb-2 text-center">
-            Perfiles Rápidos de Prueba:
-          </span>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            @for (ej of config().quickExamples; track ej.label) {
-              <button
-                type="button"
-                (click)="cargarEjemplo(ej)"
-                class="p-2.5 bg-white hover:bg-blue-50/70 border border-slate-200 hover:border-blue-300 rounded-xl text-left transition-all cursor-pointer group shadow-2xs"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-bold text-slate-800 group-hover:text-[#0f4984] truncate">{{ ej.label }}</span>
-                  <span class="text-[9.5px] font-mono font-bold bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded shrink-0">{{ ej.secondary }}</span>
-                </div>
-                <span class="text-[9.5px] text-slate-400 block mt-0.5">CC {{ ej.doc }} &middot; {{ ej.tag }}</span>
-              </button>
-            }
-          </div>
-        </div>
-      }
 
     }
 
