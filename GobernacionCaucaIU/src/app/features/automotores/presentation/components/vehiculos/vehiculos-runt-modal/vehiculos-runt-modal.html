@@ -7,7 +7,7 @@
         <h3 class="text-base font-bold text-slate-900 m-0">Consultar RUNT</h3>
         <p class="text-xs text-slate-400 mt-0.5 mb-0">Registro Único Nacional de Tránsito — Consulta en tiempo real</p>
       </div>
-      <button (click)="cerrar.emit()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent">
+      <button (click)="cerrar.emit()" class="text-slate-400 hover:text-slate-600 p-1 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer border-none bg-transparent">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
         </svg>
@@ -39,7 +39,7 @@
             type="button"
             (click)="consultar.emit()"
             [disabled]="facade.operaciones.runtLoading()"
-            class="bg-[#1e3a7b] hover:bg-[#162c5b] text-white font-semibold px-4 py-2 rounded-lg text-xs flex items-center gap-2 transition-colors shadow-sm cursor-pointer whitespace-nowrap border-none disabled:opacity-50">
+            class="bg-[#1e3a7b] hover:bg-[#162c5b] text-white font-semibold px-4 py-2 rounded-xl text-xs flex items-center gap-2 transition-colors shadow-sm cursor-pointer whitespace-nowrap border-none disabled:opacity-50">
             @if (facade.operaciones.runtLoading()) {
               <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -58,7 +58,7 @@
     </div>
 
     <div class="p-3 bg-slate-50 border-t border-slate-100 flex justify-end">
-      <button (click)="cerrar.emit()" class="border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer">
+      <button (click)="cerrar.emit()" class="border border-slate-300 text-slate-700 bg-white hover:bg-slate-50 px-4 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer">
         Cerrar
       </button>
     </div>

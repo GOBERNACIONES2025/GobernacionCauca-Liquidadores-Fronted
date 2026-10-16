@@ -21,7 +21,7 @@
         <select
           [value]="filtroEvento()"
           (change)="onFiltroEventoChange($event)"
-          class="appearance-none h-[32px] pl-3.5 pr-7 rounded-full border border-slate-300 bg-white text-[12px] text-slate-700 outline-none cursor-pointer hover:border-slate-400 focus:border-[#1b53ad] transition-all shadow-2xs">
+          class="appearance-none h-[32px] pl-3.5 pr-7 rounded-xl border border-slate-300 bg-white text-[12px] text-slate-700 outline-none cursor-pointer hover:border-slate-400 focus:border-[#1b53ad] transition-all shadow-2xs">
           <option value="Todos">Eventos &gt;</option>
           <option value="Traspaso">Traspaso</option>
           <option value="Liquidación">Liquidación</option>
@@ -38,7 +38,7 @@
         <select
           [value]="filtroPeriodo()"
           (change)="onFiltroPeriodoChange($event)"
-          class="appearance-none h-[32px] pl-3.5 pr-7 rounded-full border border-slate-300 bg-white text-[12px] text-slate-700 outline-none cursor-pointer hover:border-slate-400 focus:border-[#1b53ad] transition-all shadow-2xs">
+          class="appearance-none h-[32px] pl-3.5 pr-7 rounded-xl border border-slate-300 bg-white text-[12px] text-slate-700 outline-none cursor-pointer hover:border-slate-400 focus:border-[#1b53ad] transition-all shadow-2xs">
           <option value="Todos">Todos &gt;</option>
           @for (a of aniosDisponibles(); track a) {
             <option [value]="a">{{ a }}</option>
@@ -53,7 +53,7 @@
       <button
         type="button"
         title="Filtros avanzados"
-        class="w-[32px] h-[32px] rounded-full border border-slate-300 bg-white hover:border-slate-400 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shadow-2xs">
+        class="w-[32px] h-[32px] rounded-xl border border-slate-300 bg-white hover:border-slate-400 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer shadow-2xs">
         <i class="fa-solid fa-sliders text-[11px]"></i>
       </button>
 
@@ -63,7 +63,7 @@
     <button
       type="button"
       (click)="descargarHistorial()"
-      class="inline-flex items-center gap-1.5 px-4 h-[32px] rounded-full bg-[#2f63ba] hover:bg-[#2552a1] text-white text-[12px] font-medium shadow-2xs transition-all active:scale-95 cursor-pointer ml-auto">
+      class="inline-flex items-center gap-1.5 px-4 h-[32px] rounded-xl bg-[#2f63ba] hover:bg-[#2552a1] text-white text-[12px] font-medium shadow-2xs transition-all active:scale-95 cursor-pointer ml-auto">
       <span>Descargar</span>
       <i class="fa-solid fa-arrow-down-to-bracket text-[11px]"></i>
     </button>

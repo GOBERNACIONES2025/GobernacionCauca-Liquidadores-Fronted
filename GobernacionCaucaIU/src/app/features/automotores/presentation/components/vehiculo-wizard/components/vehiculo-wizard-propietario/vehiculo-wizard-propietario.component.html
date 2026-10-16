@@ -33,7 +33,7 @@
         type="button" 
         (click)="buscar.emit(0)"
         [disabled]="buscandoIndex === 0 || !form.get('incluirPropietario')?.value"
-        class="h-[36px] px-4 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[12.5px] font-bold flex items-center gap-1.5 cursor-pointer border-none shadow-xs transition-all disabled:opacity-50 shrink-0">
+        class="h-[36px] px-4 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[12.5px] font-bold flex items-center gap-1.5 cursor-pointer border-none shadow-xs transition-all disabled:opacity-50 shrink-0">
         @if (buscandoIndex === 0) {
           <i class="fa-solid fa-spinner fa-spin text-xs"></i>
           <span>Buscando...</span>
@@ -49,7 +49,7 @@
         (click)="limpiar.emit(0)"
         [disabled]="!form.get('incluirPropietario')?.value"
         title="Limpiar datos del propietario"
-        class="w-[36px] h-[36px] rounded-full bg-slate-200/80 hover:bg-slate-300 border border-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs shrink-0 disabled:opacity-50">
+        class="w-[36px] h-[36px] rounded-xl bg-slate-200/80 hover:bg-slate-300 border border-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs shrink-0 disabled:opacity-50">
         <i class="fa-solid fa-eraser text-xs text-slate-600"></i>
       </button>
     </div>
@@ -133,7 +133,7 @@
                     type="button" 
                     (click)="eliminarCopropietario.emit(i)"
                     title="Eliminar copropietario"
-                    class="w-7 h-7 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center cursor-pointer border-none transition-colors">
+                    class="w-7 h-7 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center cursor-pointer border-none transition-colors">
                     <i class="fa-regular fa-trash-can text-xs"></i>
                   </button>
                 }
@@ -148,7 +148,7 @@
                 type="button" 
                 (click)="buscar.emit(i)"
                 [disabled]="buscandoIndex === i"
-                class="h-[36px] px-4 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[12.5px] font-bold flex items-center gap-1.5 cursor-pointer border-none shadow-xs transition-all disabled:opacity-50 shrink-0">
+                class="h-[36px] px-4 rounded-xl bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-[12.5px] font-bold flex items-center gap-1.5 cursor-pointer border-none shadow-xs transition-all disabled:opacity-50 shrink-0">
                 @if (buscandoIndex === i) {
                   <i class="fa-solid fa-spinner fa-spin text-xs"></i>
                   <span>Buscando...</span>
@@ -162,7 +162,7 @@
                 type="button" 
                 (click)="limpiar.emit(i)"
                 title="Limpiar datos del copropietario"
-                class="w-[36px] h-[36px] rounded-full bg-slate-200/80 hover:bg-slate-300 border border-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs shrink-0">
+                class="w-[36px] h-[36px] rounded-xl bg-slate-200/80 hover:bg-slate-300 border border-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-colors shadow-2xs shrink-0">
                 <i class="fa-solid fa-eraser text-xs text-slate-600"></i>
               </button>
             </div>

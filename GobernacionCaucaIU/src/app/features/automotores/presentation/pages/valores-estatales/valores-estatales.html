@@ -775,7 +775,7 @@
 <!-- ========================================================================= -->
 @if (itemParaEliminar()) {
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
-    <div class="w-full max-w-sm bg-white rounded-lg shadow-xl p-6 text-center space-y-4">
+    <div class="w-full max-w-sm bg-white rounded-xl shadow-xl p-6 text-center space-y-4">
       <div class="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-xl mx-auto shadow-xs">
         <i class="fa-solid fa-trash-can"></i>
       </div>
@@ -793,14 +793,14 @@
         <button
           type="button"
           (click)="cerrarEliminar()"
-          class="flex-1 px-4 py-2 rounded-md text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
+          class="flex-1 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
         >
           Cancelar
         </button>
         <button
           type="button"
           (click)="confirmarEliminacion()"
-          class="flex-1 px-4 py-2 rounded-md text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-sm transition cursor-pointer border-none"
+          class="flex-1 px-4 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-700 shadow-sm transition cursor-pointer border-none"
         >
           Sí, Eliminar
         </button>
