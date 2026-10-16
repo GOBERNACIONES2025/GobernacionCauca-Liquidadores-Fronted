@@ -1,10 +1,10 @@
 @if (facade.isFacturaModalOpen()) {
   <div class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
-    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+    <div class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-4xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
 
       <div class="bg-[#0f2d59] text-white px-5 py-3.5 flex items-center justify-between shrink-0 shadow-md">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white">
+          <div class="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white">
             <i class="fa-solid fa-receipt text-base"></i>
           </div>
           <div>
@@ -23,7 +23,7 @@
             [disabled]="facade.isFacturaLoading()"
             type="button"
             title="Imprimir Declaración"
-            class="inline-flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 cursor-pointer transition-all disabled:opacity-50">
+            class="inline-flex items-center gap-1.5 h-8 px-3 rounded-xl text-xs font-bold bg-white/15 hover:bg-white/25 text-white border border-white/20 cursor-pointer transition-all disabled:opacity-50">
             <i class="fa-solid fa-print"></i>
             <span>Imprimir</span>
           </button>
@@ -32,7 +32,7 @@
             (click)="facade.cerrarFacturaModal()"
             type="button"
             title="Cerrar Visor"
-            class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border-none cursor-pointer transition-colors ml-1">
+            class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center border-none cursor-pointer transition-colors ml-1">
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
@@ -50,7 +50,7 @@
             <iframe
               id="facturaIframe"
               [srcdoc]="getSafeHtml(facade.facturaPreviewHtml())"
-              class="w-full h-[76vh] rounded-lg shadow-xl border border-slate-300 bg-white"
+              class="w-full h-[76vh] rounded-xl shadow-xl border border-slate-300 bg-white"
               title="Declaración Oficial de Impuesto Vehicular">
             </iframe>
           </div>
