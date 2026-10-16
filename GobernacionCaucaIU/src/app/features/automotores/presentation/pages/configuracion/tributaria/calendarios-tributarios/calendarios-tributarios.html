@@ -94,17 +94,24 @@
   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
       <!-- Búsqueda por texto -->
-      <div class="lg:col-span-2 relative">
+      <div class="lg:col-span-2 relative flex items-center">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
           <i class="fa-solid fa-magnifying-glass text-xs"></i>
         </div>
         <input
           type="text"
-          [ngModel]="facade.searchTerm()"
-          (ngModelChange)="onSearch($event)"
+          [(ngModel)]="searchTermLocal"
+          (keydown.enter)="onSearch()"
           placeholder="Buscar por vigencia, fechas o norma..."
-          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+          class="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
         />
+        <button
+          type="button"
+          (click)="onSearch()"
+          title="Buscar"
+          class="absolute right-1.5 w-6 h-6 rounded-lg bg-[#184a8c] hover:bg-[#12396d] text-white flex items-center justify-center transition cursor-pointer border-none shadow-2xs text-[10px]">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
       </div>
 
       <!-- Filtro Vigencia Fiscal -->

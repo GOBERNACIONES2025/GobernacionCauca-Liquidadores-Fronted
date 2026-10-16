@@ -10,8 +10,7 @@
       <div class="relative flex items-center min-w-[240px] sm:min-w-[280px]">
         <input
           type="text"
-          [value]="filtroTexto"
-          (input)="onSearchInput($event)"
+          [(ngModel)]="textoLocal"
           (keydown.enter)="onSearchEnter()"
           placeholder="Buscar placa, propietario, C.C..."
           class="h-[36px] w-full pl-4 pr-10 rounded-full border border-slate-200 bg-slate-50/50 text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a7b] focus:ring-2 focus:ring-blue-100 transition-all"

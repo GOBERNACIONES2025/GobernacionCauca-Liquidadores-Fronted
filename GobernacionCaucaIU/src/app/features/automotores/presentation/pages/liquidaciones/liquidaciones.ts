@@ -28,14 +28,16 @@ export class LiquidacionesPage implements OnInit {
   readonly facade = inject(LiquidacionesFacade);
 
   placaBuscarModal: string = '';
+  textoBuscar: string = '';
 
   ngOnInit(): void {
     this.facade.cargarLiquidaciones();
     this.facade.cargarKpis();
+    this.textoBuscar = this.facade.buscar();
   }
 
-  onBuscar(query: string): void {
-    this.facade.setBuscar(query);
+  onBuscar(): void {
+    this.facade.setBuscar(this.textoBuscar.trim());
   }
 
   onSimularDirecto(): void {

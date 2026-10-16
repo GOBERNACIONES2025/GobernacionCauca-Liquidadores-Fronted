@@ -35,6 +35,7 @@ export class CatalogoTableViewComponent {
   reload = output<void>();
 
   searchQuery = signal<string>('');
+  searchLocal: string = '';
   currentPage = signal<number>(1);
   pageSize = signal<number>(10);
 
@@ -63,8 +64,14 @@ export class CatalogoTableViewComponent {
     return this.filteredItems().slice(start, start + size);
   });
 
-  onSearchChange(term: string) {
-    this.searchQuery.set(term);
+  onExecuteSearch(): void {
+    this.searchQuery.set(this.searchLocal.trim());
+    this.currentPage.set(1);
+  }
+
+  onClearSearch(): void {
+    this.searchLocal = '';
+    this.searchQuery.set('');
     this.currentPage.set(1);
   }
 

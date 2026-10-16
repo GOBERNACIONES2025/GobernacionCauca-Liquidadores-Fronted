@@ -1,14 +1,15 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { VehiculoItem } from '../../../../domain/models/vehiculo.model';
 
 @Component({
   selector: 'app-vehiculos-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './vehiculos-table.component.html'
 })
-export class VehiculosTableComponent {
+export class VehiculosTableComponent implements OnChanges {
   @Input() vehiculos: VehiculoItem[] = [];
   @Input() loading: boolean = false;
   @Input() totalRegistros: number = 0;
@@ -18,7 +19,6 @@ export class VehiculosTableComponent {
   @Input() filtroEstado: string = 'Todos';
   @Input() filtroTipo: string = 'Todos';
 
-  @Output() searchChange = new EventEmitter<string>();
   @Output() searchEnter = new EventEmitter<string>();
   @Output() estadoChange = new EventEmitter<string>();
   @Output() tipoChange = new EventEmitter<string>();
@@ -27,13 +27,16 @@ export class VehiculosTableComponent {
   @Output() editarVehiculo = new EventEmitter<VehiculoItem>();
   @Output() cambiarPagina = new EventEmitter<number>();
 
-  onSearchInput(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.searchChange.emit(input.value);
+  textoLocal: string = '';
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['filtroTexto']) {
+      this.textoLocal = this.filtroTexto || '';
+    }
   }
 
   onSearchEnter(): void {
-    this.searchEnter.emit(this.filtroTexto);
+    this.searchEnter.emit(this.textoLocal.trim());
   }
 
   onEstadoChange(event: Event): void {
