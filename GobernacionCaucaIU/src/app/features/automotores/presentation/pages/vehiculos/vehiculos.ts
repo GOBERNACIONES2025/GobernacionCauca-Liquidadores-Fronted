@@ -42,9 +42,6 @@ export class Vehiculos implements OnInit, OnDestroy {
   readonly facade = inject(VehiculosFacade);
   readonly liqFacade = inject(LiquidacionesFacade);
 
-  private searchSubject = new Subject<string>();
-  private searchSub?: Subscription;
-
   readonly toastMessage = signal<{ title: string; desc: string; type: 'success' | 'error' | 'info' } | null>(null);
   readonly vehiculoAuditoriaSeleccionado = signal<VehiculoItem | null>(null);
 
@@ -61,22 +58,10 @@ export class Vehiculos implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.searchSub = this.searchSubject.pipe(
-      debounceTime(350),
-      distinctUntilChanged()
-    ).subscribe(text => {
-      this.facade.setFiltroTexto(text);
-    });
     this.facade.refrescarDashboard();
   }
 
   ngOnDestroy(): void {
-    this.searchSub?.unsubscribe();
-  }
-
-  onFiltroTextoChange(val: string): void {
-    this.facade.filtroTexto.set(val);
-    this.searchSubject.next(val);
   }
 
   onSearchVehiculos(term: string): void {

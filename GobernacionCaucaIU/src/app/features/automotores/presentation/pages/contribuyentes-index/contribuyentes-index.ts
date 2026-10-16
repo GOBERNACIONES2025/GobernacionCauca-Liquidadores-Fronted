@@ -27,11 +27,19 @@ export class ContribuyentesIndex implements OnInit {
   isFormOpen: boolean = false;
   formLoading: boolean = false;
   contribuyenteToEdit: Contribuyente | null = null;
+  textoBuscar: string = '';
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
+    this.textoBuscar = this.facade.filtroTexto();
     this.facade.cargarContribuyentes(1, 10);
+  }
+
+  onBuscar(): void {
+    const term = this.textoBuscar.trim();
+    this.facade.filtroTexto.set(term);
+    this.facade.cargarContribuyentes(1, this.facade.pageSize(), term || undefined);
   }
 
   openDrawer(contribuyente: Contribuyente): void {

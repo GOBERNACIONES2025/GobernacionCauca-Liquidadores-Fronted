@@ -6,7 +6,6 @@
       <app-vehiculos-header
         [pendientesCount]="facade.kpis().totalPendientesAprobacion || 0"
         [searchTexto]="facade.filtroTexto()"
-        (searchChange)="onFiltroTextoChange($event)"
         (searchEnter)="onSearchVehiculos($event)"
         (abrirPendientes)="facade.abrirModalPendientes()"
         (abrirRegistro)="onAbrirRegistro()"
@@ -34,7 +33,6 @@
         [filtroTexto]="facade.filtroTexto()"
         [filtroEstado]="facade.filtroEstado()"
         [filtroTipo]="facade.filtroTipo()"
-        (searchChange)="onFiltroTextoChange($event)"
         (searchEnter)="onSearchVehiculos($event)"
         (estadoChange)="facade.setFiltroEstado($event)"
         (tipoChange)="facade.setFiltroTipo($event)"

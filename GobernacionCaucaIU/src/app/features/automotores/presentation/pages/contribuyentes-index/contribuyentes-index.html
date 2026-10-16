@@ -91,13 +91,17 @@
             <div class="relative flex items-center min-w-[240px] sm:min-w-[280px]">
               <input 
                 type="text" 
-                [ngModel]="facade.filtroTexto()" 
-                (ngModelChange)="facade.filtroTexto.set($event)"
+                [(ngModel)]="textoBuscar" 
+                (keydown.enter)="onBuscar()"
                 placeholder="Buscar por nombre o documento..." 
                 class="h-[36px] w-full pl-4 pr-10 rounded-full border border-slate-200 bg-slate-50/50 text-[13px] text-slate-800 placeholder:text-slate-400 focus:outline-none focus:bg-white focus:border-[#1e3a7b] focus:ring-2 focus:ring-blue-100 transition-all" />
-              <div class="absolute right-1 w-7 h-7 rounded-full bg-[#184a8c] text-white flex items-center justify-center pointer-events-none shadow-2xs">
+              <button
+                type="button"
+                (click)="onBuscar()"
+                title="Buscar"
+                class="absolute right-1 w-7 h-7 rounded-full bg-[#184a8c] hover:bg-[#12396d] text-white flex items-center justify-center transition-transform active:scale-95 cursor-pointer border-none shadow-2xs">
                 <i class="fa-solid fa-magnifying-glass text-[11px]"></i>
-              </div>
+              </button>
             </div>
 
             <!-- Dropdown Estados > -->
