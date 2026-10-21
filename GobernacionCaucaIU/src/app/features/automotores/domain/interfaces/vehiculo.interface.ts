@@ -36,6 +36,8 @@ export interface CreateVehiculoRequest {
   vinChasis?: string;
   organismoTransitoId?: number;
   fechaMatricula?: string;
+  fecha_matricula?: string;
+  FechaMatricula?: string;
   propietarios?: PropietarioInicialRequest[] | null;
   propietarioInicial?: PropietarioInicialRequest | null;
 }

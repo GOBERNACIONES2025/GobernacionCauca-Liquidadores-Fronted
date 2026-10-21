@@ -317,7 +317,8 @@ export class VehiculosListFacade {
         pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
         organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
         organismoTransitoId: item.organismoTransitoId || undefined,
-        fechaMatricula: item.fechaMatricula || undefined,
+        fechaMatricula: this.extraerFechaMatricula(item),
+        fecha_matricula: this.extraerFechaMatricula(item),
         estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
         estadoMatriculaId: item.estadoMatriculaId || 1,
         exencion: item.exencion || undefined,
@@ -336,5 +337,45 @@ export class VehiculosListFacade {
         }
       };
     });
+  }
+
+  private extraerFechaMatricula(item: any): string | undefined {
+    if (!item) return undefined;
+    const raw = item.fechaMatricula ??
+      item.fecha_matricula ??
+      item.fecha_Matricula ??
+      item.FechaMatricula ??
+      item.fechaRegistro ??
+      item.fecha_registro ??
+      item.FechaRegistro ??
+      item.fechaExpedicion ??
+      item.fecha_expedicion ??
+      item.FechaExpedicion;
+
+    return this.normalizarFecha(raw);
+  }
+
+  private normalizarFecha(val?: any): string | undefined {
+    if (!val) return undefined;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      const matchIso = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (matchIso) return matchIso[1];
+
+      const matchSlash = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (matchSlash) {
+        const day = matchSlash[1].padStart(2, '0');
+        const month = matchSlash[2].padStart(2, '0');
+        const year = matchSlash[3];
+        return `${year}-${month}-${day}`;
+      }
+    }
+    try {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString().split('T')[0];
+      }
+    } catch {}
+    return undefined;
   }
 }

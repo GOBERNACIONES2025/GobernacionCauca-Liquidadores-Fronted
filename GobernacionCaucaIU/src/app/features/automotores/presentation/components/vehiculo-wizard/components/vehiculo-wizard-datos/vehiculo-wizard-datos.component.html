@@ -208,8 +208,9 @@
       <input 
         formControlName="fechaMatricula" 
         type="date"
+        [max]="maxFecha"
         [class.border-red-400]="hasError('fechaMatricula')"
-        class="w-full h-10 px-3.5 bg-[#EFEFEF] border border-slate-200 rounded-lg text-xs text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73] transition-all" />
+        class="w-full h-10 px-3.5 bg-[#EFEFEF] border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73] transition-all" />
       @if (hasError('fechaMatricula')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('fechaMatricula') }}</span> }
 
       <!-- INFORMACIÓN MINIMALISTA SOBRE FECHA DE MATRÍCULA -->

@@ -134,6 +134,12 @@
                 {{ vehiculo.organismoTransito || 'Sin asignar' }}
               </div>
             </div>
+            <div>
+              <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha Matrícula</div>
+              <div class="text-[13.5px] font-semibold text-slate-900 mt-0.5">
+                {{ (vehiculo.fechaMatricula || vehiculo.fecha_matricula || 'No registrada') }}
+              </div>
+            </div>
           </div>
 
           <!-- Novedad Tributaria Box -->

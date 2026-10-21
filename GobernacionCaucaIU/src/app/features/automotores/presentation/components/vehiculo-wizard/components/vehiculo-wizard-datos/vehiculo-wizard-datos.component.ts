@@ -20,6 +20,8 @@ export class VehiculoWizardDatosComponent {
   @Input() organismosTransito: any[] = [];
   @Input() erroresPaso: any[] = [];
 
+  readonly maxFecha: string = new Date().toISOString().split('T')[0];
+
   mostrarInfoImportante: boolean = false;
 
   toggleInfoImportante(): void {
