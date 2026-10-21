@@ -135,3 +135,57 @@ export interface ResponsableConsulta {
   codigoInvima?: string;
   idPlanta?: number;
 }
+
+// ============================================================================
+// MODELOS PARA PASARELA DE PAGOS FINTECH / PSE
+// ============================================================================
+
+export interface IniciarPagoDeguelloRequest {
+  consecutivo: string;
+  nitContribuyente?: string;
+  email: string;
+  telefono: string;
+  direccion?: string;
+  urlRetorno?: string;
+}
+
+export interface PaymentApiResponse<T> {
+  isSuccess?: boolean;
+  IsSuccess?: boolean;
+  message?: string;
+  Message?: string;
+  result?: T;
+  Result?: T;
+  state?: number;
+  State?: number;
+}
+
+export interface TransactionResult {
+  url?: string;
+  Url?: string;
+  urlBanco?: string;
+  UrlBanco?: string;
+  ticketId?: string;
+  transactionId?: string;
+  referencia?: string;
+  token?: string;
+  estado?: string;
+  urlPagoEfectiva?: string;
+}
+
+export interface TransactionStatusResult {
+  referencia?: string;
+  ticketId?: string;
+  transactionId?: string;
+  estado?: string;
+  codigoRespuesta?: string;
+  mensaje?: string;
+  valorPagado?: number;
+  fechaPago?: string;
+  banco?: string;
+  cus?: string;
+  estaAprobada?: boolean;
+  EstaAprobada?: boolean;
+  estaPendiente?: boolean;
+  EstaPendiente?: boolean;
+}

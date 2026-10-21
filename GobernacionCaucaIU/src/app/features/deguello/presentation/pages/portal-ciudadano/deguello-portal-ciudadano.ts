@@ -1,7 +1,7 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { 
   ConsultaCiudadanaSharedComponent, 
   ConsultaSubmitPayload 
@@ -27,6 +27,7 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
   private deguelloService = inject(DeguelloService);
   private deguelloFtpService = inject(DeguelloFtpService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   /** Modo de vista: 'login' (Autogestión PBA) | 'dashboard' (Portal Empresa) | 'consulta_publica' (Puntual ICA) */
   readonly modoVista = signal<'login' | 'dashboard' | 'consulta_publica'>('login');
@@ -91,12 +92,28 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
   /** Declaración activa para visualizar/imprimir en el modal */
   readonly declaracionSeleccionadaParaFactura = signal<DeclaracionDeguelloData | null>(null);
 
-  /** Modal de resumen previo al pago y simulación de pasarela */
+  /** Modal de resumen previo al pago y pasarela de pagos Fintech / PSE */
   readonly declaracionParaPago = signal<DeclaracionDeguelloData | null>(null);
   readonly simulandoPago = signal<boolean>(false);
   readonly fasePago = signal<'resumen' | 'procesando' | 'exito'>('resumen');
   readonly textoLoaderPago = signal<string>('Conectando con la pasarela de pagos PSE...');
   readonly reciboGenerado = signal<string>('');
+
+  /** Datos del pagador para la transacción en pasarela oficial */
+  readonly emailPago = signal<string>('');
+  readonly telefonoPago = signal<string>('');
+  readonly procesandoPagoReal = signal<boolean>(false);
+  readonly errorPagoReal = signal<string | null>(null);
+
+  /** Feedback y banner de confirmación/conciliación bancaria al retornar de PSE */
+  readonly feedbackRetornoBancario = signal<{
+    tipo: 'success' | 'warning' | 'error';
+    titulo: string;
+    mensaje: string;
+    referencia?: string;
+    cus?: string;
+    banco?: string;
+  } | null>(null);
 
   /** Modal de Radicación de Guía ICA (Descentralizado en portal de contribuyente) */
   readonly modalRadicarGuiaAbierto = signal<boolean>(false);
@@ -279,6 +296,17 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
       });
       this.recargarDeclaraciones(emp.nit, '');
     }
+
+    // Escuchar parámetros de retorno bancario oficial (PSE / Pasarela Fintech)
+    this.route.queryParams.subscribe((params) => {
+      const ref = params['ref'];
+      const estado = params['estado'];
+      const doc = params['doc'];
+
+      if (ref && estado === 'retorno') {
+        this.verificarRetornoPasarela(ref, doc);
+      }
+    });
   }
 
   /** Selección rápida de una de las 4 plantas de beneficio autorizadas en Cauca */
@@ -403,23 +431,179 @@ export class DeguelloPortalCiudadanoComponent implements OnInit {
     this.declaracionSeleccionadaParaFactura.set(null);
   }
 
+  /** Validaciones del formulario de pago */
+  get emailPagoValido(): boolean {
+    const email = this.emailPago().trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  get telefonoPagoValido(): boolean {
+    const tel = this.telefonoPago().trim();
+    return tel.length >= 7;
+  }
+
+  get formularioPagoValido(): boolean {
+    return this.emailPagoValido && this.telefonoPagoValido;
+  }
+
   /** Abrir modal de resumen previo al pago */
   abrirModalPago(d: DeclaracionDeguelloData): void {
     if (d.estadoPago !== 'PENDIENTE') return;
     this.declaracionParaPago.set(d);
     this.fasePago.set('resumen');
     this.simulandoPago.set(false);
+    this.procesandoPagoReal.set(false);
+    this.errorPagoReal.set(null);
     this.reciboGenerado.set('');
+
+    const emp = this.empresaActiva();
+    const info = this.contribuyenteInfo();
+    this.emailPago.set(emp?.emailOficial || info?.emailOficial || 'contribuyente@cauca.gov.co');
+    this.telefonoPago.set(emp?.telefono || info?.telefono || d.telefonoFijo || '3000000000');
   }
 
   /** Cerrar modal de pago */
   cerrarModalPago(): void {
-    if (this.simulandoPago() && this.fasePago() === 'procesando') {
+    if ((this.simulandoPago() && this.fasePago() === 'procesando') || this.procesandoPagoReal()) {
       return;
     }
     this.declaracionParaPago.set(null);
     this.simulandoPago.set(false);
+    this.procesandoPagoReal.set(false);
+    this.errorPagoReal.set(null);
     this.fasePago.set('resumen');
+  }
+
+  /** Iniciar pago oficial contra la pasarela corporativa Fintech / PSE con redirección bancaria */
+  iniciarPagoPasarelaReal(): void {
+    const dec = this.declaracionParaPago();
+    if (!dec || dec.estadoPago !== 'PENDIENTE' || this.procesandoPagoReal()) return;
+
+    if (!this.emailPagoValido) {
+      this.errorPagoReal.set('Por favor ingrese un correo electrónico válido para recibir el soporte bancario.');
+      return;
+    }
+
+    if (!this.telefonoPagoValido) {
+      this.errorPagoReal.set('Por favor ingrese un teléfono de contacto válido (mínimo 7 dígitos).');
+      return;
+    }
+
+    this.procesandoPagoReal.set(true);
+    this.errorPagoReal.set(null);
+
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/deguello/portal-ciudadano';
+    const docEfectivo = (this.criterioBusqueda()?.doc || dec.nit || '').trim();
+
+    const urlRetorno = `${currentOrigin}${currentPath}?doc=${encodeURIComponent(docEfectivo)}&ref=${encodeURIComponent(dec.consecutivo)}&estado=retorno`;
+
+    this.deguelloService.iniciarPagoPasarela({
+      consecutivo: dec.consecutivo,
+      nitContribuyente: docEfectivo,
+      email: this.emailPago().trim(),
+      telefono: this.telefonoPago().trim(),
+      direccion: dec.direccionNotificacion,
+      urlRetorno
+    }).subscribe({
+      next: (res) => {
+        const exitoso = res.isSuccess ?? res.IsSuccess ?? false;
+        const resultado = res.result ?? res.Result;
+
+        if (!exitoso || !resultado) {
+          this.procesandoPagoReal.set(false);
+          const msg = res.message ?? res.Message ?? 'No fue posible iniciar la transacción con la pasarela. Intente nuevamente en unos minutos.';
+          this.errorPagoReal.set(msg);
+          return;
+        }
+
+        const urlPasarela = resultado.urlPagoEfectiva 
+          ?? resultado.url 
+          ?? resultado.Url 
+          ?? resultado.urlBanco 
+          ?? resultado.UrlBanco;
+
+        if (urlPasarela) {
+          // Redirigir al ciudadano a la pasarela bancaria / PSE oficial
+          window.location.href = urlPasarela;
+        } else {
+          this.procesandoPagoReal.set(false);
+          this.errorPagoReal.set('La pasarela no retornó una dirección bancaria válida. Por favor contacte a la Secretaría de Hacienda.');
+        }
+      },
+      error: (err) => {
+        this.procesandoPagoReal.set(false);
+        const msg = err?.error?.message 
+          ?? err?.error?.Message 
+          ?? err?.message 
+          ?? 'Error de conexión con el servicio de pagos. Verifique su red e intente nuevamente.';
+        this.errorPagoReal.set(msg);
+      }
+    });
+  }
+
+  /** Consulta el estado bancario oficial al volver de la pasarela y actualiza la vista */
+  verificarRetornoPasarela(referencia: string, documento?: string): void {
+    this.isLoading.set(true);
+
+    this.deguelloService.consultarEstadoPago(referencia).subscribe({
+      next: (res) => {
+        this.isLoading.set(false);
+        const result = res.result ?? res.Result;
+
+        if (result?.estaAprobada ?? result?.EstaAprobada) {
+          this.feedbackRetornoBancario.set({
+            tipo: 'success',
+            titulo: '¡Pago Bancario Acreditado Exitosamente!',
+            mensaje: `La pasarela bancaria oficial certificó el recaudo para la liquidación ${referencia}. El título tributario ha sido conciliado a estado PAGADO ante la Secretaría de Hacienda del Cauca.`,
+            referencia,
+            cus: result.cus || result.ticketId || result.transactionId || 'PSE-APROBADO',
+            banco: result.banco || 'PSE / Redeban Pasarela Fintech'
+          });
+
+          // Actualizar vista del contribuyente si hay documento o empresa activa
+          const docEfectivo = documento || this.empresaActiva()?.nit || this.criterioBusqueda()?.doc;
+          if (docEfectivo) {
+            this.modoVista.set('dashboard');
+            this.isConsulted.set(true);
+            this.criterioBusqueda.set({
+              doc: docEfectivo,
+              guia: '',
+              tipoDoc: 1,
+            });
+            this.recargarDeclaraciones(docEfectivo, '');
+          }
+        } else if (result?.estaPendiente ?? result?.EstaPendiente) {
+          this.feedbackRetornoBancario.set({
+            tipo: 'warning',
+            titulo: 'Transacción en Tránsito Bancario (Pendiente)',
+            mensaje: `Su entidad financiera está confirmando la transacción para la liquidación ${referencia}. La conciliación se completará automáticamente en cuanto el banco notifique la acreditación.`,
+            referencia,
+            cus: result.cus || result.ticketId
+          });
+        } else {
+          this.feedbackRetornoBancario.set({
+            tipo: 'error',
+            titulo: 'Transacción No Aprobada',
+            mensaje: `La entidad bancaria no aprobó la transacción para la declaración ${referencia}. Motivo: ${result?.mensaje || 'Pago cancelado o fondos insuficientes'}. La liquidación sigue pendiente de pago.`,
+            referencia
+          });
+        }
+      },
+      error: () => {
+        this.isLoading.set(false);
+        this.feedbackRetornoBancario.set({
+          tipo: 'error',
+          titulo: 'Verificación de Pago',
+          mensaje: `No fue posible validar el estado bancario inmediato para la referencia ${referencia}. Si el débito fue realizado en su cuenta, se conciliará automáticamente en el próximo corte del banco.`,
+          referencia
+        });
+      }
+    });
+  }
+
+  cerrarFeedbackRetorno(): void {
+    this.feedbackRetornoBancario.set(null);
   }
 
   /** Simular el pago con loader y actualizar el estado a PAGADO como está dispuesto */
