@@ -20,7 +20,7 @@ export interface PagedResultOmisos<T> {
 }
 
 /**
- * Servicio de infraestructura API para el módulo de Vehículos Omisos y Emplazamiento.
+ * Servicio de infraestructura API para el módulo de Vehículos Omisos y Emplazamiento (Fase 1).
  * Encapsula la comunicación con la API Backend (.NET 10) para fiscalización, cobro y actos administrativos.
  */
 @Injectable({
@@ -47,7 +47,7 @@ export class OmisosApiService {
     if (filtros.diasMoraMinimo && filtros.diasMoraMinimo > 0) params['diasMoraMinimo'] = filtros.diasMoraMinimo;
 
     return this.api.get<ApiResponse<PagedResultOmisos<VehiculoOmiso>>>(
-      '/liquidaciones/omisos', { params }, 'AUTOMOTORES'
+      '/emplazamientos/omisos', { params }, 'AUTOMOTORES'
     );
   }
 
@@ -68,7 +68,7 @@ export class OmisosApiService {
     if (vigencia && vigencia > 0) params['vigencia'] = vigencia;
 
     return this.api.get<ApiResponse<OmisosKpis>>(
-      '/liquidaciones/omisos/kpis', { params }, 'AUTOMOTORES'
+      '/emplazamientos/kpis', { params }, 'AUTOMOTORES'
     );
   }
 
@@ -86,7 +86,7 @@ export class OmisosApiService {
    */
   actualizarTrazabilidadPostal(payload: TrazabilidadPostalRequest): Observable<ApiResponse<boolean>> {
     return this.api.post<ApiResponse<boolean>>(
-      '/liquidaciones/emplazamientos/postal', payload, {}, 'AUTOMOTORES'
+      '/emplazamientos/postal', payload, {}, 'AUTOMOTORES'
     );
   }
 
@@ -95,7 +95,7 @@ export class OmisosApiService {
    */
   emitirEmplazamiento(payload: { placa: string; vigencias?: number[]; observaciones?: string }): Observable<ApiResponse<any>> {
     return this.api.post<ApiResponse<any>>(
-      '/liquidaciones/emplazamientos', payload, {}, 'AUTOMOTORES'
+      '/emplazamientos', payload, {}, 'AUTOMOTORES'
     );
   }
 
@@ -104,7 +104,7 @@ export class OmisosApiService {
    */
   emitirEmplazamientoMasivo(payload: { placas: string[]; vigencia?: number; vigenciasPorPlaca?: Record<string, number[]> }): Observable<ApiResponse<any>> {
     return this.api.post<ApiResponse<any>>(
-      '/liquidaciones/emplazamientos/masivo', payload, {}, 'AUTOMOTORES'
+      '/emplazamientos/masivo', payload, {}, 'AUTOMOTORES'
     );
   }
 
@@ -113,7 +113,7 @@ export class OmisosApiService {
    */
   publicarAvisoWeb(payload: { placa: string; numeroActoEmplazamiento?: string; observaciones?: string }): Observable<ApiResponse<boolean>> {
     return this.api.post<ApiResponse<boolean>>(
-      '/liquidaciones/emplazamientos/aviso-web', payload, {}, 'AUTOMOTORES'
+      '/emplazamientos/aviso-web', payload, {}, 'AUTOMOTORES'
     );
   }
 
@@ -122,7 +122,7 @@ export class OmisosApiService {
    */
   descargarDossierPdf(id: number, descargar: boolean = true): Observable<Blob> {
     return this.api.get<Blob>(
-      `/liquidaciones/emplazamientos/${id}/pdf`,
+      `/emplazamientos/${id}/pdf`,
       { params: { descargar }, responseType: 'blob' as any },
       'AUTOMOTORES'
     );
@@ -133,7 +133,7 @@ export class OmisosApiService {
    */
   descargarDossierPdfPorPlaca(placa: string, descargar: boolean = true): Observable<Blob> {
     return this.api.get<Blob>(
-      `/liquidaciones/emplazamientos/por-placa/${encodeURIComponent(placa)}/pdf`,
+      `/emplazamientos/por-placa/${encodeURIComponent(placa)}/pdf`,
       { params: { descargar }, responseType: 'blob' as any },
       'AUTOMOTORES'
     );
@@ -144,7 +144,7 @@ export class OmisosApiService {
    */
   getPreviewHtmlDossier(id: number): Observable<string> {
     return this.api.get<string>(
-      `/liquidaciones/emplazamientos/${id}/preview-html`,
+      `/emplazamientos/${id}/preview-html`,
       { responseType: 'text' as any },
       'AUTOMOTORES'
     );
@@ -155,7 +155,7 @@ export class OmisosApiService {
    */
   getPreviewHtmlDossierPorPlaca(placa: string): Observable<string> {
     return this.api.get<string>(
-      `/liquidaciones/emplazamientos/por-placa/${encodeURIComponent(placa)}/preview-html`,
+      `/emplazamientos/por-placa/${encodeURIComponent(placa)}/preview-html`,
       { responseType: 'text' as any },
       'AUTOMOTORES'
     );
@@ -166,7 +166,7 @@ export class OmisosApiService {
    */
   descargarAutoCierrePdf(id: number, request: { causal?: string; motivo?: string; usuario?: string }, descargar: boolean = true): Observable<Blob> {
     return this.api.post<Blob>(
-      `/liquidaciones/emplazamientos/${id}/auto-cierre/pdf`,
+      `/emplazamientos/${id}/auto-cierre/pdf`,
       request,
       { params: { descargar }, responseType: 'blob' as any },
       'AUTOMOTORES'
@@ -178,7 +178,7 @@ export class OmisosApiService {
    */
   descargarPlanillaPostalPdf(request: { actosIds: number[]; responsableEntrega?: string }, descargar: boolean = true): Observable<Blob> {
     return this.api.post<Blob>(
-      '/liquidaciones/emplazamientos/planilla-postal/pdf',
+      '/emplazamientos/planilla-postal/pdf',
       request,
       { params: { descargar }, responseType: 'blob' as any },
       'AUTOMOTORES'
@@ -190,7 +190,7 @@ export class OmisosApiService {
    */
   descargarAvisoWebPdf(request: { actosIds: number[] }, descargar: boolean = true): Observable<Blob> {
     return this.api.post<Blob>(
-      '/liquidaciones/emplazamientos/aviso-web/pdf',
+      '/emplazamientos/aviso-web/pdf',
       request,
       { params: { descargar }, responseType: 'blob' as any },
       'AUTOMOTORES'
@@ -201,13 +201,13 @@ export class OmisosApiService {
    * Construye la URL directa para descargar o abrir inline el PDF del Dossier de Emplazamiento por ID.
    */
   construirDossierPdfUrl(id: number, descargar: boolean = false): string {
-    return this.api.buildUrl(`/liquidaciones/emplazamientos/${id}/pdf?descargar=${descargar}`, 'AUTOMOTORES');
+    return this.api.buildUrl(`/emplazamientos/${id}/pdf?descargar=${descargar}`, 'AUTOMOTORES');
   }
 
   /**
    * Construye la URL directa para descargar o abrir inline el PDF del Dossier de Emplazamiento por Placa.
    */
   construirDossierPdfUrlPorPlaca(placa: string, descargar: boolean = false): string {
-    return this.api.buildUrl(`/liquidaciones/emplazamientos/por-placa/${encodeURIComponent(placa)}/pdf?descargar=${descargar}`, 'AUTOMOTORES');
+    return this.api.buildUrl(`/emplazamientos/por-placa/${encodeURIComponent(placa)}/pdf?descargar=${descargar}`, 'AUTOMOTORES');
   }
 }
