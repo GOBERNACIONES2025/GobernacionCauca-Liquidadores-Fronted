@@ -24,11 +24,12 @@ export class VehiculosOperacionesFacade {
   readonly currentStep = signal<number>(1);
   readonly activeTab = signal<string>('Datos del Vehículo');
 
-  readonly tabs = computed(() => {
-    return this.isNuevoRegistro()
-      ? ['Datos del Vehículo', 'Propietarios', 'Observaciones']
-      : ['Datos del Vehículo', 'Propietarios', 'Historial', 'Observaciones'];
-  });
+  readonly tabs = computed(() => [
+    'Datos del Vehículo',
+    'Propietarios',
+    'Observaciones',
+    'Historial'
+  ]);
 
   // Modal de Consulta RUNT
   readonly isRuntModalOpen = signal<boolean>(false);

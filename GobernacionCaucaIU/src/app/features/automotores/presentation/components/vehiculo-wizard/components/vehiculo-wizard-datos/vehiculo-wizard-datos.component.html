@@ -1,0 +1,224 @@
+<div [formGroup]="form" class="space-y-4">
+
+  <!-- ENCABEZADO DATOS DEL VEHÍCULO -->
+  <div>
+    <h3 class="text-[18px] sm:text-[20px] font-bold text-[#1b53ad] tracking-tight m-0">Datos del vehículo</h3>
+    <p class="text-[13px] text-slate-800 mt-1 font-normal leading-relaxed">
+      Verifica o actualiza las características técnicas y de registro del vehículo. Ten en cuenta que la fecha de matrícula determinará el cálculo de las vigencias adeudadas
+    </p>
+  </div>
+
+  <!-- ALERTA INFORMATIVA SUPERIOR (TAMAÑO LIMITADO SEGÚN DISEÑO) -->
+  <div class="max-w-[350px] bg-[#f0f7ff] border border-blue-100 rounded-xl px-3.5 py-2.5 text-[11px] text-slate-800 leading-snug">
+    <span>Los campos marcados con <span class="text-rose-500 font-medium">*</span> son obligatorios. Los marcados con un candado están bloqueados por normativa.</span>
+  </div>
+
+  <!-- FILA 1: 1. TIPO DE VEHÍCULO & 2. MARCA -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        1. Tipo de vehículo<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <app-searchable-select
+        formControlName="tipoVehiculo"
+        [items]="tiposVehiculo"
+        labelKey="nombre"
+        valueKey="nombre"
+        placeholder="Seleccione tipo..."
+        customBg="bg-[#EFEFEF] border-slate-200"
+        [isInvalid]="hasError('tipoVehiculo')">
+      </app-searchable-select>
+      @if (hasError('tipoVehiculo')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('tipoVehiculo') }}</span> }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        2. Marca<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <app-searchable-select
+        formControlName="marca"
+        [items]="marcasDisponibles"
+        labelKey="nombre"
+        valueKey="nombre"
+        [placeholder]="!form.get('tipoVehiculo')?.value ? '— Seleccione tipo primero' : 'Seleccione marca...'"
+        [disabled]="!form.get('tipoVehiculo')?.value"
+        customBg="bg-[#EFEFEF] border-slate-200"
+        [isInvalid]="hasError('marca')">
+      </app-searchable-select>
+      @if (hasError('marca')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('marca') }}</span> }
+    </div>
+  </div>
+
+  <!-- FILA 2: 3. LÍNEA / MODELO COMERCIAL & PLACA -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        3. Línea / Modelo comercial<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <app-searchable-select
+        formControlName="linea"
+        [items]="lineasDisponibles"
+        labelKey="nombre"
+        valueKey="nombre"
+        [placeholder]="!form.get('marca')?.value ? '— Seleccione marca primero' : 'Seleccione línea...'"
+        [disabled]="!form.get('marca')?.value"
+        customBg="bg-[#EFEFEF] border-slate-200"
+        [isInvalid]="hasError('linea')">
+      </app-searchable-select>
+      @if (hasError('linea')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('linea') }}</span> }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Placa<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <input 
+        formControlName="placa" 
+        type="text" 
+        maxlength="6"
+        placeholder="— Ingr. la placa de tu tipo de vehiculo"
+        [class.border-red-400]="hasError('placa')"
+        class="w-full h-10 px-3.5 bg-[#EFEFEF] border border-slate-200 rounded-lg text-xs font-semibold uppercase text-slate-800 placeholder:text-slate-400 placeholder:normal-case placeholder:font-normal outline-none focus:bg-white focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73] transition-all disabled:opacity-60 disabled:bg-slate-100" />
+      @if (hasError('placa')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('placa') }}</span> }
+    </div>
+  </div>
+
+  <!-- FILA 3: AÑO MODELO & CILINDRAJE (CC) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Año modelo<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <input 
+        formControlName="modelo" 
+        type="number" 
+        min="1900"
+        max="2035"
+        placeholder="Ej: 2022"
+        [class.border-red-400]="hasError('modelo')"
+        class="w-full h-10 px-3.5 bg-[#EFEFEF] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73] transition-all" />
+      @if (hasError('modelo')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('modelo') }}</span> }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Cilindraje (CC)<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <input 
+        formControlName="cilindraje" 
+        type="number" 
+        min="0"
+        placeholder="Ej: 1500"
+        [class.border-red-400]="hasError('cilindraje')"
+        class="w-full h-10 px-3.5 bg-[#EFEFEF] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73] transition-all" />
+      @if (hasError('cilindraje')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('cilindraje') }}</span> }
+    </div>
+  </div>
+
+  <!-- FILA 4: COMBUSTIBLE & SERVICIO -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Combustible<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <app-searchable-select
+        formControlName="combustible"
+        [items]="combustibles"
+        labelKey="nombre"
+        valueKey="nombre"
+        placeholder="Seleccione combustible..."
+        customBg="bg-[#EFEFEF] border-slate-200"
+        [isInvalid]="hasError('combustible')">
+      </app-searchable-select>
+      @if (hasError('combustible')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('combustible') }}</span> }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Servicio<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <app-searchable-select
+        formControlName="servicio"
+        [items]="serviciosVehiculo"
+        labelKey="nombre"
+        valueKey="nombre"
+        placeholder="Seleccione servicio..."
+        customBg="bg-[#EFEFEF] border-slate-200"
+        [isInvalid]="hasError('servicio')">
+      </app-searchable-select>
+      @if (hasError('servicio')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('servicio') }}</span> }
+    </div>
+  </div>
+
+  <!-- FILA 5: ESTADO MATRÍCULA & PASAJEROS -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Estado matrícula<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <app-searchable-select
+        formControlName="estadoMatriculaId"
+        [items]="estadosMatricula"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Seleccione estado..."
+        customBg="bg-[#EFEFEF] border-slate-200"
+        [isInvalid]="hasError('estadoMatriculaId')">
+      </app-searchable-select>
+      @if (hasError('estadoMatriculaId')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('estadoMatriculaId') }}</span> }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Pasajeros<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <input 
+        formControlName="pasajeros" 
+        type="number" 
+        min="1"
+        placeholder="Ej: 5"
+        [class.border-red-400]="hasError('pasajeros')"
+        class="w-full h-10 px-3.5 bg-[#EFEFEF] border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73] transition-all" />
+      @if (hasError('pasajeros')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('pasajeros') }}</span> }
+    </div>
+  </div>
+
+  <!-- FILA 6: ORGANISMO DE TRÁNSITO & FECHA DE MATRÍCULA -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Organismo de tránsito<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <app-searchable-select
+        formControlName="organismoTransitoId"
+        [items]="organismosTransito"
+        labelKey="nombre"
+        valueKey="id"
+        placeholder="Seleccione organismo..."
+        customBg="bg-[#EFEFEF] border-slate-200"
+        [isInvalid]="hasError('organismoTransitoId')">
+      </app-searchable-select>
+      @if (hasError('organismoTransitoId')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('organismoTransitoId') }}</span> }
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label class="text-[11.5px] font-normal text-slate-800 uppercase tracking-wide">
+        Fecha de matrícula<span class="text-rose-500 font-normal ml-0.5">*</span>
+      </label>
+      <input 
+        formControlName="fechaMatricula" 
+        type="date"
+        [max]="maxFecha"
+        [class.border-red-400]="hasError('fechaMatricula')"
+        class="w-full h-10 px-3.5 bg-[#EFEFEF] border border-slate-200 rounded-xl text-xs text-slate-800 outline-none focus:bg-white focus:ring-2 focus:ring-[#0f3b73] focus:border-[#0f3b73] transition-all" />
+      @if (hasError('fechaMatricula')) { <span class="text-[11px] text-red-500 font-medium">{{ getError('fechaMatricula') }}</span> }
+
+      <!-- INFORMACIÓN MINIMALISTA SOBRE FECHA DE MATRÍCULA -->
+      <div class="mt-2 text-[11.5px] text-slate-600 font-normal leading-relaxed space-y-1">
+        <p class="m-0">1. Recuerde que esta fecha será utilizada para validar las vigencias adeudadas de aquí en adelante.</p>
+        <p class="m-0">2. Después de guardar este registro, no se podrá editar debido a la prescripción de los datos.</p>
+      </div>
+    </div>
+  </div>
+
+</div>

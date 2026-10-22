@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -53,6 +53,49 @@ export class NovedadesPage implements OnInit {
   readonly anexoTraspaso = this.facade.anexoTraspaso;
   readonly anexoTraslado = this.facade.anexoTraslado;
   readonly anexoRematricula = this.facade.anexoRematricula;
+
+  // Filtro reactivo por estado de novedad
+  readonly filtroEstado = signal<string | null>(null);
+
+  // Datos de KPIs seguros con fallback de historial (solo Todas, Radicadas, Rechazadas)
+  readonly kpisData = computed(() => {
+    const k = this.kpis();
+    const list = this.historialNovedades();
+    const countRadicadas = list.filter(i => (i.estado || '').toUpperCase().includes('RADIC')).length;
+    const countRechazadas = list.filter(i => (i.estado || '').toUpperCase().includes('RECHA')).length;
+
+    return {
+      totalNovedades: k?.totalNovedades ?? list.length,
+      radicadas: k?.radicadas ?? countRadicadas,
+      rechazadas: k?.rechazadas ?? countRechazadas
+    };
+  });
+
+  // Historial filtrado reactivamente por botón de estado (Todas, Radicadas, Rechazadas)
+  readonly historialFiltrado = computed(() => {
+    const list = this.historialNovedades();
+    const filtro = this.filtroEstado();
+    if (!filtro || filtro === 'TODAS') return list;
+
+    return list.filter(item => {
+      const st = (item.estado || '').toUpperCase();
+      if (filtro === 'RADICADO') return st.includes('RADIC');
+      if (filtro === 'RECHAZADO') return st.includes('RECHA');
+      return st === filtro;
+    });
+  });
+
+  filtrarPorEstado(estado: string): void {
+    if (this.filtroEstado() === estado) {
+      this.filtroEstado.set(null);
+    } else {
+      this.filtroEstado.set(estado);
+    }
+  }
+
+  isEstadoActivo(estado: string): boolean {
+    return this.filtroEstado() === estado;
+  }
 
   get traspasoForm(): TraspasoFormModel {
     return this.facade.traspasoForm;
@@ -112,6 +155,15 @@ export class NovedadesPage implements OnInit {
     return this.facade.esPendiente(estado);
   }
 
+  actualizarPagina(): void {
+    this.facade.busqueda.cargarHistorialGeneral();
+    this.facade.busqueda.cargarKpis();
+    const placaActual = this.placa() || this.vehiculo()?.placa;
+    if (placaActual) {
+      this.facade.busqueda.cargarHistorialVehiculo(placaActual);
+    }
+  }
+
   cambiarEstado(idOrItem: any, nuevoEstado: EstadoNovedad, observaciones?: string): void {
     this.facade.cambiarEstado(idOrItem, nuevoEstado, observaciones).subscribe(res => {
       if (res.success) {
@@ -120,6 +172,7 @@ export class NovedadesPage implements OnInit {
           ? 'La novedad fue aprobada y los cambios del automotor se actualizaron automáticamente.' 
           : `La novedad ha sido marcada como ${nuevoEstado}.`;
         this.mostrarToast(titulo, desc, 'success');
+        this.actualizarPagina();
       } else {
         this.mostrarToast('Error', res.message || 'Error al actualizar el estado.', 'error');
       }
@@ -130,9 +183,7 @@ export class NovedadesPage implements OnInit {
     this.facade.radicarNovedad().subscribe(res => {
       if (res.success) {
         this.mostrarToast('Novedad Radicada con Éxito', res.mensaje || 'Novedad registrada correctamente.', 'success');
-        if (this.vehiculo()) {
-          this.facade.busqueda.cargarHistorialVehiculo(this.vehiculo()!.placa);
-        }
+        this.actualizarPagina();
       } else {
         const titulo = res.error?.includes('Incompletos') || res.error?.includes('Inválido') || res.error?.includes('100%')
           ? 'Validación de Datos' 

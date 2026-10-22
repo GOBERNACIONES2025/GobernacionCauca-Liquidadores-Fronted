@@ -2,16 +2,30 @@ import { Component, Input, Output, EventEmitter, signal, computed, inject, OnIni
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { 
   LIQUIDADORES_CONSULTA_CONFIG, 
   LiquidadorConsultaConfig, 
   LiquidadorConsultaExample 
 } from '../../config/liquidadores-consulta.config';
+import { CalendariosTributariosApiService } from '../../../features/automotores/infrastructure/api/calendarios-tributarios-api.service';
+import { CalendarioTributarioDto } from '../../../features/automotores/domain/interfaces/calendarios-tributarios.interface';
 
 export interface TipoDocumentoOpcion {
   id: number;
   codigo: string;
   nombre: string;
+}
+
+export interface CalendarioTributarioCardItem {
+  tituloBadge: string;
+  esConDescuento: boolean;
+  diaFinal: string;
+  mesFinal: string;
+  fechaInicio: string;
+  fechaFinal: string;
+  porcentaje: number;
 }
 
 export const TIPOS_DOCUMENTO_OPCIONES: TipoDocumentoOpcion[] = [
@@ -47,6 +61,7 @@ export interface ConsultaSubmitPayload {
 export class ConsultaCiudadanaSharedComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private calendariosApi = inject(CalendariosTributariosApiService);
 
   /** Opciones oficiales de tipo de documento */
   readonly tiposDocumento = TIPOS_DOCUMENTO_OPCIONES;
@@ -66,6 +81,10 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
   /** Configuración reactiva activa según la ruta o la propiedad Input */
   readonly activeKey = signal<string>('automotores');
 
+  /** Calendario tributario activo para visualización */
+  readonly calendarioItems = signal<CalendarioTributarioCardItem[]>([]);
+  readonly anioActual = new Date().getFullYear();
+
   readonly config = computed<LiquidadorConsultaConfig>(() => {
     const key = this.activeKey().toLowerCase();
     return LIQUIDADORES_CONSULTA_CONFIG[key] || LIQUIDADORES_CONSULTA_CONFIG['automotores'];
@@ -73,6 +92,94 @@ export class ConsultaCiudadanaSharedComponent implements OnInit {
 
   ngOnInit(): void {
     this.detectarLiquidadorActivo();
+    if (this.activeKey() === 'automotores') {
+      this.cargarCalendarioTributario();
+    }
+  }
+
+  cargarCalendarioTributario(): void {
+    this.calendariosApi.getCalendariosPaged({ activo: true }).pipe(
+      catchError(err => {
+        console.warn('API de calendarios no disponible:', err);
+        return of(null);
+      })
+    ).subscribe(res => {
+      let dtos: CalendarioTributarioDto[] = [];
+      if (res) {
+        if (Array.isArray(res)) {
+          dtos = res;
+        } else if ((res as any).data) {
+          const d = (res as any).data;
+          if (Array.isArray(d)) {
+            dtos = d;
+          } else if (d.items && Array.isArray(d.items)) {
+            dtos = d.items;
+          }
+        }
+      }
+
+      // Si no hay nada activo, no mostramos nada
+      const activos = dtos.filter(d => d.activo !== false);
+      if (activos.length > 0) {
+        this.mapearCalendarioDesdeDtos(activos);
+      } else {
+        this.calendarioItems.set([]);
+      }
+    });
+  }
+
+  private mapearCalendarioDesdeDtos(dtos: CalendarioTributarioDto[]): void {
+    const cards: CalendarioTributarioCardItem[] = [];
+    const ordenados = [...dtos].sort((a, b) => (b.porcentajeDescuento || 0) - (a.porcentajeDescuento || 0));
+
+    for (const item of ordenados) {
+      const fechaFinRaw = item.fechaVencimiento || item.fechaFinVencimiento || '';
+      const fechaIniRaw = item.fechaInicio || item.fechaInicioVencimiento || '';
+
+      const finParsed = this.formatearFecha(fechaFinRaw);
+      const iniParsed = this.formatearFecha(fechaIniRaw);
+
+      const porcentaje = Number(item.porcentajeDescuento) || 0;
+      const tieneDescuento = porcentaje > 0;
+
+      cards.push({
+        tituloBadge: tieneDescuento ? 'Con descuento' : 'Sin descuento',
+        esConDescuento: tieneDescuento,
+        diaFinal: finParsed.dia !== '-' ? finParsed.dia : (iniParsed.dia !== '-' ? iniParsed.dia : '-'),
+        mesFinal: finParsed.mesNombre !== '-' ? finParsed.mesNombre : (iniParsed.mesNombre !== '-' ? iniParsed.mesNombre : '-'),
+        fechaInicio: iniParsed.texto,
+        fechaFinal: finParsed.texto,
+        porcentaje
+      });
+
+      if (cards.length >= 2) break;
+    }
+
+    this.calendarioItems.set(cards);
+  }
+
+  private formatearFecha(fechaStr?: string): { texto: string; dia: string; mesNombre: string } {
+    if (!fechaStr) return { texto: '-', dia: '-', mesNombre: '-' };
+    const meses = [
+      'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    const clean = fechaStr.split('T')[0];
+    const parts = clean.split('-');
+    if (parts.length === 3) {
+      const anio = parts[0];
+      const mesNum = parseInt(parts[1], 10);
+      const diaNum = parseInt(parts[2], 10);
+      const mesNombre = (mesNum >= 1 && mesNum <= 12) ? meses[mesNum - 1] : '-';
+      const diaStr = String(diaNum).padStart(2, '0');
+      const mesStr = String(mesNum).padStart(2, '0');
+      return {
+        texto: `${diaStr}/${mesStr}/${anio}`,
+        dia: String(diaNum),
+        mesNombre
+      };
+    }
+    return { texto: fechaStr, dia: '-', mesNombre: '-' };
   }
 
   private detectarLiquidadorActivo(): void {

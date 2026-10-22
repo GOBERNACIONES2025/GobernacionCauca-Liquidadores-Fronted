@@ -47,7 +47,10 @@ export class NormasTributariasPage implements OnInit {
     { value: 'CIRCULAR', label: 'Circular', icon: 'fa-paper-plane', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' }
   ];
 
+  searchTermLocal: string = '';
+
   ngOnInit(): void {
+    this.searchTermLocal = this.facade.searchTerm();
     this.initForm();
   }
 
@@ -65,8 +68,8 @@ export class NormasTributariasPage implements OnInit {
   }
 
   // Búsqueda y Filtros
-  onSearch(term: string): void {
-    this.facade.searchTerm.set(term);
+  onSearch(): void {
+    this.facade.searchTerm.set(this.searchTermLocal.trim());
     this.facade.pageNumber.set(1);
     this.facade.cargarNormas();
   }

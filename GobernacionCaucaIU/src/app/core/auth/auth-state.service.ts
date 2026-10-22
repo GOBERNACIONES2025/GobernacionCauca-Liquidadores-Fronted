@@ -11,11 +11,12 @@ export class AuthStateService {
 
   // Mapa de URLs base por cada módulo de impuesto
   readonly moduleApiUrls = signal<Record<string, string>>({
-    LOGIN: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
+    LOGIN: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:7093/api`,
     AUTOMOTORES: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5023/api`,
     REGISTROS: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5001/api/v1`,
-    DEGUELLO: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:5045/api/v1`,
+    DEGUELLO: `http://${typeof window !== 'undefined' ? window.location.hostname : 'localhost'}:7093/api/v1`,
   });
+
 
   // Signal computado para verificar si hay sesión activa
   readonly isAuthenticated = computed(() => this.currentUser() !== null);

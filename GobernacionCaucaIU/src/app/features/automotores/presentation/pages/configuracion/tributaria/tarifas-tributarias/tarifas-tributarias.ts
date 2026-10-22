@@ -26,8 +26,10 @@ export class TarifasTributariasPage implements OnInit {
   readonly selectedItem = signal<TarifaTributariaDto | null>(null);
   readonly itemParaEliminar = signal<TarifaTributariaDto | null>(null);
   readonly isEditMode = signal<boolean>(false);
+  searchTermLocal: string = '';
 
   ngOnInit(): void {
+    this.searchTermLocal = this.facade.searchTerm();
     this.initForm();
   }
 
@@ -49,8 +51,8 @@ export class TarifasTributariasPage implements OnInit {
   }
 
   // Búsqueda y Filtros
-  onSearch(term: string): void {
-    this.facade.searchTerm.set(term);
+  onSearch(): void {
+    this.facade.searchTerm.set(this.searchTermLocal.trim());
     this.facade.pageNumber.set(1);
     this.facade.cargarTarifas();
   }

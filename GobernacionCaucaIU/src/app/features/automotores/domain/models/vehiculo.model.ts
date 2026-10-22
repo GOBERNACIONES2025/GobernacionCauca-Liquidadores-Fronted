@@ -122,6 +122,8 @@ export interface VehiculoItem {
   organismoTransito?: string;
   organismoTransitoId?: number;
   fechaMatricula?: string;
+  fecha_matricula?: string;
+  FechaMatricula?: string;
   estadoMatricula: string;
   estadoMatriculaId?: number;
   estadoAprobacion?: string;

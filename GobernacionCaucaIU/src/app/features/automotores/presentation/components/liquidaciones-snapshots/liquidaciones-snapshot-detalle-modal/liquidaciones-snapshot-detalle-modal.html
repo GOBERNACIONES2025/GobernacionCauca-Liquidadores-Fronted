@@ -1,7 +1,7 @@
 @if (facade.isDetalleModalOpen()) {
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in">
   <div
-    class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-scale-up"
+    class="bg-white rounded-xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-scale-up"
     role="dialog"
     aria-modal="true"
     aria-labelledby="modal-detalle-title"
@@ -24,7 +24,7 @@
       <button
         (click)="facade.cerrarDetalle()"
         type="button"
-        class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer border-none"
+        class="w-8 h-8 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer border-none"
         title="Cerrar detalle"
       >
         <i class="fa-solid fa-xmark text-sm"></i>
@@ -62,15 +62,15 @@
 
           <div class="flex items-center gap-2">
             @if (item.estadoPago === 'PAGADO') {
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 <i class="fa-solid fa-circle-check text-[10px]"></i> PAGADO Y CONCILIADO
               </span>
             } @else if (item.esVencido) {
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">
                 <i class="fa-solid fa-clock text-[10px]"></i> FACTURA EXPIRADA
               </span>
             } @else {
-              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300">
                 <i class="fa-solid fa-hourglass-half text-[10px]"></i> PENDIENTE DE RECAUDO
               </span>
             }
@@ -248,7 +248,7 @@
       <button
         (click)="facade.cerrarDetalle()"
         type="button"
-        class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition-colors cursor-pointer border-none"
+        class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition-colors cursor-pointer border-none"
       >
         Cerrar
       </button>

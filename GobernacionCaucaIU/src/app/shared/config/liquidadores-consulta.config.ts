@@ -42,10 +42,7 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     brandingTextColor: 'text-[#0f4984]',
     buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
     iconBadgeColor: 'bg-blue-50 text-[#0f4984] border-blue-100',
-    quickExamples: [
-      { label: 'Vehículo Prueba Real', tipoDocId: 1, doc: '11223344', secondary: 'AAA001', tag: 'DS 3' },
-      { label: 'Consulta Alterna', tipoDocId: 1, doc: '1234567', secondary: 'AAA000', tag: 'Prueba' }
-    ]
+    quickExamples: []
   },
   pasaportes: {
     id: 'pasaportes',
@@ -81,10 +78,7 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     brandingTextColor: 'text-[#0f4984]',
     buttonBgColor: 'bg-[#0f4984] hover:bg-[#0c3c6d]',
     iconBadgeColor: 'bg-blue-50 text-[#0f4984] border-blue-100',
-    quickExamples: [
-      { label: 'Radicado Liquidado 1', tipoDocId: 1, doc: '11111222', secondary: 'RAD-111112223', tag: 'Notaría 1' },
-      { label: 'Radicado Liquidado 2', tipoDocId: 1, doc: '123456', secondary: 'SANTIAGO-123', tag: 'Notaría 2' }
-    ]
+    quickExamples: []
   },
   deguello: {
     id: 'deguello',
@@ -102,10 +96,6 @@ export const LIQUIDADORES_CONSULTA_CONFIG: Record<string, LiquidadorConsultaConf
     brandingTextColor: 'text-[#1b53ad]',
     buttonBgColor: 'bg-[#1b53ad] hover:bg-[#154189]',
     iconBadgeColor: 'bg-blue-50 text-blue-800 border-blue-200',
-    quickExamples: [
-      { label: 'Guía Integrada ICA (Popayán - 25 Cabezas)', tipoDocId: 2, doc: '900823411', secondary: 'GSMI-2026-004521', tag: '25 Bovinos' },
-      { label: 'Guía Pagada (El Bordo/Patía - 12 Cabezas)', tipoDocId: 1, doc: '10548920', secondary: 'GSMI-2026-008912', tag: '12 Cabezas' },
-      { label: 'Guía Vencida (Alerta de Infracción)', tipoDocId: 1, doc: '76321450', secondary: 'GSMI-2026-001190', tag: 'Vencida' },
-    ]
+    quickExamples: []
   }
 };

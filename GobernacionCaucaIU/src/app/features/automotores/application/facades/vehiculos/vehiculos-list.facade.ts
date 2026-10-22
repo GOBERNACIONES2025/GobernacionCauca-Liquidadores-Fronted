@@ -79,11 +79,17 @@ export class VehiculosListFacade {
         (v.tituloFichaTecnica && v.tituloFichaTecnica.toLowerCase().includes(texto));
 
       const vEstadoNorm = normalize(v.estadoMatricula);
+      const normFiltro = normalize(estado);
       const isActivo = v.estadoMatriculaId === 1 || v.estadoMatriculaId === 0 || (vEstadoNorm.includes('activ') && !vEstadoNorm.includes('inactiv'));
+      
       const matchEstado = estado === 'Todos' || 
-        (estado === 'Activo' && isActivo) ||
-        (estado === 'Inactivo' && !isActivo) ||
-        (vEstadoNorm === normalize(estado));
+        ((normFiltro === 'activo' || normFiltro === 'activa') && isActivo) ||
+        ((normFiltro === 'inactivo' || normFiltro === 'inactiva') && !isActivo) ||
+        (normFiltro === 'cancelada' && (v.estadoMatriculaId === 2 || vEstadoNorm.includes('cancelad'))) ||
+        (normFiltro === 'trasladada' && (v.estadoMatriculaId === 3 || vEstadoNorm.includes('trasladad'))) ||
+        (normFiltro === 'hurtada' && (v.estadoMatriculaId === 4 || vEstadoNorm.includes('hurtad'))) ||
+        (normFiltro === 'chatarrizada' && (v.estadoMatriculaId === 5 || vEstadoNorm.includes('chatarrizad'))) ||
+        (vEstadoNorm === normFiltro || vEstadoNorm.includes(normFiltro));
 
       const vClaseNorm = normalize(v.clase);
       const vTipoNorm = normalize(v.tipoVehiculo);
@@ -132,11 +138,28 @@ export class VehiculosListFacade {
 
     const size = pageSize ?? this.pageSize();
 
+    const estadoMapId: Record<string, number> = {
+      ACTIVA: 1,
+      ACTIVO: 1,
+      CANCELADA: 2,
+      CANCELADO: 2,
+      TRASLADADA: 3,
+      TRASLADADO: 3,
+      HURTADA: 4,
+      HURTADO: 4,
+      CHATARRIZADA: 5,
+      CHATARRIZADO: 5
+    };
+
+    const estadoNorm = (this.filtroEstado() || '').toUpperCase();
+    const estadoId = estadoMapId[estadoNorm];
+
     const filtros = {
       page,
       pageSize: size,
       buscar: this.filtroTexto().trim() || undefined,
-      estado: this.filtroEstado(),
+      estado: this.filtroEstado() !== 'Todos' ? this.filtroEstado() : undefined,
+      estadoMatriculaId: estadoId,
       tipoVehiculo: this.filtroTipo()
     };
 
@@ -294,7 +317,8 @@ export class VehiculosListFacade {
         pasajeros: item.pasajeros ? Number(item.pasajeros) : undefined,
         organismoTransito: item.organismoTransito || item.organismoTransitoNombre || undefined,
         organismoTransitoId: item.organismoTransitoId || undefined,
-        fechaMatricula: item.fechaMatricula || undefined,
+        fechaMatricula: this.extraerFechaMatricula(item),
+        fecha_matricula: this.extraerFechaMatricula(item),
         estadoMatricula: item.estadoMatricula || 'Matrícula Activa',
         estadoMatriculaId: item.estadoMatriculaId || 1,
         exencion: item.exencion || undefined,
@@ -313,5 +337,45 @@ export class VehiculosListFacade {
         }
       };
     });
+  }
+
+  private extraerFechaMatricula(item: any): string | undefined {
+    if (!item) return undefined;
+    const raw = item.fechaMatricula ??
+      item.fecha_matricula ??
+      item.fecha_Matricula ??
+      item.FechaMatricula ??
+      item.fechaRegistro ??
+      item.fecha_registro ??
+      item.FechaRegistro ??
+      item.fechaExpedicion ??
+      item.fecha_expedicion ??
+      item.FechaExpedicion;
+
+    return this.normalizarFecha(raw);
+  }
+
+  private normalizarFecha(val?: any): string | undefined {
+    if (!val) return undefined;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      const matchIso = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+      if (matchIso) return matchIso[1];
+
+      const matchSlash = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+      if (matchSlash) {
+        const day = matchSlash[1].padStart(2, '0');
+        const month = matchSlash[2].padStart(2, '0');
+        const year = matchSlash[3];
+        return `${year}-${month}-${day}`;
+      }
+    }
+    try {
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return d.toISOString().split('T')[0];
+      }
+    } catch {}
+    return undefined;
   }
 }

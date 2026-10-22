@@ -23,19 +23,14 @@ export interface LiquidacionFiltros {
   tipo?: string;
 }
 
-/**
- * Servicio de infraestructura API para el módulo de Liquidaciones y Facturación Oficial de Automotores.
- */
+
 @Injectable({
   providedIn: 'root'
 })
 export class LiquidacionesApiService {
   private api = inject(BaseApiService);
 
-  /**
-   * Obtiene la lista unificada y paginada de liquidaciones tributarias.
-   * Conecta directamente al endpoint raíz unificado /liquidaciones.
-   */
+
   getLiquidaciones(filtros: LiquidacionFiltros = {}): Observable<ApiResponse<PagedResult<LiquidacionItem>>> {
     const params: Record<string, string | number> = {};
     if (filtros.page) params['page'] = filtros.page;
@@ -49,9 +44,7 @@ export class LiquidacionesApiService {
     return this.api.get<ApiResponse<PagedResult<LiquidacionItem>>>('/liquidaciones', { params }, 'AUTOMOTORES');
   }
 
-  /**
-   * Consulta los indicadores KPI acumulados del módulo de liquidaciones.
-   */
+
   getKpis(): Observable<ApiResponse<LiquidacionKpis>> {
     return this.api.get<ApiResponse<LiquidacionKpis>>('/liquidaciones/kpis', {}, 'AUTOMOTORES');
   }
@@ -64,23 +57,17 @@ export class LiquidacionesApiService {
     return this.api.post<ApiResponse<SimulacionLiquidacion>>('/liquidaciones/simular', request, {}, 'AUTOMOTORES');
   }
 
-  /**
-   * Oficializa e inserta en la base de datos las liquidaciones por vigencia seleccionadas.
-   */
+
   oficializar(request: SimularLiquidacionRequest): Observable<ApiResponse<LiquidacionItem[]>> {
     return this.api.post<ApiResponse<LiquidacionItem[]>>('/liquidaciones/oficializar', request, {}, 'AUTOMOTORES');
   }
 
-  /**
-   * Ejecuta la liquidación oficial masiva para un conjunto de vehículos o parque automotor.
-   */
+
   ejecutarMasiva(request: LiquidacionMasivaRequest): Observable<ApiResponse<LiquidacionMasivaResultado>> {
     return this.api.post<ApiResponse<LiquidacionMasivaResultado>>('/liquidaciones/masiva', request, {}, 'AUTOMOTORES');
   }
 
-  /**
-   * Obtiene la previsualización HTML y metadatos de la factura oficial con código de barras GS1-128.
-   */
+
   previsualizarFactura(placa: string, vigencia?: number, esUnificado: boolean = false): Observable<ApiResponse<FacturaPreview>> {
     const params: Record<string, string | number | boolean> = { placa };
     if (vigencia) params['vigencia'] = vigencia;
@@ -89,10 +76,7 @@ export class LiquidacionesApiService {
     return this.api.get<ApiResponse<FacturaPreview>>('/liquidaciones/factura/preview', { params }, 'AUTOMOTORES');
   }
 
-  /**
-   * Descarga el documento oficial de liquidación en PDF como Blob binario en memoria.
-   * Evita bloqueos de seguridad del navegador por 'Insecure Connection / Mixed Content' en entornos HTTP/Desarrollo.
-   */
+
   descargarPdfBlob(placa: string, vigencia?: number, esUnificado: boolean = false): Observable<Blob> {
     const params: Record<string, string | number | boolean> = { placa, descargar: true };
     if (vigencia) params['vigencia'] = vigencia;
@@ -101,9 +85,7 @@ export class LiquidacionesApiService {
     return this.api.get<Blob>('/liquidaciones/pdf', { params, responseType: 'blob' as any }, 'AUTOMOTORES');
   }
 
-  /**
-   * Construye la URL completa para descargar o visualizar el archivo binario PDF oficial.
-   */
+
   construirPdfUrl(placa: string, vigencia?: number, esUnificado: boolean = false, descargar: boolean = true): string {
     let endpoint = `/liquidaciones/pdf?placa=${encodeURIComponent(placa)}`;
     if (vigencia) endpoint += `&vigencia=${vigencia}`;

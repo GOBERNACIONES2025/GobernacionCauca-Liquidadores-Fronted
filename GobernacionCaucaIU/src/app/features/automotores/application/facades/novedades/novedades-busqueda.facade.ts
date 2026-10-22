@@ -237,11 +237,10 @@ export class NovedadesBusquedaFacade {
         // 3. Determinar la placa involucrada
         const placaTarget = this.vehiculo()?.placa || novedadActual?.placa || '';
 
-        // 4. Refrescar historial desde backend
+        // 4. Refrescar historial general y KPIs desde backend
+        this.cargarHistorialGeneral();
         if (this.vehiculo()) {
           this.cargarHistorialVehiculo(this.vehiculo()!.placa);
-        } else {
-          this.cargarHistorialGeneral();
         }
 
         // 5. Refrescar KPIs

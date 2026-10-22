@@ -289,35 +289,35 @@
     </div>
   }
 
-  <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
-    <div class="px-4 py-2.5 bg-slate-50 text-xs text-slate-500 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+  <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col">
+    <div class="px-5 py-3 bg-slate-50/70 text-xs text-slate-500 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
       <span class="flex items-center gap-1.5">
         <i class="fa-solid fa-shield-halved text-slate-400"></i>
         <span>Histórico de capturas congeladas para recaudo bancario y pasarelas.</span>
       </span>
 
-      <span>
+      <span class="text-[12px] text-slate-500 font-medium">
         Página <strong class="text-slate-800">{{ facade.page() }}</strong> de
         <strong class="text-slate-800">{{ facade.totalPaginas() }}</strong> (Total
-        <strong class="text-slate-900">{{ facade.totalCount() }}</strong> registros)
+        <strong class="text-slate-800">{{ facade.totalCount() }}</strong> registros)
       </span>
     </div>
 
-    <div class="overflow-x-auto">
-      <table class="w-full text-left text-xs border-collapse">
+    <div class="overflow-x-auto overflow-y-auto flex-1">
+      <table class="w-full border-collapse text-[13px] min-w-[950px]">
         <thead>
-          <tr class="bg-slate-100/80 text-slate-600 font-bold border-b border-slate-200 uppercase text-[10.5px] tracking-wider">
-            <th class="py-3 px-3 w-16 text-center">ID</th>
-            <th class="py-3 px-4">Automotor</th>
-            <th class="py-3 px-4">Contribuyente</th>
-            <th class="py-3 px-4">N° Liquidación</th>
-            <th class="py-3 px-4">Referencia de Pago</th>
-            <th class="py-3 px-3 text-right">Impuesto</th>
-            <th class="py-3 px-3 text-right">Mora Cong.</th>
-            <th class="py-3 px-3 text-right">Total a Pagar</th>
-            <th class="py-3 px-3 text-center">Vence Factura</th>
-            <th class="py-3 px-3 text-center">Estado</th>
-            <th class="py-3 px-4 text-center">Acciones</th>
+          <tr class="bg-[#2c3239] text-white">
+            <th class="py-3 px-4 w-16 text-center text-[12px] font-bold tracking-wide rounded-tl-xl whitespace-nowrap">ID</th>
+            <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Automotor</th>
+            <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Contribuyente</th>
+            <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">N° Liquidación</th>
+            <th class="py-3 px-5 text-left text-[12px] font-bold tracking-wide whitespace-nowrap">Referencia de Pago</th>
+            <th class="py-3 px-4 text-right text-[12px] font-bold tracking-wide whitespace-nowrap">Impuesto</th>
+            <th class="py-3 px-4 text-right text-[12px] font-bold tracking-wide whitespace-nowrap">Mora Cong.</th>
+            <th class="py-3 px-4 text-right text-[12px] font-bold tracking-wide whitespace-nowrap">Total a Pagar</th>
+            <th class="py-3 px-4 text-center text-[12px] font-bold tracking-wide whitespace-nowrap">Vence Factura</th>
+            <th class="py-3 px-4 text-center text-[12px] font-bold tracking-wide whitespace-nowrap">Estado</th>
+            <th class="py-3 px-5 text-center text-[12px] font-bold tracking-wide rounded-tr-xl whitespace-nowrap">Acciones</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -344,7 +344,9 @@
 
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-1.5">
-                    <span class="co-plate">{{ item.placa }}</span>
+                    <span class="inline-block bg-[#ffcf00] text-slate-900 font-extrabold text-[12px] tracking-wide px-2.5 py-0.5 rounded-sm shadow-2xs border border-amber-400/60 font-mono">
+                      {{ item.placa }}
+                    </span>
                     @if (item.vigenciaAnio) {
                       <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-bold text-[10px]">
                         {{ item.vigenciaAnio }}
@@ -434,14 +436,14 @@
                   }
                 </td>
 
-                <td class="py-3 px-4 text-center whitespace-nowrap">
+                <td class="py-3 px-5 text-center whitespace-nowrap align-middle">
                   <button
                     (click)="onAbrirDetalle(item.idLiquidacionSnapshots)"
                     type="button"
-                    class="inline-flex items-center gap-1 h-7 px-2.5 rounded-lg text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 transition-colors cursor-pointer shadow-2xs"
+                    class="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-lg text-xs font-semibold bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 transition-colors cursor-pointer shadow-2xs"
                     title="Ver desglose completo de conceptos tributarios congelados"
                   >
-                    <i class="fa-solid fa-file-invoice text-[11px]"></i>
+                    <i class="fa-regular fa-eye text-xs text-slate-500"></i>
                     <span>Ver Detalle</span>
                   </button>
                 </td>
@@ -452,12 +454,12 @@
       </table>
     </div>
 
-    <div class="bg-slate-50 border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+    <div class="p-3 sm:px-5 border-t border-slate-100 flex flex-col sm:flex-row gap-2 justify-between items-center bg-white text-xs">
       <div class="flex items-center gap-2 text-slate-500 font-medium">
         <span>
-          Mostrando <strong class="text-slate-900 font-bold">{{ facade.rangoInicio() }}</strong> a
-          <strong class="text-slate-900 font-bold">{{ facade.rangoFin() }}</strong> de
-          <strong class="text-slate-900 font-bold">{{ facade.totalCount() }}</strong> preliquidaciones
+          Mostrando <strong class="text-slate-800">{{ facade.rangoInicio() }}</strong> a
+          <strong class="text-slate-800">{{ facade.rangoFin() }}</strong> de
+          <strong class="text-slate-800">{{ facade.totalCount() }}</strong> preliquidaciones
         </span>
 
         <span class="text-slate-300">|</span>
@@ -467,7 +469,7 @@
           <select
             [value]="facade.pageSize()"
             (change)="facade.setPageSize(+$any($event.target).value)"
-            class="h-7 px-2 bg-white border border-slate-300 rounded text-slate-800 font-bold focus:ring-1 focus:ring-blue-500 cursor-pointer"
+            class="h-7 px-2 bg-white border border-slate-200 rounded-md text-slate-800 font-bold focus:ring-1 focus:ring-blue-500 cursor-pointer text-xs"
           >
             <option [value]="10">10</option>
             <option [value]="20">20</option>
@@ -477,28 +479,27 @@
         </label>
       </div>
 
-      <div class="flex items-center gap-1">
+      <div class="flex gap-1.5 items-center">
         <button
           (click)="facade.setPage(facade.page() - 1)"
           [disabled]="facade.page() <= 1"
           type="button"
-          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-300 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+          class="h-7 px-2.5 rounded border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-50 flex items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          <i class="fa-solid fa-chevron-left text-[10px]"></i> Anterior
+          <i class="fa-solid fa-chevron-left text-[10px]"></i>
         </button>
 
-        <span class="px-3 py-1 text-slate-600 font-semibold">
-          Pág. <strong class="text-slate-900">{{ facade.page() }}</strong> de
-          <strong class="text-slate-900">{{ facade.totalPaginas() }}</strong>
+        <span class="h-7 px-3 rounded bg-[#1e3a7b] text-white text-[12px] font-bold flex items-center shadow-2xs">
+          {{ facade.page() }}
         </span>
 
         <button
           (click)="facade.setPage(facade.page() + 1)"
           [disabled]="facade.page() >= facade.totalPaginas()"
           type="button"
-          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-slate-300 bg-white font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shadow-2xs"
+          class="h-7 px-2.5 rounded border border-slate-200 bg-white text-[12px] text-slate-600 hover:bg-slate-50 flex items-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          Siguiente <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          <i class="fa-solid fa-chevron-right text-[10px]"></i>
         </button>
       </div>
     </div>

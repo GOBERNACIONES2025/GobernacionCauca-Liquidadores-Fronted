@@ -22,8 +22,10 @@ export class ConceptosTributariosPage implements OnInit {
   readonly isEditMode = signal<boolean>(false);
   readonly selectedItem = signal<ConceptoTributarioDto | null>(null);
   readonly itemParaEliminar = signal<ConceptoTributarioDto | null>(null);
+  searchTermLocal: string = '';
 
   ngOnInit(): void {
+    this.searchTermLocal = this.facade.searchTerm();
     this.form = this.fb.group({
       id: [0],
       tipoConceptoTributarioId: [1, [Validators.required, Validators.min(1)]],
@@ -33,8 +35,8 @@ export class ConceptosTributariosPage implements OnInit {
     });
   }
 
-  onSearch(term: string): void {
-    this.facade.searchTerm.set(term);
+  onSearch(): void {
+    this.facade.searchTerm.set(this.searchTermLocal.trim());
     this.facade.pageNumber.set(1);
     this.facade.cargarConceptos();
   }

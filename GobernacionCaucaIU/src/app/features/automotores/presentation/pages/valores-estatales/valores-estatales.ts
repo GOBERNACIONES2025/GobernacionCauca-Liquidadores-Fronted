@@ -31,6 +31,18 @@ export class ValoresEstatalesPage implements OnInit {
   // Estado de modales
   readonly modalMode = signal<'CREATE' | 'EDIT' | null>(null);
   readonly itemParaEliminar = signal<{ tipo: 'UVT' | 'TASA' | 'SALARIO'; id: number; titulo: string } | null>(null);
+  searchLocal: string = '';
+
+  onSearch(): void {
+    const term = this.searchLocal.trim();
+    if (this.facade.tabActiva() === 'UVT') {
+      this.facade.uvtSearchTerm.set(term);
+    } else if (this.facade.tabActiva() === 'TASAS') {
+      this.facade.tasasSearchTerm.set(term);
+    } else {
+      this.facade.salariosSearchTerm.set(term);
+    }
+  }
 
   ngOnInit(): void {
     this.initForms();

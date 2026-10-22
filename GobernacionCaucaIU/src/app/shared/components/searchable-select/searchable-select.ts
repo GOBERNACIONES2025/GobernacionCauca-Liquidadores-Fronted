@@ -30,6 +30,7 @@ export class SearchableSelectComponent implements ControlValueAccessor, OnInit, 
   @Input() enablePagination: boolean = true;
   @Input() dependency?: any;
   @Input() icon?: string;
+  @Input() customBg?: string;
 
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
   @ViewChild('optionsList') optionsListRef!: ElementRef<HTMLUListElement>;

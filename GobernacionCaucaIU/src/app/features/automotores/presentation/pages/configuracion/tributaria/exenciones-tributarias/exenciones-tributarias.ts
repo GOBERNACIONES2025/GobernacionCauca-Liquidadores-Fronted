@@ -30,8 +30,10 @@ export class ExencionesTributariasPage implements OnInit {
   // Opciones de ámbito y tipos de beneficio estándar
   readonly ambitosDisponibles = ['DEPARTAMENTAL', 'MUNICIPAL', 'NACIONAL'];
   readonly tiposBeneficioDisponibles = ['EXENTO', 'REDUCCION'];
+  searchTermLocal: string = '';
 
   ngOnInit(): void {
+    this.searchTermLocal = this.facade.searchTerm();
     this.initForm();
   }
 
@@ -60,8 +62,8 @@ export class ExencionesTributariasPage implements OnInit {
   }
 
   // Búsqueda y Filtros
-  onSearch(term: string): void {
-    this.facade.searchTerm.set(term);
+  onSearch(): void {
+    this.facade.searchTerm.set(this.searchTermLocal.trim());
     this.facade.pageNumber.set(1);
     this.facade.cargarExenciones();
   }

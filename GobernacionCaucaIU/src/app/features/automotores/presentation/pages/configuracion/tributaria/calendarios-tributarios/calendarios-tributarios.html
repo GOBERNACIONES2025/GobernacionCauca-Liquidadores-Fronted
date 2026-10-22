@@ -94,17 +94,24 @@
   <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
       <!-- Búsqueda por texto -->
-      <div class="lg:col-span-2 relative">
+      <div class="lg:col-span-2 relative flex items-center">
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
           <i class="fa-solid fa-magnifying-glass text-xs"></i>
         </div>
         <input
           type="text"
-          [ngModel]="facade.searchTerm()"
-          (ngModelChange)="onSearch($event)"
+          [(ngModel)]="searchTermLocal"
+          (keydown.enter)="onSearch()"
           placeholder="Buscar por vigencia, fechas o norma..."
-          class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
+          class="w-full pl-9 pr-10 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F3067]/20 focus:border-[#0F3067] transition"
         />
+        <button
+          type="button"
+          (click)="onSearch()"
+          title="Buscar"
+          class="absolute right-1.5 w-6 h-6 rounded-lg bg-[#184a8c] hover:bg-[#12396d] text-white flex items-center justify-center transition cursor-pointer border-none shadow-2xs text-[10px]">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
       </div>
 
       <!-- Filtro Vigencia Fiscal -->
@@ -597,7 +604,7 @@
   @let desc = getPorcentajeDisplay(item.porcentajeDescuento);
 
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+    <div class="bg-white rounded-xl max-w-lg w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       <!-- Modal Header -->
       <div class="px-6 py-5 bg-[#0F3067] text-white flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -612,7 +619,7 @@
         <button
           type="button"
           (click)="cerrarDetallesModal()"
-          class="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
+          class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition cursor-pointer"
         >
           <i class="fa-solid fa-xmark text-sm"></i>
         </button>
@@ -708,7 +715,7 @@
   @let item = itemParaEliminar()!;
 
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-    <div class="bg-white rounded-2xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+    <div class="bg-white rounded-xl max-w-md w-full overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       <div class="p-6 text-center">
         <div class="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-4">
           <i class="fa-solid fa-triangle-exclamation"></i>

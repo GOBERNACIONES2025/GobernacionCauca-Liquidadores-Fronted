@@ -1,3 +1,8 @@
+// Autor: Juan Sebastián Montaño Pérez
+// Fecha: 08/10/2026
+// Módulo: Consultas Vehiculares
+// Descripción: Interfaces de dominio para la consulta pública vehicular y liquidaciones del ciudadano.
+
 export interface ConsultaVehicularRequest {
   tipoDocumento?: number;
   numeroDocumento?: string;
@@ -96,6 +101,7 @@ export interface LiquidacionConsultaDto {
   detalle: string;
   valor: number;
   estado: string;
+  numeroLiquidacion?: string | null;
 }
 
 export interface ConsultaVehicularData {
@@ -116,6 +122,7 @@ export interface LiquidacionCiudadano {
   valor: number;
   estado: string;
   esPagada: boolean;
+  numeroLiquidacion?: string | null;
 }
 
 export interface PropietarioCiudadano {

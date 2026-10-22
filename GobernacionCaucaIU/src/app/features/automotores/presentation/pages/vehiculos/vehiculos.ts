@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, OnDestroy, HostListener, signal } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, HostListener, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
@@ -6,10 +6,11 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { VehiculosFacade } from '../../../application/facades/vehiculos.facade';
 import { LiquidacionesFacade } from '../../../application/facades/liquidaciones.facade';
 import { VehiculoItem } from '../../../domain/models/vehiculo.model';
-import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
-import { TableSearchComponent } from '../../../../../shared/components/table-search/table-search';
 import { VehiculoWizardComponent } from '../../components/vehiculo-wizard/vehiculo-wizard';
 import {
+  VehiculosHeaderComponent,
+  VehiculosKpiCardsComponent,
+  VehiculosTableComponent,
   VehiculosExpedientePanelComponent,
   VehiculosPendientesModalComponent,
   VehiculosAuditoriaModalComponent,
@@ -24,8 +25,9 @@ import {
   imports: [
     CommonModule,
     FormsModule,
-    BreadcrumbComponent,
-    TableSearchComponent,
+    VehiculosHeaderComponent,
+    VehiculosKpiCardsComponent,
+    VehiculosTableComponent,
     VehiculoWizardComponent,
     VehiculosExpedientePanelComponent,
     VehiculosPendientesModalComponent,
@@ -40,38 +42,34 @@ export class Vehiculos implements OnInit, OnDestroy {
   readonly facade = inject(VehiculosFacade);
   readonly liqFacade = inject(LiquidacionesFacade);
 
-  private searchSubject = new Subject<string>();
-  private searchSub?: Subscription;
-
-  readonly activeMenuVehiculoId = signal<number | null>(null);
   readonly toastMessage = signal<{ title: string; desc: string; type: 'success' | 'error' | 'info' } | null>(null);
   readonly vehiculoAuditoriaSeleccionado = signal<VehiculoItem | null>(null);
 
+  readonly countActivos = computed<number>(() => {
+    const kpiCount = this.facade.kpis().totalVehiculosActivos;
+    if (kpiCount !== undefined && kpiCount > 0) return kpiCount;
+    return this.facade.vehiculos().filter(v => v.estadoMatricula === 'Matrícula Activa' || v.estadoMatricula === 'Activo').length;
+  });
+
+  readonly countInactivos = computed<number>(() => {
+    const kpiCount = this.facade.kpis().totalVehiculosInactivos;
+    if (kpiCount !== undefined && kpiCount > 0) return kpiCount;
+    return this.facade.vehiculos().filter(v => v.estadoMatricula !== 'Matrícula Activa' && v.estadoMatricula !== 'Activo').length;
+  });
+
   ngOnInit(): void {
-    this.searchSub = this.searchSubject.pipe(
-      debounceTime(350),
-      distinctUntilChanged()
-    ).subscribe(text => {
-      this.facade.setFiltroTexto(text);
-    });
     this.facade.refrescarDashboard();
   }
 
   ngOnDestroy(): void {
-    this.searchSub?.unsubscribe();
-  }
-
-  onFiltroTextoChange(val: string): void {
-    this.facade.filtroTexto.set(val);
-    this.searchSubject.next(val);
   }
 
   onSearchVehiculos(term: string): void {
     this.facade.setFiltroTexto(term);
   }
 
-  onClearSearchVehiculos(): void {
-    this.facade.setFiltroTexto('');
+  onFiltrarPorEstado(estado: string): void {
+    this.facade.setFiltroEstado(estado);
   }
 
   // ─── Control de Registro y Edición con Wizard ──────────────────────────────
@@ -80,14 +78,12 @@ export class Vehiculos implements OnInit, OnDestroy {
     this.facade.abrirRegistro();
   }
 
-  onEditarVehiculo(v: VehiculoItem): void {
+  onVerDetalleVehiculo(v: VehiculoItem): void {
     this.facade.seleccionarVehiculo(v);
-    this.facade.abrirExpediente(v);
   }
 
-  onAbrirExpedienteModal(v: VehiculoItem): void {
-    this.facade.seleccionarVehiculo(v);
-    this.facade.abrirExpediente(v);
+  onEditarVehiculo(v: VehiculoItem): void {
+    this.facade.abrirEdicion(v);
   }
 
   // ─── Control de Auditoría y Pendientes ────────────────────────────────────
@@ -133,21 +129,6 @@ export class Vehiculos implements OnInit, OnDestroy {
     this.toastMessage.set(null);
   }
 
-  // ─── Menús y Teclado ──────────────────────────────────────────────────────
-  toggleMenu(id: number, event: MouseEvent): void {
-    event.stopPropagation();
-    this.activeMenuVehiculoId.update(current => current === id ? null : id);
-  }
-
-  cerrarMenu(): void {
-    this.activeMenuVehiculoId.set(null);
-  }
-
-  @HostListener('document:click')
-  handleDocumentClick(): void {
-    this.cerrarMenu();
-  }
-
   @HostListener('document:keydown.escape')
   handleEscapeKey(): void {
     if (this.vehiculoAuditoriaSeleccionado()) {
@@ -163,6 +144,5 @@ export class Vehiculos implements OnInit, OnDestroy {
     } else if (this.facade.selectedVehiculo()) {
       this.facade.deseleccionarVehiculo();
     }
-    this.cerrarMenu();
   }
 }

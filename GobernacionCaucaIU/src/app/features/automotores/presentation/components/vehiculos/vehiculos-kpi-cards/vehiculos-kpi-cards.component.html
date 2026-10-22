@@ -1,0 +1,148 @@
+<section class="grid grid-cols-1 xl:grid-cols-12 gap-3.5 mb-3.5">
+  
+  <!-- TARJETA 1: PARÁMETROS FISCALES -->
+  <div class="xl:col-span-7 bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs flex flex-col justify-center gap-2.5">
+    <!-- Header de Tarjeta -->
+    <h2 class="text-[12px] font-extrabold text-[#1b53ad] tracking-wide uppercase m-0">
+      PARÁMETROS FISCALES
+    </h2>
+
+    <!-- Contenedor de 3 Columnas de Parámetros -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 items-center">
+      
+      <!-- Vigencia Fiscal -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100/90 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+          <i class="fa-regular fa-calendar-days text-[16px]"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[13px] text-slate-800 leading-tight">
+            Vigencia Fiscal <span class="font-extrabold text-slate-900">{{ kpis.vigenciaFiscal || 2026 }}</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-0.5 truncate">
+            {{ kpis.vigenciaEstado === 'ACTIVA' ? 'Activa' : (kpis.vigenciaEstado || 'Activa') }} • {{ kpis.vigenciaFecha || '01/01/2026' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Valor UVT -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100/90 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+          <i class="fa-solid fa-dollar-sign text-[16px]"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[13px] text-slate-800 leading-tight">
+            Valor UVT <span class="font-extrabold text-slate-900">${{ (kpis.valorUvt || 49799) | number }}</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-0.5 truncate" [title]="kpis.uvtNorma || 'Ord. 004-2026 — DIAN'">
+            {{ kpis.uvtNorma || 'Ord. 004-2026 — DIAN' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sanción Mínima -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-100/90 border border-slate-200/70 flex items-center justify-center text-slate-500 shrink-0">
+          <i class="fa-solid fa-triangle-exclamation text-[16px]"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="text-[13px] text-slate-800 leading-tight">
+            Sanción Mínima <span class="font-extrabold text-slate-900">${{ (kpis.sancionMinima || 497990) | number }}</span>
+          </div>
+          <div class="text-[11.5px] text-slate-500 mt-0.5 truncate" [title]="kpis.sancionDescripcion || 'Extemporánea (10 UVTs)'">
+            {{ kpis.sancionDescripcion || 'Extemporánea (10 UVTs)' }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TARJETA 2: PARQUE AUTOMOTOR (DISEÑO EXACTO REFERENCIA) -->
+  <div class="xl:col-span-5 bg-white rounded-2xl border border-slate-200/90 p-3.5 sm:p-4 shadow-2xs flex flex-col justify-center gap-2">
+    <!-- Header de Tarjeta -->
+    <h2 class="text-[12px] font-extrabold text-[#1b53ad] tracking-wide uppercase m-0">
+      PARQUE AUTOMOTOR
+    </h2>
+
+    <div class="flex flex-col gap-2">
+      <!-- Fila 1: Título con Icono de Carro -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-slate-100/90 border border-slate-200/80 flex items-center justify-center text-slate-700 shrink-0">
+          <i class="fa-solid fa-car-side text-[16px]"></i>
+        </div>
+        <div class="text-[17px] sm:text-[18px] font-bold text-slate-900 leading-none">
+          Vehículos registrados <span class="font-extrabold">{{ totalVehiculosRegistrados }}</span>
+        </div>
+      </div>
+
+      <!-- Fila 2: Botones de Estado con Borde y Color Exacto -->
+      <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        <!-- Activa (Id: 1 / ACTIVA) -->
+        <button
+          type="button"
+          (click)="onFiltrar('ACTIVA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('ACTIVA') || isEstadoActivo('Activo')
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Activa <span class="font-bold ml-1">{{ getCount('ACTIVA') || kpis.totalVehiculosActivos || countActivos }}</span>
+        </button>
+
+        <!-- Pendientes (Abre Modal de Pendientes de Aprobación - Estilo normal blanco) -->
+        <button
+          type="button"
+          (click)="abrirPendientes.emit()"
+          class="px-3.5 py-1 rounded-[8px] text-[12.5px] bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal transition-all shadow-2xs cursor-pointer active:scale-95">
+          Pendientes <span class="font-bold ml-1">{{ kpis.totalPendientesAprobacion || 0 }}</span>
+        </button>
+
+        <!-- Trasladada (Id: 3 / TRASLADADA) -->
+        <button
+          type="button"
+          (click)="onFiltrar('TRASLADADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('TRASLADADA') 
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Trasladada <span class="font-bold ml-1">{{ getCount('TRASLADADA') }}</span>
+        </button>
+
+        <!-- Hurtada (Id: 4 / HURTADA) -->
+        <button
+          type="button"
+          (click)="onFiltrar('HURTADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('HURTADA') 
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Hurtada <span class="font-bold ml-1">{{ getCount('HURTADA') }}</span>
+        </button>
+
+        <!-- Chatarrizada (Id: 5 / CHATARRIZADA) -->
+        <button
+          type="button"
+          (click)="onFiltrar('CHATARRIZADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('CHATARRIZADA') 
+              ? 'bg-slate-900 text-white font-bold shadow-2xs border border-slate-900' 
+              : 'bg-white border border-slate-700/80 text-slate-900 hover:bg-slate-50 font-normal')">
+          Chatarrizada <span class="font-bold ml-1">{{ getCount('CHATARRIZADA') }}</span>
+        </button>
+
+        <!-- Cancelada (Id: 2 / CANCELADA) - Botón final en rojo coral -->
+        <button
+          type="button"
+          (click)="onFiltrar('CANCELADA')"
+          [class]="'px-3.5 py-1 rounded-[8px] text-[12.5px] transition-all cursor-pointer ' + 
+            (isEstadoActivo('CANCELADA') 
+              ? 'bg-[#b82836] text-white font-bold shadow-2xs border border-[#b82836]' 
+              : 'bg-[#df4251] hover:bg-[#cf3644] text-white font-normal shadow-2xs border border-[#df4251] active:scale-95')">
+          Cancelada <span class="font-bold ml-1">{{ getCount('CANCELADA') }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</section>

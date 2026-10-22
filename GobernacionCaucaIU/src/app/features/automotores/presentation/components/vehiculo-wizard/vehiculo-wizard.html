@@ -1,648 +1,119 @@
 @if (facade.isDrawerOpen()) {
-<div class="fixed inset-0 z-50 flex items-start justify-end">
-  <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" (click)="facade.cerrarRegistro()"></div>
-  <div class="relative z-10 w-full max-w-170 h-full bg-white shadow-2xl flex flex-col overflow-hidden text-slate-900"
-    data-theme="light">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white shrink-0">
-      <div>
-        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">{{ facade.isNuevoRegistro() ?
-          'NUEVO REGISTRO' : 'EDITAR EXPEDIENTE' }}</div>
-        <h2 class="text-[15px] font-bold text-slate-900">{{ facade.isNuevoRegistro() ? 'Registrar Vehículo' :
-          ('Expediente: ' + (facade.selectedVehiculo()?.placa || '')) }}</h2>
-      </div>
-      <button (click)="facade.cerrarRegistro()" type="button"
-        class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-          viewBox="0 0 24 24">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
+<div class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+  
+  <!-- BACKDROP CLICK PARA CERRAR -->
+  <div class="absolute inset-0" (click)="facade.cerrarRegistro()"></div>
+
+  <!-- TARJETA MODAL CENTRADA -->
+  <div class="relative z-10 w-full max-w-[620px] max-h-[92vh] bg-white rounded-xl shadow-2xl flex flex-col overflow-hidden text-slate-900 border border-slate-200/80 animate-in fade-in zoom-in-95 duration-150">
+    
+    <!-- BOTÓN CERRAR (ESQUINA SUPERIOR DERECHA) -->
+    <button 
+      (click)="facade.cerrarRegistro()" 
+      type="button"
+      title="Cerrar ventana"
+      class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer border-none z-20">
+      <i class="fa-solid fa-xmark text-sm"></i>
+    </button>
+
+    <!-- BOTÓN VOLVER (ESQUINA SUPERIOR IZQUIERDA, CUANDO EL PASO > 1) -->
+    @if (facade.currentStep() > 1) {
+      <button 
+        (click)="onAnterior()" 
+        type="button"
+        title="Paso anterior"
+        class="absolute top-4 left-4 w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center transition-colors cursor-pointer border-none z-20">
+        <i class="fa-solid fa-arrow-left text-sm"></i>
       </button>
-    </div>
-    <div class="flex border-b border-slate-200 bg-white shrink-0 px-6">
-      @for (tab of facade.tabs(); track tab) {
-      <button (click)="facade.setTab(tab)" type="button" [class.text-emerald-600]="facade.activeTab() === tab"
-        [class.border-emerald-500]="facade.activeTab() === tab" [class.font-semibold]="facade.activeTab() === tab"
-        [class.text-slate-400]="facade.activeTab() !== tab" [class.border-transparent]="facade.activeTab() !== tab"
-        class="pb-3 pt-3 px-3 text-[13px] border-b-2 transition-colors whitespace-nowrap">{{ tab }}</button>
-      }
-    </div>
-    <div class="flex-1 overflow-y-auto px-6 py-5 bg-white">
-      <form [formGroup]="form" autocomplete="off" novalidate>
-        @if (facade.activeTab() === 'Datos del Vehículo') {
-        <div class="space-y-4">
-          <div
-            class="flex items-start gap-2.5 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-[12px] text-blue-700">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              viewBox="0 0 24 24" class="shrink-0 mt-0.5">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            Los campos marcados con * son obligatorios. Los marcados con un candado están bloqueados por normativa.
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">1. TIPO DE VEHÍCULO <span
-                  class="text-red-500">*</span></label>
-              <select formControlName="tipoVehiculo" [class.border-red-400]="hasError('tipoVehiculo')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                <option value="" class="text-slate-500">Seleccione tipo...</option>
-                @for (tipo of facade.tiposVehiculo(); track tipo.id) { <option [value]="tipo.nombre"
-                  class="text-slate-900">{{ tipo.nombre }}</option> }
-              </select>
-              @if (hasError('tipoVehiculo')) { <span class="text-[11px] text-red-500">{{ getError('tipoVehiculo')
-                }}</span> }
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">2. MARCA <span
-                  class="text-red-500">*</span></label>
-              <select formControlName="marca" [class.border-red-400]="hasError('marca')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
-                <option value="" class="text-slate-500">← Seleccione tipo primero</option>
-                @for (m of facade.marcasDisponibles(); track m.id) { <option [value]="m.nombre" class="text-slate-900">
-                  {{ m.nombre }}</option> }
-              </select>
-              @if (hasError('marca')) { <span class="text-[11px] text-red-500">{{ getError('marca') }}</span> }
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">3. LÍNEA / MODELO COMERCIAL <span
-                  class="text-red-500">*</span></label>
-              <select formControlName="linea" [class.border-red-400]="hasError('linea')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
-                <option value="" class="text-slate-500">← Seleccione marca primero</option>
-                @for (l of facade.lineasDisponibles(); track l.id) { <option [value]="l.nombre" class="text-slate-900">
-                  {{ l.nombre }}</option> }
-              </select>
-              @if (hasError('linea')) { <span class="text-[11px] text-red-500">{{ getError('linea') }}</span> }
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">PLACA <span
-                  class="text-red-500">*</span></label>
-              <input formControlName="placa" type="text" placeholder="← Ingr. la placa de tu tipo de vehiculo"
-                maxlength="6" [class.border-red-400]="hasError('placa')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-semibold text-slate-900  placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 disabled:opacity-90">
-              @if (hasError('placa')) { <span class="text-[11px] text-red-500">{{ getError('placa') }}</span> }
-            </div>
-
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">AÑO MODELO <span
-                  class="text-red-500">*</span></label>
-              <input formControlName="modelo" type="number" placeholder="Ej: 2022" min="1900" max="2027"
-                [class.border-red-400]="hasError('modelo')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-              @if (hasError('modelo')) { <span class="text-[11px] text-red-500">{{ getError('modelo') }}</span> }
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">CILINDRAJE (CC) <span
-                  class="text-red-500">*</span></label>
-              <input formControlName="cilindraje" type="number" placeholder="Ej: 1500" min="50"
-                [class.border-red-400]="hasError('cilindraje')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-              @if (hasError('cilindraje')) { <span class="text-[11px] text-red-500">{{ getError('cilindraje') }}</span>
-              }
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">COMBUSTIBLE <span
-                  class="text-red-500">*</span></label>
-
-              <select formControlName="combustible" [class.border-red-400]="hasError('combustible')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                <option value="" class="text-slate-500">Seleccione combustible...</option>
-                @for (c of facade.combustibles(); track c.id) { <option [value]="c.nombre" class="text-slate-900">{{
-                  c.nombre }}</option> }
-              </select>
-              @if(hasError('combustible')){
-              <span class="text-[11px] text-red-500 font-medium mt-0.5">
-                {{ getError('combustible') }}
-              </span>
-              }
-
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">SERVICIO <span
-                  class="text-red-500">*</span></label>
-              <select formControlName="servicio" [class.border-red-400]="hasError('servicio')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                <option value="" class="text-slate-500">Seleccione servicio...</option>
-                @for (s of facade.serviciosVehiculo(); track s.id) { <option [value]="s.nombre" class="text-slate-900">
-                  {{ s.nombre }}</option> }
-              </select>
-              @if(hasError('servicio')){
-              <span class="text-[11px] text-red-500 font-medium mt-0.5">
-                {{ getError('servicio') }}
-              </span>
-              }
-
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">ESTADO MATRÍCULA <span
-                  class="text-red-500">*</span></label>
-              <select formControlName="estadoMatriculaId" [class.border-red-400]="hasError('estadoMatriculaId')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                <option value="" class="text-slate-500">Seleccione estado...</option>
-                @for (e of facade.estadosMatricula(); track e.id) { <option [value]="e.id" class="text-slate-900">{{
-                  e.nombre }}</option> }
-              </select>
-              @if (hasError('estadoMatriculaId')) { <span class="text-[11px] text-red-500">{{
-                getError('estadoMatriculaId') }}</span> }
-            </div>
-
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">PASAJEROS <span
-                  class="text-red-500">*</span></label>
-              <input formControlName="pasajeros" [class.border-red-400]="hasError('pasajeros')" type="number"
-                placeholder="Ej: 5" min="1"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-              @if(hasError('pasajeros')){
-              <span class="text-[11px] text-red-500 font-medium mt-0.5">
-                {{getError('pasajeros')}}
-              </span>
-              }
-            </div>
-
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">ORGANISMO DE TRÁNSITO <span
-                  class="text-red-500">*</span></label>
-              <select formControlName="organismoTransitoId" [class.border-red-400]="hasError('organismoTransitoId')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                <option value="" class="text-slate-500">Seleccione organismo...</option>
-                @for (o of facade.organismosTransito(); track o.id) { <option [value]="o.id" class="text-slate-900">{{
-                  o.nombre }}</option> }
-              </select>
-              @if (hasError('organismoTransitoId')) {
-              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('organismoTransitoId') }}</span>
-              }
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE MATRÍCULA <span
-                  class="text-red-500">*</span></label>
-              <input formControlName="fechaMatricula" type="date" [class.border-red-400]="hasError('fechaMatricula')"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-              @if (hasError('fechaMatricula')) {
-              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('fechaMatricula') }}</span>
-              }
-
-              <details class="mt-2 rounded-md border border-emerald-500 bg-emerald-50/30">
-                <summary
-                  class="cursor-pointer select-none px-3 py-2 text-[11px] font-semibold text-emerald-700 hover:bg-emerald-50">
-                  Información importante
-                </summary>
-
-                <div class="border-t border-emerald-200 px-3 py-2">
-                  <p class="text-[10px] leading-4 text-slate-700">
-                    <strong class="font-bold text-emerald-700">1.</strong>
-                    Recuerde que esta fecha será utilizada para validar las vigencias adeudadas a partir de este
-                    momento.
-                    <br>
-
-                    <strong class="font-bold text-emerald-700">2.</strong>
-                    Una vez registrado, este dato no podrá ser editado, debido a que será utilizado como referencia para
-                    la
-                    prescripción de los datos posteriores.
-                  </p>
-                </div>
-              </details>
-            </div>
-          </div>
-        </div>
-        }
-
-        @if (facade.activeTab() === 'Propietarios') {
-        <div class="space-y-4">
-          <div class="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
-            <input formControlName="incluirPropietario" type="checkbox" id="chkPropietario"
-              class="w-4 h-4 rounded accent-emerald-600">
-            <label for="chkPropietario"
-              class="text-[13px] font-medium text-slate-800 cursor-pointer select-none">Incluir propietarios en este
-              registro</label>
-          </div>
-
-          @if (form.get('incluirPropietario')?.value) {
-          <div class="p-4 bg-slate-50 border border-slate-200 rounded-lg space-y-3">
-            <div class="flex items-center justify-between">
-              <div>
-                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Distribucion de
-                  Propiedad</span>
-                <p class="text-[13px] font-semibold text-slate-900">Total Asignado: {{ calcularPorcentajeTotal() }}% /
-                  100%</p>
-              </div>
-              <div class="flex items-center gap-2">
-                @if (calcularPorcentajeTotal() === 100) {
-                <span
-                  class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full">
-                  100% Completo
-                </span>
-                } @else if (calcularPorcentajeTotal() < 100) { <span
-                  class="px-2.5 py-1 text-[11px] font-semibold bg-amber-100 text-amber-800 border border-amber-200 rounded-full">
-                  Falta {{ calcularPorcentajeRestante() }}%
-                  </span>
-                  } @else {
-                  <span
-                    class="px-2.5 py-1 text-[11px] font-semibold bg-red-100 text-red-800 border border-red-200 rounded-full">
-                    Exceso de {{ (calcularPorcentajeTotal() - 100).toFixed(2) }}%
-                  </span>
-                  }
-
-                  @if (calcularPorcentajeRestante() > 0) {
-                  <button type="button" (click)="agregarCopropietario()"
-                    class="h-8 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-semibold transition-colors shrink-0">
-                    + Agregar Copropietario
-                  </button>
-                  }
-              </div>
-            </div>
-
-            <!-- Barra visual de distribucion -->
-            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div class="h-full transition-all duration-300" [class.bg-emerald-500]="calcularPorcentajeTotal() === 100"
-                [class.bg-amber-500]="calcularPorcentajeTotal() < 100"
-                [class.bg-red-500]="calcularPorcentajeTotal() > 100"
-                [style.width.%]="calcularPorcentajeTotal() > 100 ? 100 : calcularPorcentajeTotal()"></div>
-            </div>
-
-            @if (calcularPorcentajeTotal() < 100) { <div
-              class="p-2.5 bg-amber-50 border border-amber-200 rounded-md text-[12px] text-amber-900 flex items-center justify-between">
-              <span>El porcentaje de propiedad debe sumar el 100%. Queda un <strong>{{ calcularPorcentajeRestante()
-                  }}%</strong> por asignar. Registre a los demas copropietarios para continuar.</span>
-          </div>
-          } @else if (calcularPorcentajeTotal() > 100) {
-          <div class="p-2.5 bg-red-50 border border-red-200 rounded-md text-[12px] text-red-800">
-            La suma total supera el 100%. Por favor ajuste los porcentajes de participacion.
-          </div>
-          }
-
-          @if (hasError('porcentajePropiedadTotal')) {
-          <div class="text-[11.5px] text-red-600 font-medium">
-            {{ getError('porcentajePropiedadTotal') }}
-          </div>
-          }
-          @if (hasError('esResponsablePrincipal')) {
-          <div class="text-[11.5px] text-red-600 font-medium">
-            {{ getError('esResponsablePrincipal') }}
-          </div>
-          }
-        </div>
-
-        <!-- Lista Dinamica de Propietarios y Copropietarios -->
-        <div formArrayName="propietarios" class="space-y-4">
-          @for (pGroup of propietariosArray.controls; track $index; let i = $index) {
-          <div [formGroupName]="i" class="p-4 bg-white border border-slate-200 rounded-lg shadow-sm space-y-4">
-            <!-- Cabecera de la Tarjeta del Propietario -->
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
-              <div class="flex items-center gap-2">
-                <span
-                  class="w-6 h-6 rounded-full bg-[#1e3a7b] text-white text-[11px] font-bold flex items-center justify-center">
-                  {{ i + 1 }}
-                </span>
-                <span class="text-[13px] font-bold text-slate-800">
-                  {{ i === 0 ? 'Propietario Principal / Titular' : ('Copropietario ' + (i + 1)) }}
-                </span>
-                @if (pGroup.get('esResponsablePrincipal')?.value) {
-                <span
-                  class="px-2 py-0.5 text-[10px] font-bold bg-blue-100 text-blue-800 rounded border border-blue-200">
-                  Responsable Principal
-                </span>
-                }
-              </div>
-
-              <div class="flex items-center gap-2">
-                <span class="text-[12px] font-semibold text-slate-600">
-                  Participacion: {{ pGroup.get('porcentajePropiedad')?.value || 0 }}%
-                </span>
-                @if (propietariosArray.length > 1) {
-                <button type="button" (click)="eliminarCopropietario(i)"
-                  class="text-[11.5px] font-medium text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded transition-colors">
-                  Eliminar
-                </button>
-                }
-              </div>
-            </div>
-
-            <!-- Busqueda por Documento -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">BUSQUEDA POR DOCUMENTO <span
-                  class="text-red-500">*</span></label>
-              <div class="flex flex-wrap gap-2">
-                <select formControlName="tipoDocumentoId" [class.border-red-400]="hasError('tipoDocumentoId', i)"
-                  class="h-9 w-36 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600 shrink-0">
-                  <option value="" class="text-slate-500">Tipo</option>
-                  @for (t of facade.tiposDocumento(); track t.id) {
-                  <option [value]="t.id" class="text-slate-900">{{ t.codigo }}</option>
-                  }
-                </select>
-                <input formControlName="numeroDocumento" type="text" [placeholder]="getPlaceholderDocumento(i)"
-                  (input)="onDocumentoInput($event, i)" [class.border-red-400]="hasError('numeroDocumento', i)"
-                  class="h-9 flex-1 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                <div class="flex justify-between">
-                  <button (click)="buscarPropietario(i)" type="button" [disabled]="buscandoPropietarioIndex() === i"
-                    class="h-9 px-4 rounded-md bg-[#1e3a7b] text-white text-[12px] font-semibold hover:bg-[#162d61] disabled:opacity-50 shrink-0">
-                    {{ buscandoPropietarioIndex() === i ? 'Buscando...' : 'Buscar' }}
-                  </button>
-                  <button (click)="limpiarPropietario(i)" type="button"
-                    class="h-9 px-3 rounded-md bg-slate-100 text-slate-700 text-[12px] font-medium hover:bg-slate-200 shrink-0">
-                    Limpiar
-                  </button>
-                </div>
-              </div>
-              @if (hasError('tipoDocumentoId', i)) {
-              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('tipoDocumentoId', i) }}</span>
-              }
-              @if (hasError('numeroDocumento', i)) {
-              <span class="text-[11px] text-red-500 font-medium mt-0.5">{{ getError('numeroDocumento', i) }}</span>
-              }
-              @if (getPropietarioMsg(i)) {
-              <div
-                class="mt-1 px-3 py-1.5 rounded-md text-[12px] font-medium bg-blue-50 text-blue-800 border border-blue-100">
-                {{ getPropietarioMsg(i) }}
-              </div>
-              }
-            </div>
-
-            <!-- Digito de Verificacion si es NIT -->
-            @if (pGroup.get('tipoDocumentoId')?.value == 2) {
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">DIGITO DE VERIFICACION <span
-                  class="text-red-500">*</span></label>
-              <input formControlName="digitoVerificacion" type="number" min="0" max="9" placeholder="0-9"
-                [class.border-red-400]="hasError('digitoVerificacion', i)"
-                class="h-9 w-24 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-              @if (hasError('digitoVerificacion', i)) {
-              <span class="text-[11px] text-red-500">{{ getError('digitoVerificacion', i) }}</span>
-              }
-            </div>
-            }
-
-            <!-- Naturaleza Juridica -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">NATURALEZA JURIDICA <span
-                  class="text-red-500">*</span></label>
-              <div class="flex gap-4">
-                @for (n of facade.naturalezasJuridicas(); track n.id) {
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input formControlName="naturalezaJuridicaId" type="radio" [value]="n.id" class="accent-emerald-600">
-                  <span class="text-[13px] font-medium text-slate-800">{{ n.nombre }}</span>
-                </label>
-                }
-              </div>
-              @if (hasError('naturalezaJuridicaId', i)) {
-              <span class="text-[11px] text-red-500">{{ getError('naturalezaJuridicaId', i) }}</span>
-              }
-            </div>
-
-            <!-- Nombre / Razon Social -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">
-                {{ isNatural(i) ? 'NOMBRE COMPLETO' : 'RAZON SOCIAL' }} <span class="text-red-500">*</span>
-              </label>
-              <input formControlName="nombreRazonSocial" type="text"
-                [placeholder]="isNatural(i) ? 'Primer nombre Primer apellido' : 'Razon social de la empresa'"
-                [class.border-red-400]="hasError('nombreRazonSocial', i)"
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-              @if (hasError('nombreRazonSocial', i)) {
-              <span class="text-[11px] text-red-500">{{ getError('nombreRazonSocial', i) }}</span>
-              }
-            </div>
-
-            <!-- Correo y Telefono -->
-            <div class="grid grid-cols-2 gap-4">
-              <div class="flex flex-col gap-1">
-                <label class="text-[11.5px] font-semibold text-slate-700">CORREO ELECTRONICO</label>
-                <input formControlName="correoElectronico" type="email" placeholder="correo@dominio.com"
-                  [class.border-red-400]="hasError('correoElectronico', i)"
-                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                @if (hasError('correoElectronico', i)) {
-                <span class="text-[11px] text-red-500">{{ getError('correoElectronico', i) }}</span>
-                }
-              </div>
-              <div class="flex flex-col gap-1">
-                <label class="text-[11.5px] font-semibold text-slate-700">TELEFONO</label>
-                <input formControlName="telefono" type="tel" placeholder="3001234567"
-                  [class.border-red-400]="hasError('telefono', i)"
-                  class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-                @if (hasError('telefono', i)) {
-                <span class="text-[11px] text-red-500">{{ getError('telefono', i) }}</span>
-                }
-              </div>
-            </div>
-
-            <!-- Direccion -->
-            <div class="flex flex-col gap-1">
-              <label class="text-[11.5px] font-semibold text-slate-700">DIRECCION</label>
-              <input formControlName="direccion" type="text" placeholder="Calle, carrera, vereda..."
-                class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500 disabled:bg-slate-100 disabled:text-slate-600">
-            </div>
-
-
-
-            <!-- Datos de Vinculacion -->
-            <div class="border-t border-slate-100 pt-3 space-y-3">
-              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Datos de Vinculacion</span>
-              <div class="grid grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1">
-                  <label class="text-[11.5px] font-semibold text-slate-700">TIPO DE VINCULO <span
-                      class="text-red-500">*</span></label>
-                  <select formControlName="tipoVinculoPersonaId"
-                    [class.border-red-400]="hasError('tipoVinculoPersonaId', i)"
-                    class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                    <option value="" class="text-slate-500">Seleccione tipo...</option>
-                    @for (v of facade.tiposVinculo(); track v.id) {
-                    <option [value]="v.id" class="text-slate-900">{{ v.nombre }}</option>
-                    }
-                  </select>
-                  @if (hasError('tipoVinculoPersonaId', i)) {
-                  <span class="text-[11px] text-red-500">{{ getError('tipoVinculoPersonaId', i) }}</span>
-                  }
-                </div>
-
-                <div class="flex flex-col gap-1">
-                  <div class="flex items-center justify-between">
-                    <label class="text-[11.5px] font-semibold text-slate-700">% PROPIEDAD <span
-                        class="text-red-500">*</span></label>
-                    @if (calcularPorcentajeRestante() > 0) {
-                    <button type="button" (click)="asignarRestante(i)"
-                      class="text-[10.5px] text-emerald-700 hover:text-emerald-900 font-semibold underline">
-                      Asignar restante ({{ calcularPorcentajeRestante() }}%)
-                    </button>
-                    }
-                  </div>
-                  <input formControlName="porcentajePropiedad" type="number" min="0.01" max="100" step="0.01"
-                    placeholder="100" [class.border-red-400]="hasError('porcentajePropiedad', i)"
-                    class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                  @if (hasError('porcentajePropiedad', i)) {
-                  <span class="text-[11px] text-red-500">{{ getError('porcentajePropiedad', i) }}</span>
-                  }
-                </div>
-              </div>
-
-              <div class="grid grid-cols-2 gap-4">
-                <div class="flex flex-col gap-1">
-                  <label class="text-[11.5px] font-semibold text-slate-700">FECHA DE INICIO <span
-                      class="text-red-500">*</span></label>
-                  <input formControlName="fechaInicio" type="date" [class.border-red-400]="hasError('fechaInicio', i)"
-                    class="h-9 border border-slate-300 rounded-md px-3 text-[13px] font-medium text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500">
-                  @if (hasError('fechaInicio', i)) {
-                  <span class="text-[11px] text-red-500">{{ getError('fechaInicio', i) }}</span>
-                  }
-                </div>
-
-                <div class="flex items-center gap-2 mt-5">
-                  <input type="radio" [id]="'radioPrincipal_' + i" name="radioResponsablePrincipal"
-                    [checked]="pGroup.get('esResponsablePrincipal')?.value" (change)="setResponsablePrincipal(i)"
-                    class="w-4 h-4 accent-emerald-600 cursor-pointer">
-                  <label [for]="'radioPrincipal_' + i"
-                    class="text-[12.5px] font-medium text-slate-800 cursor-pointer select-none">
-                    Designar como responsable principal
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-          }
-        </div>
-
-        @if (calcularPorcentajeRestante() > 0) {
-        <div class="flex justify-center pt-2">
-          <button type="button" (click)="agregarCopropietario()"
-            class="h-9 px-4 rounded-md border border-emerald-600 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-[12.5px] font-semibold transition-colors flex items-center gap-1.5">
-            + Agregar Otro Copropietario (Falta {{ calcularPorcentajeRestante() }}%)
-          </button>
-        </div>
-        }
-        }
-
-        <div class="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-lg shadow-xs space-y-3">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-              <div>
-                <span class="text-[12.5px] font-bold text-slate-800 block">Soporte Documental del Vehículo</span>
-                <span class="text-[11px] text-slate-500">Comprobante de matrícula, factura de compra o acta de traspaso (.pdf, .jpg, .png)</span>
-              </div>
-            </div>
-
-            @if (archivoSubidoNombre()) {
-            <span class="px-2.5 py-1 text-[11px] font-semibold bg-emerald-100 text-emerald-800 rounded-full flex items-center gap-1 border border-emerald-200">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              Anexado
-            </span>
-            }
-          </div>
-
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
-            <input
-              id="file_input_comprobante"
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png"
-              (change)="onFileSelected($event)"
-              [disabled]="subiendoArchivo()"
-              class="block w-full text-xs text-slate-600 bg-white border border-slate-300 rounded-md cursor-pointer shadow-xs focus:outline-none focus:ring-2 focus:ring-emerald-400/40 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed" />
-
-            <div class="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                (click)="uploadDocument()"
-                [disabled]="!selectedFile() || subiendoArchivo()"
-                class="h-9 px-4 rounded-md border border-emerald-600 text-emerald-700 bg-emerald-50 hover:bg-emerald-100 text-[12px] font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
-                @if (subiendoArchivo()) {
-                <svg class="animate-spin h-3.5 w-3.5 text-emerald-700" fill="none" viewBox="0 0 24 24">
-                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                </svg>
-                <span>Subiendo...</span>
-                } @else {
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                <span>Anexar</span>
-                }
-              </button>
-
-              @if (selectedFile() || archivoSubidoNombre()) {
-              <button
-                type="button"
-                (click)="limpiarArchivo()"
-                [disabled]="subiendoArchivo()"
-                class="h-9 px-3 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200 text-[12px] font-medium transition-colors disabled:opacity-50"
-                title="Quitar archivo seleccionado">
-                Limpiar
-              </button>
-              }
-            </div>
-          </div>
-
-          @if (archivoSubidoNombre()) {
-          <div class="text-[11.5px] text-emerald-700 font-medium flex items-center gap-1.5 bg-emerald-50/70 px-3 py-1.5 rounded border border-emerald-200/60">
-            <svg class="w-4 h-4 shrink-0 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span>Archivo subido: <strong>{{ archivoSubidoNombre() }}</strong></span>
-          </div>
-          }
-        </div>
-      </div>
     }
-    @if (facade.activeTab() === 'Observaciones') {
-    <div class="space-y-4">
-      <div class="flex flex-col gap-1">
-        <label class="text-[11.5px] font-semibold text-slate-700">OBSERVACIONES DEL REGISTRO</label>
-        <textarea formControlName="observaciones" rows="6" placeholder="Ingrese observaciones relevantes..."
-          [class.border-red-400]="hasError('observaciones')"
-          class="border border-slate-300 rounded-md px-3 py-2 text-[13px] font-medium text-slate-900 placeholder:text-slate-400 bg-white resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400/40 focus:border-emerald-500"></textarea>
-        <div class="flex justify-between text-[11px] text-slate-400"><span>Campo opcional</span><span>{{
-            (form.get('observaciones')?.value?.length || 0) }} / 1000</span></div>
-        @if (hasError('observaciones')) { <span class="text-[11px] text-red-500">{{ getError('observaciones')
-          }}</span> }
-      </div>
+
+    <!-- CABECERA MODAL: TÍTULO EXPEDIENTE -->
+    <div class="pt-6 pb-2 px-6 text-center shrink-0">
+      <h2 class="text-[22px] sm:text-[24px] font-bold text-[#1b53ad] tracking-tight m-0">
+        {{ facade.isNuevoRegistro() ? 'Expediente ' + (form.get('placa')?.value?.toUpperCase() || 'Nuevo') : ('Expediente ' + (facade.selectedVehiculo()?.placa?.toUpperCase() || '')) }}
+      </h2>
     </div>
-    }
-    </form>
-  </div>
-  <div class="shrink-0 px-6 py-4 border-t border-slate-200 bg-white flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      @for (tab of facade.tabs(); track tab; let i = $index) {
-      <div [class.bg-emerald-500]="facade.currentStep() > i" [class.bg-[#1e3a7b]]="facade.currentStep() === i + 1"
-        [class.bg-slate-200]="facade.currentStep() < i + 1" class="h-1.5 w-10 rounded-full transition-colors"></div>
+
+    <!-- SUBCOMPONENTE: STEPPER NUMÉRICO -->
+    <app-vehiculo-wizard-stepper
+      [currentStep]="facade.currentStep()"
+      [totalSteps]="facade.tabs().length"
+      [isNuevo]="facade.isNuevoRegistro()"
+    />
+
+    <!-- CUERPO PRINCIPAL CON SCROLL INTERNO -->
+    <div class="flex-1 overflow-y-auto px-6 sm:px-8 py-4 bg-white">
+      @if (form) {
+        <form [formGroup]="form" autocomplete="off" novalidate>
+          
+          <!-- PASO 1: DATOS DEL VEHÍCULO -->
+          @if (facade.activeTab() === 'Datos del Vehículo') {
+            <app-vehiculo-wizard-datos
+              [form]="form"
+              [tiposVehiculo]="facade.tiposVehiculo()"
+              [marcasDisponibles]="facade.marcasDisponibles()"
+              [lineasDisponibles]="facade.lineasDisponibles()"
+              [combustibles]="facade.combustibles()"
+              [serviciosVehiculo]="facade.serviciosVehiculo()"
+              [estadosMatricula]="facade.estadosMatricula()"
+              [organismosTransito]="facade.organismosTransito()"
+              [erroresPaso]="erroresPaso()"
+            />
+          }
+
+          <!-- PASO 2: PROPIETARIOS -->
+          @if (facade.activeTab() === 'Propietarios') {
+            <app-vehiculo-wizard-propietario
+              [form]="form"
+              [tiposDocumento]="facade.tiposDocumento()"
+              [departamentos]="facade.departamentos()"
+              [ciudades]="facade.ciudades()"
+              [tiposVinculo]="facade.tiposVinculo()"
+              [propietarioEncontradoMsgs]="propietarioEncontradoMsgs()"
+              [buscandoIndex]="buscandoPropietarioIndex()"
+              [erroresPaso]="erroresPaso()"
+              [selectedFile]="selectedFile()"
+              [subiendoArchivo]="subiendoArchivo()"
+              [archivoSubidoNombre]="archivoSubidoNombre()"
+              (buscar)="buscarPropietario($event)"
+              (limpiar)="limpiarPropietario($event)"
+              (agregarCopropietario)="agregarCopropietario()"
+              (eliminarCopropietario)="eliminarCopropietario($event)"
+              (setResponsablePrincipal)="setResponsablePrincipal($event)"
+              (asignarRestante)="asignarRestante($event)"
+              (fileSelected)="onFileSelected($event)"
+              (uploadDocument)="uploadDocument()"
+            />
+          }
+
+          <!-- PASO 3: OBSERVACIONES -->
+          @if (facade.activeTab() === 'Observaciones') {
+            <app-vehiculo-wizard-observaciones
+              [form]="form"
+              [erroresPaso]="erroresPaso()"
+            />
+          }
+
+          <!-- PASO 4: HISTORIAL (ÚLTIMO) -->
+          @if (facade.activeTab() === 'Historial') {
+            <app-vehiculo-wizard-historial
+              [fechaMatricula]="form.get('fechaMatricula')?.value || ''"
+              [placa]="form.get('placa')?.value || ''"
+            />
+          }
+
+        </form>
       }
-      <span class="text-[11px] text-slate-500 font-medium ml-1">Paso {{ facade.currentStep() }} de {{
-        facade.tabs().length }}</span>
     </div>
-    <div class="flex gap-2">
-      @if (facade.currentStep() > 1) {
-      <button (click)="onAnterior()" type="button"
-        class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-700 bg-white hover:bg-slate-50">←
-        Anterior</button>
-      }
-      <button (click)="facade.cerrarRegistro()" type="button"
-        class="h-9 px-4 rounded-md border border-slate-300 text-[13px] font-medium text-slate-600 bg-white hover:bg-slate-50">Cancelar</button>
-      <button (click)="onSiguiente()" type="button" [disabled]="facade.registroLoading()"
-        class="h-9 px-5 rounded-md bg-emerald-600 text-white text-[13px] font-semibold hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center gap-2">
-        @if (facade.registroLoading()) {
-        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        Guardando...
-        } @else if (facade.currentStep() === facade.tabs().length) {
-        Guardar Registro
-        } @else {
-        Siguiente →
-        }
-      </button>
-    </div>
+
+    <!-- SUBCOMPONENTE: FOOTER CON BOTONES CANCELAR / CONTINUAR -->
+    <app-vehiculo-wizard-footer
+      [isUltimoPaso]="facade.currentStep() === facade.tabs().length"
+      [loading]="facade.registroLoading()"
+      (cancelar)="facade.cerrarRegistro()"
+      (siguiente)="onSiguiente()"
+    />
+
   </div>
-</div>
 </div>
 }

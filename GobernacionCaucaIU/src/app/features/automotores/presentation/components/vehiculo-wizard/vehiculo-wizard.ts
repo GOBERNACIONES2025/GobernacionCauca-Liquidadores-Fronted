@@ -6,7 +6,8 @@ import {
   signal,
   Output,
   EventEmitter,
-  effect
+  effect,
+  untracked
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -22,11 +23,29 @@ import {
   CatalogoCiudad
 } from '../../../domain/models/vehiculo.model';
 import { VehiculosFtpFacade } from '../../../application/facades/vehiculos/vehiculos-ftp.facade';
+import {
+  VehiculoWizardStepperComponent,
+  VehiculoWizardDatosComponent,
+  VehiculoWizardPropietarioComponent,
+  VehiculoWizardHistorialComponent,
+  VehiculoWizardObservacionesComponent,
+  VehiculoWizardFooterComponent
+} from './components';
 
 @Component({
   selector: 'app-vehiculo-wizard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    VehiculoWizardStepperComponent,
+    VehiculoWizardDatosComponent,
+    VehiculoWizardPropietarioComponent,
+    VehiculoWizardHistorialComponent,
+    VehiculoWizardObservacionesComponent,
+    VehiculoWizardFooterComponent
+  ],
   templateUrl: './vehiculo-wizard.html'
 })
 export class VehiculoWizardComponent implements OnInit, OnDestroy {
@@ -67,14 +86,16 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       const sel = this.facade.selectedVehiculo();
 
       if (isOpen) {
-        if (isNuevo) {
-          this.initForm();
-        } else if (sel) {
-          this.initForm();
-          this.poblarParaEdicion(sel);
-        }
+        untracked(() => {
+          if (isNuevo) {
+            this.initForm();
+          } else if (sel) {
+            this.initForm();
+            this.poblarParaEdicion(sel);
+          }
+        });
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Sincroniza selects reactivamente cuando los catalogos se actualicen
     effect(() => {
@@ -86,7 +107,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           this.form.get('servicio')?.setValue(normalized, { emitEvent: false });
         }
       }
-    });
+    }, { allowSignalWrites: true });
 
     effect(() => {
       const combs = this.facade.combustibles();
@@ -97,7 +118,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           this.form.get('combustible')?.setValue(normalized, { emitEvent: false });
         }
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   // ─── Getters para FormArray de Propietarios ──────────────────────────────
@@ -238,6 +259,49 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     return raw;
   }
 
+  private normalizarFechaParaInput(val?: any): string {
+    if (!val) return '';
+    try {
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        const matchIso = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+        if (matchIso) return matchIso[1];
+
+        const matchSlash = trimmed.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (matchSlash) {
+          const day = matchSlash[1].padStart(2, '0');
+          const month = matchSlash[2].padStart(2, '0');
+          const year = matchSlash[3];
+          return `${year}-${month}-${day}`;
+        }
+      }
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+    } catch {}
+    return '';
+  }
+
+  private extraerFechaMatricula(item: any): string {
+    if (!item) return '';
+    const raw = item.fechaMatricula ??
+      item.fecha_matricula ??
+      item.fecha_Matricula ??
+      item.FechaMatricula ??
+      item.fechaRegistro ??
+      item.fecha_registro ??
+      item.FechaRegistro ??
+      item.fechaExpedicion ??
+      item.fecha_expedicion ??
+      item.FechaExpedicion;
+
+    return this.normalizarFechaParaInput(raw);
+  }
+
   // ─── Ciclo de vida ────────────────────────────────────────────────────────
   ngOnInit(): void {
     if (!this.form) {
@@ -344,8 +408,10 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
 
   setResponsablePrincipal(index: number): void {
     this.propietariosArray.controls.forEach((control, i) => {
-      control.get('esResponsablePrincipal')?.setValue(i === index, { emitEvent: false });
+      control.get('esResponsablePrincipal')?.setValue(i === index);
+      control.get('esResponsablePrincipal')?.markAsDirty();
     });
+    this.form.updateValueAndValidity();
   }
 
   calcularPorcentajeTotal(): number {
@@ -432,6 +498,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
     const lineaInicial = v.linea || '';
     const combustibleInicial = this.normalizarCombustible(v.tipoCombustible || v.combustible);
     const servicioInicial = this.normalizarServicio(v.servicio || (v as any).tipoServicio);
+    const fechaMatriculaInicial = this.extraerFechaMatricula(v);
 
     this.form.get('marca')!.enable({ emitEvent: false });
     this.form.get('linea')!.enable({ emitEvent: false });
@@ -451,7 +518,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       cilindraje: v.cilindraje,
       pasajeros: v.pasajeros || 5,
       organismoTransitoId: v.organismoTransitoId ? Number(v.organismoTransitoId) : null,
-      fechaMatricula: v.fechaMatricula || '',
+      fechaMatricula: fechaMatriculaInicial,
       incluirPropietario: true
     }, { emitEvent: false });
 
@@ -468,6 +535,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
           const tipoVeh = veh.tipoVehiculo || veh.clase || tipoInicial;
           const combVeh = this.normalizarCombustible(veh.combustible || veh.tipoCombustible || combustibleInicial);
           const servVeh = this.normalizarServicio(veh.servicio || (veh as any).tipoServicio || v.servicio || (v as any).tipoServicio);
+          const fechaVeh = this.extraerFechaMatricula(veh) || fechaMatriculaInicial;
 
           if (tipoVeh) this.facade.cargarMarcasPorTipo(tipoVeh);
           if (veh.marca) this.facade.cargarLineasPorMarca(veh.marca, tipoVeh);
@@ -483,7 +551,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
             cilindraje: veh.cilindraje || v.cilindraje,
             pasajeros: veh.pasajeros || v.pasajeros || 5,
             organismoTransitoId: veh.organismoTransitoId ? Number(veh.organismoTransitoId) : (v.organismoTransitoId ? Number(v.organismoTransitoId) : null),
-            fechaMatricula: veh.fechaMatricula || v.fechaMatricula || ''
+            fechaMatricula: fechaVeh
           }, { emitEvent: false });
         }
 
@@ -743,6 +811,8 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       });
     }
 
+    const fechaMatriculaNorm = this.normalizarFechaParaInput(val.fechaMatricula) || undefined;
+
     return {
       placa: String(val.placa).trim().toUpperCase(),
       estadoMatriculaId: Number(val.estadoMatriculaId) || 1,
@@ -757,7 +827,7 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       pasajeros: val.pasajeros ? Number(val.pasajeros) : undefined,
       organismoTransitoId: val.organismoTransitoId && Number(val.organismoTransitoId) > 0
         ? Number(val.organismoTransitoId) : undefined,
-      fechaMatricula: val.fechaMatricula ? String(val.fechaMatricula).trim() : undefined,
+      fechaMatricula: fechaMatriculaNorm,
       propietarios: listaPropietariosDto.length > 0 ? listaPropietariosDto : undefined,
       propietarioInicial: listaPropietariosDto.length > 0 ? listaPropietariosDto[0] : null
     };
@@ -817,6 +887,8 @@ export class VehiculoWizardComponent implements OnInit, OnDestroy {
       estadoMatriculaId: payload.estadoMatriculaId,
       organismoTransitoId: payload.organismoTransitoId,
       fechaMatricula: payload.fechaMatricula,
+      fecha_matricula: payload.fechaMatricula,
+      FechaMatricula: payload.fechaMatricula,
       propietarioNombre: principalProp?.razonSocial || [principalProp?.primerNombre, principalProp?.primerApellido].filter(Boolean).join(' ') || undefined,
       propietarioDocumento: principalProp?.numeroDocumento || undefined,
       tipoVinculoPersonaId: principalProp?.tipoVinculoPersonaId || 1,

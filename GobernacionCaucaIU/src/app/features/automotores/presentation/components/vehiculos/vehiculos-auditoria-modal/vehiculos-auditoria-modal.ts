@@ -135,6 +135,7 @@ export class VehiculosAuditoriaModalComponent implements OnInit {
     this.errores.set([]);
 
     const val = this.editForm.getRawValue();
+    const fechaMatricula = this.vehiculo.fechaMatricula || this.vehiculo.fecha_matricula || undefined;
     const updatePayload = {
       marca: String(val.marca).trim(),
       linea: String(val.linea).trim(),
@@ -146,6 +147,9 @@ export class VehiculosAuditoriaModalComponent implements OnInit {
       servicio: String(val.servicio || 'Particular').trim(),
       pasajeros: Number(val.pasajeros || 5),
       organismoTransito: String(val.organismoTransito || 'Popayán - Cauca').trim(),
+      fechaMatricula: fechaMatricula,
+      fecha_matricula: fechaMatricula,
+      FechaMatricula: fechaMatricula,
       propietarioNombre: String(val.propietarioNombre || '').trim(),
       propietarioDocumento: String(val.propietarioDocumento || '').trim(),
       tipoVinculoPersonaId: Number(val.tipoVinculoPersonaId || 1),

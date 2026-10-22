@@ -1,7 +1,7 @@
 <!-- MODAL DE LIQUIDACIÓN MASIVA -->
 @if (facade.isModalMasivoOpen()) {
   <div class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-[95vw] max-h-[90vh] flex flex-col overflow-hidden border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
 
       <!-- HEADER DEL MODAL -->
       <div class="bg-[#1e3a7b] text-white p-5 flex items-center justify-between flex-shrink-0">
@@ -59,7 +59,7 @@
             <div class="text-xs text-blue-950 flex-1">
               <div class="flex items-center justify-between mb-1">
                 <p class="font-extrabold text-blue-900 m-0 text-xs flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Resumen de Pre-Revisión del Lote Masivo:</p>
-                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 uppercase">
+                <span class="inline-flex items-center rounded-xl px-2 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 border border-blue-300 uppercase">
                   En Revisión
                 </span>
               </div>
@@ -189,14 +189,14 @@
                                   <td class="py-2 px-2.5 text-right font-bold text-blue-900">${{ (v.derechossistematizacion || v.derechosSistematizacion || 0) | number:'1.0-0' }}</td>
                                   <td class="py-2 px-2.5 text-right font-extrabold text-slate-900 text-xs">${{ v.totalVigencia | number:'1.0-0' }}</td>
                                   <td class="py-2 px-2.5 text-center">
-                                    <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-red-100 text-red-800">EN MORA</span>
+                                    <span class="inline-flex rounded-xl px-2 py-0.5 text-[9.5px] font-bold bg-red-100 text-red-800">EN MORA</span>
                                   </td>
                                 } @else {
                                   <td colspan="8" class="py-2 px-2.5 text-center text-amber-800 font-bold italic text-[10.5px]">
                                     <i class="fa-solid fa-ban text-amber-700 mr-1"></i> NO LIQUIDABLE (Faltan Parámetros/Avalúos en BD)
                                   </td>
                                   <td class="py-2 px-2.5 text-center">
-                                    <span class="inline-flex rounded-full px-2 py-0.5 text-[9.5px] font-bold bg-amber-100 text-amber-900 border border-amber-300">SIN DATOS BD</span>
+                                    <span class="inline-flex rounded-xl px-2 py-0.5 text-[9.5px] font-bold bg-amber-100 text-amber-900 border border-amber-300">SIN DATOS BD</span>
                                   </td>
                                 }
                               </tr>

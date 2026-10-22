@@ -7,10 +7,12 @@ import { TipoReporte } from '../../../domain/models/reporte.model';
 import { VehiculoItemDto } from '../../../domain/interfaces/vehiculo.interface';
 import { PropietarioDto } from '../../../domain/interfaces/propietario.interface';
 
+import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
+
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, BreadcrumbComponent],
   templateUrl: './reportes.html',
   styleUrls: ['./reportes.css']
 })

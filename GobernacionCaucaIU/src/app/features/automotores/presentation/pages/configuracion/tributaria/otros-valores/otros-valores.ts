@@ -22,8 +22,10 @@ export class OtrosValoresPage implements OnInit {
   readonly isEditMode = signal<boolean>(false);
   readonly selectedItem = signal<OtroValorDto | null>(null);
   readonly itemParaEliminar = signal<OtroValorDto | null>(null);
+  searchTermLocal: string = '';
 
   ngOnInit(): void {
+    this.searchTermLocal = this.facade.searchTerm();
     this.form = this.fb.group({
       id: [0],
       vigenciaFiscalId: [null, [Validators.required]],
@@ -33,8 +35,8 @@ export class OtrosValoresPage implements OnInit {
     });
   }
 
-  onSearch(term: string): void {
-    this.facade.searchTerm.set(term);
+  onSearch(): void {
+    this.facade.searchTerm.set(this.searchTermLocal.trim());
     this.facade.pageNumber.set(1);
     this.facade.cargar();
   }

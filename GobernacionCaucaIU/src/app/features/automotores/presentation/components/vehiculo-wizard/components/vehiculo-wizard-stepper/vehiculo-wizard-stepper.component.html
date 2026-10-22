@@ -1,0 +1,84 @@
+<div class="px-6 sm:px-10 py-3 shrink-0">
+  <div class="flex items-start justify-between relative max-w-[480px] mx-auto">
+    
+    <!-- STEP 01: DATOS DEL VEHÍCULO -->
+    <div class="flex-1 flex flex-col items-center relative">
+      <span class="text-[14.5px] font-bold text-slate-800 mb-1">01</span>
+      <div class="w-full relative flex items-center justify-center">
+        <!-- Línea conectada hacia el paso 2 -->
+        <div class="absolute left-1/2 w-full h-[2px] z-0 transition-colors duration-200"
+             [ngClass]="currentStep >= 2 ? 'bg-[#1b53ad]' : 'bg-slate-200'"></div>
+        <!-- Círculo -->
+        <div class="w-7 h-7 rounded-full flex items-center justify-center relative z-10 transition-all shadow-2xs"
+             [ngClass]="currentStep >= 1 ? 'bg-[#1b53ad] text-white' : 'border-2 border-slate-300 bg-white text-slate-400'">
+          <i class="fa-solid fa-check text-[15px]"></i>
+        </div>
+      </div>
+      <span class="text-[10.5px] mt-1.5 whitespace-nowrap text-center leading-tight font-normal"
+            [ngClass]="currentStep === 1 ? 'text-[#1b53ad]' : 'text-slate-500'">
+        Datos del vehículo
+      </span>
+    </div>
+
+    <!-- STEP 02: PROPIETARIO -->
+    <div class="flex-1 flex flex-col items-center relative">
+      <span class="text-[14.5px] font-bold text-slate-800 mb-1">02</span>
+      <div class="w-full relative flex items-center justify-center">
+        <!-- Línea conectada hacia el paso 3 -->
+        <div class="absolute left-1/2 w-full h-[2px] z-0 transition-colors duration-200"
+             [ngClass]="currentStep >= 3 ? 'bg-[#1b53ad]' : 'bg-slate-200'"></div>
+        <!-- Círculo -->
+        <div class="w-7 h-7 rounded-full flex items-center justify-center relative z-10 transition-all shadow-2xs"
+             [ngClass]="currentStep >= 2 ? 'bg-[#1b53ad] text-white' : 'border-2 border-slate-300 bg-white text-transparent'">
+          @if (currentStep >= 2) {
+            <i class="fa-solid fa-check text-[15px]"></i>
+          }
+        </div>
+      </div>
+      <span class="text-[10.5px] mt-1.5 whitespace-nowrap text-center leading-tight font-normal"
+            [ngClass]="currentStep === 2 ? 'text-[#1b53ad]' : 'text-slate-500'">
+        Propietario
+      </span>
+    </div>
+
+    <!-- STEP 03: OBSERVACIONES -->
+    <div class="flex-1 flex flex-col items-center relative">
+      <span class="text-[14.5px] font-bold text-slate-800 mb-1">03</span>
+      <div class="w-full relative flex items-center justify-center">
+        <!-- Línea conectada hacia el paso 4 -->
+        <div class="absolute left-1/2 w-full h-[2px] z-0 transition-colors duration-200"
+             [ngClass]="currentStep >= 4 ? 'bg-[#1b53ad]' : 'bg-slate-200'"></div>
+        <!-- Círculo -->
+        <div class="w-7 h-7 rounded-full flex items-center justify-center relative z-10 transition-all shadow-2xs"
+             [ngClass]="currentStep >= 3 ? 'bg-[#1b53ad] text-white' : 'border-2 border-slate-300 bg-white text-transparent'">
+          @if (currentStep >= 3) {
+            <i class="fa-solid fa-check text-[15px]"></i>
+          }
+        </div>
+      </div>
+      <span class="text-[10.5px] mt-1.5 whitespace-nowrap text-center leading-tight font-normal"
+            [ngClass]="currentStep === 3 ? 'text-[#1b53ad]' : 'text-slate-500'">
+        Observaciones
+      </span>
+    </div>
+
+    <!-- STEP 04: HISTORIAL (ÚLTIMO) -->
+    <div class="flex-1 flex flex-col items-center relative">
+      <span class="text-[14.5px] font-bold text-slate-800 mb-1">04</span>
+      <div class="w-full relative flex items-center justify-center">
+        <!-- Círculo final -->
+        <div class="w-7 h-7 rounded-full flex items-center justify-center relative z-10 transition-all shadow-2xs"
+             [ngClass]="currentStep >= 4 ? 'bg-[#1b53ad] text-white' : 'border-2 border-slate-300 bg-white text-transparent'">
+          @if (currentStep >= 4) {
+            <i class="fa-solid fa-check text-[15px]"></i>
+          }
+        </div>
+      </div>
+      <span class="text-[10.5px] mt-1.5 whitespace-nowrap text-center leading-tight font-normal"
+            [ngClass]="currentStep === 4 ? 'text-[#1b53ad]' : 'text-slate-500'">
+        Historial
+      </span>
+    </div>
+
+  </div>
+</div>

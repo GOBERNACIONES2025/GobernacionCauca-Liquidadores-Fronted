@@ -69,6 +69,17 @@ export class BaseApiService {
   }
 
   /**
+   * Peticion GET para obtener datos binarios (Blob).
+   */
+  getBlob(endpoint: string, options?: HttpOptions, targetModule?: TaxModuleType): Observable<Blob> {
+    const url = this.buildUrl(endpoint, targetModule);
+    return this.http.get(url, {
+      ...this.formatOptions(options),
+      responseType: 'blob',
+    }) as unknown as Observable<Blob>;
+  }
+
+  /**
    * Formatea las opciones HTTP (parametros de consulta, headers, etc.)
    */
   private formatOptions(options?: HttpOptions): any {
